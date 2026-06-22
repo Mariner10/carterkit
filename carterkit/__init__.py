@@ -23,7 +23,11 @@ from . import bind
 from .controls import build, control
 from .layout import Layout
 
-__version__ = "0.2.0"
+try:
+    from importlib.metadata import PackageNotFoundError, version as _pkg_version
+    __version__ = _pkg_version("carterkit")          # single source of truth: pyproject
+except (ImportError, PackageNotFoundError):            # source tree without an install
+    __version__ = "0+unknown"
 
 #: The layout/wire protocol version carterkit emits and understands. The JSON
 #: contract — not this Python API — is the real compatibility boundary across the
