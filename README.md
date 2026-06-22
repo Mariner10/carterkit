@@ -28,22 +28,39 @@ carterkit.examples("button")    # documented example snippets
 
 ## Build a layout
 
+Use **typed builders** (`build.<control>`) and **binding helpers** (`bind`) — both
+generated from / shaped by the bundled docs, so unknown control types and bad enum
+values raise instead of silently shipping a broken layout:
+
 ```python
-from carterkit import LayoutBuffer, validate_layout
+import carterkit
+from carterkit import LayoutBuffer, build, bind, validate_layout
 
 b = LayoutBuffer.blank(name="Dashboard", columns=4, rows=4)
-b.add_control({"type": "gauge", "id": "cpu", "label": "CPU", "min": 0, "max": 100},
+b.add_control(build.gauge(id="cpu", label="CPU", min=0, max=100,
+                          sync=[bind.listen("cpu", filter={"msg_type": "metrics"})]),
               default_span=[2, 2])
-b.add_control({"type": "button", "id": "refresh", "label": "Refresh"})
+b.add_control(build.button(id="refresh", label="Refresh",
+                           action=bind.action("refresh")))
 
-layout = b.layout
-findings = validate_layout(layout)      # schema + grid lint against the bundled catalog
-print(carterkit.format_findings(findings))
+print(carterkit.format_findings(validate_layout(b.layout)))   # schema + grid lint
+help(build.gauge)        # ← prints the gauge documentation, straight from the docs
 ```
 
 `infer.build_layout(payload)` generates a wired layout from a sample telemetry dict;
 `codegen.generate_service_stub(layout)` emits a runnable MeshSocket server skeleton;
 `theming.theme_for(...)` and `tune.tune_gauge(...)` round out the authoring tools.
+
+## CLI
+
+```bash
+carterkit catalog                 # list every control type
+carterkit doc gauge               # print a control's documentation
+carterkit examples button         # list a control's examples (--name to print one)
+carterkit validate layout.json    # lint a layout (exit 1 on errors)
+carterkit gen layout.json         # generate a MeshSocket service stub
+carterkit relay --port 8765       # run the bundled MeshSocket relay
+```
 
 ## Drive a device
 

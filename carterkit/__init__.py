@@ -19,8 +19,10 @@ from . import catalog, grid, codegen, infer, theming, tune
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import CarterClient, notify_http, CarterNotifyError
+from . import bind
+from .controls import build, control
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 #: The layout/wire protocol version carterkit emits and understands. The JSON
 #: contract — not this Python API — is the real compatibility boundary across the
@@ -65,5 +67,6 @@ __all__ = [
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "format_findings", "controldocs_dir",
+    "build", "control", "bind",
     "catalog", "grid", "codegen", "infer", "theming", "tune",
 ]

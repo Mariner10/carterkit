@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carterkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,8 +30,11 @@ classifiers = [
 Homepage = "https://github.com/Mariner10/carterkit"
 Repository = "https://github.com/Mariner10/carterkit"
 
+[project.scripts]
+carterkit = "carterkit.cli:main"
+
 [tool.setuptools]
 packages = ["carterkit"]
 
 [tool.setuptools.package-data]
-carterkit = ["controldocs/*.md"]
+carterkit = ["controldocs/*.md", "py.typed"]
