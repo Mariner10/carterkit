@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carterkit"
+version = "0.1.0"
+description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Carter Beaudoin" }]
+keywords = ["car-ter", "carter", "iot", "dashboard", "remote", "meshsocket", "layout"]
+dependencies = [
+    "meshsocket>=0.1",
+    "cryptography>=42",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Framework :: AsyncIO",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/Mariner10/carterkit"
+Repository = "https://github.com/Mariner10/carterkit"
+
+[tool.setuptools]
+packages = ["carterkit"]
+
+[tool.setuptools.package-data]
+carterkit = ["controldocs/*.md"]
