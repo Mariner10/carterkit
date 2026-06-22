@@ -7,21 +7,24 @@ renders. So the docs never drift from the definitions; they are one and the same
 
 Quick map:
   - ``controls()`` / ``doc()`` / ``examples()`` — the docs-as-catalog surface
+  - ``Layout`` / ``Fragment`` — the flat builder: controls as methods, live handles,
+    context-manager tabs/groups (``declare.Screen`` is the declarative-class veneer)
   - ``LayoutBuffer`` — incrementally build a layout (auto-placement, dedupe)
   - ``validate_layout()`` — schema + grid lint against the bundled catalog
+  - ``lint_dynamic_traffic()`` — check ``dynamic=`` groups against observed broadcasts
   - ``infer`` / ``codegen`` / ``theming`` / ``tune`` — generate layouts, servers, themes
   - ``CarterClient`` / ``notify_http`` — connect over MeshSocket, push, send alerts
 """
 from importlib.resources import files
 from pathlib import Path
 
-from . import catalog, grid, codegen, infer, theming, tune
+from . import catalog, grid, codegen, infer, theming, tune, dynamic
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import CarterClient, notify_http, CarterNotifyError
 from . import bind
 from .controls import build, control
-from .layout import Layout
+from .layout import Layout, Fragment, Control, Condition
 
 try:
     from importlib.metadata import PackageNotFoundError, version as _pkg_version
@@ -66,12 +69,18 @@ def validate_layout(layout: dict, catalog_: dict = None) -> list:
     return _validate_layout(layout, catalog_ if catalog_ is not None else controls(include_theme=True))
 
 
+def lint_dynamic_traffic(layout: dict, observed, catalog_: dict = None) -> list:
+    """Lint a layout's `dynamic=` groups against observed broadcast payloads. Returns
+    `validate`-style findings (see `dynamic.lint_dynamic_traffic`)."""
+    return dynamic.lint_dynamic_traffic(layout, observed, catalog=catalog_)
+
+
 __all__ = [
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
-    "format_findings", "controldocs_dir",
-    "build", "control", "bind", "Layout",
-    "catalog", "grid", "codegen", "infer", "theming", "tune",
+    "lint_dynamic_traffic", "format_findings", "controldocs_dir",
+    "build", "control", "bind", "Layout", "Fragment", "Control", "Condition",
+    "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
 ]

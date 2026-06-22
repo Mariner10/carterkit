@@ -28,25 +28,70 @@ carterkit.examples("button")    # documented example snippets
 
 ## Build a layout
 
-The fluent `Layout` builder composes **typed builders** (`build.<control>`) and
-**binding helpers** (`bind`) — all generated from / shaped by the bundled docs, so
-unknown control types and bad enum values raise instead of silently shipping a broken
-layout:
+Controls are **methods on the layout**, ids are positional, tabs and groups are context
+managers, and bindings fold into kwargs. Each control method returns a **handle** you can
+use as a binding target or patch later. Unknown control types and bad enum values raise
+instead of silently shipping a broken layout:
 
 ```python
-from carterkit import Layout, build, bind
+from carterkit import Layout
 
-lay = (Layout("Dashboard", columns=4, rows=4)
-       .connect("ws://192.168.1.50:8765", channel="home")
-       .tab("Main", icon="gauge")
-       .add(build.gauge(id="cpu", label="CPU", min=0, max=100,
-                        sync=[bind.listen("cpu", filter={"msg_type": "metrics"})]),
-            default_span=[2, 2])
-       .add(build.button(id="refresh", label="Refresh", action=bind.action("refresh"))))
+with Layout("Dashboard", cols=4, rows=4) as ui:
+    ui.connect("ws://192.168.1.50:8765", channel="home")
+    with ui.tab("Main", icon="gauge"):
+        cpu = ui.gauge("cpu", label="CPU", min=0, max=100, span=(2, 2),
+                       listen="cpu", when={"msg_type": "metrics"})
+        ui.status_light("warn", visible=cpu > 90)      # handle → visibility condition
+        ui.button("refresh", label="Refresh", send="refresh", request=True)
 
-print(lay.findings())    # schema + grid + binding lint against the bundled catalog
-help(build.gauge)        # ← prints the gauge documentation, straight from the docs
-layout = lay.layout      # the composed dict, ready to push/save
+print(ui.findings())        # schema + grid + binding lint against the bundled catalog
+ui.save("dashboard.json")   # the composed layout, ready to push/load
+```
+
+Binding sugar: `listen=`/`when=`/`event=` build a `sync`, and `send=`/`request=`/`payload=`
+build an `action`; pass `sync=[...]`/`action={...}` (via `carterkit.bind`) for anything
+fancier. A handle comparison (`cpu > 90`) becomes a real visibility condition; `==`/`!=`
+stay normal Python, so use `.eq()`/`.neq()`. `help(carterkit.build.gauge)` prints any
+control's documentation, straight from the bundled docs.
+
+**Prefer a declarative style?** A class veneer compiles to the *same* layout — ids come
+from attribute names, tabs/groups are nested classes (great for fixed dashboards; the flat
+builder reads better for generated ones):
+
+```python
+from carterkit.declare import Screen, Tab, Connect, Gauge, Button, StatusLight
+
+class Dashboard(Screen, cols=4, rows=4):
+    relay = Connect("ws://192.168.1.50:8765", channel="home")
+    class Main(Tab, icon="gauge"):
+        cpu  = Gauge(label="CPU", min=0, max=100, span=(2, 2), listen="cpu")
+        warn = StatusLight(visible=cpu > 90)
+        refresh = Button(label="Refresh", send="refresh", request=True)
+
+Dashboard.save("dashboard.json")
+```
+
+### Dynamic groups
+
+Generate controls in `for`/`if` loops (auto-placed in the group's own grid), or mark a
+group `dynamic="event"` and replace its children live at runtime. Build that replacement
+payload with `Fragment`, then lint it against the broadcasts your server actually emits —
+catching events that never arrive, missing `children` arrays, and off-grid/invalid
+injected controls before they ship:
+
+```python
+import carterkit
+from carterkit import Fragment
+
+ui.group("Now Playing", span=(3, 4), cols=4, rows=3, dynamic="player_state")
+
+frag = Fragment(cols=4, rows=3)
+frag.label("title", text="Song", span=(1, 4))
+frag.button("play", label="Play", send="play")
+# your server broadcasts frag.payload("player_state") == {"msg_type": ..., "children": [...]}
+
+print(carterkit.format_findings(
+    carterkit.lint_dynamic_traffic(ui.layout, [frag.payload("player_state")])))
 ```
 
 Prefer surgical edits? `LayoutBuffer` gives `add_control` / `update_control` / `move_control`
