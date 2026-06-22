@@ -133,9 +133,9 @@ Tap any node in the graph to explore the full documentation for each control typ
 
 1. **Explore the docs** — tap nodes in the graph to learn about each control
 2. **Write a layout** — create a JSON file following the [[layout-config]] schema
-3. **Run a server** — start a MeshSocket server to handle events
+3. **Run a server** — drive your layout from Python with `pip install carterkit`, or
+   speak the MeshSocket protocol directly from any language
 4. **Connect** — load your layout and watch it come alive
 
-The full MeshSocket server implementation and protocol documentation is available on GitHub:
-
-[github.com/carterbeaudoin/MeshSocket](https://github.com/carterbeaudoin/MeshSocket)
+Full developer docs — building servers, the wire protocol, and the `carterkit`
+library — live at **carterbeaudoin.net/CAR-TER**.
