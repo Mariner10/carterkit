@@ -21,6 +21,7 @@ from .validate import validate_layout as _validate_layout, format_findings
 from .client import CarterClient, notify_http, CarterNotifyError
 from . import bind
 from .controls import build, control
+from .layout import Layout
 
 __version__ = "0.2.0"
 
@@ -67,6 +68,6 @@ __all__ = [
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "format_findings", "controldocs_dir",
-    "build", "control", "bind",
+    "build", "control", "bind", "Layout",
     "catalog", "grid", "codegen", "infer", "theming", "tune",
 ]

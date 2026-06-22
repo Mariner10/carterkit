@@ -136,3 +136,11 @@ class CarterClient:
 
     async def close(self):
         await self._sock.stop()
+
+    async def __aenter__(self):
+        await self.connect()
+        return self
+
+    async def __aexit__(self, *exc):
+        await self.close()
+        return False

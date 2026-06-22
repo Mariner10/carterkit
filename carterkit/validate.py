@@ -116,6 +116,26 @@ def _validate_child(ch, catalog, where, findings, seen_ids):
             if v not in fd["values"]:
                 findings.append(_f("error", "bad_enum", spot,
                                    f"{ctype}.{k} = '{v}' is not one of {fd['values']}"))
+    _validate_bindings(ch, ctype, spot, findings)
+
+
+def _validate_bindings(ch, ctype, spot, findings):
+    """Shape-check the data bindings: every `sync` entry needs a `valuePath`, and
+    `action`/`longPressAction` need an `event` (else they silently do nothing)."""
+    sync = ch.get("sync")
+    if sync is not None:
+        if not isinstance(sync, list):
+            findings.append(_f("warn", "bad_sync", spot, f"{ctype}.sync should be a list"))
+        else:
+            for i, s in enumerate(sync):
+                if not isinstance(s, dict) or not s.get("valuePath"):
+                    findings.append(_f("warn", "bad_sync", spot,
+                                       f"{ctype}.sync[{i}] is missing a 'valuePath'"))
+    for akey in ("action", "longPressAction"):
+        a = ch.get(akey)
+        if a is not None and (not isinstance(a, dict) or not a.get("event")):
+            findings.append(_f("error", "bad_action", spot,
+                               f"{ctype}.{akey} is missing an 'event'"))
 
 
 def format_findings(findings: list[dict]) -> str:

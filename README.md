@@ -28,24 +28,29 @@ carterkit.examples("button")    # documented example snippets
 
 ## Build a layout
 
-Use **typed builders** (`build.<control>`) and **binding helpers** (`bind`) — both
-generated from / shaped by the bundled docs, so unknown control types and bad enum
-values raise instead of silently shipping a broken layout:
+The fluent `Layout` builder composes **typed builders** (`build.<control>`) and
+**binding helpers** (`bind`) — all generated from / shaped by the bundled docs, so
+unknown control types and bad enum values raise instead of silently shipping a broken
+layout:
 
 ```python
-import carterkit
-from carterkit import LayoutBuffer, build, bind, validate_layout
+from carterkit import Layout, build, bind
 
-b = LayoutBuffer.blank(name="Dashboard", columns=4, rows=4)
-b.add_control(build.gauge(id="cpu", label="CPU", min=0, max=100,
-                          sync=[bind.listen("cpu", filter={"msg_type": "metrics"})]),
-              default_span=[2, 2])
-b.add_control(build.button(id="refresh", label="Refresh",
-                           action=bind.action("refresh")))
+lay = (Layout("Dashboard", columns=4, rows=4)
+       .connect("ws://192.168.1.50:8765", channel="home")
+       .tab("Main", icon="gauge")
+       .add(build.gauge(id="cpu", label="CPU", min=0, max=100,
+                        sync=[bind.listen("cpu", filter={"msg_type": "metrics"})]),
+            default_span=[2, 2])
+       .add(build.button(id="refresh", label="Refresh", action=bind.action("refresh"))))
 
-print(carterkit.format_findings(validate_layout(b.layout)))   # schema + grid lint
+print(lay.findings())    # schema + grid + binding lint against the bundled catalog
 help(build.gauge)        # ← prints the gauge documentation, straight from the docs
+layout = lay.layout      # the composed dict, ready to push/save
 ```
+
+Prefer surgical edits? `LayoutBuffer` gives `add_control` / `update_control` / `move_control`
+over a held draft; `lay.buffer` exposes it.
 
 `infer.build_layout(payload)` generates a wired layout from a sample telemetry dict;
 `codegen.generate_service_stub(layout)` emits a runnable MeshSocket server skeleton;
@@ -69,13 +74,12 @@ import asyncio
 from carterkit import CarterClient
 
 async def main():
-    c = CarterClient(gateway_url="ws://localhost:18080", token="<mesh token>",
-                     channel="home", role="device", name="my-hub")
-    c.on("toggle", lambda d: {"ok": True, **d})
-    await c.connect()
-    await c.broadcast("reading", {"temp_c": 21.4})
-    await asyncio.sleep(60)
-    await c.close()
+    async with CarterClient(gateway_url="ws://localhost:18080", token="<mesh token>",
+                            channel="home", role="device", name="my-hub") as c:
+        c.on("toggle", lambda d: {"ok": True, **d})
+        await c.broadcast("reading", {"temp_c": 21.4})
+        await asyncio.sleep(60)
+    # leaving the `async with` disconnects automatically
 
 asyncio.run(main())
 ```
