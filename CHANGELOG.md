@@ -3,6 +3,20 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — 2026-06-24
+
+Grid authoring now expresses the app's 2-D grid model. Backward compatible.
+
+### Added
+- `tab()`, `group()`, and `LayoutBuffer.add_tab()` accept **`mode`** (`"grid"` /
+  `"flow"`) and **`row_height`**, emitted into the grid dict. The app renders a true
+  2-D grid by default (controls span `row × col`); `mode="flow"` opts a tab/group
+  into the legacy row-banded layout for forms and full-page content.
+
+### Changed
+- Re-vendored ControlDocs: new **grid-dimensions** doc (the grid model), `hideValue`
+  on ring/gauge, and the `carterbeaudoin.net` domain fix.
+
 ## [0.4.0] — 2026-06-22
 
 Reworked layout authoring around a flat builder with live handles, added a declarative
