@@ -28,6 +28,10 @@ fields:
   - name: icon
     type: string
     description: SF Symbol in center (ring only)
+  - name: hideValue
+    type: bool
+    default: false
+    description: Show just the arc — hide the center value
 themeFields:
   - name: cornerRadius
     type: number
@@ -85,11 +89,15 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | string | `"#667eea"` | Fill color |
 | `label` | string | — | Center text (ring) or header text (bar) |
 | `icon` | string | — | SF Symbol in center (ring only) |
+| `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
 
 ## Styles
 
 ### `"ring"` (default)
-Circular progress ring with percentage and optional label/icon in the center. Square aspect ratio.
+Circular progress ring with percentage and optional label/icon in the center. The
+stroke, number, icon, and label all scale to the ring's size, so a small cell stays
+tight and a large one reads bold. Square aspect (1:1) — give it ~3 `rowSpan` in a
+2-D grid. Set `hideValue` (and `hideBackground`) for a bare ring glyph. See [[grid-dimensions]].
 
 ### `"bar"`
 Linear progress bar (thin horizontal bar). Header shows label and percentage.

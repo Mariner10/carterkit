@@ -19,8 +19,8 @@ Every control — regardless of type — shares the same base fields. A control 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `span` | [rows, cols] | `[1, 1]` | Grid cells occupied (column width; **row count is advisory** — see `controlHeight`) |
-| `controlHeight` | number | — | Explicit rendered height in points. The grid lays controls out as natural-height rows, so tall controls (`map`, `list`, `graph`, `sparkline`) need this to claim vertical space. Opt-in: omit to keep the control's intrinsic height. |
+| `span` | [rowSpan, colSpan] | `[1, 1]` | Grid cells occupied. `colSpan` sets width; in a 2-D grid `rowSpan` sets height (`rowSpan × rowHeight`). Make a control bigger by spanning more cells. See [[grid-dimensions]]. |
+| `controlHeight` | number | — | **Override** the grid-derived height with an exact point value. Rarely needed: in a 2-D grid the cell (`rowSpan × rowHeight`) is the height, and in a `flow` grid shaped controls auto-size to their aspect. Use it to pin a height the grid wouldn't otherwise give. See [[grid-dimensions]]. |
 | `label` | string | — | Display label for the control |
 | `defaultValue` | bool/number/string | — | Initial value before sync |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on interaction |
@@ -40,7 +40,8 @@ Every control — regardless of type — shares the same base fields. A control 
 | `tint` | string | `"#667eea"` | Hex color for accents |
 | `style` | string | varies | Style variant (per control type) |
 | `hideLabel` | bool | `false` | Suppress the label |
-| `hideBackground` | bool | `false` | Remove the glass card background |
+| `hideValue` | bool | `false` | Hide the numeric readout (e.g. a ring/gauge's center value) so the control becomes a pure compact visual that scales to fill its cell |
+| `hideBackground` | bool | `false` | Remove the glass card behind the control — it floats on the page and fills its cell. Pairs with `hideValue` for a minimal glyph |
 | `formatValue` | string | — | Number formatter for displayed values (see below) |
 
 ## Value Types
@@ -90,6 +91,7 @@ The `theme` object overrides theme values for a single control. It accepts the s
 Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfacePrimary`, `borderColor`, `borderWidth`, `cornerRadius`, `controlPadding`, `fontFamily`, `fontDesign`, `labelFontSize`, `valueFontSize`. Toggle/slider/progress controls also accept `trackColor`, `trackActiveColor`, `thumbColor`, `knobColor`, etc. See each control's **Theme Overrides** table for its specific keys, and [[theming]] for the full system.
 
 ## Related
+- [[grid-dimensions]] — how `position` / `span` map to size; grid modes
 - [[group-def]] — containers for controls
 - [[layout-config]] — the top-level structure
 - [[theming]] — Theme system & live theme builder

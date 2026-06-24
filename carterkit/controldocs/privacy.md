@@ -49,4 +49,4 @@ We may update this policy; the effective date above reflects the latest version.
 
 ## Contact
 
-Questions or data requests: support@carterbeaudoin.com
+Questions or data requests: support@carterbeaudoin.net

@@ -71,7 +71,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `mapStyle` | string | `"standard"` | `"standard"`, `"satellite"`, `"hybrid"` |
 | `mapInteractive` | bool | `true` | Allow user pan/zoom |
 | `mapZoom` | number | `0.01` | Default coordinate span in degrees |
-| `controlHeight` | number | `120` (min) | Rendered height in points. The map is only ~120pt tall by default; set this (e.g. `300`) for a full-screen-feel map. See [[control-def]]. |
+| `controlHeight` | number | `120` (min) | In a 2-D grid, give the map more `rowSpan` for a taller map (height = `rowSpan × rowHeight`). In a `flow` grid it is ~120pt by default — set this (e.g. `300`) for a full-screen-feel map. See [[grid-dimensions]]. |
 | `label` | string | — | Header label above the map |
 | `tint` | string | `"#667eea"` | Center point marker color |
 

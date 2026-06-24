@@ -164,14 +164,20 @@ class _GridScope:
 
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, pulse=None,
-              hide_background=None) -> "GroupHandle":
+              hide_background=None, mode: str = None, row_height: int = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
-        broadcast with matching `msg_type` — build that payload with :class:`Fragment`)."""
+        broadcast with matching `msg_type` — build that payload with :class:`Fragment`).
+        `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
+        2-D row unit in points (default 56)."""
         gid = self._owner._unique_id(id or "group")
-        g: dict = {"type": "group", "id": gid,
-                   "grid": {"columns": cols, "rows": rows}, "children": []}
+        grid: dict = {"columns": cols, "rows": rows}
+        if mode is not None:
+            grid["mode"] = mode
+        if row_height is not None:
+            grid["rowHeight"] = row_height
+        g: dict = {"type": "group", "id": gid, "grid": grid, "children": []}
         if label is not None:
             g["label"] = label
         if dynamic is not None:
@@ -304,19 +310,27 @@ class Layout:
         return self
 
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
-            cols: int = None, rows: int = 6, columns: int = None) -> TabHandle:
+            cols: int = None, rows: int = 6, columns: int = None,
+            mode: str = None, row_height: int = None) -> TabHandle:
         """Start a tab and make it current. First call configures the default tab;
         later calls append. `with ui.tab(...)` scopes controls to it; the flat form
-        ``ui.tab("Main"); ui.gauge(...)`` works too."""
+        ``ui.tab("Main"); ui.gauge(...)`` works too. `mode="flow"` opts the tab out of
+        the default 2-D grid; `row_height` sets the 2-D row unit (points, default 56)."""
         cols = cols if cols is not None else (columns if columns is not None else 4)
+        grid = {"columns": cols, "rows": rows}
+        if mode is not None:
+            grid["mode"] = mode
+        if row_height is not None:
+            grid["rowHeight"] = row_height
         if not self._first_tab_used:
             t = self._buf.tabs[0]
             t["title"], t["icon"] = title, icon
-            t["grid"] = {"columns": cols, "rows": rows}
+            t["grid"] = grid
             self._tab_index = 0
             self._first_tab_used = True
         else:
-            self._tab_index = self._buf.add_tab(title, icon=icon, columns=cols, rows=rows)
+            self._tab_index = self._buf.add_tab(title, icon=icon, columns=cols, rows=rows,
+                                                mode=mode, row_height=row_height)
         self._scope = self._scope_for_tab(self._tab_index)
         return TabHandle(self, self._scope, self._tab_index)
 

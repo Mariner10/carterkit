@@ -37,4 +37,4 @@ Your use is also governed by our **Privacy Policy** at https://carterbeaudoin.ne
 
 ## 6. Changes and contact
 
-We may update these Terms; the effective date reflects the latest version. Questions: support@carterbeaudoin.com
+We may update these Terms; the effective date reflects the latest version. Questions: support@carterbeaudoin.net

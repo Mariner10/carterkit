@@ -43,8 +43,12 @@ fields:
     description: Rotates the arc start position in degrees
   - name: arcThickness
     type: number
-    default: 8
-    description: Arc stroke width in points
+    default: auto
+    description: Arc stroke width in points. Omit to auto-scale with the gauge's size.
+  - name: hideValue
+    type: bool
+    default: false
+    description: Show just the arc — hide the center value
 themeFields:
   - name: cornerRadius
     type: number
@@ -106,9 +110,12 @@ Inherits all [[shared-properties]]. Key fields:
 | `step` | number | `1` | Used to determine decimal formatting of center value |
 | `arcAngle` | number | `180` | Arc sweep in degrees (1-360) |
 | `arcRotation` | number | `0` | Rotates the arc start position in degrees |
-| `arcThickness` | number | `8` | Arc stroke width in points |
+| `arcThickness` | number | auto | Arc stroke width in points. Omit to auto-scale with the gauge's size; set for an absolute width |
+| `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
 
 > **Note:** `gaugeStyle` is a shorthand alias. `"half"` sets `arcAngle: 180` and `"full"` sets `arcAngle: 360`. When `arcAngle` is set explicitly, it takes precedence over `gaugeStyle`.
+
+> **Sizing:** the arc, stroke, and center value all scale to the gauge's size. A `half` gauge is wide (2:1); a `full` gauge is square (1:1) — give it ~3 `rowSpan` in a 2-D grid so it reads square. See [[grid-dimensions]].
 
 ## Gauge Segments
 

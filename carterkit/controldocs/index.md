@@ -125,6 +125,11 @@ A layout JSON file has this shape:
 }
 ```
 
+Each tab lays its children out on a **2-D grid** — a control's `position` and `span`
+place it in a `row × col` rectangle, so a tall control can sit beside two stacked
+shorter ones. Set a grid's `mode` to `"flow"` for the simpler row-banded layout
+(full-page content, plain forms). See [[grid-dimensions]].
+
 Tap any node in the graph to explore the full documentation for each control type, system feature, and data model.
 
 ---
