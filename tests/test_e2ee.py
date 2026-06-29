@@ -26,6 +26,19 @@ def test_two_sessions_different_salts():
     s1 = E2EESession(K, is_device_side=False); s2 = E2EESession(K, is_device_side=False)
     assert s1.seal({"a": 1})["s"] != s2.seal({"a": 1})["s"]
 
+def test_frozen_v2_group_vectors():
+    # Symmetric "grp v2" room cipher — frozen, byte-identical to the app's group session.
+    assert base64.b64encode(derive_key(K, SESS, b"grp v2")).decode() == "q6Mo+r3Ed3IFxfL3ASxtiBi9tcu9+PhzwktJg/PgSf8="
+    s = E2EESession.group(K, seal_salt=SESS)
+    assert s.seal({"msg_type": "hello"})["ct"] == "pFc43+GgSzwf+XW0owEzh57qjImojP74Q8LgUHZmL28yT+tl"
+
+def test_group_multi_sender_roundtrip():
+    # Any room member opens any other's envelope; independent per-session salts make it safe.
+    a = E2EESession.group(K); b = E2EESession.group(K)
+    assert b.open(a.seal({"a": 1})) == {"a": 1}
+    assert a.open(b.seal({"b": True})) == {"b": True}
+    assert a.seal({"x": 1})["s"] != b.seal({"x": 1})["s"]
+
 def test_v1_envelope_rejected():
     assert not E2EESession.is_envelope({"e2ee": 1, "n": 0, "ct": "AAAA"})
 

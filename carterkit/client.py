@@ -10,8 +10,10 @@ import base64
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
+import uuid
 
 try:
     from meshsocket import MeshSocket          # pip install meshsocket
@@ -69,19 +71,74 @@ def notify_http(validator_url, session_jwt, title, body, *, channel=None, catego
         raise CarterNotifyError(e.code, e.read().decode(errors="replace")) from None
 
 
+class CarterDeviceRevoked(Exception):
+    """Raised when an external device's refresh is denied (HTTP 403) — the owner revoked the
+    device or their Connect+ lapsed. Terminal: the device should stop trying to reconnect."""
+
+
+def device_refresh_http(validator_url, device_id, refresh_token, *, _send=None):
+    """Re-mint an external device's short-lived relay token (POST /devices/sessions/refresh).
+
+    Stdlib-only, mirroring `notify_http`. `validator_url` is the Connect+ validator base URL;
+    `device_id` + `refresh_token` are the long-lived credential handed to the device at mint
+    time. Returns the parsed `{"deviceToken": ..., "expiresAt": ...}`. Raises
+    CarterDeviceRevoked on HTTP 403 (revoked / owner lapsed); other HTTP errors propagate so a
+    caller can retry transient failures. `_send` is a test seam: (url, headers, body) -> dict."""
+    url = validator_url.rstrip("/") + "/devices/sessions/refresh"
+    headers = {"Content-Type": "application/json"}
+    body_bytes = json.dumps({"deviceId": device_id, "refreshToken": refresh_token}).encode()
+
+    def _do():
+        if _send is not None:
+            return _send(url, headers, body_bytes)
+        req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode())
+
+    try:
+        return _do()
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            raise CarterDeviceRevoked(e.read().decode(errors="replace")) from None
+        raise CarterNotifyError(e.code, e.read().decode(errors="replace")) from None
+
+
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
-                 validator_url=None, session_jwt=None):
+                 validator_url=None, session_jwt=None, room=False,
+                 device_id=None, refresh_token=None, refresh_interval=2400):
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
         self._sock = MeshSocket(url=gateway_url, name=name, auth_token=token,
                                 channel=channel, role=role, can_broadcast=True, can_route=False)
-        self._session = (E2EESession(base64.b64decode(e2ee_key), is_device_side=(role in ("device", "hub")))
-                         if e2ee_key else None)
+        # `room=True` matches the app's `mode: room`: a symmetric group cipher so the hub
+        # shares an encrypted room with several members. Otherwise the directional 1:1 cipher.
+        if e2ee_key:
+            secret = base64.b64decode(e2ee_key)
+            self._session = (E2EESession.group(secret) if room
+                             else E2EESession(secret, is_device_side=(role in ("device", "hub"))))
+        else:
+            self._session = None
         # Connect+ validator credentials for notify(); distinct from the mesh auth token.
         self._validator_url = validator_url
         self._session_jwt = session_jwt
+        # External-device self-refresh: a headless device provisioned via POST /devices holds
+        # a long-lived refresh secret and re-mints its short-lived relay token before expiry,
+        # updating the socket's auth_token so any reconnect uses the fresh one. Revocation
+        # (HTTP 403) surfaces as `revoked = True` and tears the socket down.
+        self._device_id = device_id
+        self._refresh_token = refresh_token
+        self._refresh_interval = refresh_interval
+        self._refresh_task = None
+        self.revoked = False
+        # Control-state authority (matches the app's Phase 2): when enabled, this hub answers
+        # a replica's control_sync_request with a snapshot of set_control_state() values.
+        self._control_state = {}
+        self._state_version = 0
+        self._is_state_authority = False
+        self._broadcast_handler = None
+        self._broadcast_registered = False
 
     def _open(self, payload):
         if self._session and isinstance(payload, dict) and E2EESession.is_envelope(payload):
@@ -104,15 +161,76 @@ class CarterClient:
 
     def on_broadcast(self, handler):
         """Register a handler for relayed broadcasts. handler(data: dict) gets DECRYPTED data."""
+        self._broadcast_handler = handler
+        self._ensure_broadcast_listener()
+
+    def _ensure_broadcast_listener(self):
+        """Arm the single 'broadcast' socket listener (one handler per event) that dispatches
+        to the control-state responder and then the user's on_broadcast handler."""
+        if self._broadcast_registered:
+            return
+        self._broadcast_registered = True
+
         async def wrapper(payload):
-            result = handler(self._open(payload))
-            if asyncio.iscoroutine(result):
-                await result
+            await self._dispatch_broadcast(self._open(payload))
             return None
         self._sock.on("broadcast", wrapper)
 
+    async def _dispatch_broadcast(self, data):
+        # Control-state sync frames are protocol, not app data — consume them here so they
+        # never reach the user's on_broadcast handler. Only an authority answers a request.
+        if isinstance(data, dict) and data.get("msg_type") in ("control_sync_request", "control_snapshot"):
+            if self._is_state_authority and data.get("msg_type") == "control_sync_request":
+                await self._answer_control_sync(data)
+            return
+        if self._broadcast_handler is not None:
+            result = self._broadcast_handler(data)
+            if asyncio.iscoroutine(result):
+                await result
+
+    def set_control_state(self, control_id, value):
+        """Record the authoritative current value of a control so the hub can answer a
+        replica's control_sync_request. Call this alongside your normal broadcast of the
+        value — it only updates the snapshot served to late joiners / reconnecting devices."""
+        self._control_state[control_id] = value
+
+    def enable_state_authority(self):
+        """Declare this hub the source of truth for control state. It will answer replicas'
+        control_sync_request broadcasts with a control_snapshot of set_control_state()
+        values — the hub side of the app's Phase 2 designated-authority sync."""
+        self._is_state_authority = True
+        self._ensure_broadcast_listener()
+
+    async def _answer_control_sync(self, data):
+        to = data.get("from")
+        if not to or not self._control_state:
+            return
+        self._state_version += 1
+        await self.broadcast("control_snapshot",
+                             {"to": to, "v": self._state_version, "controls": dict(self._control_state)})
+
     async def broadcast(self, msg_type, data):
         await self._sock.send("broadcast_request", self._seal({**data, "msg_type": msg_type}))
+
+    async def chat(self, text, *, name="Server", role="device", channel=None, msg_id=None, **extra):
+        """Send a channel chat message a chat control will display, as a bubble from `name`.
+
+        Builds the exact shape the app requires — a unique `id`, a `sender.name`, an
+        ISO-8601 `timestamp`, and the `chat_message` type — which is easy to get subtly
+        wrong by hand (a missing `id` is silently dropped). Extra keys pass through
+        (e.g. `_from=` to tag your own echo). Returns the message id."""
+        mid = msg_id or uuid.uuid4().hex
+        payload = {
+            "id": mid,
+            "text": text,
+            "sender": {"name": name, "role": role},
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        if channel is not None:
+            payload["channel"] = channel
+        payload.update(extra)
+        await self.broadcast("chat_message", payload)
+        return mid
 
     async def request(self, command, data, timeout=5.0):
         reply = await self._sock.request(command, self._seal(data), timeout=timeout)
@@ -130,11 +248,45 @@ class CarterClient:
             notify_http, self._validator_url, self._session_jwt, title, body,
             channel=channel, category=category, badge=badge, sound=sound, data=data)
 
+    async def refresh_device_token(self):
+        """Re-mint this device's relay token from its refresh secret and apply it to the
+        socket, so any reconnect uses the fresh token. Returns the parsed response. Raises
+        CarterDeviceRevoked if the device was revoked or the owner's Connect+ lapsed."""
+        if not (self._validator_url and self._device_id and self._refresh_token):
+            raise CarterNotifyError(0, "refresh_device_token() needs validator_url, device_id, "
+                                       "and refresh_token on the CarterClient constructor")
+        res = await asyncio.to_thread(device_refresh_http, self._validator_url,
+                                      self._device_id, self._refresh_token)
+        token = res.get("deviceToken") if isinstance(res, dict) else None
+        if token:
+            self._sock.auth_token = token  # MeshSocket re-sends this on every (re)connect
+        return res
+
+    async def _device_refresh_loop(self):
+        """Keep the short-lived device token fresh ahead of expiry. On revocation, stop the
+        socket and flag `revoked`; transient errors are retried on the next tick."""
+        while True:
+            await asyncio.sleep(self._refresh_interval)
+            try:
+                await self.refresh_device_token()
+            except CarterDeviceRevoked:
+                self.revoked = True
+                await self._sock.stop()
+                return
+            except Exception:
+                pass  # transient (network/5xx) — retry next interval
+
     async def connect(self):
         await self._sock.start()
         await self._sock.wait_until_ready()
+        # Auto-start the refresh loop only for a self-refreshing external device.
+        if self._device_id and self._refresh_token and self._validator_url and self._refresh_task is None:
+            self._refresh_task = asyncio.create_task(self._device_refresh_loop())
 
     async def close(self):
+        if self._refresh_task is not None:
+            self._refresh_task.cancel()
+            self._refresh_task = None
         await self._sock.stop()
 
     async def __aenter__(self):

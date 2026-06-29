@@ -21,7 +21,9 @@ from pathlib import Path
 from . import catalog, grid, codegen, infer, theming, tune, dynamic
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
-from .client import CarterClient, notify_http, CarterNotifyError
+from .client import (CarterClient, notify_http, CarterNotifyError,
+                     device_refresh_http, CarterDeviceRevoked)
+from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
 from .layout import Layout, Fragment, Control, Condition
@@ -78,6 +80,7 @@ def lint_dynamic_traffic(layout: dict, observed, catalog_: dict = None) -> list:
 __all__ = [
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
+    "device_refresh_http", "CarterDeviceRevoked",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "controldocs_dir",

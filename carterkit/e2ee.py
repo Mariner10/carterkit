@@ -19,13 +19,26 @@ def _nonce(counter: int) -> bytes:
 
 
 class E2EESession:
-    def __init__(self, secret: bytes, is_device_side: bool, seal_salt: bytes = None):
+    def __init__(self, secret: bytes, is_device_side: bool = False, seal_salt: bytes = None,
+                 is_group: bool = False):
         self._secret = secret
-        self._seal_info = b"d2c v2" if is_device_side else b"c2d v2"
-        self._open_info = b"c2d v2" if is_device_side else b"d2c v2"
+        if is_group:
+            # Symmetric room mode: every member seals AND opens with the same "grp v2" label,
+            # so any member reads any other. Multi-sender nonce reuse is prevented because each
+            # sender carries an independent per-session salt (in the envelope).
+            self._seal_info = self._open_info = b"grp v2"
+        else:
+            self._seal_info = b"d2c v2" if is_device_side else b"c2d v2"
+            self._open_info = b"c2d v2" if is_device_side else b"d2c v2"
         self._seal_salt = seal_salt if seal_salt is not None else os.urandom(16)
         self._seal_key = derive_key(secret, self._seal_salt, self._seal_info)
         self._counter = 0
+
+    @classmethod
+    def group(cls, secret: bytes, seal_salt: bytes = None) -> "E2EESession":
+        """Symmetric room session matching the app's `mode: room` group cipher — used by a
+        hub that shares an encrypted room with several members."""
+        return cls(secret, is_group=True, seal_salt=seal_salt)
 
     def seal(self, payload: dict) -> dict:
         n = self._counter

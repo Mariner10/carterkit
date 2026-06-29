@@ -2,12 +2,16 @@
 
 import asyncio
 import base64
+import io
 import json
 
 import pytest
 
+import urllib.error
+
 import carterkit.client as ckclient
-from carterkit import CarterClient, CarterNotifyError, notify_http
+from carterkit import (CarterClient, CarterNotifyError, notify_http,
+                       device_refresh_http, CarterDeviceRevoked)
 from carterkit.e2ee import E2EESession
 
 K = base64.b64encode(bytes([1]) * 32).decode()
@@ -19,6 +23,7 @@ class _FakeSock:
         self.handlers = {}
         self.reply = None
         self.events = []
+        self.auth_token = "tok"  # device refresh updates this in place
 
     def on(self, t, f):
         self.handlers[t] = f
@@ -95,6 +100,85 @@ def test_cleartext_when_no_key():
     asyncio.run(run())
 
 
+def _room_client():
+    c = CarterClient("ws://x", "tok", "home", role="device", e2ee_key=K, room=True)
+    c._sock = _FakeSock()
+    return c
+
+
+def test_room_broadcast_uses_group_cipher():
+    async def run():
+        c = _room_client()
+        await c.broadcast("metrics", {"cpu": 7})
+        _, payload = c._sock.sent[0]
+        assert E2EESession.is_envelope(payload)
+        peer = E2EESession.group(bytes([1]) * 32)  # a room member opens the hub's broadcast
+        assert peer.open(payload) == {"msg_type": "metrics", "cpu": 7}
+
+    asyncio.run(run())
+
+
+def test_authority_answers_control_sync_request():
+    async def run():
+        c = _room_client()
+        c.set_control_state("thermostat", 68)
+        c.set_control_state("lamp", True)
+        c.enable_state_authority()
+        peer = E2EESession.group(bytes([1]) * 32)
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_sync_request", "from": "guest-abc12"}))
+        snaps = [p for (t, p) in c._sock.sent if t == "broadcast_request"]
+        assert snaps, "authority sent no snapshot"
+        data = peer.open(snaps[-1])
+        assert data["msg_type"] == "control_snapshot"
+        assert data["to"] == "guest-abc12"
+        assert data["v"] == 1
+        assert data["controls"] == {"thermostat": 68, "lamp": True}
+
+    asyncio.run(run())
+
+
+def test_authority_silent_without_state():
+    async def run():
+        c = _room_client()
+        c.enable_state_authority()
+        peer = E2EESession.group(bytes([1]) * 32)
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_sync_request", "from": "g"}))
+        assert c._sock.sent == []  # nothing recorded to snapshot
+
+    asyncio.run(run())
+
+
+def test_authority_consumes_sync_frames_not_forwarded():
+    async def run():
+        c = _room_client()
+        c.set_control_state("x", 1)
+        got = []
+        c.on_broadcast(lambda d: got.append(d))
+        c.enable_state_authority()
+        peer = E2EESession.group(bytes([1]) * 32)
+        # protocol frames are consumed (answered), never handed to the app handler
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_sync_request", "from": "g"}))
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_snapshot", "to": "g", "v": 1, "controls": {}}))
+        assert got == []
+        # a normal app broadcast is forwarded
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "evt", "v": 2}))
+        assert {"msg_type": "evt", "v": 2} in got
+
+    asyncio.run(run())
+
+
+def test_non_authority_never_answers():
+    async def run():
+        c = _room_client()
+        c.set_control_state("x", 1)        # recorded, but authority not enabled
+        c.on_broadcast(lambda d: None)     # arm the listener without becoming authority
+        peer = E2EESession.group(bytes([1]) * 32)
+        await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_sync_request", "from": "g"}))
+        assert c._sock.sent == []          # consumed but never answered
+
+    asyncio.run(run())
+
+
 def test_notify_http_maps_args_to_request():
     captured = {}
 
@@ -128,6 +212,42 @@ def test_client_notify_requires_validator_creds():
         with pytest.raises(CarterNotifyError) as ei:
             await c.notify("t", "b")
         assert ei.value.status == 0
+
+    asyncio.run(run())
+
+
+def test_device_refresh_http_maps_args_to_request():
+    captured = {}
+
+    def fake_send(url, headers, body_bytes):
+        captured["url"] = url
+        captured["payload"] = json.loads(body_bytes.decode())
+        return {"deviceToken": "fresh-tok", "expiresAt": 123}
+
+    out = device_refresh_http("https://v.example.com/", "dv_1", "secret-9", _send=fake_send)
+    assert out == {"deviceToken": "fresh-tok", "expiresAt": 123}
+    assert captured["url"] == "https://v.example.com/devices/sessions/refresh"
+    assert captured["payload"] == {"deviceId": "dv_1", "refreshToken": "secret-9"}
+
+
+def test_device_refresh_http_raises_on_revoke():
+    def revoked_send(url, headers, body_bytes):
+        raise urllib.error.HTTPError(url, 403, "Forbidden", {}, io.BytesIO(b"device revoked"))
+
+    with pytest.raises(CarterDeviceRevoked):
+        device_refresh_http("https://v/", "dv_1", "secret", _send=revoked_send)
+
+
+def test_refresh_device_token_updates_socket_token():
+    async def run():
+        c = _client(key=None, validator_url="https://v/", device_id="dv_1", refresh_token="secret")
+        orig = ckclient.device_refresh_http
+        ckclient.device_refresh_http = lambda *a, **k: {"deviceToken": "fresh-tok", "expiresAt": 9}
+        try:
+            await c.refresh_device_token()
+        finally:
+            ckclient.device_refresh_http = orig
+        assert c._sock.auth_token == "fresh-tok"  # reconnects now use the fresh token
 
     asyncio.run(run())
 
