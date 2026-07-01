@@ -29,7 +29,7 @@ A layout defines **tabs**, each containing a **grid** of controls. Controls rang
 
 ## The Control System
 
-Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **28 control types** across three categories:
+Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **27 control types** across three categories:
 
 ### Input Controls
 Buttons, toggles, sliders, steppers, pickers, date pickers, text inputs, color pickers, and segmented controls. These send user actions to your server. Container controls — **carousels**, **flip cards**, and **accordions** — arrange sets of groups into swipeable pages, flippable faces, and collapsible sections.

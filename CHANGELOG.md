@@ -3,6 +3,14 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.2] — 2026-06-30
+
+Docs-only re-sync.
+
+### Changed
+- Re-vendored `index.md`: corrected the stale "28 control types" count to **27**
+  (the catalog excludes the `divider`/`spacer` layout primitives). No API changes.
+
 ## [0.5.1] — 2026-06-30
 
 Docs-only re-sync so the bundled catalog matches the published website catalog.
