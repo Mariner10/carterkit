@@ -75,6 +75,11 @@ themeFields:
 
 A scrolling terminal-style log viewer. Displays timestamped log lines pushed via sync, with color-coded severity levels and monospace rendering.
 
+> For a full **ANSI terminal** — raw escape-code colour/bold, pane-width auto-scaling and
+> pinch-to-zoom (e.g. mirroring a captured shell/tmux pane) — use a [[label]] with
+> `style: "terminal"` instead. The log console is line-oriented (level colours), not an
+> escape-code renderer.
+
 ## Type
 `"logConsole"`
 

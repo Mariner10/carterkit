@@ -22,6 +22,34 @@ fields:
     values: [default, search, multiline]
     default: default
     description: Display style variant
+  - name: sendButton
+    type: bool
+    default: false
+    description: Growing composer with a Send button (Return inserts a newline)
+  - name: minLines
+    type: number
+    default: 1
+    description: Composer starting line count
+  - name: maxLines
+    type: number
+    default: 6
+    description: Composer max lines before it scrolls internally
+  - name: autocorrect
+    type: bool
+    default: false
+    description: Default autocorrect/caps (off = ASCII keyboard, terminal-friendly)
+  - name: autocorrectToggle
+    type: bool
+    default: false
+    description: Inline Aa button that flips autocorrect on the live keyboard
+  - name: keyboard
+    type: enum
+    values: [ascii, default, url, email, numbers]
+    description: Keyboard type
+  - name: clearOnSubmit
+    type: bool
+    default: false
+    description: Clear the field after the return-key submit
   - name: tint
     type: color
     default: "#667eea"
@@ -87,6 +115,12 @@ Inherits all [[shared-properties]]. Key fields:
 | `defaultValue` | string | — | Initial text |
 | `style` | string | `"default"` | `"default"`, `"search"`, `"multiline"` |
 | `tint` | string | `"#667eea"` | Accent color |
+| `sendButton` | bool | `false` | Turn the field into a growing composer with a Send button (Return = newline) |
+| `minLines` | int | `1` | Composer starting line count |
+| `maxLines` | int | `6` | Composer max lines before it scrolls internally |
+| `autocorrect` | bool | `false` | Default autocorrect/caps; off ⇒ ASCII keyboard (terminal-friendly) |
+| `autocorrectToggle` | bool | `false` | Show the inline **Aa** toggle |
+| `keyboard` | string | — | `"ascii"`, `"default"`, `"url"`, `"email"`, `"numbers"` |
 | `clearOnSubmit` | bool | `false` | Clear the field after the return-key submit (for entry forms where the typed value shouldn't linger) |
 | `hideBackground` | bool | `false` | Remove glass background |
 | `hideLabel` | bool | `false` | Hide the header label |
@@ -101,6 +135,23 @@ Search-style field with magnifying glass icon and clear button.
 
 ### `"multiline"`
 Expands vertically for multi-line text entry.
+
+## Composer & keyboard
+
+Set `sendButton: true` to turn the field into a **growing composer**: it grows from `minLines`
+up to `maxLines` then scrolls inside, **Return inserts a newline**, and a **Send** button
+submits. Ideal for chat or command entry.
+
+Keyboard behaviour, tuned for command entry:
+
+- **`autocorrect`** defaults to `false` — autocorrect/autocapitalization off with an ASCII
+  keyboard, so typed commands aren't "corrected." Set `true` for prose. `keyboard` overrides
+  the keyboard type explicitly.
+- **`autocorrectToggle`** shows an inline **Aa** button that flips autocorrect at runtime and
+  reconfigures the **live** keyboard immediately (no refocus needed). It also appears on the
+  above-keyboard bar.
+- An above-keyboard **Hide** button lets you dismiss the keyboard to reach the
+  controls/tabs underneath it.
 
 ## Example
 
@@ -117,8 +168,26 @@ Expands vertically for multi-line text entry.
 }
 ```
 
+### Command composer
+```json
+{
+  "type": "textInput",
+  "id": "pane-input",
+  "position": [7, 0],
+  "span": [1, 4],
+  "placeholder": "type a command…",
+  "icon": "chevron.right",
+  "sendButton": true,
+  "autocorrectToggle": true,
+  "autocorrect": false,
+  "maxLines": 6,
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "command", "text": "{{value}}" } }
+}
+```
+
 ## Behavior
-- Action fires when the user presses return/submit
+- Default field: the action fires when the user presses return/submit
+- Composer (`sendButton: true`): **Send** submits and **Return inserts a newline**
 - The `{{value}}` placeholder is replaced with the current text content
 
 ## Related

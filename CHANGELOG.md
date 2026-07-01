@@ -3,6 +3,16 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] — 2026-06-30
+
+Docs-only re-sync so the bundled catalog matches the published website catalog.
+
+### Changed
+- Re-vendored ControlDocs from the app repo (`label`, `log-console`, `text-input`),
+  re-aligning carterkit's bundled control definitions with
+  `carterbeaudoin.net/CAR-TER/catalog.json` (clears the `check_sources` drift
+  warning). No API changes.
+
 ## [0.5.0] — 2026-06-24
 
 Grid authoring now expresses the app's 2-D grid model. Backward compatible.
