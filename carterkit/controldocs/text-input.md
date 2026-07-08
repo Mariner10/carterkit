@@ -153,7 +153,9 @@ Keyboard behaviour, tuned for command entry:
 - An above-keyboard **Hide** button lets you dismiss the keyboard to reach the
   controls/tabs underneath it.
 
-## Example
+## Examples
+
+### Device name field
 
 ```json
 {

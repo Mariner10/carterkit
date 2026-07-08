@@ -61,7 +61,9 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | — | Display label |
 | `defaultValue` | string | — | Initial hex color (e.g., `"#F4B860"`) |
 
-## Example
+## Examples
+
+### Room light color
 
 ```json
 {

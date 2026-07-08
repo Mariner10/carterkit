@@ -118,3 +118,4 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 - [[shared-properties]] — Base fields
 - [[sync]] — How values are received
 - [[gauge]] — Often paired with sparklines in long-press detail views
+- [[chart]] — Multi-series bars/lines/areas/scatter when one trend isn't enough

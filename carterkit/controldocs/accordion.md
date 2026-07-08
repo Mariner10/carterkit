@@ -18,6 +18,12 @@ fields:
     type: bool
     default: true
     description: Show the disclosure chevron
+  - name: panels
+    type: object
+    description: The panel groups this container pages through (group defs with children)
+  - name: containerAnimation
+    type: object
+    description: Transition tuning, e.g. { profile, duration }
 themeFields:
   - name: surfacePrimary
     type: color

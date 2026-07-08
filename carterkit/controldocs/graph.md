@@ -15,6 +15,148 @@ fields:
     type: color
     default: "#667eea"
     description: Fallback node color
+  - name: attractionForce
+    type: number
+    default: 0.01
+    description: How strongly connected nodes pull together
+    group: graphConfig
+  - name: backgroundColor
+    type: color
+    description: Graph canvas background
+    group: graphConfig
+  - name: centerForce
+    type: number
+    default: 0.02
+    description: How strongly nodes are pulled toward center
+    group: graphConfig
+  - name: contentEvent
+    type: string
+    description: (Reserved) Event for content-push model
+    group: graphConfig
+  - name: damping
+    type: number
+    default: 0.9
+    description: Velocity dampening per tick (0-1, lower = more friction)
+    group: graphConfig
+  - name: draggable
+    type: bool
+    default: true
+    description: Allow dragging individual nodes
+    group: graphConfig
+  - name: edgeColor
+    type: color
+    description: Default edge line color
+    group: graphConfig
+  - name: edgeCurved
+    type: bool
+    default: false
+    description: Use curved (quadratic) edges instead of straight
+    group: graphConfig
+  - name: edgeOpacity
+    type: number
+    default: 0.4
+    description: Edge line opacity (0-1)
+    group: graphConfig
+  - name: edgeWidth
+    type: number
+    default: 1.0
+    description: Edge line width
+    group: graphConfig
+  - name: glowColor
+    type: color
+    description: Glow color
+    group: graphConfig
+  - name: glowEnabled
+    type: bool
+    default: true
+    description: Node glow effect
+    group: graphConfig
+  - name: glowRadius
+    type: number
+    default: 6.0
+    description: Glow blur radius
+    group: graphConfig
+  - name: groupColors
+    type: object
+    description: groupColors
+    group: graphConfig
+  - name: interactive
+    type: bool
+    default: true
+    description: Allow pan and zoom
+    group: graphConfig
+  - name: labelColor
+    type: color
+    description: Label text color
+    group: graphConfig
+  - name: labelOffset
+    type: number
+    default: 12.0
+    description: Distance from node center to label
+    group: graphConfig
+  - name: labelSize
+    type: number
+    default: 10.0
+    description: Label font size
+    group: graphConfig
+  - name: nodeAction
+    type: object
+    description: nodeAction
+    group: graphConfig
+  - name: nodeBorderColor
+    type: color
+    description: Border stroke color
+    group: graphConfig
+  - name: nodeBorderWidth
+    type: number
+    default: 0
+    description: Border stroke width around nodes
+    group: graphConfig
+  - name: nodeColor
+    type: color
+    description: Default node fill color (hex)
+    group: graphConfig
+  - name: nodeHighlightColor
+    type: color
+    description: Color when node is active/selected
+    group: graphConfig
+  - name: nodeSize
+    type: number
+    default: 8.0
+    description: Base node radius in points
+    group: graphConfig
+  - name: particleColor
+    type: color
+    description: (Reserved) Particle color
+    group: graphConfig
+  - name: particleSpeed
+    type: number
+    description: (Reserved) Particle animation speed
+    group: graphConfig
+  - name: repulsionForce
+    type: number
+    default: 100
+    description: How strongly nodes push apart
+    group: graphConfig
+  - name: showLabels
+    type: bool
+    default: true
+    description: Show text labels under nodes
+    group: graphConfig
+  - name: showParticles
+    type: bool
+    default: false
+    description: (Reserved) Animated particles along edges
+    group: graphConfig
+  - name: velocityDecay
+    type: number
+    default: 0.6
+    description: Velocity decay rate (0-1, lower = faster settling)
+    group: graphConfig
+  - name: zoomRange
+    type: object
+    description: Pinch zoom limits
+    group: graphConfig
 themeFields:
   - name: cornerRadius
     type: number
@@ -195,7 +337,7 @@ Each node can define what happens when tapped. Two types:
 }
 ```
 
-**Content** — requests markdown content from the server, opens a [[markdown-sheet]]:
+**Content** — requests markdown content from the server and opens it in a scrollable markdown sheet:
 ```json
 "onTap": {
   "type": "content",
@@ -314,5 +456,7 @@ Or simply a string (the raw markdown), in which case the node's `label` is used 
 ## Related
 - [[shared-properties]] — Base fields
 - [[sync]] — How graph data is received
+- [[chart]] — Cartesian series (bars/lines/areas/scatter)
+- [[heatmap]] — Dense 2-D matrices where a node graph would tangle
 - [[long-press]] — Can have a long-press detail popup
 - [[conditional-visibility]] — Can be conditionally shown/hidden

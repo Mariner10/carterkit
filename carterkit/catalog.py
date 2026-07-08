@@ -57,6 +57,10 @@ def _make_field(raw: dict[str, str]) -> dict:
         field["default"] = raw["default"]
     if raw.get("description"):
         field["description"] = raw["description"]
+    if raw.get("group"):
+        # Per-field `group:` nests the field under a config object (e.g.
+        # `sortboardConfig`) — mirrored from the Swift loader's makeField.
+        field["group"] = raw["group"]
     return field
 
 

@@ -203,3 +203,5 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
 - [[sync]] — Receiving values
 - [[long-press]] — Detail popup on hold
 - [[sparkline]] — Often paired in long-press detail views
+- [[pie-chart]] — Radial part-of-whole (and spin wheel / radial menu)
+- [[radar]] — Multi-axis profiles when one dial isn't enough

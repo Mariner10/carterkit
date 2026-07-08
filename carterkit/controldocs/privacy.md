@@ -18,6 +18,7 @@ When you use CAR-TER with your own MeshSocket server:
 - The app connects **only to the server address you enter**. Your commands, telemetry, and chat messages travel between your device and your server. They are never sent to the developer.
 - Layouts, chat history, and app preferences (such as your last-opened layout and first-run state) are stored **locally on your device**. We cannot see them.
 - The app does **not** collect personal information, does **not** use analytics, does **not** track you, and does **not** include advertising identifiers.
+- The optional **camera control** runs entirely on your device and only when you tap to start it. Scanned codes, recognized text, and snapshots travel **only to the server you configured** — never to the developer — and the app does not store them.
 
 ## Connect+ (optional paid cloud relay)
 

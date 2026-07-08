@@ -29,13 +29,17 @@ A layout defines **tabs**, each containing a **grid** of controls. Controls rang
 
 ## The Control System
 
-Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **27 control types** across three categories:
+Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **43 control types** across three categories:
 
 ### Input Controls
-Buttons, toggles, sliders, steppers, pickers, date pickers, text inputs, color pickers, and segmented controls. These send user actions to your server. Container controls — **carousels**, **flip cards**, and **accordions** — arrange sets of groups into swipeable pages, flippable faces, and collapsible sections.
+Buttons, toggles, sliders, steppers, pickers, date pickers, text inputs, color pickers, and segmented controls. These send user actions to your server. The **camera** control scans QR codes, barcodes, and text live — detections are on the mesh the moment they're seen. Container controls — **carousels**, **flip cards**, and **accordions** — arrange sets of groups into swipeable pages, flippable faces, and collapsible sections.
+
+The **drag pack** makes arrangement itself the input: [[sortboard|sortboards]] drag items between bound zones (kanban, seating, triage), [[pinboard|pinboards]] place markers anywhere on a freeform surface (floor plans, maps, photos), and the [[compass|compass ring]] mixes drag with the device's heading sensor — point the needle at a puck to fire its action. The [[canvas]] goes structural: a pan/zoom freeform surface hosting whole *working* controls at any position and size, rearrangeable in place. Every drop emits `pickup`/`place`/`layout` events, and the whole arrangement round-trips as synced state a server can seed or rearrange.
 
 ### Display Controls
 Gauges, progress rings, sparklines, labels, images, maps, and graphs. These visualize incoming telemetry data in real time.
+
+The **chart pack** blurs the line: [[chart|charts]] (bar/line/area/scatter/histogram/waterfall) with tappable datums, [[pie-chart|pie charts]] that double as spin-to-select wheels and radial menus, [[heatmap|heatmaps]] you can paint like an LED matrix or weekly scheduler, and [[radar|radar profiles]] whose vertices drag like a multi-parameter tuner. The statistical wing goes further: [[box-plot|box/violin plots]] that compute quartiles and densities on-device, [[gantt|gantt timelines]] whose bars drag like progress sliders, [[sankey|sankey flows]] and [[chord|chord matrices]] that spotlight on tap, and [[treemap|treemaps]] with Files-style drill-down. Every one displays live data *and* talks back.
 
 ![](control-preview://gauge-demo)
 

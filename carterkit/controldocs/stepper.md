@@ -103,7 +103,9 @@ Inherits all [[shared-properties]]. Key fields:
 | `defaultValue` | number | — | Initial value |
 | `haptic` | string | `"light"` | Default haptic on step |
 
-## Example
+## Examples
+
+### Thermostat target
 
 ```json
 {

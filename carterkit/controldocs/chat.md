@@ -11,6 +11,42 @@ fields:
   - name: config
     type: object
     description: "ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint"
+  - name: allowImages
+    type: bool
+    description: allowImages
+    group: config
+  - name: allowReactions
+    type: bool
+    description: allowReactions
+    group: config
+  - name: allowReplies
+    type: bool
+    description: allowReplies
+    group: config
+  - name: historyCount
+    type: number
+    description: historyCount
+    group: config
+  - name: showReadReceipts
+    type: bool
+    description: showReadReceipts
+    group: config
+  - name: showTypingIndicators
+    type: bool
+    description: showTypingIndicators
+    group: config
+  - name: systemMessageEvents
+    type: string[]
+    description: systemMessageEvents
+    group: config
+  - name: target
+    type: string
+    description: target
+    group: config
+  - name: tint
+    type: color
+    description: tint
+    group: config
 themeFields:
   - name: cornerRadius
     type: number

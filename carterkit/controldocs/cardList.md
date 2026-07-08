@@ -17,6 +17,21 @@ the control on the left with its name and summary; tapping a card opens the
 control's documentation. Reads the same synced `GraphData` value as `graph` and
 uses only the `nodes` (edges are ignored).
 
+## Examples
+
+### Control browser pane
+
+```json
+{
+  "type": "cardList",
+  "id": "control-browser",
+  "position": [0, 0],
+  "span": [6, 4],
+  "hideBackground": true,
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "catalog", "valuePath": "graph" }]
+}
+```
+
 ## Behavior
 
 - A search field filters cards by name or category.

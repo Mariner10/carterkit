@@ -15,6 +15,12 @@ fields:
     values: [horizontal, vertical]
     default: horizontal
     description: Axis the card rotates around
+  - name: panels
+    type: object
+    description: The panel groups this container pages through (group defs with children)
+  - name: containerAnimation
+    type: object
+    description: Transition tuning, e.g. { profile, duration }
 themeFields:
   - name: surfacePrimary
     type: color

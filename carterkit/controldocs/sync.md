@@ -6,7 +6,7 @@ category: system
 fields:
   - name: method
     type: string
-    description: Transport method (meshsocket)
+    description: Transport method (meshsocket, sensor)
   - name: type
     type: string
     description: Sync direction (listen)
@@ -41,6 +41,13 @@ How controls receive live state from the network.
 2. App filters by matching all keys
 3. Extracts value at `valuePath` (dot-notation)
 4. Updates control binding
+
+## Local hardware
+
+With `method: "sensor"` a sync entry binds this device's own hardware instead of
+the mesh — `{ "method": "sensor", "sensor": "heading" }` feeds the control the
+compass with no server at all. See [[sensors]] for the catalog and
+[[publishers]] to stream readings to other devices.
 
 ## Notes
 

@@ -11,7 +11,7 @@ Every control — regardless of type — shares the same base fields. A control 
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `type` | string | Control type. One of: `button`, `toggle`, `slider`, `stepper`, `segmentedControl`, `picker`, `datePicker`, `textInput`, `colorPicker`, `label`, `image`, `gauge`, `sparkline`, `progressRing`, `map`, `graph`, `chat`, `list`, `statusLight`, `logConsole`, `divider`, `spacer`, `webView`, `joystick`, `qrCode` |
+| `type` | string | Control type. One of: `button`, `toggle`, `slider`, `stepper`, `segmentedControl`, `picker`, `datePicker`, `textInput`, `colorPicker`, `label`, `image`, `gauge`, `sparkline`, `progressRing`, `map`, `graph`, `chart`, `pieChart`, `heatmap`, `radar`, `boxPlot`, `gantt`, `sankey`, `treemap`, `chord`, `chat`, `list`, `statusLight`, `logConsole`, `divider`, `spacer`, `webView`, `joystick`, `qrCode`, `camera` |
 | `id` | string | Unique identifier. Used for value storage, sync targeting, and visibility references |
 | `position` | [row, col] | Zero-indexed grid cell placement |
 
@@ -52,7 +52,7 @@ Controls store their value as one of three types:
 |------|------|---------|
 | Boolean | `true`/`false` | toggle |
 | Number | `42`, `3.14` | slider, stepper, gauge, progressRing, sparkline |
-| String | `"text"` | label, textInput, segmentedControl, picker, datePicker, colorPicker, image, map |
+| String | `"text"` | label, textInput, segmentedControl, picker, datePicker, colorPicker, image, map, camera (last scanned value) |
 
 ## Value Formatters
 
