@@ -54,6 +54,13 @@ fancier. A handle comparison (`cpu > 90`) becomes a real visibility condition; `
 stay normal Python, so use `.eq()`/`.neq()`. `help(carterkit.build.gauge)` prints any
 control's documentation, straight from the bundled docs.
 
+> **Naming:** multi-word controls are **`snake_case` as `Layout` methods**
+> (`ui.status_light(...)`, `ui.log_console(...)`, `ui.progress_ring(...)`) but
+> **`camelCase` as the JSON `type`** and as `carterkit.build.*` functions
+> (`"statusLight"`, `build.logConsole`). Single-word controls (`gauge`, `button`) look
+> the same either way. Grid size (`cols`/`rows`) set on `Layout(...)` is the default for
+> every tab; override it per tab with `ui.tab("Name", rows=…)`.
+
 **Prefer a declarative style?** A class veneer compiles to the *same* layout — ids come
 from attribute names, tabs/groups are nested classes (great for fixed dashboards; the flat
 builder reads better for generated ones):

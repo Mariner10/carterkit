@@ -168,10 +168,12 @@ class Tab:
 
     @classmethod
     def __init_subclass__(cls, *, title: str = None, icon: str = "square.grid.2x2",
-                          cols: int = None, rows: int = 6, columns: int = None, **rest):
+                          cols: int = None, rows: int = None, columns: int = None, **rest):
         super().__init_subclass__(**rest)
+        # cols/rows stay None unless given: Layout.tab() then fills them from the
+        # Screen's grid, mirroring the flat builder's inherit-unless-overridden rule.
         cls._tab_meta = {"title": title or cls.__name__, "icon": icon,
-                         "cols": cols if cols is not None else (columns or 4), "rows": rows}
+                         "cols": cols if cols is not None else columns, "rows": rows}
 
 
 class Group:

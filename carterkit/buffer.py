@@ -197,7 +197,43 @@ class LayoutBuffer:
             position = slot
         group["position"] = position
         children.append(group)
+        # Normalize nested children the same way add_control does for top-level ones:
+        # give each an id and an auto-placed position in the group's own grid, so the
+        # group validates instead of erroring on missing id/position. (Append first so
+        # unique_id, which scans the committed tree, sees the group's own children.)
+        self._normalize_group_children(group)
         return group
+
+    def _normalize_group_children(self, group: dict) -> None:
+        """Ensure every child of a group has an id and a position within the group's
+        grid. Auto-places (like add_control) any child missing a position, recursing
+        into nested groups. Raises if the group's grid has no room."""
+        kids = group.get("children")
+        if not isinstance(kids, list):
+            return
+        g = group.get("grid") or {}
+        cols = int(g.get("columns", g.get("cols", DEFAULT_COLUMNS)))
+        rows = int(g.get("rows", DEFAULT_ROWS))
+        # Record the grid we placed against so the device renders with the same dims.
+        group.setdefault("grid", {"columns": cols, "rows": rows})
+        placed = [c for c in kids if isinstance(c, dict) and c.get("position") is not None]
+        for child in kids:
+            if not isinstance(child, dict) or "type" not in child:
+                continue
+            if not child.get("id"):
+                child["id"] = self.unique_id(child["type"])
+            if child.get("position") is None:
+                span = child.get("span") or [1, 1]
+                slot = gridmod.find_slot(placed, cols, rows, span)
+                if slot is None:
+                    raise BufferError(
+                        f"group '{group['id']}' has no free {span} slot in its "
+                        f"{rows}x{cols} grid for child '{child['id']}' — grow the group "
+                        f"grid (cols/rows) or set the child's position.")
+                child["position"] = slot
+                placed.append(child)
+            if child.get("type") == "group":
+                self._normalize_group_children(child)
 
     # ─── views ───────────────────────────────────────────────────────────────
 

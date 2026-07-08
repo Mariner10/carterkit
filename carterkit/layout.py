@@ -290,6 +290,11 @@ class Layout:
                  columns: int = None, accent: str = "#667eea"):
         cols = cols if cols is not None else (columns if columns is not None else 4)
         self._buf = LayoutBuffer.blank(name=name, columns=cols, rows=rows, accent=accent)
+        # Remember the layout's grid so tabs inherit it unless they override — otherwise
+        # `Layout(rows=12)` would be silently ignored and every tab would fall back to a
+        # fixed 6-row grid, surprising callers who sized the grid on the Layout.
+        self._default_cols = cols
+        self._default_rows = rows
         self._tab_index = 0
         self._first_tab_used = False
         self._scope = self._scope_for_tab(0)
@@ -310,13 +315,17 @@ class Layout:
         return self
 
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
-            cols: int = None, rows: int = 6, columns: int = None,
+            cols: int = None, rows: int = None, columns: int = None,
             mode: str = None, row_height: int = None) -> TabHandle:
         """Start a tab and make it current. First call configures the default tab;
         later calls append. `with ui.tab(...)` scopes controls to it; the flat form
         ``ui.tab("Main"); ui.gauge(...)`` works too. `mode="flow"` opts the tab out of
-        the default 2-D grid; `row_height` sets the 2-D row unit (points, default 56)."""
-        cols = cols if cols is not None else (columns if columns is not None else 4)
+        the default 2-D grid; `row_height` sets the 2-D row unit (points, default 56).
+
+        Grid size defaults to the Layout's own `cols`/`rows`; pass `cols=`/`rows=` here
+        to override for just this tab."""
+        cols = cols if cols is not None else (columns if columns is not None else self._default_cols)
+        rows = rows if rows is not None else self._default_rows
         grid = {"columns": cols, "rows": rows}
         if mode is not None:
             grid["mode"] = mode

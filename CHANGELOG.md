@@ -3,6 +3,19 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- `Layout(cols=…, rows=…)` now sets the **default grid for every tab**. Previously the
+  layout-level `rows` was ignored and tabs fell back to a fixed 6-row grid, so a sized
+  layout could fail auto-placement with a confusing "no free slot". Override per tab with
+  `ui.tab("Name", rows=…)`. The declarative veneer inherits the same way: a `Tab` class
+  without its own `cols=`/`rows=` uses the `Screen`'s grid.
+- `LayoutBuffer.add_group(...)` now **normalizes nested children** — each child gets a
+  unique `id` and an auto-placed `position` within the group's own grid (recursing into
+  nested groups), instead of producing a group that immediately fails validation for
+  missing `id`/`position`. Raises a clear error if the group grid has no room.
+
 ## [0.5.2] — 2026-06-30
 
 Docs-only re-sync.
