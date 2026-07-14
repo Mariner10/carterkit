@@ -3,9 +3,28 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.6.0] — 2026-07-11
+
+Author it, then drive it — the layout is now the whole contract.
 
 ### Fixed
+- **`send=` sugar now produces actions that actually work.** It used to emit
+  `{"event": "<your name>"}` — a frame type the relay silently drops (only the
+  relay's own verbs are forwarded), so every sugar-authored button/slider did
+  nothing over any relay. `send="cmd"` now compiles to `broadcast_request` with
+  `payload.msg_type="cmd"` (default payload `{"value": "{{value}}"}`); wire verbs
+  and relay service verbs (`ping`, `identify`) still pass through raw.
+  `request=True` on a named command now raises with guidance — replies only ride
+  `route_msg` (which needs a live `target_id`), so use the round-trip idiom
+  (send= the command, listen= for the state broadcast the server answers with).
+- `validate_layout` gained the **`dead_action`** lint (error) for any action-ish
+  binding (`action`, `longPressAction`, `datumAction`, `snapshotAction`,
+  `nodeAction`) whose `event` is not a verb the relay forwards or answers, plus
+  shape checks (`route_msg` needs `target_id`; `route_msg_noreply` needs
+  `target_name`; `mode:"request"` on a broadcast warns).
+- `codegen` stubs no longer register handlers that can never fire, or emit
+  telemetry that omits the sync `filter` keys — generated servers are built on
+  `Hub` and derive every frame from the layout itself.
 - `Layout(cols=…, rows=…)` now sets the **default grid for every tab**. Previously the
   layout-level `rows` was ignored and tabs fell back to a fixed 6-row grid, so a sized
   layout could fail auto-placement with a confusing "no free slot". Override per tab with
@@ -15,6 +34,65 @@ All notable changes to **carterkit** are documented here. This project follows
   unique `id` and an auto-placed `position` within the group's own grid (recursing into
   nested groups), instead of producing a group that immediately fails validation for
   missing `id`/`position`. Raises a clear error if the group grid has no room.
+
+### Added
+- **`Hub` / `Layout.serve()` — drive the layout you built, through its own
+  bindings.** `ctrl.push(value)` derives the broadcast frame from the control's
+  `sync` (filter + valuePath); `@ctrl.on` derives the demux from its `action`;
+  `hub.fill(group, fragment)` replaces a dynamic group's children;
+  `hub.wait_for_device()`, `hub.push_layout()` (routed apply-layout with a rendered
+  echo), and `hub.qr_json()` complete the zero-config loop. Works cross-process off
+  the saved JSON: `Hub("layout.json").push("temp", 21.5)`. The hub is control-state
+  authority by default (late joiners receive the last pushed values).
+- **`Connection.parse(...)` — one parser for every connection artifact**: `None`
+  (embedded LocalRelay), a `ws://` URL + shared key, the app's *Add Device*
+  credential (`{url,channel,token,role,refresh,did,k,validator}` — token
+  self-refresh and room E2EE automatic), a layout `connection` block, or a whole
+  layout. Emits `layout_block()` / `qr_json()` / `client_kwargs()`, and encodes the
+  Connect+ policy: a device token is the hub's identity, never embedded in a layout.
+- `bind.command(name, payload=)` — the compiled-command helper; `bind.WIRE_VERBS`;
+  `bind.RELAY_SERVICE_VERBS`; `bind.connection(hub=)` names the serving hub inside
+  the layout so both sides share one artifact.
+- `CarterClient`: `can_route=` / `can_monitor=` capabilities and
+  `broadcast_frame()` (verbatim payload, no forced msg_type).
+- **`CarterClient.on_sync_request(cb)` / `Hub.on_sync_request(cb)`** — the app's
+  `control_sync_request` (fired on layout load AND every reconnect) surfaced as a
+  deterministic "a replica just joined / came back" callback, so dynamic-deck
+  servers re-push exactly when needed instead of node-watching or blind periodic
+  rebroadcasts. The frame's `dynamic` field lists the layout's dynamic slot
+  events, so a server can re-fill only the requested decks. (Named to stay
+  distinct from `LocalRelay.on_join`, which is relay-auth, not replica state.)
+- **`CarterClient.enable_command_acks()`** — acknowledge `_cmd`-stamped command
+  broadcasts (the app's opt-in ack'd commands, layout `state.acks: true`) with
+  `command_ack {cmd_id, to, ok}`. Handled-gated: the broadcast handler must
+  return `True` for a frame it actually handled — an unmatched command gets NO
+  ack (the app times out + reverts, and another hub on the channel may be the
+  one that answers); a raised exception acks `ok:false` and still propagates.
+  `Hub` reports handled-ness from its demux automatically and auto-enables acks
+  when the served layout's `state.acks` is true. `command_ack` joined the
+  protocol-frame intercept, so hubs never see each other's acks as data.
+- **`Layout.state(sync=, authority=, acks=, ack_timeout_ms=)`** — the layout
+  `state` block as a first-class builder call (join/rehydrate signal + snapshot
+  adoption + ack'd-command opt-in; `ackTimeoutMs` tunes the app's revert window,
+  default 2000, for slow links).
+- `bind.connection(mode=, e2ee_key=, can_broadcast=)` — author the Connect+ room
+  connection shape (`mode: "room"` + `e2eeKey`, mirroring
+  `Connection.layout_block`); `url=None` now omits the URL for room blocks where
+  the app dials its own relay.
+- Catalog now includes the `layout`-category placeables (`divider`, `spacer`) —
+  they get typed builders and pass validation, closing the last "real control
+  the local catalog rejects" gap (heatmap/carousel/accordion/radar landed with
+  the ControlDocs re-sync). NOTE for release: ripples into the website
+  `catalog.json` and the MCP drift fingerprint — rebuild via the docs-site flow.
+- `Fragment` docs now state the stable-id contract: the app diffs dynamic
+  children by id and preserves live values for ids it already has, so servers
+  must keep injected ids stable across re-pushes.
+- `CarterClient.connect()` now **pre-refreshes an expired device token**: a hub
+  holding a refresh credential re-mints its short-lived relay token before
+  dialing, so a service that sat stopped past the token's expiry self-heals on
+  restart instead of retry-looping on "identify not admitted" forever (bit the
+  deployed CarterLights hub on 2026-07-12). Transient validator errors fall
+  through to the stored token; revocation raises `CarterDeviceRevoked`.
 
 ## [0.5.2] — 2026-06-30
 

@@ -44,10 +44,12 @@ def test_validate_clean(tmp_path):
     assert cli.main(["validate", str(f)]) == 0
 
 
-def test_gen_emits_meshsocket_service(tmp_path, capsys):
+def test_gen_emits_hub_service(tmp_path, capsys):
     b = carterkit.LayoutBuffer.blank(columns=4, rows=4)
     b.add_control(carterkit.build.button(id="go"))
     f = tmp_path / "layout.json"
     f.write_text(json.dumps(b.layout))
     assert cli.main(["gen", str(f)]) == 0
-    assert "from meshsocket import MeshSocket" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "from carterkit import Hub" in out
+    assert f'Hub("{f}")' in out          # stub loads the layout it was generated from

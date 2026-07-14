@@ -106,12 +106,17 @@ def device_refresh_http(validator_url, device_id, refresh_token, *, _send=None):
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
                  validator_url=None, session_jwt=None, room=False,
-                 device_id=None, refresh_token=None, refresh_interval=2400):
+                 device_id=None, refresh_token=None, refresh_interval=2400,
+                 can_route=False, can_monitor=False):
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
+        # can_route lets this client SEND routed requests (route_msg); can_monitor
+        # unlocks get_nodes roster reads. Both off by default — a plain data hub
+        # needs neither; Hub turns them on to resolve and push to devices.
         self._sock = MeshSocket(url=gateway_url, name=name, auth_token=token,
-                                channel=channel, role=role, can_broadcast=True, can_route=False)
+                                channel=channel, role=role, can_broadcast=True,
+                                can_route=can_route, can_monitor=can_monitor)
         # `room=True` matches the app's `mode: room`: a symmetric group cipher so the hub
         # shares an encrypted room with several members. Otherwise the directional 1:1 cipher.
         if e2ee_key:
@@ -139,6 +144,8 @@ class CarterClient:
         self._is_state_authority = False
         self._broadcast_handler = None
         self._broadcast_registered = False
+        self._join_handler = None
+        self._ack_commands = False
 
     def _open(self, payload):
         if self._session and isinstance(payload, dict) and E2EESession.is_envelope(payload):
@@ -176,17 +183,68 @@ class CarterClient:
             return None
         self._sock.on("broadcast", wrapper)
 
+    #: Broadcast msg_types that are protocol plane, not app data — consumed by
+    #: _dispatch_broadcast and never handed to on_broadcast handlers. command_ack
+    #: is app-directed (a hub's reply to a phone), so hubs must not see each
+    #: other's acks as data.
+    _PROTOCOL_BROADCASTS = ("control_sync_request", "control_snapshot", "command_ack")
+
     async def _dispatch_broadcast(self, data):
-        # Control-state sync frames are protocol, not app data — consume them here so they
-        # never reach the user's on_broadcast handler. Only an authority answers a request.
-        if isinstance(data, dict) and data.get("msg_type") in ("control_sync_request", "control_snapshot"):
-            if self._is_state_authority and data.get("msg_type") == "control_sync_request":
-                await self._answer_control_sync(data)
+        # Protocol frames are consumed here so they never reach the user's
+        # on_broadcast handler. A sync request is answered by an authority AND
+        # surfaced via on_sync_request (the join signal); snapshots/acks are for
+        # replicas (the app), not for us.
+        if isinstance(data, dict) and data.get("msg_type") in self._PROTOCOL_BROADCASTS:
+            if data.get("msg_type") == "control_sync_request":
+                if self._is_state_authority:
+                    await self._answer_control_sync(data)
+                if self._join_handler is not None:
+                    result = self._join_handler(data)
+                    if asyncio.iscoroutine(result):
+                        await result
             return
-        if self._broadcast_handler is not None:
+        if self._broadcast_handler is None:
+            return
+        # Ack'd-command layer (the app's layout `state.acks`): a `_cmd`-stamped frame
+        # is acknowledged only when the handler REPORTS it handled it (returns True) —
+        # a hub whose demux matched nothing must stay silent so the app times out and
+        # reverts (and so another hub on the channel can be the one that answers).
+        # ok:false on a raised exception, which still propagates unchanged.
+        cmd_id = data.get("_cmd") if (self._ack_commands and isinstance(data, dict)) else None
+        try:
             result = self._broadcast_handler(data)
             if asyncio.iscoroutine(result):
-                await result
+                result = await result
+        except Exception:
+            if cmd_id is not None:
+                await self.broadcast("command_ack", {
+                    "cmd_id": cmd_id, "to": data.get("_from"), "ok": False})
+            raise
+        if cmd_id is not None and result is True:
+            await self.broadcast("command_ack", {
+                "cmd_id": cmd_id, "to": data.get("_from"), "ok": True})
+
+    def on_sync_request(self, handler):
+        """Register the deterministic "a replica just joined / came back" signal: the
+        app broadcasts `control_sync_request` when a layout with synced or dynamic
+        content loads AND on every reconnect. handler(data: dict) gets the decrypted
+        frame (`{from, dynamic?: [...]}` — `dynamic` lists the layout's dynamic slot
+        events); sync or async. Use it to re-push dynamic decks and any full-state
+        snapshot a late joiner needs. (Distinct from LocalRelay.on_join, which is the
+        relay-auth join of a socket, not a layout replica asking for state.)"""
+        self._join_handler = handler
+        self._ensure_broadcast_listener()
+
+    def enable_command_acks(self):
+        """Acknowledge `_cmd`-stamped command broadcasts (the app's opt-in ack'd
+        commands, layout `state.acks: true`) with `command_ack {cmd_id, to, ok}`.
+        The on_broadcast handler must return True for frames it actually handled —
+        only those are acked ok:true; a raised exception acks ok:false; anything
+        else gets NO ack, so the app's pending control times out and reverts (and a
+        different hub on the channel may be the one that answers). Frames without
+        `_cmd` are untouched, so servers stay compatible with plain layouts."""
+        self._ack_commands = True
+        self._ensure_broadcast_listener()
 
     def set_control_state(self, control_id, value):
         """Record the authoritative current value of a control so the hub can answer a
@@ -210,7 +268,12 @@ class CarterClient:
                              {"to": to, "v": self._state_version, "controls": dict(self._control_state)})
 
     async def broadcast(self, msg_type, data):
-        await self._sock.send("broadcast_request", self._seal({**data, "msg_type": msg_type}))
+        await self.broadcast_frame({**data, "msg_type": msg_type})
+
+    async def broadcast_frame(self, frame):
+        """Broadcast a pre-assembled payload verbatim (no msg_type is forced on it) —
+        the escape hatch for frames whose shape a control's sync filter dictates."""
+        await self._sock.send("broadcast_request", self._seal(frame))
 
     async def chat(self, text, *, name="Server", role="device", channel=None, msg_id=None, **extra):
         """Send a channel chat message a chat control will display, as a bubble from `name`.
@@ -277,6 +340,18 @@ class CarterClient:
                 pass  # transient (network/5xx) — retry next interval
 
     async def connect(self):
+        # A hub that sat stopped past its short-lived token's expiry can never
+        # identify (the relay drops it with "not admitted" forever) — when we hold
+        # a refresh credential, pre-mint a fresh token so (re)starts self-heal.
+        # A transient validator error falls through to the stored token.
+        if self._device_id and self._refresh_token and self._validator_url:
+            try:
+                await self.refresh_device_token()
+            except CarterDeviceRevoked:
+                self.revoked = True
+                raise
+            except Exception:
+                pass
         await self._sock.start()
         await self._sock.wait_until_ready()
         # Auto-start the refresh loop only for a self-refreshing external device.

@@ -17,7 +17,7 @@ def test_flat_with_blocks_and_sugar():
         with ui.tab("Main", icon="gauge"):
             cpu = ui.gauge("cpu", label="CPU", min=0, max=100, span=(2, 2),
                            listen="cpu", when={"msg_type": "metrics"})
-            ui.button("refresh", label="Refresh", send="refresh", request=True)
+            ui.button("refresh", label="Refresh", send="refresh")
 
     lay = ui.layout
     assert lay["connection"]["url"] == "ws://h:8765"
@@ -29,8 +29,11 @@ def test_flat_with_blocks_and_sugar():
     s = g["sync"][0]
     assert s["type"] == "listen" and s["valuePath"] == "cpu"
     assert s["filter"] == {"msg_type": "metrics"}
+    # send= compiles to the fan-out shape the relay actually forwards
     b = _child(lay, "refresh")
-    assert b["action"]["event"] == "refresh" and b["action"]["mode"] == "request"
+    assert b["action"]["event"] == "broadcast_request"
+    assert b["action"]["mode"] == "broadcast"
+    assert b["action"]["payload"] == {"value": "{{value}}", "msg_type": "refresh"}
 
 
 def test_handle_visibility_condition():
@@ -74,7 +77,7 @@ def test_runtime_dynamic_group_and_fragment_payload():
     payload = frag.payload("player_state")
     assert payload["msg_type"] == "player_state"
     assert [c["id"] for c in payload["children"]] == ["title", "play-a", "play-b"]
-    assert payload["children"][1]["action"]["payload"] == {"id": "a"}
+    assert payload["children"][1]["action"]["payload"] == {"id": "a", "msg_type": "play"}
 
 
 def test_global_id_dedup_across_group_and_tab():
@@ -90,3 +93,16 @@ def test_validate_clean_on_flat_layout():
     with Layout("X", cols=4, rows=4) as ui:
         ui.gauge("g", min=0, max=100, listen="g", span=(2, 2))
     assert [f for f in ui.validate() if f["severity"] == "error"] == []
+
+
+def test_state_block_and_layout_category_placeables():
+    from carterkit import validate_layout
+    ui = Layout("S", cols=4, rows=6)
+    ui.tab("Main")
+    ui.divider("d", position=[0, 0], span=[1, 4], label="Section")
+    ui.spacer("s", position=[1, 0], span=[1, 1])
+    ui.state(authority="CarterLights", acks=True)
+    assert ui.layout["state"] == {"sync": True, "authority": "CarterLights",
+                                  "acks": True}
+    assert not [f for f in validate_layout(ui.layout)
+                if f.get("severity") == "error"]

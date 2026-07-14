@@ -63,7 +63,7 @@ def _cmd_gen(args) -> int:
     import carterkit
     with open(args.file) as f:
         layout = json.load(f)
-    print(carterkit.codegen.generate_service_stub(layout))
+    print(carterkit.codegen.generate_service_stub(layout, layout_path=args.file))
     return 0
 
 

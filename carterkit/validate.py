@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Optional
 
 from . import grid as gridmod
+from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
@@ -133,9 +134,55 @@ def _validate_bindings(ch, ctype, spot, findings):
                                        f"{ctype}.sync[{i}] is missing a 'valuePath'"))
     for akey in ("action", "longPressAction"):
         a = ch.get(akey)
-        if a is not None and (not isinstance(a, dict) or not a.get("event")):
+        if a is None:
+            continue
+        if not isinstance(a, dict) or not a.get("event"):
             findings.append(_f("error", "bad_action", spot,
                                f"{ctype}.{akey} is missing an 'event'"))
+            continue
+        _validate_action_wire(a, ctype, akey, spot, findings)
+    # Secondary action carriers (charts' datumAction, camera's snapshotAction,
+    # graph's nodeAction) ride the same wire — same dead-verb rules.
+    for akey in ("datumAction", "snapshotAction", "nodeAction"):
+        a = ch.get(akey)
+        if isinstance(a, dict) and a.get("event"):
+            _validate_action_wire(a, ctype, akey, spot, findings)
+
+
+def _validate_action_wire(a, ctype, akey, spot, findings):
+    """The action's `event` goes on the wire as the frame type verbatim, and the
+    relay forwards only its own verbs — any other name is silently dropped (the
+    control does nothing). Catch that dead-button class before it ships."""
+    ev = a.get("event")
+    payload = a.get("payload")
+    if ev not in WIRE_VERBS:
+        if ev in RELAY_SERVICE_VERBS:
+            return  # answered by the relay itself (ping etc.) — legal
+        findings.append(_f("error", "dead_action", spot,
+                           f"{ctype}.{akey} event '{ev}' is not a relay verb — the relay "
+                           f"silently drops it and the control does nothing. Use "
+                           f"send='{ev}' / bind.command('{ev}') to ride broadcast_request "
+                           f"with msg_type='{ev}'"))
+        return
+    if ev == "broadcast_request":
+        if a.get("mode") == "request":
+            findings.append(_f("warn", "bad_action", spot,
+                               f"{ctype}.{akey}: mode 'request' on a broadcast gets no "
+                               f"reply (the tap silently waits out the timeout) — use "
+                               f"mode 'broadcast'"))
+        if not (isinstance(payload, dict) and payload.get("msg_type")):
+            findings.append(_f("warn", "bad_action", spot,
+                               f"{ctype}.{akey}: broadcast_request without a payload "
+                               f"msg_type — servers demux broadcasts on msg_type, so "
+                               f"this frame is very hard to handle"))
+    elif ev == "route_msg" and not (isinstance(payload, dict) and payload.get("target_id")):
+        findings.append(_f("error", "bad_action", spot,
+                           f"{ctype}.{akey}: route_msg needs payload.target_id (a live "
+                           f"relay-assigned id; target_name is NOT resolved) — for "
+                           f"name-targeted sends use route_msg_noreply"))
+    elif ev == "route_msg_noreply" and not (isinstance(payload, dict) and payload.get("target_name")):
+        findings.append(_f("error", "bad_action", spot,
+                           f"{ctype}.{akey}: route_msg_noreply needs payload.target_name"))
 
 
 def format_findings(findings: list[dict]) -> str:

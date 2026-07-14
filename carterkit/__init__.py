@@ -13,7 +13,11 @@ Quick map:
   - ``validate_layout()`` — schema + grid lint against the bundled catalog
   - ``lint_dynamic_traffic()`` — check ``dynamic=`` groups against observed broadcasts
   - ``infer`` / ``codegen`` / ``theming`` / ``tune`` — generate layouts, servers, themes
-  - ``CarterClient`` / ``notify_http`` — connect over MeshSocket, push, send alerts
+  - ``Connection`` — ONE parser for every connection artifact (relay URL, pairing
+    QR JSON, Connect+ Add-Device credential, layout connection block)
+  - ``Hub`` / ``Layout.serve()`` — drive the layout you built: ``ctrl.push(value)``
+    and ``@ctrl.on`` derived from the very sync/action bindings you authored
+  - ``CarterClient`` / ``notify_http`` — the lower-level client: connect, push, alerts
 """
 from importlib.resources import files
 from pathlib import Path
@@ -27,6 +31,8 @@ from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
 from .layout import Layout, Fragment, Control, Condition
+from .connection import Connection
+from .hub import Hub, HubError
 
 try:
     from importlib.metadata import PackageNotFoundError, version as _pkg_version
@@ -85,5 +91,6 @@ __all__ = [
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "controldocs_dir",
     "build", "control", "bind", "Layout", "Fragment", "Control", "Condition",
+    "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
 ]

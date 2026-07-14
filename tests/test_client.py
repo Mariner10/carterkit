@@ -271,3 +271,151 @@ def test_client_notify_forwards_to_helper():
         assert captured["payload"]["title"] == "Garage"
 
     asyncio.run(run())
+
+
+# ─── join signal + ack'd commands ────────────────────────────────────────────
+
+
+def test_on_sync_request_fires_for_control_sync_request_only():
+    async def run():
+        c = _client(key=None)
+        seen = []
+        c.on_sync_request(seen.append)
+        handler = c._sock.handlers["broadcast"]
+        await handler({"msg_type": "control_sync_request", "from": "Phone",
+                       "dynamic": ["ui.rooms"]})
+        await handler({"msg_type": "telemetry", "v": 1})   # data, not a join
+        assert len(seen) == 1 and seen[0]["from"] == "Phone"
+        assert seen[0]["dynamic"] == ["ui.rooms"]          # deck scoping survives
+
+    asyncio.run(run())
+
+
+def test_authority_answer_and_sync_request_handler_share_the_request():
+    async def run():
+        c = _client(key=None)
+        c.enable_state_authority()
+        c.set_control_state("master", 80)
+        joined = []
+        c.on_sync_request(joined.append)
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "control_sync_request", "from": "Phone"})
+        assert [p.get("msg_type") for _, p in c._sock.sent] == ["control_snapshot"]
+        assert len(joined) == 1
+
+    asyncio.run(run())
+
+
+def test_command_ack_ok_when_handler_reports_handled():
+    async def run():
+        c = _client(key=None)
+        got = []
+
+        def handle(data):
+            got.append(data)
+            return True                                    # "this was mine"
+
+        c.on_broadcast(handle)
+        c.enable_command_acks()
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "light.power", "on": True, "_cmd": "c-1", "_from": "Phone"})
+        assert got[0]["msg_type"] == "light.power"
+        t, ack = c._sock.sent[0]
+        assert t == "broadcast_request"
+        assert ack == {"msg_type": "command_ack", "cmd_id": "c-1",
+                       "to": "Phone", "ok": True}
+
+    asyncio.run(run())
+
+
+def test_no_ack_when_handler_reports_unhandled():
+    async def run():
+        c = _client(key=None)
+        c.on_broadcast(lambda d: None)     # observed, but not handled
+        c.enable_command_acks()
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "someone.elses", "_cmd": "c-9", "_from": "Phone"})
+        assert c._sock.sent == []          # silence → the app times out + reverts
+
+    asyncio.run(run())
+
+
+def test_command_ack_not_ok_when_handler_raises_and_still_raises():
+    async def run():
+        c = _client(key=None)
+
+        def boom(_data):
+            raise RuntimeError("handler exploded")
+
+        c.on_broadcast(boom)
+        c.enable_command_acks()
+        with pytest.raises(RuntimeError):
+            await c._sock.handlers["broadcast"](
+                {"msg_type": "x", "_cmd": "c-2", "_from": "Phone"})
+        _, ack = c._sock.sent[0]
+        assert ack["ok"] is False and ack["cmd_id"] == "c-2"
+
+    asyncio.run(run())
+
+
+def test_unstamped_frames_get_no_ack():
+    async def run():
+        c = _client(key=None)
+        c.on_broadcast(lambda d: True)
+        c.enable_command_acks()
+        await c._sock.handlers["broadcast"]({"msg_type": "light.power", "on": False})
+        assert c._sock.sent == []
+
+    asyncio.run(run())
+
+
+def test_command_ack_frames_are_protocol_not_data():
+    async def run():
+        c = _client(key=None)
+        got = []
+        c.on_broadcast(got.append)
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "command_ack", "cmd_id": "c-1", "to": "Phone", "ok": True})
+        assert got == []                   # another hub's ack never leaks as data
+
+    asyncio.run(run())
+
+
+def test_connect_pre_refreshes_expired_device_token():
+    async def run():
+        c = _client(key=None, validator_url="https://v/", device_id="dv_1",
+                    refresh_token="secret")
+        orig = ckclient.device_refresh_http
+        ckclient.device_refresh_http = lambda *a, **k: {"deviceToken": "fresh-tok",
+                                                        "expiresAt": 9}
+        try:
+            await c.connect()
+        finally:
+            ckclient.device_refresh_http = orig
+            if c._refresh_task:
+                c._refresh_task.cancel()
+        # the socket dialed WITH the freshly minted token, not the stale one
+        assert c._sock.auth_token == "fresh-tok"
+        assert c._sock.events[:2] == ["start", "ready"]
+
+    asyncio.run(run())
+
+
+def test_connect_survives_transient_refresh_failure():
+    async def run():
+        c = _client(key=None, validator_url="https://v/", device_id="dv_1",
+                    refresh_token="secret")
+        orig = ckclient.device_refresh_http
+
+        def boom(*a, **k):
+            raise CarterNotifyError(500, "validator down")
+        ckclient.device_refresh_http = boom
+        try:
+            await c.connect()          # falls through to the stored token
+        finally:
+            ckclient.device_refresh_http = orig
+            if c._refresh_task:
+                c._refresh_task.cancel()
+        assert c._sock.events[:2] == ["start", "ready"]
+
+    asyncio.run(run())

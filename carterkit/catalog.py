@@ -201,7 +201,10 @@ def extract_examples(body: str) -> list[dict]:
 # ─── Catalog assembly ────────────────────────────────────────────────────────
 
 # Categories whose docs describe controls that can be placed in a layout grid.
-PLACEABLE_CATEGORIES = {"controls", "display"}
+# "layout" covers the structural placeables (divider, spacer) — real grid
+# citizens the app renders, previously missing from the catalog so typed
+# builders rejected them and servers had to inject raw dicts.
+PLACEABLE_CATEGORIES = {"controls", "display", "layout"}
 
 
 def parse_all(docs_dir) -> dict[str, dict]:

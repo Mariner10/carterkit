@@ -42,17 +42,19 @@ with Layout("Dashboard", cols=4, rows=4) as ui:
         cpu = ui.gauge("cpu", label="CPU", min=0, max=100, span=(2, 2),
                        listen="cpu", when={"msg_type": "metrics"})
         ui.status_light("warn", visible=cpu > 90)      # handle → visibility condition
-        ui.button("refresh", label="Refresh", send="refresh", request=True)
+        ui.button("refresh", label="Refresh", send="refresh")
 
 print(ui.findings())        # schema + grid + binding lint against the bundled catalog
 ui.save("dashboard.json")   # the composed layout, ready to push/load
 ```
 
-Binding sugar: `listen=`/`when=`/`event=` build a `sync`, and `send=`/`request=`/`payload=`
-build an `action`; pass `sync=[...]`/`action={...}` (via `carterkit.bind`) for anything
-fancier. A handle comparison (`cpu > 90`) becomes a real visibility condition; `==`/`!=`
-stay normal Python, so use `.eq()`/`.neq()`. `help(carterkit.build.gauge)` prints any
-control's documentation, straight from the bundled docs.
+Binding sugar: `listen=`/`when=`/`event=` build a `sync`, and `send=`/`payload=` build
+an `action` — `send="refresh"` compiles to the one shape the relay actually forwards
+(`broadcast_request` tagged `msg_type: "refresh"`; `Hub.on` demuxes it back for you).
+Pass `sync=[...]`/`action={...}` (via `carterkit.bind`) for anything fancier. A handle
+comparison (`cpu > 90`) becomes a real visibility condition; `==`/`!=` stay normal
+Python, so use `.eq()`/`.neq()`. `help(carterkit.build.gauge)` prints any control's
+documentation, straight from the bundled docs.
 
 > **Naming:** multi-word controls are **`snake_case` as `Layout` methods**
 > (`ui.status_light(...)`, `ui.log_console(...)`, `ui.progress_ring(...)`) but
@@ -73,7 +75,7 @@ class Dashboard(Screen, cols=4, rows=4):
     class Main(Tab, icon="gauge"):
         cpu  = Gauge(label="CPU", min=0, max=100, span=(2, 2), listen="cpu")
         warn = StatusLight(visible=cpu > 90)
-        refresh = Button(label="Refresh", send="refresh", request=True)
+        refresh = Button(label="Refresh", send="refresh")
 
 Dashboard.save("dashboard.json")
 ```
@@ -105,7 +107,7 @@ Prefer surgical edits? `LayoutBuffer` gives `add_control` / `update_control` / `
 over a held draft; `lay.buffer` exposes it.
 
 `infer.build_layout(payload)` generates a wired layout from a sample telemetry dict;
-`codegen.generate_service_stub(layout)` emits a runnable MeshSocket server skeleton;
+`codegen.generate_service_stub(layout)` emits a runnable `Hub`-based server skeleton;
 `theming.theme_for(...)` and `tune.tune_gauge(...)` round out the authoring tools.
 
 ## CLI
@@ -115,29 +117,66 @@ carterkit catalog                 # list every control type
 carterkit doc gauge               # print a control's documentation
 carterkit examples button         # list a control's examples (--name to print one)
 carterkit validate layout.json    # lint a layout (exit 1 on errors)
-carterkit gen layout.json         # generate a MeshSocket service stub
+carterkit gen layout.json         # generate a runnable Hub server stub
 carterkit relay --port 8765       # run the bundled MeshSocket relay
 ```
 
-## Drive a device
+## Drive the layout you just built
+
+The layout already declares every control's wire contract, so the same object that
+authored the UI also drives it — `ctrl.push(value)` derives the broadcast from the
+control's `sync` binding, and `@ctrl.on` derives the demux from its `action`:
 
 ```python
 import asyncio
-from carterkit import CarterClient
+from carterkit import Layout
+
+with Layout("Thermostat") as ui:
+    with ui.tab("Main"):
+        temp   = ui.gauge("temp", label="Temp", min=0, max=40,
+                          listen="temp", when={"msg_type": "climate"})
+        target = ui.slider("target", min=10, max=30, send="set_target")
 
 async def main():
-    async with CarterClient(gateway_url="ws://localhost:18080", token="<mesh token>",
-                            channel="home", role="device", name="my-hub") as c:
-        c.on("toggle", lambda d: {"ok": True, **d})
-        await c.broadcast("reading", {"temp_c": 21.4})
-        await asyncio.sleep(60)
-    # leaving the `async with` disconnects automatically
+    async with ui.serve() as hub:        # zero config: embedded LocalRelay
+        print("pair the app with:", hub.qr_json())
+        await hub.wait_for_device()
+        await hub.push_layout()          # routed apply-layout; echoes what rendered
+
+        @target.on
+        async def _(data):
+            heater.set(data["value"])
+
+        while True:
+            await temp.push(read_temp())
+            await asyncio.sleep(2)
 
 asyncio.run(main())
 ```
 
-End-to-end encryption (ChaCha20-Poly1305 + per-session salt) is transparent when you
-pass an `e2ee_key`. Send a push to every device on a Connect+ account with
+The same surface works cross-process off the saved JSON — the layout file is the
+contract: `Hub("dashboard.json").push("temp", 21.5)`. Dynamic groups fill with
+`hub.fill(group, fragment)`; the hub answers late joiners with the last pushed values
+(control-state authority) by default.
+
+## One connection story
+
+`Connection.parse(...)` accepts every connection artifact in the ecosystem, and
+`ui.connect(...)` / `ui.serve(...)` / `Hub(...)` all take it:
+
+| You have | Pass | Works |
+|---|---|---|
+| nothing (LAN dev) | `ui.serve()` | embedded `LocalRelay`, QR pairing |
+| a self-hosted relay | `"ws://192.168.1.50:8765"` (+ `token=`) | symmetric: same config for app & hub |
+| Connect+ | the **Add Device** JSON from the app (Members → Add Device) | token self-refresh + room E2EE automatic |
+
+The asymmetry to know: self-hosted is symmetric (one URL + shared key both sides);
+on Connect+ the app joins with its own account while the hub holds the per-device
+credential — which is the hub's identity, so it is never embedded into a layout.
+
+`CarterClient` remains the lower-level client (`on`/`broadcast`/`request`).
+End-to-end encryption (ChaCha20-Poly1305 + per-session salt) is transparent when an
+`e2ee_key` is present. Send a push to every device on a Connect+ account with
 `CarterClient.notify(...)` or the stdlib-only `carterkit.notify_http(...)`.
 
 ## Built on

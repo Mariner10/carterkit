@@ -38,3 +38,31 @@ def test_connection():
     assert c["url"] == "ws://h:8765"
     assert c["identity"] == {"name": "CAR-TER", "channel": "lab", "role": "controller"}
     assert c["token"] == "t"
+
+
+def test_command_default_payload_and_msg_type():
+    assert bind.command("refresh") == {
+        "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+        "payload": {"value": "{{value}}", "msg_type": "refresh"}}
+
+
+def test_command_custom_payload_keeps_name():
+    a = bind.command("play", payload={"id": "t1", "msg_type": "hijack"})
+    assert a["payload"] == {"id": "t1", "msg_type": "play"}   # the name always wins
+
+
+def test_sugar_request_true_raises_with_guidance():
+    import pytest
+    from carterkit import Layout
+    with Layout("X", cols=4, rows=4) as ui:
+        with pytest.raises(ValueError, match="round-trip"):
+            ui.button("b", send="go", request=True)
+
+
+def test_sugar_wire_verb_passes_through():
+    from carterkit import Layout
+    with Layout("X", cols=4, rows=4) as ui:
+        b = ui.button("b", send="route_msg_noreply",
+                      payload={"target_name": "player", "type": "cmd", "payload": {}})
+    assert b.ref["action"]["event"] == "route_msg_noreply"
+    assert b.ref["action"]["payload"]["target_name"] == "player"

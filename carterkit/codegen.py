@@ -1,15 +1,15 @@
-"""Backend codegen — generate a MeshSocket service that speaks to a given layout.
+"""Backend codegen — generate a runnable hub that speaks to a given layout.
 
-A layout declares the events its controls fire (actions) and the events/valuePaths
-its display controls listen for (sync). From that contract we can emit a runnable
-Python service skeleton (handles the actions, emits the telemetry) and a REST-poll
-adapter template. Pure string generation.
+A layout declares the commands its controls fire (actions) and the values its
+display controls listen for (sync). The generated code drives both through
+:class:`carterkit.Hub`, which derives every wire frame from the layout itself —
+so the stub can't drift from the bindings the way hand-assembled frames do.
+Pure string generation.
 """
 
 from __future__ import annotations
 
 import re
-from typing import Any
 
 
 def _walk_controls(layout: dict) -> list[dict]:
@@ -29,17 +29,43 @@ def _walk_controls(layout: dict) -> list[dict]:
 
 
 def analyze_layout(layout: dict) -> dict:
-    """Extract the wire contract: {actions: {event: mode}, emits: {event: [valuePaths]}}."""
+    """Extract the wire contract.
+
+    Returns ``{"actions": {command: mode}, "emits": {event: [valuePaths]},
+    "pushes": [(control_id, valuePath)], "dynamic": [(group_id, event)]}``.
+    A command is what a server handles: a broadcast_request action's payload
+    ``msg_type``, a routed action's inner ``type``, or (legacy) a bare custom
+    event name. ``pushes`` lists the controls `Hub.push` can drive."""
     actions: dict[str, str] = {}
     emits: dict[str, set] = {}
+    pushes: list[tuple[str, str]] = []
+    dynamic: list[tuple[str, str]] = []
     for ch in _walk_controls(layout):
-        a = ch.get("action")
-        if isinstance(a, dict) and a.get("event"):
-            actions.setdefault(a["event"], a.get("mode", "send"))
+        if ch.get("type") == "group" and ch.get("dynamic"):
+            dynamic.append((ch.get("id", "?"), ch["dynamic"]))
+        for akey in ("action", "longPressAction"):
+            a = ch.get(akey)
+            if not (isinstance(a, dict) and a.get("event")):
+                continue
+            ev, payload = a["event"], a.get("payload")
+            if ev == "broadcast_request":
+                name = isinstance(payload, dict) and payload.get("msg_type")
+            elif ev in ("route_msg", "route_msg_noreply"):
+                name = isinstance(payload, dict) and payload.get("type")
+            else:
+                name = ev                     # legacy custom event
+            if name:
+                actions.setdefault(name, a.get("mode", "broadcast"))
+        pushed = False
         for s in ch.get("sync") or []:
-            if isinstance(s, dict) and s.get("valuePath"):
-                emits.setdefault(s.get("event") or "broadcast", set()).add(s["valuePath"])
-    return {"actions": actions, "emits": {k: sorted(v) for k, v in emits.items()}}
+            if not (isinstance(s, dict) and s.get("valuePath")):
+                continue
+            emits.setdefault(s.get("event") or "broadcast", set()).add(s["valuePath"])
+            if not pushed and (s.get("event") or "broadcast") == "broadcast" and ch.get("id"):
+                pushes.append((ch["id"], s["valuePath"]))
+                pushed = True
+    return {"actions": actions, "emits": {k: sorted(v) for k, v in emits.items()},
+            "pushes": pushes, "dynamic": dynamic}
 
 
 def _ident(event: str) -> str:
@@ -47,79 +73,72 @@ def _ident(event: str) -> str:
     return s or "evt"
 
 
-def _connection(layout: dict) -> tuple[str, str]:
-    c = layout.get("connection") or {}
-    return c.get("url") or "ws://localhost:8765", c.get("token") or ""
+def _slug(name: str) -> str:
+    s = re.sub(r"[^a-zA-Z0-9]+", "-", name).strip("-").lower()
+    return s or "layout"
 
 
-def generate_service_stub(layout: dict) -> str:
-    """A runnable Python MeshSocket service skeleton for this layout."""
+def generate_service_stub(layout: dict, layout_path: str | None = None) -> str:
+    """A runnable hub skeleton for this layout, built on `carterkit.Hub` — the
+    frames come from the layout's own bindings, so they can't drift from it."""
     spec = analyze_layout(layout)
-    url, token = _connection(layout)
     name = layout.get("name", "service")
+    path = layout_path or f"{_slug(name)}.json"
+    conn = layout.get("connection") or {}
+    conn_note = (f"# relay: {conn.get('url')} (from the layout's connection block)"
+                 if conn.get("url") else
+                 "# no connection block: Hub serves an embedded LocalRelay — pair the app\n"
+                 "# with the QR JSON printed at startup")
 
     handlers = []
-    for event, mode in sorted(spec["actions"].items()):
-        fn = f"on_{_ident(event)}"
-        reply = "    return {\"ok\": True}" if mode == "request" else "    return None"
+    for cmd, mode in sorted(spec["actions"].items()):
+        fn = f"on_{_ident(cmd)}"
         handlers.append(
-            f'@socket.on("{event}")\n'
-            f'async def {fn}(payload):\n'
-            f'    # action from a control (mode={mode})\n'
-            f'    print("[action] {event}:", payload)\n'
-            f'{reply}\n')
-    handlers_block = "\n".join(handlers) if handlers else "# (layout fires no actions)\n"
+            f'@hub.on("{cmd}")\n'
+            f'async def {fn}(data):\n'
+            f'    # a control fired "{cmd}" (mode={mode}); data["value"] is its value\n'
+            f'    print("[action] {cmd}:", data)\n')
+    handlers_block = "\n".join(handlers) if handlers else "# (this layout fires no actions)\n"
 
-    emit_lines = []
-    for event, paths in sorted(spec["emits"].items()):
-        emit_lines.append(f'        frame = {{}}')
-        for p in paths:
-            emit_lines.append(f'        _set(frame, "{p}", round(random.uniform(0, 100), 2))')
-        send = ('await socket.send("broadcast_request", frame)' if event == "broadcast"
-                else f'await socket.send("{event}", frame)')
-        emit_lines.append(f'        {send}')
-    emit_block = "\n".join(emit_lines) if emit_lines else "        pass  # no sync controls"
+    push_lines = [
+        f'        await hub.push("{cid}", round(random.uniform(0, 100), 2))'
+        f'  # -> {path_}'
+        for cid, path_ in spec["pushes"]]
+    push_block = "\n".join(push_lines) if push_lines else "        pass  # no sync-bound controls"
+
+    dyn_lines = "".join(
+        f'\n# dynamic group "{gid}": hub.fill("{gid}", fragment) replaces its children'
+        f' (broadcast "{ev}")' for gid, ev in spec["dynamic"])
 
     return f'''#!/usr/bin/env python3
-"""Auto-generated MeshSocket service for layout "{name}".
+"""Auto-generated carterkit hub for layout "{name}".
 
-Handles the actions its controls fire and emits the telemetry they listen for.
-Fill in the TODOs with your real device/data logic.
+Handles the commands its controls fire and pushes the values they listen for —
+all derived from the layout's own bindings via carterkit.Hub. Fill in the TODOs
+with your real device/data logic.
 """
 import asyncio
 import random
 
-from meshsocket import MeshSocket  # pip install meshsocket
+from carterkit import Hub  # pip install carterkit
 
-URL = "{url}"
-TOKEN = "{token}"
-
-
-def _set(d, dotted, value):
-    parts = dotted.split(".")
-    cur = d
-    for p in parts[:-1]:
-        cur = cur.setdefault(p, {{}})
-    cur[parts[-1]] = value
-
-
-socket = MeshSocket(url=URL, name="{_ident(name)}-service", auth_token=TOKEN,
-                    channel="home", role="server", can_broadcast=True)
-
+{conn_note}
+hub = Hub("{path}")
+{dyn_lines}
 
 {handlers_block}
 
 async def telemetry_loop():
     while True:
-        # TODO: replace random values with real readings
-{emit_block}
+        # TODO: replace the random values with real readings
+{push_block}
         await asyncio.sleep(1.0)
 
 
 async def main():
-    asyncio.create_task(socket.start())
-    await socket.wait_until_ready()
-    await telemetry_loop()
+    async with hub:
+        print("pair the app with:", hub.qr_json())
+        await telemetry_loop()
 
 
 if __name__ == "__main__":
@@ -127,16 +146,20 @@ if __name__ == "__main__":
 '''
 
 
-def generate_rest_adapter(layout: dict, base_url: str = "https://api.example.com") -> str:
-    """A REST-poll → MeshSocket adapter template mapping API fields to the layout's
-    sync valuePaths."""
+def generate_rest_adapter(layout: dict, base_url: str = "https://api.example.com",
+                          layout_path: str | None = None) -> str:
+    """A REST-poll → mesh adapter template: fetch an API, push the fields the
+    layout's controls listen for (field names guessed from the valuePaths)."""
     spec = analyze_layout(layout)
-    paths = sorted({p for ps in spec["emits"].values() for p in ps})
-    mapping = "\n".join(f'        _set(frame, "{p}", data.get("{p.split(".")[-1]}"))'
-                        for p in paths) or "        pass  # map API fields here"
-    url, token = _connection(layout)
+    name = layout.get("name", "layout")
+    path = layout_path or f"{_slug(name)}.json"
+    mapping = "\n".join(
+        f'        await hub.push("{cid}", data.get("{vpath.split(".")[-1]}"))'
+        f'  # -> {vpath}'
+        for cid, vpath in spec["pushes"]) or "        pass  # map API fields here"
+
     return f'''#!/usr/bin/env python3
-"""Auto-generated REST -> MeshSocket adapter for "{layout.get('name','layout')}".
+"""Auto-generated REST -> mesh adapter for "{name}".
 
 Polls a REST API and pushes the fields the layout's controls listen for.
 """
@@ -144,23 +167,10 @@ import asyncio
 import urllib.request
 import json
 
-from meshsocket import MeshSocket  # pip install meshsocket
+from carterkit import Hub  # pip install carterkit
 
 API = "{base_url}"
-URL = "{url}"
-TOKEN = "{token}"
-
-
-def _set(d, dotted, value):
-    parts = dotted.split(".")
-    cur = d
-    for p in parts[:-1]:
-        cur = cur.setdefault(p, {{}})
-    cur[parts[-1]] = value
-
-
-socket = MeshSocket(url=URL, name="rest-adapter", auth_token=TOKEN,
-                    channel="home", role="server", can_broadcast=True)
+hub = Hub("{path}")
 
 
 def fetch():
@@ -171,16 +181,14 @@ def fetch():
 async def loop():
     while True:
         data = await asyncio.to_thread(fetch)
-        frame = {{}}
+        # TODO: adjust the field mapping to your API's real shape
 {mapping}
-        await socket.send("broadcast_request", frame)
         await asyncio.sleep(2.0)
 
 
 async def main():
-    asyncio.create_task(socket.start())
-    await socket.wait_until_ready()
-    await loop()
+    async with hub:
+        await loop()
 
 
 if __name__ == "__main__":

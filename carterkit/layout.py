@@ -12,7 +12,7 @@ and tabs/groups are context managers, so nesting reads the way Python nests:
             cpu = ui.gauge("cpu", label="CPU", min=0, max=100, span=(2, 2),
                            listen="cpu", when={"msg_type": "metrics"})
             ui.status_light("warn", visible=cpu > 90)  # handle -> visibility cond
-            ui.button("refresh", label="Refresh", send="refresh", request=True)
+            ui.button("refresh", label="Refresh", send="refresh")
 
             with ui.group("Motors", span=(4, 2)) as motors:   # dynamic generation
                 for i in range(4):
@@ -27,11 +27,14 @@ Binding sugar (folded into any control method):
     listen="cpu"                 -> sync that subscribes to the `cpu` value path
     when={"msg_type": "metrics"} -> filter on that listen
     event="telemetry"            -> the listen event (default "broadcast")
-    send="refresh"               -> action fired on tap/change (broadcast)
-    request=True                 -> make that action a request (await reply)
-    payload={"v": "{{value}}"}   -> action payload
+    send="refresh"               -> named command: compiles to a broadcast_request
+                                    tagged msg_type="refresh" (the only shape the
+                                    relay forwards; `Hub.on` demuxes it back)
+    payload={"v": "{{value}}"}   -> command payload (default {"value": "{{value}}"})
 For anything fancier (multiple syncs, custom shapes) pass `sync=[...]` / `action={...}`
-built with `carterkit.bind` directly — they win over the sugar.
+built with `carterkit.bind` directly — they win over the sugar. There is no
+request/reply sugar: replies can't ride the relay's fan-out, so use the round-trip
+idiom (send= the command, listen= for the state broadcast the server answers with).
 
 Dynamic groups have two senses, both first-class here:
   • author-time generation — build groups/controls in `for`/`if` (see above);
@@ -108,6 +111,25 @@ class Control:
     def eq(self, o) -> Condition:  return self._cond("eq", o)
     def neq(self, o) -> Condition: return self._cond("neq", o)
 
+    # ─── driving (live, via the layout's active Hub) ─────────────────────────
+    def _hub(self):
+        hub = getattr(self._scope._owner, "_active_hub", None)
+        if hub is None:
+            raise RuntimeError(
+                "no active hub for this layout — create one with ui.serve(...) and "
+                "enter it (`async with ui.serve() as hub:`) before driving controls")
+        return hub
+
+    async def push(self, value):
+        """Drive this control live: broadcast the frame its sync binding listens
+        for (needs an active `ui.serve()` hub)."""
+        return await self._hub().push(self, value)
+
+    def on(self, fn=None):
+        """Handle this control's action (decorator-friendly): the demux is derived
+        from the action binding (needs an active `ui.serve()` hub)."""
+        return self._hub().on(self, fn)
+
     def __repr__(self) -> str:
         return f"<Control {self._d.get('type','?')} {self.id!r}>"
 
@@ -150,8 +172,20 @@ class _GridScope:
         if action is not None:
             props["action"] = action
         elif send is not None:
-            props["action"] = _bind.action(
-                send, mode="request" if request else "broadcast", payload=payload)
+            if send in _bind.WIRE_VERBS or send in _bind.RELAY_SERVICE_VERBS:
+                # Raw wire/service verb: pass through untouched (power users own the
+                # payload; service verbs like "ping" are answered by the relay itself).
+                props["action"] = _bind.action(
+                    send, mode="request" if request else "broadcast", payload=payload)
+            elif request:
+                raise ValueError(
+                    f"request=True can't ride a broadcast: the relay only routes replies "
+                    f"for route_msg, which needs a live target_id no layout can know at "
+                    f"author time. Use the round-trip idiom — send={send!r} and listen= "
+                    f"for the state broadcast the server answers with — or pass a raw "
+                    f"action=bind.action(...) if you really hold a target_id.")
+            else:
+                props["action"] = _bind.command(send, payload=payload)
         if visible is not None:
             props["visible"] = visible.to_dict() if isinstance(visible, Condition) else visible
         if pulse is not None:
@@ -297,6 +331,7 @@ class Layout:
         self._default_rows = rows
         self._tab_index = 0
         self._first_tab_used = False
+        self._active_hub = None          # set by Hub when this layout is served
         self._scope = self._scope_for_tab(0)
 
     # ─── internals ───────────────────────────────────────────────────────────
@@ -309,10 +344,55 @@ class Layout:
         return self._buf.unique_id(base)
 
     # ─── structure ───────────────────────────────────────────────────────────
-    def connect(self, url: str, **identity) -> "Layout":
-        """Attach a `connection` block (see bind.connection for the identity kwargs)."""
-        self._buf.layout["connection"] = _bind.connection(url, **identity)
+    def connect(self, source: str = None, **identity) -> "Layout":
+        """Attach a `connection` block. `source` is a relay URL (identity kwargs as
+        in bind.connection, including `hub=` to name the serving side) — or anything
+        `Connection.parse` accepts: a pairing/Add-Device JSON path or dict, an
+        existing Connection, or nothing at all for the embedded local relay."""
+        if isinstance(source, str) and source.startswith(("ws://", "wss://")):
+            self._buf.layout["connection"] = _bind.connection(source, **identity)
+            return self
+        from .connection import Connection
+        name = identity.pop("name", "CAR-TER")
+        role = identity.pop("role", None)
+        conn = Connection.parse(source, **identity)
+        self._buf.layout["connection"] = conn.layout_block(name=name, role=role)
         return self
+
+    def state(self, *, sync: bool = True, authority: str = None,
+              acks: bool = None, ack_timeout_ms: int = None) -> "Layout":
+        """Attach the layout `state` block — the app's device-held shared-state
+        opt-in. With `sync` on, the app broadcasts a `control_sync_request` when the
+        layout loads and on every reconnect (the deterministic join signal servers
+        catch with `CarterClient.on_sync_request` / `Hub.on_sync_request`), and
+        adopts the authority's `control_snapshot` of current control values.
+        `authority` names the source-of-truth node (match the serving hub's mesh
+        name or role); `acks=True` additionally opts every control action into
+        ack'd commands — the app stamps `_cmd`/`_from` onto each fired payload and
+        reverts the control unless a `command_ack` arrives within `ack_timeout_ms`
+        (emitted as `ackTimeoutMs`, app default 2000 — raise it for slow links).
+        Serve with `CarterClient.enable_command_acks` (`Hub` does it for you)."""
+        block: dict = {"sync": sync}
+        if authority is not None:
+            block["authority"] = authority
+        if acks is not None:
+            block["acks"] = acks
+        if ack_timeout_ms is not None:
+            block["ackTimeoutMs"] = int(ack_timeout_ms)
+        self._buf.layout["state"] = block
+        return self
+
+    def serve(self, connection=None, *, name: str = None, **overrides) -> "Hub":
+        """The driving side of THIS layout: a Hub bound to these control handles
+        (`async with ui.serve() as hub:` connects; then `ctrl.push(v)` /
+        `@ctrl.on`). `connection` defaults to the layout's own connection block,
+        else an embedded LocalRelay. Also stamps the connection into the layout so
+        the saved JSON dials the same relay the hub serves on."""
+        from .hub import Hub
+        hub = Hub(self, connection=connection, name=name, **overrides)
+        if "connection" not in self.layout:
+            self._buf.layout["connection"] = hub.connection.layout_block()
+        return hub
 
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
             cols: int = None, rows: int = None, columns: int = None,
@@ -419,6 +499,11 @@ class Fragment:
             frag.button(t.id, label=t.name, send="play", payload={"id": t.id})
         await client.broadcast("player_state", {"children": frag.children})
         # or: frag.payload("player_state")  ->  {"msg_type", "children"}
+
+    Keep injected ids STABLE across re-pushes of the same surface: the app diffs a
+    dynamic group's children by id and preserves the live value (and container
+    state) of every id it already has — a renamed id is a brand-new control that
+    resets to its defaultValue.
     """
 
     def __init__(self, *, cols: int = 4, rows: int = 4):

@@ -31,7 +31,7 @@ def test_basic_declarative_shape():
             cpu = Gauge(label="CPU", min=0, max=100, span=(2, 2),
                         listen="cpu", when={"msg_type": "metrics"})
             warn = StatusLight(visible=cpu > 90)
-            refresh = Button(label="Refresh", send="refresh", request=True)
+            refresh = Button(label="Refresh", send="refresh")
 
     lay = Bench.layout
     assert lay["name"] == "Bench"
@@ -46,7 +46,8 @@ def test_basic_declarative_shape():
     assert cpu["sync"][0]["filter"] == {"msg_type": "metrics"}
     # handle comparison -> visibility condition
     assert _child(lay, "warn")["visible"] == {"when": "cpu", "operator": "gt", "value": 90}
-    assert _child(lay, "refresh")["action"]["mode"] == "request"
+    assert _child(lay, "refresh")["action"]["event"] == "broadcast_request"
+    assert _child(lay, "refresh")["action"]["payload"]["msg_type"] == "refresh"
 
 
 def test_matches_flat_builder():

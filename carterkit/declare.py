@@ -15,7 +15,7 @@ fits: generated/dynamic UIs read better flat, fixed ones read better here.
             cpu  = Gauge(label="CPU", min=0, max=100, span=(2, 2),
                          listen="cpu", when={"msg_type": "metrics"})
             warn = StatusLight(visible=cpu > 90)          # handle -> visibility cond
-            refresh = Button(label="Refresh", send="refresh", request=True)
+            refresh = Button(label="Refresh", send="refresh")
 
             class Motors(Group, span=(2, 2), cols=2, rows=2):
                 m0 = Slider(min=0, max=255)
@@ -27,7 +27,7 @@ fits: generated/dynamic UIs read better flat, fixed ones read better here.
 Control classes (`Gauge`, `Button`, `StatusLight`, `ColorPicker`, …) are generated from
 the bundled catalog: a PascalCase name maps to its control type, so `from
 carterkit.declare import *` (or attribute access) exposes one per placeable control.
-Kwargs are the same sugar the flat builder takes (`listen=/when=/send=/request=/span=/
+Kwargs are the same sugar the flat builder takes (`listen=/when=/send=/span=/
 visible=`). For a reference to a control by literal id (forward refs, other tabs) use
 `Ref("id") > 90`. `==`/`!=` keep normal Python semantics — use `.eq()`/`.neq()`.
 """
