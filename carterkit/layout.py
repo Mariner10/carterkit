@@ -394,6 +394,28 @@ class Layout:
             self._buf.layout["connection"] = hub.connection.layout_block()
         return hub
 
+    async def notify(self, title, body, **kw):
+        """Send a push scoped to THIS layout, through its serving hub:
+
+            await ui.notify("Door open", "Bay 2 since 14:02",
+                            image="https://…/door.jpg", criticality="time-sensitive",
+                            sender=("Monroe", "https://…/monroe.jpg"),
+                            actions={"ack": ("Acknowledge", on_ack)})
+
+        Defaults that make the push *belong* to the layout: `thread_id` is the layout
+        name (all of this layout's notifications stack together on the lock screen)
+        and `channel` is the layout's connection channel (tapping the push opens this
+        layout, and action-button taps come back to this hub). Everything else —
+        subtitle, image, sender persona, criticality, sound, relevance, actions with
+        callbacks, E2EE — as in `CarterClient.notify`. Requires the hub's connection
+        to carry Connect+ validator credentials (`validator_url` + `session_jwt`)."""
+        if self._active_hub is None:
+            raise RuntimeError("layout.notify() sends through the layout's hub — serve "
+                               "it first (`async with ui.serve() as hub:`) or use "
+                               "CarterClient.notify / notify_http directly")
+        kw.setdefault("thread_id", self._buf.layout.get("name"))
+        return await self._active_hub.notify(title, body, **kw)
+
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
             cols: int = None, rows: int = None, columns: int = None,
             mode: str = None, row_height: int = None) -> TabHandle:

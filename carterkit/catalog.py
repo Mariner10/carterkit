@@ -141,6 +141,16 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
 
     if not meta["type"] or not meta["label"]:
         return None
+    # Fields tagged `group: fooConfig` live nested under that key in the JSON
+    # (the app decodes them as a config object). Synthesize the umbrella field
+    # when the doc doesn't declare it explicitly (heatmap does; the drag pack
+    # doesn't), so validators accept the nested key authors actually write.
+    declared = {f.get("name") for f in meta["fields"]}
+    for grp in dict.fromkeys(f["group"] for f in meta["fields"] if f.get("group")):
+        if grp not in declared:
+            meta["fields"].append(
+                {"name": grp, "type": "object",
+                 "description": "grouped config object (see grouped fields)"})
     meta["body"] = body
     meta["examples"] = extract_examples(body)
     return meta
@@ -204,7 +214,7 @@ def extract_examples(body: str) -> list[dict]:
 # "layout" covers the structural placeables (divider, spacer) — real grid
 # citizens the app renders, previously missing from the catalog so typed
 # builders rejected them and servers had to inject raw dicts.
-PLACEABLE_CATEGORIES = {"controls", "display", "layout"}
+PLACEABLE_CATEGORIES = {"controls", "display", "layout", "input"}
 
 
 def parse_all(docs_dir) -> dict[str, dict]:

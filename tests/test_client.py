@@ -419,3 +419,191 @@ def test_connect_survives_transient_refresh_failure():
         assert c._sock.events[:2] == ["start", "ready"]
 
     asyncio.run(run())
+
+
+# ─── notification personalization (notify v2) ────────────────────────────────
+
+
+def test_notify_http_maps_rich_fields():
+    captured = {}
+
+    def fake_send(url, headers, body_bytes):
+        captured["payload"] = json.loads(body_bytes.decode())
+        return {"sent": 1, "stale": 0}
+
+    notify_http("https://v/", "jwt", "Garage", "Door open",
+                subtitle="Bay 2", interruption="time-sensitive", relevance=0.8,
+                thread_id="layout-abc", image="https://x/img.jpg",
+                sender=("Monroe", "https://x/ava.jpg"),
+                actions=[{"id": "ack", "title": "Acknowledge"},
+                         {"id": "del", "title": "Delete", "destructive": True}],
+                notif_id="n123", _send=fake_send)
+    p = captured["payload"]
+    assert p["subtitle"] == "Bay 2"
+    assert p["interruption"] == "time-sensitive"
+    assert p["relevance"] == 0.8
+    assert p["threadId"] == "layout-abc"
+    assert p["imageURL"] == "https://x/img.jpg"
+    assert p["sender"] == {"name": "Monroe", "avatarURL": "https://x/ava.jpg"}
+    assert p["actions"] == [{"id": "ack", "title": "Acknowledge"},
+                            {"id": "del", "title": "Delete", "destructive": True}]
+    assert p["notifId"] == "n123"
+
+
+def test_notify_http_rejects_bad_fields():
+    ok = lambda *a: {}
+    with pytest.raises(ValueError, match="Apple approval"):
+        notify_http("https://v/", "jwt", "t", "b", interruption="critical", _send=ok)
+    with pytest.raises(ValueError):
+        notify_http("https://v/", "jwt", "t", "b", interruption="loud", _send=ok)
+    with pytest.raises(ValueError):
+        notify_http("https://v/", "jwt", "t", "b", relevance=1.5, _send=ok)
+    with pytest.raises(ValueError, match="at most 4"):
+        notify_http("https://v/", "jwt", "t", "b", _send=ok,
+                    actions=[{"id": str(i), "title": "x"} for i in range(5)])
+    with pytest.raises(ValueError, match="CarterClient.notify"):
+        notify_http("https://v/", "jwt", "t", "b", _send=ok,
+                    actions={"ack": ("Acknowledge", lambda d: None)})
+    with pytest.raises(ValueError):
+        notify_http("https://v/", "jwt", "t", "b", sender=("Monroe", "x", "y"), _send=ok)
+
+
+def test_notify_sender_forms():
+    from carterkit.client import _normalize_sender
+    assert _normalize_sender("Monroe") == {"name": "Monroe"}
+    assert _normalize_sender(("Monroe", "https://a")) == {"name": "Monroe", "avatarURL": "https://a"}
+    assert _normalize_sender({"name": "Monroe", "avatar_url": "https://a"}) == \
+        {"name": "Monroe", "avatarURL": "https://a"}
+
+
+def _notify_client(**kw):
+    c = _client(key=None, validator_url="https://v/", session_jwt="jwt-9", **kw)
+    return c
+
+
+def _capture_notify(monkeypatch_target_module, captured):
+    def fake_send(url, headers, body_bytes):
+        captured["payload"] = json.loads(body_bytes.decode())
+        return {"sent": 1, "stale": 0}
+    orig = monkeypatch_target_module.notify_http
+    monkeypatch_target_module.notify_http = lambda *a, **k: orig(*a, _send=fake_send, **k)
+    return orig
+
+
+def test_client_notify_defaults_channel_and_thread():
+    async def run():
+        captured = {}
+        c = _notify_client()  # mesh channel "home"
+        orig = _capture_notify(ckclient, captured)
+        try:
+            await c.notify("T", "B", sender="Monroe", criticality="active")
+        finally:
+            ckclient.notify_http = orig
+        p = captured["payload"]
+        assert p["channel"] == "home"           # tap-routing key from the mesh channel
+        assert p["threadId"] == "Monroe"        # persona implies a stable thread
+        assert p["interruption"] == "active"    # criticality alias
+        assert p["sender"] == {"name": "Monroe"}
+
+    asyncio.run(run())
+
+
+def test_client_notify_action_callbacks_dispatch():
+    async def run():
+        captured = {}
+        taps = []
+        c = _notify_client()
+        orig = _capture_notify(ckclient, captured)
+        try:
+            out = await c.notify("T", "B", actions={
+                "ack": ("Acknowledge", lambda d: taps.append(("cb", d["actionId"]))),
+                "info": "Details"})  # no callback for this one
+        finally:
+            ckclient.notify_http = orig
+        p = captured["payload"]
+        notif_id = p["notifId"]
+        assert notif_id  # minted because a callback was registered
+        assert {a["id"] for a in p["actions"]} == {"ack", "info"}
+
+        seen = []
+        c.on_notif_action(lambda d: seen.append(d["actionId"]))
+        tap = {"msg_type": "notif_action", "notifId": notif_id, "actionId": "ack"}
+        await c._sock.handlers["broadcast"](tap)
+        assert taps == [("cb", "ack")]
+        assert seen == ["ack"]
+        # unknown action id: only the catch-all fires
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "notif_action", "notifId": notif_id, "actionId": "zzz"})
+        assert taps == [("cb", "ack")] and seen == ["ack", "zzz"]
+
+    asyncio.run(run())
+
+
+def test_notif_action_consumed_not_forwarded_to_on_broadcast():
+    async def run():
+        c = _notify_client()
+        got = []
+        c.on_broadcast(lambda d: got.append(d))
+        await c._sock.handlers["broadcast"](
+            {"msg_type": "notif_action", "notifId": "n1", "actionId": "a"})
+        assert got == []  # kit plane, like control_sync_request
+
+    asyncio.run(run())
+
+
+def test_room_client_notify_seals_content_fields():
+    async def run():
+        captured = {}
+        c = CarterClient("ws://x", "tok", "home", role="device", e2ee_key=K, room=True,
+                         validator_url="https://v/", session_jwt="jwt-9")
+        c._sock = _FakeSock()
+        orig = _capture_notify(ckclient, captured)
+        try:
+            await c.notify("Secret title", "Secret body", subtitle="Secret sub",
+                           image="https://x/i.jpg", sender=("Monroe", "https://x/a.jpg"),
+                           thread_id="th", relevance=0.5)
+        finally:
+            ckclient.notify_http = orig
+        p = captured["payload"]
+        # placeholders in the clear, content sealed
+        assert p["title"] == "CAR-TER" and p["body"] == "New notification"
+        assert "subtitle" not in p and "imageURL" not in p and "sender" not in p
+        # delivery hints stay clear
+        assert p["threadId"] == "th" and p["relevance"] == 0.5 and p["channel"] == "home"
+        env = p["data"]["enc"]
+        assert E2EESession.is_envelope(env)
+        clear = E2EESession.group(bytes([1]) * 32).open(env)
+        assert clear == {"title": "Secret title", "body": "Secret body",
+                         "subtitle": "Secret sub", "imageURL": "https://x/i.jpg",
+                         "sender": {"name": "Monroe", "avatarURL": "https://x/a.jpg"}}
+
+    asyncio.run(run())
+
+
+def test_notify_encrypt_true_requires_room_cipher():
+    async def run():
+        c = _notify_client()  # no e2ee at all
+        with pytest.raises(CarterNotifyError, match="room"):
+            await c.notify("T", "B", encrypt=True)
+        d = _client(validator_url="https://v/", session_jwt="jwt")  # directional cipher
+        with pytest.raises(CarterNotifyError, match="room"):
+            await d.notify("T", "B", encrypt=True)
+
+    asyncio.run(run())
+
+
+def test_room_client_notify_encrypt_false_stays_clear():
+    async def run():
+        captured = {}
+        c = CarterClient("ws://x", "tok", "home", role="device", e2ee_key=K, room=True,
+                         validator_url="https://v/", session_jwt="jwt-9")
+        c._sock = _FakeSock()
+        orig = _capture_notify(ckclient, captured)
+        try:
+            await c.notify("Plain", "Text", encrypt=False)
+        finally:
+            ckclient.notify_http = orig
+        p = captured["payload"]
+        assert p["title"] == "Plain" and "data" not in p
+
+    asyncio.run(run())

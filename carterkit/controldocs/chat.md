@@ -11,6 +11,10 @@ fields:
   - name: config
     type: object
     description: "ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint"
+  - name: allowClear
+    type: bool
+    description: "Show the local \"Clear Chat\" affordance in the header (default true). Server-driven clears are always honored regardless."
+    group: config
   - name: allowImages
     type: bool
     description: allowImages
@@ -97,8 +101,36 @@ Inherits all [[shared-properties]]. Key fields:
 | `config.allowReactions` | bool | `true` | Allow emoji reactions on messages |
 | `config.allowReplies` | bool | `true` | Allow threaded replies |
 | `config.allowImages` | bool | `false` | Allow image attachments |
+| `config.allowClear` | bool | `true` | Show the local **Clear Chat** control in the header. Server-driven `chat_clear` frames are honored regardless of this flag |
 | `config.historyCount` | number | `50` | Number of messages to keep in history |
 | `config.tint` | string | `"#667eea"` | Chat bubble accent color |
+
+## Message actions (long-press)
+
+Long-press any message bubble for an iMessage-style menu: **Copy** (the message text),
+**Reply** (when `allowReplies`), **React** (emoji, when `allowReactions`), and **Delete**
+(removes it from *this* device's window only). The old tap-to-reveal reaction bar is gone —
+reactions now live in this menu.
+
+## Clearing the window
+
+Two independent ways to wipe the log:
+
+- **Local** — the header's **Clear Chat** menu (shown when `config.allowClear` is true, the
+  default) empties this device's window only. It does **not** notify peers.
+- **Server-driven** — the channel/companion **authority** clears every member's window by
+  emitting a `chat_clear` frame. In channel mode it rides the shared `broadcast` multiplexer
+  like every other chat frame; in companion (`config.target`) mode it arrives as a broadcast:
+
+  ```json
+  // channel mode
+  "broadcast_request": { "msg_type": "chat_clear", "chatId": "team-chat" }
+  // companion mode
+  "broadcast": { "event": "chat_clear" }
+  ```
+
+  An **absent `chatId`** clears every chat control on the channel; a present one targets just
+  that control's `id`. `chat_clear` is **wire API** — never rename it.
 
 ## Examples
 

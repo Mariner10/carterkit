@@ -129,6 +129,8 @@ def _validate_bindings(ch, ctype, spot, findings):
             findings.append(_f("warn", "bad_sync", spot, f"{ctype}.sync should be a list"))
         else:
             for i, s in enumerate(sync):
+                if isinstance(s, dict) and s.get("method") == "sensor":
+                    continue          # sensor bindings have no valuePath
                 if not isinstance(s, dict) or not s.get("valuePath"):
                     findings.append(_f("warn", "bad_sync", spot,
                                        f"{ctype}.sync[{i}] is missing a 'valuePath'"))

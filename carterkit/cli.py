@@ -67,6 +67,35 @@ def _cmd_gen(args) -> int:
     return 0
 
 
+def _cmd_explore(args) -> int:
+    import asyncio
+    import webbrowser
+    from .explore import build_explorer
+
+    overrides = {k: v for k, v in (("channel", args.channel), ("token", args.token))
+                 if v is not None}
+    explorer = build_explorer(args.source, device=args.device, port=args.port,
+                              **overrides)
+
+    def ready(ex):
+        url = f"http://127.0.0.1:{ex.port}"
+        print(f"Layout Link → {url}")
+        conn = ex.hub.connection
+        if conn.kind in ("local", "selfhosted"):
+            print(f"pair the phone (CAR-TER → Live Edit → scan / paste):")
+            print(f"  {ex.hub.qr_json()}")
+        if ex.pull is not None and ex.hub.layout is None:
+            print("waiting for the phone to join — the layout appears the moment it does")
+        if not args.no_open:
+            webbrowser.open(url)
+
+    try:
+        asyncio.run(explorer.run(ready=ready))
+    except KeyboardInterrupt:
+        print("\nbye")
+    return 0
+
+
 def _cmd_relay(args) -> int:
     import asyncio
     from socket_server import MeshServer  # bundled with meshsocket
@@ -107,6 +136,23 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("gen", help="generate a MeshSocket service stub from a layout file")
     c.add_argument("file")
     c.set_defaults(fn=_cmd_gen)
+
+    c = sub.add_parser(
+        "explore",
+        help="serve a live, typed endpoint explorer for a layout (Layout Link)")
+    c.add_argument("source", nargs="?",
+                   help="a layout JSON to explore offline, a pairing/device JSON, "
+                        "or a ws:// relay URL; omit for the zero-config local relay")
+    c.add_argument("--device", nargs="?", const="current", default=None,
+                   metavar="FILE_OR_NAME",
+                   help="pull a layout off the paired phone: a saved layout's "
+                        "file/name, or (bare) whatever is live right now")
+    c.add_argument("--channel", help="mesh channel to join")
+    c.add_argument("--token", help="relay auth token / shared key")
+    c.add_argument("--port", type=int, default=8770, help="explorer web port")
+    c.add_argument("--no-open", action="store_true",
+                   help="don't auto-open the browser")
+    c.set_defaults(fn=_cmd_explore)
 
     c = sub.add_parser("relay", help="run the bundled MeshSocket relay")
     c.add_argument("--host", default="0.0.0.0")

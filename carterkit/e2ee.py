@@ -22,6 +22,9 @@ class E2EESession:
     def __init__(self, secret: bytes, is_device_side: bool = False, seal_salt: bytes = None,
                  is_group: bool = False):
         self._secret = secret
+        #: Room mode is the only construction the app's push extension can open
+        #: ("grp v2" — see PushEnvelope); notification sealing checks this.
+        self.is_group = is_group
         if is_group:
             # Symmetric room mode: every member seals AND opens with the same "grp v2" label,
             # so any member reads any other. Multi-sender nonce reuse is prevented because each

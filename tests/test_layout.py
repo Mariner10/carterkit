@@ -38,3 +38,36 @@ def test_validate_and_findings_clean():
 def test_repr_counts_controls():
     lay = Layout("X").add(build.button(id="a")).add(build.button(id="b"))
     assert "2 control" in repr(lay)
+
+
+def test_layout_notify_scopes_to_layout():
+    import asyncio
+
+    class _StubHub:
+        def __init__(self):
+            self.calls = []
+
+        async def notify(self, title, body, **kw):
+            self.calls.append((title, body, kw))
+            return {"sent": 1, "stale": 0}
+
+    ui = Layout("Monroe Dash")
+    hub = _StubHub()
+    ui._active_hub = hub
+    out = asyncio.run(ui.notify("Door", "Open", image="https://x/i.jpg"))
+    assert out == {"sent": 1, "stale": 0}
+    title, body, kw = hub.calls[0]
+    assert (title, body) == ("Door", "Open")
+    assert kw["thread_id"] == "Monroe Dash"  # the layout IS the thread
+    assert kw["image"] == "https://x/i.jpg"
+    # explicit thread_id wins over the layout default
+    asyncio.run(ui.notify("D", "O", thread_id="custom"))
+    assert hub.calls[1][2]["thread_id"] == "custom"
+
+
+def test_layout_notify_unserved_raises():
+    import asyncio
+    import pytest
+
+    with pytest.raises(RuntimeError, match="serve"):
+        asyncio.run(Layout("L").notify("t", "b"))

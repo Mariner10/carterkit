@@ -22,7 +22,8 @@ Quick map:
 from importlib.resources import files
 from pathlib import Path
 
-from . import catalog, grid, codegen, infer, theming, tune, dynamic
+from . import catalog, grid, codegen, infer, theming, tune, dynamic, contract
+from .contract import extract_contract
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import (CarterClient, notify_http, CarterNotifyError,
@@ -93,4 +94,5 @@ __all__ = [
     "build", "control", "bind", "Layout", "Fragment", "Control", "Condition",
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
+    "contract", "extract_contract",
 ]

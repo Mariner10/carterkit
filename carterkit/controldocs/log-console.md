@@ -29,6 +29,9 @@ fields:
     type: bool
     default: true
     description: Auto-scroll to latest line
+  - name: controlHeight
+    type: number
+    description: "Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span."
   - name: logColors
     type: object
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
@@ -94,6 +97,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `showTimestamps` | bool | `true` | Prefix each line with timestamp |
 | `fontSize` | number | `11` | Monospace font size |
 | `autoScroll` | bool | `true` | Auto-scroll to latest line |
+| `controlHeight` | number | — | Console area height in points (default: compact, capped at 200). Set it to fill a tall grid span |
 | `logColors` | object | — | Map log levels to colors |
 | `tint` | color | `"#667eea"` | Accent color |
 

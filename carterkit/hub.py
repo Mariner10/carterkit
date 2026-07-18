@@ -58,12 +58,25 @@ def _set_path(frame: dict, dotted: str, value) -> None:
 
 
 def _walk_children(layout: dict):
+    """Every control in the layout, recursing through groups, container pages
+    (carousel/flipCard/accordion `panels`), and canvas-hosted controls — the same
+    nesting the app's own sync collection walks, so a nested control is as
+    pushable/handleable as a top-level one."""
     def walk(children):
         for ch in children or []:
-            if isinstance(ch, dict):
-                yield ch
-                if ch.get("type") == "group":
-                    yield from walk(ch.get("children"))
+            if not isinstance(ch, dict):
+                continue
+            yield ch
+            if ch.get("type") == "group":
+                yield from walk(ch.get("children"))
+            for panel in ch.get("panels") or []:
+                if isinstance(panel, dict):
+                    yield from walk(panel.get("children"))
+            cfg = ch.get("canvasConfig")
+            if isinstance(cfg, dict):
+                for item in cfg.get("items") or []:
+                    if isinstance(item, dict) and isinstance(item.get("control"), dict):
+                        yield item["control"]
     for tab in layout.get("tabs", []):
         yield from walk(tab.get("children"))
 
@@ -148,6 +161,14 @@ class Hub:
     async def __aexit__(self, *exc) -> bool:
         await self.close()
         return False
+
+    def adopt_layout(self, layout: dict) -> None:
+        """Adopt a layout after construction — e.g. one pulled off a paired
+        device via `get-layout` — reindexing controls so push()/on()/frame_for()
+        resolve against it."""
+        self.layout = layout
+        self._index = {ch["id"]: ch for ch in _walk_children(layout or {})
+                       if ch.get("id")}
 
     # ─── the pairing hand-off ────────────────────────────────────────────────
     def qr_json(self, *, role: str = "controller") -> str:
@@ -352,6 +373,9 @@ class Hub:
 
     async def notify(self, title, body, **kw):
         return await self.client.notify(title, body, **kw)
+
+    def on_notif_action(self, handler):
+        self.client.on_notif_action(handler)
 
     def __repr__(self) -> str:
         n = len(self._index)

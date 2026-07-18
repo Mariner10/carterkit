@@ -3,6 +3,65 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Notifications that feel like they're from *your* layout.
+
+### Added
+- **Layout Link (`carterkit explore`).** A layout is secretly an API — this
+  serves it. `carterkit explore` starts a local web explorer that shows every
+  **trigger** a layout's controls fire and every **data feed** they listen for,
+  *type-defined*: token types (`{{value}}` resolves to the control's native
+  type, refined by its config — a 0–255 slider shows `number 0–255`), typed
+  push inputs per feed, a live wire log of every frame both directions, and a
+  one-click typed `bridge.py` stub download. Zero-config flow: run it bare,
+  scan the printed pairing JSON from the phone (Live Edit → scan), and the
+  explorer pulls the phone's current layout over the mesh (`get-current-layout`
+  / `get-layout`) the moment it joins — the layout you just built in the
+  on-device editor becomes a browsable, pokeable API in one step. Works
+  offline on a layout file too (`carterkit explore my-layout.json`). Stdlib
+  only; the mesh connection retries in the background so a slow relay never
+  blocks the page.
+- **`carterkit.contract`** — `extract_contract(layout)`: the typed wire
+  contract behind the explorer, importable on its own (agents: read this
+  instead of reverse-engineering layout JSON). Redacts connection secrets, so
+  a contract is safe to share.
+- **`Hub.adopt_layout(layout)`** — adopt a layout after construction (e.g. one
+  pulled off a paired device) and reindex controls.
+- **Nested controls are first-class in `Hub`**: the control index now recurses
+  through container pages (carousel/flipCard/accordion `panels`) and
+  canvas-hosted items, so `hub.push`/`hub.on` resolve controls the on-device
+  editor nested — matching the app's own sync collection.
+- **Rich notifications (notify v2).** `notify_http` / `CarterClient.notify` /
+  `Hub.notify` grew the personalization fields the relay + app now support:
+  `subtitle`, `interruption` (`passive` / `active` / `time-sensitive`;
+  `criticality=` accepted as an alias, `"critical"` rejected until Apple
+  approval), `relevance` (0–1 stack ranking), `thread_id` (lock-screen
+  grouping), `image=` (URL the device downloads and attaches), and
+  `sender=` — a persona (`"Monroe"`, `("Monroe", avatar_url)`, or dict) that
+  renders the push as a Communication Notification with the sender's name and
+  circular avatar. `sound` stays a bundled-name/default/none (APNs cannot play
+  remote sound URLs).
+- **Action buttons with callbacks.** `notify(actions={"ack": ("Acknowledge",
+  fn), …})` (≤4) puts buttons on the push; a tap comes back over the mesh as a
+  flat `notif_action` broadcast and fires the per-send callback (dispatch keyed
+  by an auto-minted `notifId`). `CarterClient.on_notif_action` /
+  `Hub.on_notif_action` is the catch-all. Best-effort: taps arrive only while
+  the app holds a live connection on the channel.
+- **`Layout.notify(...)` — pushes scoped to the layout.** Sends through the
+  layout's serving hub with `thread_id` defaulting to the layout name and
+  `channel` to the layout's connection (so tapping the push opens that layout,
+  and its notifications stack together).
+- **E2EE notifications by default in rooms.** In a room (`e2ee_key` +
+  `room=True`) `notify()` seals the content fields — title, body, subtitle,
+  image URL, sender — into the `enc` envelope the app's push extension decrypts
+  on-device; APNs/relay carry only a placeholder. Delivery hints
+  (interruption/relevance/thread/sound/badge/channel/actions) ride in the
+  clear. `encrypt=False` opts out; `encrypt=True` fails loudly without a room
+  cipher. `CarterClient.notify` also now defaults `channel` to the client's
+  mesh channel (tap-routing), and a persona defaults `thread_id` to the sender
+  name so avatar and thread grouping agree.
+
 ## [0.6.0] — 2026-07-11
 
 Author it, then drive it — the layout is now the whole contract.
