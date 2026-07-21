@@ -427,19 +427,39 @@ function renderStatus(s) {
   }
 }
 
+/* ── app-direct (MQTT / HTTP / sensor — the app serves these, not a server) ── */
+function renderAppDirect(list) {
+  if (!list || !list.length) return;
+  const host = $("#feeds");
+  const rows = list.map(a => `<div class="card">
+    <div class="card-head">
+      <span class="feed-label">${esc(a.label)}</span>
+      <span class="badge">${esc(a.transport)}</span>
+      <span class="badge">${a.direction === "out" ? "→ out" : "← in"}</span>
+      <span class="where">${esc(a.where)}</span>
+    </div>
+    <div class="meta"><code>id: ${esc(a.id)}</code>${
+      a.address ? `<code>${esc(a.transport)}: ${esc(a.address)}</code>` : ""}</div>
+    <div class="hint">app-direct — the phone speaks this itself; no server serves it</div>
+  </div>`).join("");
+  host.insertAdjacentHTML("beforeend",
+    `<div class="hint" style="margin:10px 2px 4px">App-direct (MQTT / HTTP / sensor) · ${list.length}</div>` + rows);
+}
+
 function renderContract(c) {
   state.contract = c;
   $("#layout-name").textContent = c.layout.name;
   document.title = "Layout Link · " + c.layout.name;
   renderTriggers(c.triggers);
   renderFeeds(c.feeds);
+  renderAppDirect(c.appDirect);
 }
 
 function renderWaiting(qr) {
   $("#layout-name").textContent = "waiting…";
   $("#triggers").innerHTML = `<div class="empty">
     <div class="big">📱 Pair your phone</div>
-    In CAR-TER, open <b>Live Edit → Scan</b> and scan the QR printed in the
+    In CAR-TER, start a <b>Studio Session</b> (Settings → Studio Session → Open Scanner) and scan the QR printed in the
     terminal — the layout will appear here the moment it connects.
     ${qr ? `<div class="qr-note">or paste this pairing JSON:<code>${esc(qr)}</code></div>` : ""}
   </div>`;

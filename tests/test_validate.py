@@ -53,11 +53,24 @@ def test_unknown_type():
 
 
 def test_bad_enum_value():
+    # An unrecognized enum is a WARNING, not an error: the app never rejects a layout
+    # for one — it renders the control with the field's default. The message still names
+    # the accepted values so lint readers catch the typo.
     layout = _layout([{"type": "button", "id": "b", "position": [0, 0],
                        "style": "sparkly"}])
     findings = validate.validate_layout(layout, CAT)
     assert "bad_enum" in _kinds(findings)
-    assert any(f["severity"] == "error" for f in findings if f["kind"] == "bad_enum")
+    enum = [f for f in findings if f["kind"] == "bad_enum"]
+    assert all(f["severity"] == "warn" for f in enum)
+    assert any("filled" in f["detail"] for f in enum)  # accepted values named
+
+
+def test_parameterized_enum_ok():
+    # `formatValue: "decimal:2"` is a real parameterized format — the base token matches.
+    layout = _layout([{"type": "slider", "id": "s", "position": [0, 0],
+                       "formatValue": "decimal:2"}])
+    findings = validate.validate_layout(layout, CAT)
+    assert not any(f["kind"] == "bad_enum" for f in findings)
 
 
 def test_unknown_field_is_warning():

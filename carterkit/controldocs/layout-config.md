@@ -34,6 +34,9 @@ fields:
   - name: dynamicTabs
     type: object[]
     description: Runtime-injected tabs
+  - name: sources
+    type: object
+    description: Named external data sources (MQTT brokers, HTTP APIs)
 ---
 
 Top-level JSON structure for a CAR-TER remote.
@@ -56,11 +59,16 @@ Top-level JSON structure for a CAR-TER remote.
     "cornerRadius": 12
   },
   "connection": { "url": "...", "identity": {...} },
+  "sources": { "broker": { "type": "mqtt", "url": "mqtt://..." } },
   "tabs": [ ... ],
   "pollGroups": { ... },
   "dynamicTabs": [ ... ]
 }
 ```
+
+`connection` (a MeshSocket server) and `sources` ([[sources]] — MQTT/HTTP) are
+both optional and freely mixed; a layout can run entirely on sources with no
+server at all.
 
 ## Appearance
 
@@ -123,6 +131,7 @@ For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-theme
 
 ## Related
 
+- [[sources]] — MQTT/HTTP data sources
 - [[theming]] — Full theme system, light/dark variants, live builder
 - [[appearance]] — Color scheme, header, status bar, background image
 - [[group-def]] — containers within tabs

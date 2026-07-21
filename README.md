@@ -63,6 +63,40 @@ documentation, straight from the bundled docs.
 > the same either way. Grid size (`cols`/`rows`) set on `Layout(...)` is the default for
 > every tab; override it per tab with `ui.tab("Name", rows=…)`.
 
+### Beyond MeshSocket — sources, sensors, and app-side features
+
+A layout can drive itself off protocols you already run, or the phone's own hardware, with
+**no server code** — the app speaks them directly:
+
+```python
+ui.source_mqtt("broker", "mqtt://192.168.1.10:1883")   # declare a broker
+ui.source_http("api", "http://192.168.1.5:8080", interval=5)
+with ui.tab("Home", icon="house"):
+    ui.gauge("temp", label="Temp", min=0, max=40, sync=[bind.mqtt("home/temp")])
+    ui.toggle("fan", label="Fan", sync=[bind.mqtt("home/fan/state")],
+              action=bind.mqtt_publish("home/fan/set"))
+    ui.gauge("cpu", label="CPU", sync=[bind.http("/status", interval=5, valuePath="cpu")])
+    ui.compass("hdg", label="Heading", sensor="heading")   # device sensor, no backend
+```
+
+`bind.mqtt` / `bind.mqtt_publish` / `bind.http` / `bind.http_request` / `bind.sensor` build
+the sync/action dicts; the validator checks a `source:` names a declared source and that
+mqtt/http bindings carry a topic/path. These are marked **app-direct** in the contract, so a
+generated `bridge.py` never tries to serve them.
+
+Author the rest of the app's surface from Python too:
+
+```python
+ui.publisher("heading", interval=0.25)                     # stream a sensor to a hub/server
+ui.alert(event="broadcast", value_path="temp", operator="gt", value=30,
+         title="Too hot", body="Greenhouse over 30°C")     # relay-watcher push rule
+ui.glance(hero="temp", slots=["fan"], live_activity=True)  # widgets / Live Activity
+ui.poll_group("tick", event="broadcast_request", interval=10, payload={"msg_type": "poll"})
+ui.appearance(color_scheme="dark", show_header=True)
+ui.dynamic_tab("inject_tab")                               # runtime-injected tab
+ui.state(sync=True, authority="hub", acks=True)           # device-held shared state + acks
+```
+
 **Prefer a declarative style?** A class veneer compiles to the *same* layout — ids come
 from attribute names, tabs/groups are nested classes (great for fixed dashboards; the flat
 builder reads better for generated ones):

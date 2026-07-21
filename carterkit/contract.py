@@ -257,6 +257,7 @@ def extract_contract(layout: dict) -> dict:
     triggers: dict[str, dict] = {}
     feeds: list[dict] = []
     dynamic: list[dict] = []
+    app_direct: list[dict] = []   # mqtt/http/sensor bindings the APP serves — not the hub
 
     for ctrl, tab, crumb in walk_with_location(layout):
         ctype = ctrl.get("type", "?")
@@ -269,6 +270,13 @@ def extract_contract(layout: dict) -> dict:
 
         for akey, gesture in (("action", "tap"), ("longPressAction", "long-press")):
             a = ctrl.get(akey)
+            if isinstance(a, dict) and a.get("method") in ("mqtt", "http"):
+                # App-direct outbound: the app publishes/requests it itself, no server.
+                app_direct.append({"id": ctrl.get("id"), "type": ctype, "label": label,
+                                   "where": where, "direction": "out", "gesture": gesture,
+                                   "transport": a["method"],
+                                   "address": a.get("topic") or a.get("path") or a.get("url")})
+                continue
             if not (isinstance(a, dict) and a.get("event")):
                 continue
             command, transport = _command_of(a)
@@ -293,7 +301,15 @@ def extract_contract(layout: dict) -> dict:
         if isinstance(syncs, dict):
             syncs = [syncs]
         for s in syncs or []:
-            if not isinstance(s, dict) or s.get("method") == "sensor":
+            if not isinstance(s, dict):
+                continue
+            method = s.get("method", "meshsocket")
+            if method in ("mqtt", "http", "sensor"):
+                # App-direct inbound: the app subscribes/polls/reads it itself, no server.
+                app_direct.append({"id": ctrl.get("id"), "type": ctype, "label": label,
+                                   "where": where, "direction": "in", "transport": method,
+                                   "address": s.get("topic") or s.get("path") or s.get("url")
+                                              or s.get("sensor")})
                 continue
             feed = {"id": ctrl.get("id"), "type": ctype, "label": label,
                     "where": where,
@@ -317,4 +333,7 @@ def extract_contract(layout: dict) -> dict:
         "feeds": feeds,
         "dynamicGroups": dynamic,
         "publishers": publishers,
+        # MQTT/HTTP/sensor bindings the APP handles directly (broker, REST, hardware) —
+        # a generated server stub must NOT try to serve these; they need no server code.
+        "appDirect": app_direct,
     }

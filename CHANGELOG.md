@@ -3,9 +3,47 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.7.0]
 
-Notifications that feel like they're from *your* layout.
+Full parity with the app — every layout it renders, the kit now authors and accepts.
+Plus notifications that feel like they're from *your* layout (see below).
+
+### Added — app parity
+- **Re-vendored ControlDocs (62)** including the new `sources.md`; the catalog treats
+  it as a system doc (informs validation, never a placeable control). 43 placeable
+  controls, canvas + drag pack included.
+- **Data sources (MQTT / HTTP).** Declare them with `Layout.source_mqtt(name, url, …)`
+  / `source_http(name, base_url, …)`, and bind controls with `bind.mqtt(topic=…)` /
+  `bind.mqtt_publish(topic=…)` / `bind.http(path=…, interval=…)` / `bind.http_request(…)`.
+  The app speaks MQTT/HTTP directly — no server code — so these are surfaced as
+  **app-direct** in the contract and never fake-served by a generated stub.
+- **Device sensors.** `bind.sensor("heading")` / a `sensor="motion.roll"` kwarg on any
+  control build a sensor sync; the validator knows the pipeline names.
+- **Publishers** — `Layout.publisher(sensor, interval=…)` streams this device's sensors
+  over the connection (`publishers` array; validated against known pipelines).
+- **Alerts** — `Layout.alert(event=…, value_path=…, operator=…, value=…, title=…, body=…)`
+  authors relay-watcher push rules (operator validated to eq/neq/gt/lt/gte/lte).
+- **Glance / Live Activities** — `Layout.glance(hero=…, slots=[…], live_activity=True, …)`;
+  hero/slot ids are validated against the layout's controls.
+- **Poll groups, appearance, dynamic tabs** — `Layout.poll_group(...)`,
+  `Layout.appearance(...)`, `Layout.dynamic_tab(event)`.
+
+### Changed — validator now matches the app's real tolerance
+- **Unknown enum values are warnings, not errors** — the app never rejects a layout for
+  one (it renders the field's default); parameterized formats (`formatValue: "decimal:2"`)
+  match on their base token.
+- **Non-MeshSocket bindings.** `method: "mqtt"/"http"/"sensor"` sync/action are validated
+  by their own shape (topic / path|url / sensor name) instead of demanding a relay `event`;
+  a binding's `source:` must name a declared source, and a declared-but-unreferenced source
+  warns.
+- **`mode:"flow"` grids** skip 2-D bounds/overlap lint (the app stacks them).
+- **Shared display fields** (`min`/`max`/`step`/`formatValue`/`controlHeight`/`hideValue`/
+  `pulse`, and group `hideBackground`/`pulse`) are recognized, matching `ControlDefinition`.
+- Light top-level validation for `sources`/`alerts`/`publishers`/`glance`/`state` shapes
+  (never rejects the tolerant top-level keys the app ignores).
+- **Parity acceptance test**: validates every bundled SampleLayout + published template with
+  zero errors (skipped when the app repo isn't adjacent), plus a soft warning-inventory drift
+  guard.
 
 ### Added
 - **Layout Link (`carterkit explore`).** A layout is secretly an API — this

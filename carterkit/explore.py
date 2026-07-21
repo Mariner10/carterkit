@@ -10,7 +10,7 @@
 * A downloadable typed server stub (`bridge.py`) and contract JSON.
 
 Zero-config flow: ``carterkit explore`` starts an embedded LocalRelay, prints
-the pairing QR JSON, and the moment the phone scans in (Live Edit → scan) the
+the pairing QR JSON, and the moment the phone scans in (Studio Session → scan) the
 explorer pulls the phone's current layout over the mesh (`get-current-layout`)
 and renders its contract. Point it at a saved layout instead with
 ``--device my-layout.json``, or explore a local file offline with

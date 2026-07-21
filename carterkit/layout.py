@@ -161,12 +161,16 @@ class _GridScope:
     # ─── controls ────────────────────────────────────────────────────────────
     def _make(self, ctype: str, *, id=None, position=None, span=None,
               listen=None, when=None, event: str = "broadcast",
-              send=None, request: bool = False, payload=None,
+              send=None, request: bool = False, payload=None, sensor=None,
               sync=None, action=None, visible=None, pulse=None, **props) -> Control:
         syncs = list(sync) if sync else []
         if listen is not None:
             for v in ([listen] if isinstance(listen, str) else listen):
                 syncs.append(_bind.listen(v, event=event, filter=when))
+        if sensor is not None:
+            # Bind to a device sensor (no backend). `sensor="heading"` / "motion.roll".
+            for s in ([sensor] if isinstance(sensor, str) else sensor):
+                syncs.append(_bind.sensor(s))
         if syncs:
             props["sync"] = syncs
         if action is not None:
@@ -380,6 +384,114 @@ class Layout:
         if ack_timeout_ms is not None:
             block["ackTimeoutMs"] = int(ack_timeout_ms)
         self._buf.layout["state"] = block
+        return self
+
+    # ─── data sources (MQTT / HTTP — app-side runtimes, no server code) ─────────
+    def source_mqtt(self, name: str, url: str, *, username: str = None,
+                    password: str = None, client_id: str = None) -> "Layout":
+        """Declare an MQTT broker source. Controls bind topics with
+        ``bind.mqtt("home/temp")`` (sync) / ``bind.mqtt_publish("home/lamp/set")``
+        (action). The app speaks MQTT directly — no server code. See sources.md."""
+        src: dict = {"type": "mqtt", "url": url}
+        if username is not None:
+            src["username"] = username
+        if password is not None:
+            src["password"] = password
+        if client_id is not None:
+            src["clientId"] = client_id
+        self._buf.layout.setdefault("sources", {})[name] = src
+        return self
+
+    def source_http(self, name: str, base_url: str, *, headers: dict = None,
+                    interval: float = None) -> "Layout":
+        """Declare an HTTP API source. Controls poll it with
+        ``bind.http("/status", interval=5)`` and act with ``bind.http_request(...)``.
+        The app polls directly — no server code. See sources.md."""
+        src: dict = {"type": "http", "baseURL": base_url}
+        if headers is not None:
+            src["headers"] = headers
+        if interval is not None:
+            src["interval"] = interval
+        self._buf.layout.setdefault("sources", {})[name] = src
+        return self
+
+    # ─── publishers (stream this device's sensors over the connection) ──────────
+    def publisher(self, sensor: str, *, interval: float = None) -> "Layout":
+        """Stream a device [[sensors]] pipeline over the layout's connection, so a hub
+        device or server can watch this phone's compass/speed/sound live. `sensor` is a
+        pipeline name (heading, motion, barometer, device, audio, location). See publishers.md."""
+        pub: dict = {"sensor": sensor}
+        if interval is not None:
+            pub["interval"] = interval
+        self._buf.layout.setdefault("publishers", []).append(pub)
+        return self
+
+    # ─── alerts (relay-watcher push rules) ──────────────────────────────────────
+    def alert(self, *, event: str, value_path: str, operator: str, value,
+              title: str, body: str, id: str = None, cooldown: int = None,
+              acknowledge_server_readable: bool = None) -> "Layout":
+        """Add a relay-side alert rule: when a broadcast on `event` whose `value_path`
+        `operator`-compares to `value` lands, the relay's alert-watcher pushes a
+        notification (`title`/`body`) — even with the app closed. `operator` is one of
+        eq/neq/gt/lt/gte/lte. `cooldown` (seconds) rate-limits repeats. See AlertRule."""
+        ops = {"eq", "neq", "gt", "lt", "gte", "lte"}
+        if operator not in ops:
+            raise ValueError(f"operator must be one of {sorted(ops)}, got {operator!r}")
+        rule: dict = {"id": id or f"alert-{len(self._buf.layout.get('alerts', []))}",
+                      "event": event, "valuePath": value_path, "operator": operator,
+                      "value": value, "title": title, "body": body}
+        if cooldown is not None:
+            rule["cooldown"] = int(cooldown)
+        if acknowledge_server_readable is not None:
+            rule["acknowledgeServerReadable"] = acknowledge_server_readable
+        self._buf.layout.setdefault("alerts", []).append(rule)
+        return self
+
+    # ─── glance (widgets / lock screen / Dynamic Island / Live Activity) ────────
+    def glance(self, *, enabled: bool = None, title: str = None, icon: str = None,
+               tint: str = None, hero: str = None, slots: list = None,
+               live_activity: bool = None, controls: list = None) -> "Layout":
+        """Project this layout onto glance surfaces (widgets, lock screen, Dynamic
+        Island, Live Activities). `hero`/`slots` are control ids to surface; enabling
+        `live_activity` lets the relay push updates to a running Live Activity. See
+        GlanceConfig / glance.md."""
+        block: dict = {}
+        for k, v in (("enabled", enabled), ("title", title), ("icon", icon),
+                     ("tint", tint), ("hero", hero), ("slots", slots),
+                     ("liveActivity", live_activity), ("controls", controls)):
+            if v is not None:
+                block[k] = v
+        self._buf.layout["glance"] = block
+        return self
+
+    # ─── poll groups (server-timer polling) ─────────────────────────────────────
+    def poll_group(self, name: str, *, event: str, interval: float, payload=None) -> "Layout":
+        """Fire `event` (with optional `payload`) every `interval` seconds so a server
+        answers on a timer — a layout-driven poll. Servers catch it like any broadcast."""
+        grp: dict = {"event": event, "interval": interval}
+        if payload is not None:
+            grp["payload"] = payload
+        self._buf.layout.setdefault("pollGroups", {})[name] = grp
+        return self
+
+    # ─── dynamic tabs (runtime-injected tabs) ───────────────────────────────────
+    def dynamic_tab(self, event: str) -> "Layout":
+        """Register an `event` that can inject a whole tab at runtime (the tab analog of
+        a dynamic group). A server broadcasts a matching payload to add the tab live."""
+        self._buf.layout.setdefault("dynamicTabs", []).append({"event": event})
+        return self
+
+    # ─── appearance (chrome overrides) ──────────────────────────────────────────
+    def appearance(self, *, color_scheme: str = None, show_header: bool = None,
+                   status_bar_style: str = None, background_image: str = None) -> "Layout":
+        """Set the layout's `appearance` chrome: `color_scheme` ("light"/"dark"/"system"),
+        whether the header shows, status-bar style, and a background image URL."""
+        block: dict = {}
+        for k, v in (("colorScheme", color_scheme), ("showHeader", show_header),
+                     ("statusBarStyle", status_bar_style), ("backgroundImage", background_image)):
+            if v is not None:
+                block[k] = v
+        self._buf.layout["appearance"] = block
         return self
 
     def serve(self, connection=None, *, name: str = None, **overrides) -> "Hub":

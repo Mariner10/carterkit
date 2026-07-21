@@ -5,7 +5,7 @@ The ecosystem grew four shapes of "how do I connect":
   1. a layout's `connection` block (what the APP dials):
      ``{"url", "token"?, "mode"?, "e2eeKey"?, "identity": {"name","channel","role"}}``
   2. the QR pairing JSON (what the app scans): ``{"url","channel","role","token"?}``
-  3. the *Add Device* credential (what a HUB holds — the app's Members sheet emits
+  3. the *Add Hub* credential (what a HUB holds — the app's Layout hub (Hubs → Add Hub) emits
      it): ``{"url","channel","token","role","refresh","did","k"?,"validator"?}``
   4. `CarterClient` constructor kwargs.
 
@@ -190,7 +190,7 @@ class Connection:
         if self.kind == "account":
             raise ValueError(
                 "this connection is a Connect+ account-side block — it has no hub "
-                "credential. Mint one on the phone (Members → Add Device) and pass "
+                "credential. Mint one on the phone (Layout hub → Hubs → Add Hub) and pass "
                 "that JSON instead.")
         url = self.url if self.kind != "local" else f"ws://127.0.0.1:{self.port}"
         kw: dict = {

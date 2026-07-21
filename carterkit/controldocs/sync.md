@@ -6,22 +6,40 @@ category: system
 fields:
   - name: method
     type: string
-    description: Transport method (meshsocket, sensor)
+    description: Transport method (meshsocket, mqtt, http, sensor)
   - name: type
     type: string
     description: Sync direction (listen)
   - name: event
     type: string
-    description: Event name to subscribe to
+    description: Event name to subscribe to (meshsocket)
   - name: filter
     type: object
     description: Key-value pairs to match incoming messages
   - name: valuePath
     type: string
     description: Dot-notation path to extract value
+  - name: source
+    type: string
+    description: Named entry in the layout's sources (mqtt/http)
+  - name: topic
+    type: string
+    description: MQTT topic filter to subscribe (mqtt; supports +/#)
+  - name: url
+    type: string
+    description: Absolute URL to poll (http)
+  - name: path
+    type: string
+    description: Path against the source's baseURL (http)
+  - name: interval
+    type: number
+    description: Poll interval in seconds (http)
 ---
 
-How controls receive live state from the network.
+How controls receive live state — the **standardized connection block**. The
+same vocabulary (`filter`, `valuePath`, value semantics) applies no matter the
+transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
+`mqtt`/`http` (see [[sources]]), or `sensor` (this device's own hardware).
 
 ## Definition
 
@@ -35,12 +53,26 @@ How controls receive live state from the network.
 }]
 ```
 
+Equivalent bindings on other transports:
+
+```json
+{ "method": "mqtt", "topic": "server/telemetry", "valuePath": "cpu" }
+{ "method": "http", "path": "/api/status", "interval": 5, "valuePath": "cpu" }
+```
+
 ## Flow
 
-1. Server broadcasts on event
-2. App filters by matching all keys
+1. A payload arrives (server broadcast, MQTT publish, or HTTP poll response)
+2. App filters by matching all `filter` keys against the payload
 3. Extracts value at `valuePath` (dot-notation)
-4. Updates control binding
+4. Updates control binding — identically for every transport
+
+## External sources (MQTT / HTTP)
+
+With `method: "mqtt"` or `"http"` a sync entry binds an external source directly
+— an MQTT broker topic or a polled JSON endpoint — with no MeshSocket server in
+the loop. Same `filter`/`valuePath` semantics, same special receivers. See
+[[sources]] for source declaration, payload rules, and full examples.
 
 ## Local hardware
 
@@ -73,7 +105,8 @@ A top-level layout key, not a per-control sync — the app↔server session cont
 
 ## Notes
 
-- Multiple syncs per [[control-def]] allowed
+- Multiple syncs per [[control-def]] allowed — and they may mix transports
+  (e.g. a meshsocket binding plus an [[sources]] fallback)
 - Filter matches exact key-value pairs
 - [[sparkline]] accumulates values in a ring buffer
 - Used by [[gauge]], [[label]], [[map]], [[graph]], and more

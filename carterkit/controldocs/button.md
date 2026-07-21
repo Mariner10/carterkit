@@ -14,7 +14,7 @@ fields:
     description: SF Symbol shown before label
   - name: style
     type: enum
-    values: [filled, outlined, ghost, tinted, icon-only]
+    values: [filled, outlined, outline, ghost, tinted, icon-only]
     default: filled
     description: Visual style variant ("outline" and "outlined" are both accepted)
   - name: size

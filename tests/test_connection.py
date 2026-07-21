@@ -71,7 +71,7 @@ def test_parse_account_block_cannot_serve():
     room = {"mode": "room", "e2eeKey": "kk", "identity": {"channel": "c", "role": "member"}}
     c = Connection.parse(room)
     assert c.kind == "account"
-    with pytest.raises(ValueError, match="Add Device"):
+    with pytest.raises(ValueError, match="Add Hub"):
         c.client_kwargs()
 
 

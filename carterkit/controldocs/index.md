@@ -44,7 +44,7 @@ The **chart pack** blurs the line: [[chart|charts]] (bar/line/area/scatter/histo
 ![](control-preview://gauge-demo)
 
 ### Data Flow
-Every control can **sync** with the server. Input controls fire **actions** — events sent over the mesh. Display controls **listen** for incoming data and update automatically.
+Every control can **sync** with a backend. Input controls fire **actions**; display controls **listen** for incoming data and update automatically. The connection block is standardized: the same `filter`/`valuePath`/`{{value}}` vocabulary works over a MeshSocket server, an **MQTT broker**, or a polled **HTTP API** ([[sources]]) — `method` just picks the wire, so you know exactly what a control accepts and emits no matter the backend.
 
 ![](control-preview://sparkline-demo)
 
@@ -142,8 +142,10 @@ Tap any node in the graph to explore the full documentation for each control typ
 
 1. **Explore the docs** — tap nodes in the graph to learn about each control
 2. **Write a layout** — create a JSON file following the [[layout-config]] schema
-3. **Run a server** — drive your layout from Python with `pip install carterkit`, or
-   speak the MeshSocket protocol directly from any language
+3. **Bind your data** — point controls at an MQTT broker or HTTP API you already
+   run ([[sources]], zero server code), or run a server: drive your layout from
+   Python with `pip install carterkit`, or speak the MeshSocket protocol directly
+   from any language
 4. **Connect** — load your layout and watch it come alive
 
 Full developer docs — building servers, the wire protocol, and the `carterkit`

@@ -69,6 +69,90 @@ def command(name: str, *, payload: dict | None = None, method: str = "meshsocket
             "payload": body}
 
 
+#: Sensor pipelines the app can bind (see sensors.md). Dotted keys pick a field
+#: (`motion.roll`); a bare name is shorthand for its `.value`.
+SENSOR_PIPELINES = ("heading", "motion", "barometer", "device", "audio", "location")
+
+
+def sensor(name: str, *, value_path: str | None = None) -> dict:
+    """A `sync` entry bound to a device sensor — no backend needed (the app streams
+    the reading locally). `name` is a pipeline or dotted key (`"heading"`,
+    `"motion.roll"`, `"device.battery"`). See sensors.md."""
+    s: dict = {"method": "sensor", "sensor": name}
+    if value_path is not None:
+        s["valuePath"] = value_path
+    return s
+
+
+def mqtt(topic: str, *, value_path: str = "", filter: dict | None = None,
+         source: str | None = None) -> dict:
+    """A `sync` entry that subscribes an MQTT topic (see sources.md). `value_path`
+    extracts from a JSON payload (leave empty for bare number/bool/string payloads);
+    `source` names the declared broker (omit when the layout has exactly one)."""
+    s: dict = {"method": "mqtt", "topic": topic}
+    if value_path:
+        s["valuePath"] = value_path
+    if filter is not None:
+        s["filter"] = filter
+    if source is not None:
+        s["source"] = source
+    return s
+
+
+def mqtt_publish(topic: str, *, payload="{{value}}", retain: bool | None = None,
+                 source: str | None = None) -> dict:
+    """An `action` that publishes to an MQTT topic. String payloads publish raw bytes
+    (`ON`, not `"ON"`); objects publish as JSON. `{{value}}` rides the control value."""
+    a: dict = {"method": "mqtt", "topic": topic, "payload": payload}
+    if retain is not None:
+        a["retain"] = retain
+    if source is not None:
+        a["source"] = source
+    return a
+
+
+def http(path: str | None = None, *, url: str | None = None, interval: float | None = None,
+         value_path: str = "", filter: dict | None = None, source: str | None = None) -> dict:
+    """A `sync` entry that polls an HTTP endpoint (see sources.md). Give `path`
+    (against a source's baseURL) or an absolute `url`; `interval` is seconds."""
+    if not path and not url:
+        raise ValueError("http() needs a 'path' (against a source baseURL) or an absolute 'url'")
+    s: dict = {"method": "http"}
+    if path:
+        s["path"] = path
+    if url:
+        s["url"] = url
+    if interval is not None:
+        s["interval"] = interval
+    if value_path:
+        s["valuePath"] = value_path
+    if filter is not None:
+        s["filter"] = filter
+    if source is not None:
+        s["source"] = source
+    return s
+
+
+def http_request(path: str | None = None, *, url: str | None = None,
+                 http_method: str | None = None, payload=None, source: str | None = None) -> dict:
+    """An `action` that fires an HTTP request. `http_method` defaults to POST when a
+    payload is present, else GET. Object payloads send as JSON, strings as text."""
+    if not path and not url:
+        raise ValueError("http_request() needs a 'path' or an absolute 'url'")
+    a: dict = {"method": "http"}
+    if path:
+        a["path"] = path
+    if url:
+        a["url"] = url
+    if http_method is not None:
+        a["httpMethod"] = http_method
+    if payload is not None:
+        a["payload"] = payload
+    if source is not None:
+        a["source"] = source
+    return a
+
+
 def connection(url: str | None, *, channel: str = "home", name: str = "CAR-TER",
                role: str = "controller", token: str | None = None,
                hub: str | None = None, mode: str | None = None,
