@@ -23,6 +23,7 @@ the Hub's asyncio loop with ``run_coroutine_threadsafe``.
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import queue
 import threading
@@ -33,8 +34,16 @@ from .codegen import generate_service_stub
 from .contract import extract_contract
 from .explore_html import PAGE
 from .hub import Hub
+from .qr import encode as _qr_encode
 
 _PULL_VERBS = {"current": ("get-current-layout", {"include": "full"})}
+
+
+@functools.lru_cache(maxsize=4)
+def _qr_matrix_for(payload: str) -> list[list[bool]]:
+    """The pairing QR's module matrix for `payload` — cached, since `status()`
+    is polled every few seconds but the pairing payload never changes mid-run."""
+    return _qr_encode(payload, ecc="M").matrix
 
 
 class Explorer:
@@ -165,11 +174,13 @@ class Explorer:
 
     def status(self) -> dict:
         conn = self.hub.connection
+        pairing = self.hub.qr_json() if conn.kind in ("local", "selfhosted") else None
         return {"connected": self.connected, "kind": conn.kind,
                 "channel": conn.channel, "connectError": self.connect_error,
                 "url": conn.url, "port": getattr(conn, "port", None),
                 "peers": self.peers, "hasLayout": self.hub.layout is not None,
-                "qr": self.hub.qr_json() if conn.kind in ("local", "selfhosted") else None,
+                "qr": pairing,
+                "qrMatrix": _qr_matrix_for(pairing) if pairing else None,
                 "device": self.device_info}
 
     def start_http(self) -> None:

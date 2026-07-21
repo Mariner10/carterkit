@@ -172,6 +172,19 @@ PAGE = r"""<!doctype html>
     background: #0d1017; border: 1px solid var(--edge); border-radius: 8px;
     padding: 8px; word-break: break-all; text-align: left;
   }
+  .qr-card {
+    margin: 16px auto 0; max-width: 280px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px; background: var(--panel);
+    border: 1px solid var(--edge); border-radius: 14px; padding: 16px;
+  }
+  .qr-card-title { font-weight: 700; font-size: 13px; color: var(--text); }
+  .qr-card svg { width: 200px; height: 200px; border-radius: 6px; }
+  .qr-payload { width: 100%; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+  .qr-payload code {
+    display: block; font-family: var(--mono); font-size: 10.5px;
+    background: #0d1017; border: 1px solid var(--edge); border-radius: 8px;
+    padding: 7px 8px; word-break: break-all; text-align: left; color: var(--dim);
+  }
   #toast {
     position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
     background: var(--card); border: 1px solid var(--edge); border-radius: 10px;
@@ -455,13 +468,44 @@ function renderContract(c) {
   renderAppDirect(c.appDirect);
 }
 
-function renderWaiting(qr) {
+/* ── pairing QR (inline SVG, drawn from the module matrix the server sends —
+   the encoding itself is server-side Python; this just paints rects) ───── */
+function qrSvg(matrix, moduleSize, quiet) {
+  moduleSize = moduleSize || 6; quiet = quiet === undefined ? 4 : quiet;
+  const n = matrix.length, total = n + quiet * 2, px = total * moduleSize;
+  let rects = "";
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      if (matrix[r][c])
+        rects += `<rect x="${(c + quiet) * moduleSize}" y="${(r + quiet) * moduleSize}" width="${moduleSize}" height="${moduleSize}"/>`;
+  // A white backing rect under the whole viewBox (module area + quiet zone) —
+  // a scanner needs that light quiet zone regardless of the page's own theme.
+  return `<svg viewBox="0 0 ${px} ${px}" width="${px}" height="${px}" xmlns="http://www.w3.org/2000/svg">` +
+         `<rect width="${px}" height="${px}" fill="#fff"/><g fill="#000">${rects}</g></svg>`;
+}
+
+function copyQrPayload() {
+  const text = state.status && state.status.qr;
+  if (!text) return;
+  navigator.clipboard.writeText(text)
+    .then(() => toast("pairing JSON copied"))
+    .catch(() => toast("copy failed — select the text manually", true));
+}
+
+function renderWaiting(qr, qrMatrix) {
   $("#layout-name").textContent = "waiting…";
   $("#triggers").innerHTML = `<div class="empty">
     <div class="big">📱 Pair your phone</div>
-    In CAR-TER, start a <b>Studio Session</b> (Settings → Studio Session → Open Scanner) and scan the QR printed in the
-    terminal — the layout will appear here the moment it connects.
-    ${qr ? `<div class="qr-note">or paste this pairing JSON:<code>${esc(qr)}</code></div>` : ""}
+    In CAR-TER, start a <b>Studio Session</b> (Settings → Studio Session → Open Scanner) and scan the code below —
+    the layout will appear here the moment it connects.
+    ${qrMatrix ? `<div class="qr-card">
+        <div class="qr-card-title">Scan with CAR-TER to pair</div>
+        ${qrSvg(qrMatrix)}
+        <div class="qr-payload">
+          <code>${esc(qr)}</code>
+          <button class="btn" onclick="copyQrPayload()">⧉ copy pairing JSON</button>
+        </div>
+      </div>` : qr ? `<div class="qr-note">pairing JSON:<code>${esc(qr)}</code></div>` : ""}
   </div>`;
   $("#feeds").innerHTML = "";
 }
@@ -473,7 +517,7 @@ async function refresh() {
     if (s.hasLayout && !state.contract) {
       renderContract(await (await fetch("/api/contract")).json());
     } else if (!s.hasLayout && !state.contract) {
-      renderWaiting(s.qr);
+      renderWaiting(s.qr, s.qrMatrix);
     }
   } catch { /* server restarting */ }
 }

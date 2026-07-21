@@ -99,6 +99,7 @@ def test_endpoints_and_push():
         s = _wait_connected(port)
         assert s["hasLayout"] is True and s["kind"] == "local"
         assert s["qr"] and "ws://" in s["qr"]
+        assert s["qrMatrix"] and len(s["qrMatrix"]) == len(s["qrMatrix"][0])
 
         status, raw = _get(port, "/api/contract")
         c = json.loads(raw)

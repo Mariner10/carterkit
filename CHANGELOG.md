@@ -3,7 +3,23 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.7.0]
+## [0.7.1]
+
+A real, scannable pairing QR — `carterkit explore`'s web page shows one now instead of
+just the raw JSON.
+
+### Added
+- **`carterkit.qr`** — a compact, dependency-free QR Code encoder (ISO/IEC 18004, byte
+  mode, ECC L/M, auto version, standard mask selection). Vendored so `explore` and the
+  CLI never need a runtime dependency.
+- **Layout Link's pairing card.** The "Scan with CAR-TER to pair" card renders an inline
+  SVG QR (white-backed for a dark page) plus the payload text and a copy button, for
+  local/self-hosted connections; hidden when there's nothing to pair (a production
+  Connect+ device never shows one). Updates through the page's existing status flow.
+- **`carterkit explore`'s terminal output** now prints a half-block ASCII QR above the
+  pairing JSON, so the phone can scan straight from the terminal.
+
+No layout-JSON or wire-format changes.
 
 Full parity with the app — every layout it renders, the kit now authors and accepts.
 Plus notifications that feel like they're from *your* layout (see below).

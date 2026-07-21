@@ -83,7 +83,10 @@ def _cmd_explore(args) -> int:
         conn = ex.hub.connection
         if conn.kind in ("local", "selfhosted"):
             print(f"pair the phone (CAR-TER → Settings → Studio Session → scan):")
-            print(f"  {ex.hub.qr_json()}")
+            payload = ex.hub.qr_json()
+            from .qr import encode as qr_encode
+            print(qr_encode(payload, ecc="M").ascii())
+            print(f"  {payload}")
         if ex.pull is not None and ex.hub.layout is None:
             print("waiting for the phone to join — the layout appears the moment it does")
         if not args.no_open:
