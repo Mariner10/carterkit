@@ -3,6 +3,53 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.0]
+
+**Studio Mirror** — `carterkit explore` now mirrors the phone live, and can drive any
+control on it, not just the wire-bound ones.
+
+Previously a Studio Session pinned the phone to a blank layout and the explorer pulled
+that blank layout, so both screens sat dead. The app now treats the studio connection as
+authoritative (navigate anywhere; every layout registers on the studio socket) and
+narrates what the user is doing; this release is the listening half.
+
+### Added
+- **Studio Mirror demux.** Broadcasts carrying `msg_type: "studio.event"` are demuxed
+  out of the generic wire log into typed SSE events (`{kind: "studio", event, data}`)
+  for the seven-event vocabulary: `hello`, `layout`, `layout-closed`, `tab`, `action`,
+  `value`, `bye`. Full contract in the app repo's `carter-mcp/PROTOCOL.md`.
+- **`Explorer.mirror`** — live device state (device, app version, layout, tabs, active
+  tab, alive flag, last event), surfaced as `"mirror"` in `/api/status`.
+- **Auto-follow.** A `layout` event re-pulls `get-current-layout`, so the rendered
+  contract follows the phone wherever the user navigates.
+- **`Explorer.prime_mirror`** — a late or restarted explorer derives the same facts from
+  the routed pull (`get-current-layout` + `get-device-info` + the roster) instead of
+  showing an empty panel. Inferred fields always yield to a real `studio.event`.
+- **`Explorer.set_control_values`** and `POST /api/set` — the routed `set-control-state`
+  verb (new in the app), which is the only wire path to a control with **no `sync`
+  binding**. Returns the device's truthful `{ok, applied, skipped}`.
+- **`carterkit.explore.extract_controls`** and `GET /api/controls` — the *device* view:
+  every control in the layout, wired or not, with a typed input inferred per control
+  kind. Triggers/Data-feeds remain the *wire contract* view.
+- **Device Mirror + Controls panels** on the Layout Link page: device/layout/tab pills, a
+  live `action`/`value` ticker whose control ids jump to the matching feed input, and a
+  Controls column that drives any control by id.
+- **`carterkit.contract.is_group`** — the group test, exported.
+
+### Fixed
+- **Nested controls vanished from a pulled layout.** The app's layout echo re-encodes its
+  own model, and older builds emit group nodes with **no `type`** (the Swift
+  `GroupDefinition` has no such field). Every walker keyed on `type == "group"`, so it
+  stopped at the group: nested controls disappeared and the group itself leaked through
+  as a `type: "?"` row (Feature Demo listed 24 controls instead of ~60). `is_group` now
+  also accepts the implicit shape (children, no `type`), and it is used by
+  `walk_with_location`, `extract_controls`, the dynamic-group detection in
+  `extract_contract`, and `Hub`'s control index — that last one meant a nested control
+  could appear in Data feeds while `hub.push()` couldn't find it.
+
+No layout-JSON changes. The wire gains one broadcast vocabulary (`studio.event`) and one
+routed verb (`set-control-state`), both additive.
+
 ## [0.7.1]
 
 A real, scannable pairing QR — `carterkit explore`'s web page shows one now instead of

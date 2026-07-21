@@ -137,6 +137,22 @@ def expects_spec(ctrl: dict) -> dict:
 
 # ── layout traversal (breadcrumbed) ──────────────────────────────────────────
 
+def is_group(node: dict) -> bool:
+    """Whether a layout child is a group.
+
+    Normally that's ``type == "group"``. But a node that *carries children* is a group
+    whatever it says: the app's `get-current-layout` echo re-encodes its model, and
+    older builds emit group nodes with no `type` at all (the Swift `GroupDefinition`
+    has no such field). Treating those as unknown controls made every walker stop at
+    the group and silently drop everything nested inside it — so accept the implicit
+    shape too. Container controls (carousel/flipCard/accordion) nest under `panels`,
+    not `children`, so they are not caught by this.
+    """
+    return node.get("type") == "group" or (
+        node.get("type") is None and isinstance(node.get("children"), list)
+    )
+
+
 def walk_with_location(layout: dict):
     """Yield ``(control, tab_title, breadcrumb)`` for every control, recursing
     through groups, container panels (carousel/flipCard/accordion), and
@@ -148,7 +164,7 @@ def walk_with_location(layout: dict):
                 continue
             yield ch, tab, crumb
             label = ch.get("label") or ch.get("id") or ch.get("type", "?")
-            if ch.get("type") == "group":
+            if is_group(ch):
                 yield from walk(ch.get("children"), tab, crumb + [label])
             for i, panel in enumerate(ch.get("panels") or []):
                 if isinstance(panel, dict):
@@ -264,7 +280,7 @@ def extract_contract(layout: dict) -> dict:
         label = ctrl.get("label") or ctrl.get("id") or ctype
         where = " › ".join([tab] + crumb)
 
-        if ctype == "group" and ctrl.get("dynamic"):
+        if is_group(ctrl) and ctrl.get("dynamic"):
             dynamic.append({"id": ctrl.get("id", "?"), "event": ctrl["dynamic"],
                             "tab": tab, "where": where})
 

@@ -153,6 +153,306 @@ def test_post_error_is_json():
     _run_explorer(body)
 
 
+# ── Studio Mirror ────────────────────────────────────────────────────────────
+# The phone narrates its navigation with `studio.event` broadcasts during a Studio
+# Session (see the app's AppState+StudioMirror.swift). The explorer demuxes them out
+# of the generic broadcast passthrough, folds them into `mirror`, and follows the
+# phone by re-pulling the contract whenever it opens a different layout.
+
+
+def _studio(event, **fields):
+    return {"msg_type": "studio.event", "event": event, **fields}
+
+
+def _fresh_explorer():
+    hub = Hub(LAYOUT, None, name="layout-link", port=_free_port())
+    return Explorer(hub, port=_free_port(), pull="current")
+
+
+def test_studio_event_demux_publishes_studio_kind():
+    ex = _fresh_explorer()
+    q = ex.subscribe()
+    ex.on_studio_event(_studio("hello", device="Carter's iPhone",
+                               appVersion="1.0", layout=None))
+    evt = q.get_nowait()
+    assert evt["kind"] == "studio" and evt["event"] == "hello"
+    assert evt["data"]["device"] == "Carter's iPhone"
+    assert "ts" in evt                      # the SSE layer stamps time, not the wire
+
+
+def test_studio_events_track_mirror_state():
+    ex = _fresh_explorer()
+    assert ex.mirror["alive"] is False
+
+    ex.on_studio_event(_studio("hello", device="iPhone", appVersion="1.0", layout=None))
+    assert ex.mirror["device"] == "iPhone" and ex.mirror["alive"] is True
+
+    ex.on_studio_event(_studio("layout", layout="Rack", layoutId="rack.json",
+                               tabs=[{"id": "One", "title": "One"},
+                                     {"id": "Two", "title": "Two"}],
+                               controls=7, tab="One"))
+    assert ex.mirror["layout"] == "Rack" and ex.mirror["layoutId"] == "rack.json"
+    assert ex.mirror["controls"] == 7 and ex.mirror["tab"] == "One"
+    assert [t["id"] for t in ex.mirror["tabs"]] == ["One", "Two"]
+
+    ex.on_studio_event(_studio("tab", tab="Two", title="Two", index=1))
+    assert ex.mirror["tab"] == "Two"
+
+    ex.on_studio_event(_studio("action", control="lamp", controlType="toggle",
+                               payload={"msg_type": "set-lamp", "on": True}))
+    assert ex.mirror["lastEvent"] == "action"
+    assert ex.mirror["layout"] == "Rack"     # activity doesn't disturb the layout
+
+    ex.on_studio_event(_studio("layout-closed"))
+    assert ex.mirror["layout"] is None and ex.mirror["tabs"] == []
+    assert ex.mirror["alive"] is True        # closing a layout doesn't end the session
+
+    ex.on_studio_event(_studio("bye"))
+    assert ex.mirror["alive"] is False
+
+
+def test_studio_layout_event_requests_a_repull():
+    """The phone navigated, so the contract on screen is the wrong one."""
+    ex = _fresh_explorer()
+
+    async def run():
+        ex.loop = asyncio.get_running_loop()
+        ex._repull = asyncio.Event()
+        ex.on_studio_event(_studio("tab", tab="Two", title="Two", index=1))
+        await asyncio.sleep(0)
+        assert not ex._repull.is_set(), "a tab switch is not a new contract"
+        ex.on_studio_event(_studio("layout", layout="Rack", layoutId="rack.json",
+                                   tabs=[], controls=0, tab=""))
+        await asyncio.sleep(0)
+        assert ex._repull.is_set()
+
+    asyncio.run(run())
+
+
+def test_status_carries_mirror():
+    def body(port):
+        _wait_connected(port)
+        s = json.loads(_get(port, "/api/status")[1])
+        assert "mirror" in s
+        assert s["mirror"]["alive"] is False and s["mirror"]["layout"] is None
+
+    _run_explorer(body)
+
+
+def test_prime_mirror_fills_a_blank_mirror_from_the_pull():
+    """A late/restarted explorer missed the phone's hello, so the Device Mirror would
+    sit empty forever. The routed pull carries the same facts — derive them."""
+    ex = _fresh_explorer()
+    ex.peers = ["Carter's iPhone"]
+    ex.device_info = {"ok": True, "appVersion": "1.0", "build": "42"}
+
+    ex.prime_mirror(LAYOUT)
+
+    assert ex.mirror["device"] == "Carter's iPhone"
+    assert ex.mirror["appVersion"] == "1.0"
+    assert ex.mirror["layout"] == "Explore Test"
+    assert ex.mirror["tabs"] == [{"id": "Main", "title": "Main"}]
+    assert ex.mirror["tab"] == "Main"
+    assert ex.mirror["controls"] == 2          # slider + gauge, groups excluded
+
+
+def test_prime_mirror_never_overwrites_what_the_phone_said():
+    """An inference must never beat a fact: whatever arrived over `studio.event`
+    wins, and priming only fills the gaps around it."""
+    ex = _fresh_explorer()
+    ex.peers = ["Some Other Phone"]
+    ex.on_studio_event(_studio("hello", device="Carter's iPhone",
+                               appVersion="9.9", layout=None))
+    ex.on_studio_event(_studio("layout", layout="Rack", layoutId="rack.json",
+                               tabs=[{"id": "Power", "title": "Power"}],
+                               controls=7, tab="Power"))
+
+    ex.prime_mirror(LAYOUT)
+
+    assert ex.mirror["device"] == "Carter's iPhone"
+    assert ex.mirror["appVersion"] == "9.9"
+    assert ex.mirror["layout"] == "Rack"
+    assert ex.mirror["tabs"] == [{"id": "Power", "title": "Power"}]
+    assert ex.mirror["controls"] == 7
+    assert ex.mirror["alive"] is True
+
+
+def test_generic_broadcast_passthrough_is_unchanged():
+    """Regression guard: only studio.event is demuxed; every other frame still
+    publishes as a generic broadcast on the wire log."""
+    ex = _fresh_explorer()
+    published = []
+    ex.publish = published.append
+    ex._arm()
+    ex.hub._user_broadcast({"msg_type": "metrics", "cpu": 12})
+    assert published[-1]["kind"] == "broadcast"
+    assert published[-1]["command"] == "metrics"
+    assert ex.mirror["lastEvent"] is None
+
+    ex.hub._user_broadcast(_studio("hello", device="x", appVersion="1", layout=None))
+    assert published[-1]["kind"] == "studio"
+    assert ex.mirror["device"] == "x"
+
+
+# ── Controls (the device view) ───────────────────────────────────────────────
+# Triggers/Feeds only surface meshsocket-bound controls, so a demo-style layout has
+# nothing to drive. The Controls section lists EVERY control and drives it by id over
+# the routed `set-control-state` verb.
+
+DEMO_LAYOUT = {                      # no connection, no sync — nothing on the wire
+    "name": "Demo",
+    "tabs": [{
+        "title": "Main",
+        "children": [
+            {"type": "toggle", "id": "lamp", "label": "Lamp"},
+            {"type": "gauge", "id": "cpu", "label": "CPU", "min": 0, "max": 100},
+            {"type": "group", "id": "g", "label": "G", "children": [
+                {"type": "sparkline", "id": "trend", "label": "Trend"},
+            ]},
+        ],
+    }],
+}
+
+
+def test_extract_controls_lists_every_control_wired_or_not():
+    from carterkit.explore import extract_controls
+
+    controls = extract_controls(DEMO_LAYOUT)
+    assert [c["id"] for c in controls] == ["lamp", "cpu", "trend"]
+    assert [c["type"] for c in controls] == ["toggle", "gauge", "sparkline"]
+    # Typed inputs are inferred from the control kind.
+    assert [c["expects"] for c in controls] == ["boolean", "number", "array"]
+    assert controls[2]["where"] == "Main › G", "nested controls carry their location"
+    # The wire-contract view is empty for this layout — that is the whole point.
+    from carterkit.contract import extract_contract
+    c = extract_contract(DEMO_LAYOUT)
+    assert not c["triggers"] and not c["feeds"]
+
+
+def test_adopting_a_layout_builds_the_controls_list():
+    ex = _fresh_explorer()
+    ex._adopt(DEMO_LAYOUT)
+    assert [c["id"] for c in ex.controls] == ["lamp", "cpu", "trend"]
+    assert ex.control_values == {}, "values are re-seeded from the device, not guessed"
+
+
+def test_set_control_values_routes_the_verb_and_tracks_applied():
+    """/api/set → routed `set-control-state` with the exact wire payload; only ids the
+    device says it applied move in our local copy."""
+    ex = _fresh_explorer()
+    ex._adopt(DEMO_LAYOUT)
+    sent = {}
+
+    async def fake_routed(verb, payload, timeout=10.0):
+        sent["verb"], sent["payload"] = verb, payload
+        return {"ok": True, "applied": ["lamp"], "skipped": ["ghost"]}
+
+    ex._routed = fake_routed
+    res = asyncio.run(ex.set_control_values({"lamp": True, "ghost": 1}))
+
+    assert sent["verb"] == "set-control-state"
+    assert sent["payload"] == {"values": {"lamp": True, "ghost": 1}}
+    assert res["applied"] == ["lamp"] and res["skipped"] == ["ghost"]
+    assert ex.control_values == {"lamp": True}, "a skipped id must not be recorded"
+
+
+def test_seed_control_values_from_the_device():
+    ex = _fresh_explorer()
+    ex._adopt(DEMO_LAYOUT)
+    published = []
+    ex.publish = published.append
+
+    async def fake_routed(verb, payload, timeout=10.0):
+        assert verb == "get-control-state"
+        return {"ok": True, "values": {"lamp": True, "cpu": 42}}
+
+    ex._routed = fake_routed
+    asyncio.run(ex._seed_control_values())
+
+    assert ex.control_values == {"lamp": True, "cpu": 42}
+    assert published[-1]["kind"] == "controls"
+
+
+def test_mirror_value_event_updates_the_control_store():
+    """The user moved it on the phone — the Controls row must follow."""
+    ex = _fresh_explorer()
+    ex._adopt(DEMO_LAYOUT)
+    ex.on_studio_event(_studio("value", control="lamp", value=True))
+    assert ex.control_values["lamp"] is True
+
+
+# The app's `get-current-layout` echo re-encodes its own model, and older builds emit
+# group nodes with NO `type` (the Swift GroupDefinition has no such field). Walkers that
+# keyed on `type == "group"` stopped there: nested controls vanished and the group itself
+# leaked through as a `type: "?"` row. Every walker must accept the implicit shape.
+
+ECHOED_LAYOUT = {                    # exactly what an older app echoes back
+    "name": "Echoed",
+    "tabs": [{
+        "title": "Main",
+        "children": [
+            {"type": "gauge", "id": "cpu", "label": "CPU"},
+            {"id": "rack", "label": "Rack", "children": [          # ← no "type"
+                {"type": "toggle", "id": "lamp", "label": "Lamp"},
+                {"id": "inner", "label": "Inner", "children": [    # ← nested, no "type"
+                    {"type": "label", "id": "deep", "label": "Deep"},
+                ]},
+            ]},
+        ],
+    }],
+}
+
+
+def test_is_group_accepts_the_implicit_shape():
+    from carterkit.contract import is_group
+
+    assert is_group({"type": "group", "children": []})
+    assert is_group({"id": "rack", "children": []}), "children + no type is a group"
+    assert not is_group({"type": "gauge", "id": "cpu"})
+    assert not is_group({"type": "carousel", "id": "c", "panels": []}), \
+        "container controls nest under `panels`, not `children`"
+
+
+def test_walk_descends_into_untyped_groups():
+    from carterkit.contract import walk_with_location
+
+    seen = {c.get("id"): (tab, crumb) for c, tab, crumb in walk_with_location(ECHOED_LAYOUT)}
+    assert set(seen) == {"cpu", "rack", "lamp", "inner", "deep"}
+    assert seen["deep"] == ("Main", ["Rack", "Inner"]), "breadcrumbs survive both groups"
+
+
+def test_extract_controls_skips_untyped_groups():
+    from carterkit.explore import extract_controls
+
+    controls = extract_controls(ECHOED_LAYOUT)
+    assert [c["id"] for c in controls] == ["cpu", "lamp", "deep"]
+    assert not [c for c in controls if c["type"] == "?"], \
+        "a group must never leak through as an unknown-type row"
+    assert controls[2]["where"] == "Main › Rack › Inner"
+
+
+def test_prime_mirror_counts_controls_not_groups():
+    ex = _fresh_explorer()
+    ex.prime_mirror(ECHOED_LAYOUT)
+    assert ex.mirror["controls"] == 3, "groups are containers, not controls"
+
+
+def test_hub_indexes_controls_under_untyped_groups():
+    """The push/handle index must find nested controls in an echoed layout too."""
+    hub = Hub(ECHOED_LAYOUT, None, name="layout-link", port=_free_port())
+    assert set(hub._index) == {"cpu", "rack", "lamp", "inner", "deep"}
+
+
+def test_controls_endpoint_serves_the_device_view():
+    def body(port):
+        _wait_connected(port)
+        d = json.loads(_get(port, "/api/controls")[1])
+        assert "controls" in d and "values" in d
+        assert [c["id"] for c in d["controls"]] == ["bright", "cpu"]
+
+    _run_explorer(body)
+
+
 def test_build_explorer_modes(tmp_path):
     lay = tmp_path / "l.json"
     lay.write_text(json.dumps(LAYOUT))

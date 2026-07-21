@@ -39,6 +39,7 @@ import json as _json
 
 from .client import CarterClient
 from .connection import Connection
+from .contract import is_group
 
 
 class HubError(RuntimeError):
@@ -67,7 +68,10 @@ def _walk_children(layout: dict):
             if not isinstance(ch, dict):
                 continue
             yield ch
-            if ch.get("type") == "group":
+            # `is_group` also accepts the implicit shape (children, no `type`) that an
+            # older app's layout echo emits — otherwise a nested control would never be
+            # indexed, and `push()`/`on()` would not find it.
+            if is_group(ch):
                 yield from walk(ch.get("children"))
             for panel in ch.get("panels") or []:
                 if isinstance(panel, dict):

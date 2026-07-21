@@ -31,12 +31,85 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .codegen import generate_service_stub
-from .contract import extract_contract
+from .contract import extract_contract, is_group, walk_with_location
 from .explore_html import PAGE
 from .hub import Hub
 from .qr import encode as _qr_encode
 
 _PULL_VERBS = {"current": ("get-current-layout", {"include": "full"})}
+
+#: Studio Mirror — the phone's narration of what the user is doing during a Studio
+#: Session. Every frame is a broadcast carrying this ``msg_type`` plus a flat ``event``
+#: discriminator (``hello``/``layout``/``layout-closed``/``tab``/``action``/``value``/
+#: ``bye``). The session's socket is authoritative on the phone, so the user can
+#: navigate to any layout and it stays wired to *this* explorer — these events are how
+#: we find out. See the app's ``AppState+StudioMirror.swift`` for the emitting side.
+STUDIO_EVENT = "studio.event"
+
+
+def extract_controls(layout: dict) -> list[dict]:
+    """Every control the layout renders, flat and in document order.
+
+    The Triggers/Data-feeds view is the *wire contract* — only controls with a
+    meshsocket binding appear there, so a demo-style layout (no `connection`, no
+    `sync`) shows an empty page and nothing to drive. This is the *device* view: it
+    lists controls whether or not they are wired to anything, because the routed
+    `set-control-state` verb can drive any of them by id.
+    """
+    out = []
+    for ctrl, tab, crumb in walk_with_location(layout):
+        cid, ctype = ctrl.get("id"), ctrl.get("type", "?")
+        # `is_group` also catches the implicit shape (children, no `type`) an older
+        # app echoes — those are containers, not rows to drive.
+        if not cid or is_group(ctrl):
+            continue
+        out.append({
+            "id": cid,
+            "type": ctype,
+            "label": ctrl.get("label") or cid,
+            "where": " › ".join([tab] + crumb),
+            # What the app will accept for this control, so the page can pick an input.
+            "expects": _control_input_type(ctrl),
+            "options": ctrl.get("options"),
+            "min": ctrl.get("min"),
+            "max": ctrl.get("max"),
+            "step": ctrl.get("step"),
+        })
+    return out
+
+
+#: Controls whose value is a *buffer* the device appends to rather than a scalar.
+_ARRAY_CONTROLS = {"sparkline", "list", "cardList", "logConsole"}
+_BOOL_CONTROLS = {"toggle", "statusLight"}
+_NUMBER_CONTROLS = {"slider", "gauge", "progressRing", "stepper", "compass"}
+#: Scalar-valued controls whose value is a JSON *document* string (graph nodes, board
+#: columns, chart series …) rather than a plain scalar.
+_JSON_CONTROLS = {"graph", "chart", "pieChart", "heatmap", "radar", "boxPlot", "gantt",
+                  "sankey", "treemap", "chord", "map", "sortboard", "pinboard", "canvas"}
+
+
+def _control_input_type(ctrl: dict) -> str:
+    """The input widget kind for a control: ``boolean``/``number``/``enum``/``array``/
+    ``json``/``string``. Mirrors how the app routes an incoming value by declared type."""
+    ctype = ctrl.get("type")
+    if ctrl.get("options"):
+        return "enum"
+    if ctype in _BOOL_CONTROLS:
+        return "boolean"
+    if ctype in _NUMBER_CONTROLS:
+        return "number"
+    if ctype in _ARRAY_CONTROLS:
+        return "array"
+    if ctype in _JSON_CONTROLS:
+        return "json"
+    return "string"
+
+
+def _blank_mirror() -> dict:
+    """The mirror state before the phone has said anything."""
+    return {"device": None, "appVersion": None, "layout": None, "layoutId": None,
+            "tabs": [], "tab": None, "controls": None,
+            "alive": False, "lastEvent": None, "ts": None}
 
 
 @functools.lru_cache(maxsize=4)
@@ -61,6 +134,13 @@ class Explorer:
         self.connect_error: str | None = None
         self.peers: list[str] = []
         self.device_info: dict | None = None
+        #: Live Studio Mirror state, fed by `studio.event` frames and surfaced in
+        #: `status()["mirror"]` for the web UI's Device Mirror panel.
+        self.mirror: dict = _blank_mirror()
+        #: The device view: every control in the layout (not just wire-bound ones),
+        #: with the last value we know for each. Drives the Controls section.
+        self.controls: list[dict] = []
+        self.control_values: dict = {}
         self._armed: set[str] = set()
         self._subs: list[queue.Queue] = []
         self._httpd: ThreadingHTTPServer | None = None
@@ -90,6 +170,8 @@ class Explorer:
     def _adopt(self, layout: dict) -> None:
         self.hub.adopt_layout(layout)
         self.contract = extract_contract(layout)
+        self.controls = extract_controls(layout)
+        self.control_values = {}          # re-seeded from the device by _seed_control_values
         self._arm()
         self.publish({"kind": "contract"})
 
@@ -113,9 +195,48 @@ class Explorer:
 
             @self.hub.on_broadcast
             def _rest(data):
+                # Studio Mirror frames are navigation narration, not layout data —
+                # demux them out before the generic broadcast passthrough so the
+                # mirror panel gets typed events and the wire log stays honest.
+                if isinstance(data, dict) and data.get("msg_type") == STUDIO_EVENT:
+                    self.on_studio_event(data)
+                    return
                 self.publish({"kind": "broadcast",
                               "command": (data or {}).get("msg_type"),
                               "data": data})
+
+    # ── studio mirror ────────────────────────────────────────────────────────
+    def on_studio_event(self, frame: dict) -> None:
+        """Fold one `studio.event` frame into `self.mirror` and republish it as an
+        SSE `studio` event. A `layout` event also asks the watcher to re-pull
+        `get-current-layout`: the phone navigated, so the contract on screen is now
+        the wrong one — this is what makes the explorer follow the user around."""
+        event = frame.get("event")
+        m = self.mirror
+        m["lastEvent"] = event
+        m["ts"] = time.time()
+        if event == "hello":
+            m.update(device=frame.get("device"), appVersion=frame.get("appVersion"),
+                     layout=frame.get("layout"), alive=True)
+        elif event == "layout":
+            m.update(layout=frame.get("layout"), layoutId=frame.get("layoutId"),
+                     tabs=frame.get("tabs") or [], controls=frame.get("controls"),
+                     tab=frame.get("tab"), alive=True)
+        elif event == "layout-closed":
+            m.update(layout=None, layoutId=None, tabs=[], tab=None, controls=None)
+        elif event == "tab":
+            m["tab"] = frame.get("tab")
+        elif event == "value" and frame.get("control"):
+            # The user just moved it on the phone — keep the Controls row in step.
+            self.control_values[frame["control"]] = frame.get("value")
+        elif event == "bye":
+            m["alive"] = False
+        self.publish({"kind": "studio", "event": event, "data": frame})
+        # Follow the phone: re-render the contract for whatever it just opened. The
+        # last contract is deliberately kept on close/bye — a blank page would lose
+        # the work in progress for what is usually a momentary state.
+        if event == "layout" and self.loop is not None:
+            self.loop.call_soon_threadsafe(self._repull.set)
 
     # ── device pull ──────────────────────────────────────────────────────────
     async def _routed(self, verb: str, payload, timeout: float = 10.0):
@@ -143,7 +264,67 @@ class Explorer:
                 self.device_info = info
         except Exception:
             pass
+        # Name the device we actually pulled from, not just "some peer" — on a channel
+        # with more than one member `peers[0]` need not be the phone.
+        try:
+            peer = await self.hub._first_peer()
+        except Exception:
+            peer = None
+        self.prime_mirror(res["layout"], device=(peer or {}).get("name"))
+        await self._seed_control_values()
         return True
+
+    async def _seed_control_values(self) -> None:
+        """Fill the Controls section with what the device currently shows. Best-effort:
+        an app too old to answer `get-control-state` just leaves the rows blank."""
+        try:
+            res = await self._routed("get-control-state", None, timeout=5.0)
+        except Exception:
+            return
+        if isinstance(res, dict) and isinstance(res.get("values"), dict):
+            self.control_values = dict(res["values"])
+            self.publish({"kind": "controls", "data": {"values": self.control_values}})
+
+    async def set_control_values(self, values: dict) -> dict:
+        """Drive controls on the device by id — the routed dual of `get-control-state`,
+        and the only path that reaches a control with no `sync` binding. Returns the
+        device's truthful `{ok, applied, skipped}` reply."""
+        res = await self._routed("set-control-state", {"values": values})
+        if not isinstance(res, dict):
+            raise RuntimeError("no reply from the device")
+        if res.get("error") and not res.get("ok"):
+            raise RuntimeError(res["error"])
+        # Trust the device about what it actually took: only `applied` ids move here.
+        for cid in res.get("applied") or []:
+            if cid in values:
+                self.control_values[cid] = values[cid]
+        return res
+
+    def prime_mirror(self, layout: dict, *, device: str | None = None) -> None:
+        """Fill blank mirror fields from what the routed pull already told us.
+
+        The mirror is normally fed by `studio.event` broadcasts, but those are
+        fire-and-forget: an explorer started (or restarted) after the phone already
+        said hello would show an empty Device Mirror until the user happened to
+        navigate. The pull gives us the same facts by request/response, so derive
+        them here. Only *empty* fields are filled — anything the phone actually told
+        us is the truth and must not be overwritten by an inference.
+        """
+        m = self.mirror
+        if m["device"] is None:
+            m["device"] = device or (self.peers[0] if self.peers else None)
+        if m["appVersion"] is None and isinstance(self.device_info, dict):
+            m["appVersion"] = self.device_info.get("appVersion")
+        if m["layout"] is None:
+            m["layout"] = layout.get("name")
+        if not m["tabs"]:
+            # The app keys a tab by its title (`TabDefinition.id == title`).
+            m["tabs"] = [{"id": t.get("title"), "title": t.get("title")}
+                         for t in layout.get("tabs", []) if isinstance(t, dict)]
+        if m["tab"] is None and m["tabs"]:
+            m["tab"] = m["tabs"][0]["id"]
+        if m["controls"] is None:
+            m["controls"] = len(extract_controls(layout))
 
     async def _watch(self) -> None:
         """Roster poll + auto-pull: notice the phone joining, pull the layout
@@ -181,7 +362,8 @@ class Explorer:
                 "peers": self.peers, "hasLayout": self.hub.layout is not None,
                 "qr": pairing,
                 "qrMatrix": _qr_matrix_for(pairing) if pairing else None,
-                "device": self.device_info}
+                "device": self.device_info,
+                "mirror": dict(self.mirror)}
 
     def start_http(self) -> None:
         explorer = self
@@ -216,6 +398,9 @@ class Explorer:
                     if explorer.contract is None:
                         return self._err("no layout yet", 404)
                     return self._send(explorer.contract)
+                if path == "/api/controls":
+                    return self._send({"controls": explorer.controls,
+                                       "values": explorer.control_values})
                 if path == "/api/layout":
                     if explorer.hub.layout is None:
                         return self._err("no layout yet", 404)
@@ -249,6 +434,15 @@ class Explorer:
                         explorer.publish({"kind": "push", "command": body["id"],
                                           "data": payload})
                         return self._send({"ok": True})
+                    if path == "/api/set":
+                        # {"values": {...}} or the single-control sugar {"id":…,"value":…}
+                        values = body.get("values")
+                        if values is None:
+                            values = {body["id"]: body.get("value")}
+                        res = explorer._call(explorer.set_control_values(values))
+                        explorer.publish({"kind": "set", "command": ",".join(values),
+                                          "data": {"values": values, "reply": res}})
+                        return self._send({"ok": True, **res})
                     if path == "/api/repull":
                         explorer.loop.call_soon_threadsafe(explorer._repull.set)
                         return self._send({"ok": True})
@@ -291,7 +485,10 @@ class Explorer:
         self.loop = asyncio.get_running_loop()
         self._repull = asyncio.Event()
         if self.hub.layout is not None:
+            # The hub was handed a layout up front (`explore my-layout.json`), so it
+            # never goes through `_adopt` — build both views here too.
             self.contract = extract_contract(self.hub.layout)
+            self.controls = extract_controls(self.hub.layout)
         self.start_http()
         if ready:
             ready(self)

@@ -67,13 +67,60 @@ PAGE = r"""<!doctype html>
   .btn:hover { border-color: var(--accent); color: var(--accent); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   .btn.primary:hover { filter: brightness(1.1); color: #fff; }
+  /* ── device mirror ──────────────────────────────────── */
+  #mirror {
+    display: none; gap: 12px; align-items: center; flex-wrap: wrap;
+    padding: 9px 20px; background: var(--panel);
+    border-bottom: 1px solid var(--edge);
+  }
+  #mirror.on { display: flex; }
+  #mirror .m-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--dim);
+  }
+  #mirror .m-device { font-weight: 700; }
+  #mirror .m-layout { color: var(--accent); font-weight: 600; }
+  #mirror .m-dim { color: var(--faint); font-size: 12px; }
+  .tab-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab-pill {
+    font-size: 11.5px; border-radius: 99px; padding: 2px 10px;
+    border: 1px solid var(--edge); background: var(--card); color: var(--dim);
+  }
+  .tab-pill.active {
+    border-color: var(--accent); background: var(--accent-soft); color: var(--text);
+    font-weight: 600;
+  }
+  #mirror-ticker {
+    margin-left: auto; display: flex; gap: 8px; align-items: center;
+    overflow-x: auto; max-width: 100%; font-family: var(--mono); font-size: 11px;
+  }
+  .tick {
+    display: inline-flex; gap: 6px; align-items: center; white-space: nowrap;
+    background: var(--card); border: 1px solid var(--edge); border-radius: 8px;
+    padding: 2px 8px; color: var(--dim);
+  }
+  .tick .k { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; }
+  .tick.action .k { color: var(--t-string); }
+  .tick.value  .k { color: var(--t-number); }
+  .tick .cid { color: var(--accent); cursor: pointer; text-decoration: underline dotted; }
+  .tick .cid:hover { color: var(--text); }
+  .tick .pl { color: var(--faint); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; }
   /* ── layout ─────────────────────────────────────────── */
   main {
     flex: 1; display: grid; gap: 14px; padding: 14px 20px 20px;
-    grid-template-columns: minmax(340px, 1.1fr) minmax(340px, 1.1fr) minmax(300px, 0.9fr);
+    grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr) minmax(300px, 1fr) minmax(280px, 0.85fr);
     min-height: 0;
   }
+  @media (max-width: 1400px) { main { grid-template-columns: 1fr 1fr; overflow: auto; } }
   @media (max-width: 1100px) { main { grid-template-columns: 1fr; overflow: auto; } }
+  /* ── controls (device view) ─────────────────────────── */
+  .ctl { padding: 9px 12px; }
+  .ctl .card-head { gap: 6px; }
+  .ctl-id { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .ctl-val {
+    font-family: var(--mono); font-size: 11px; color: var(--ok);
+    max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ctl-val.unset { color: var(--faint); }
   section { display: flex; flex-direction: column; min-height: 0; }
   section > h2 {
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
@@ -213,6 +260,17 @@ PAGE = r"""<!doctype html>
   </div>
 </header>
 
+<!-- Device Mirror: what the phone is doing right now, narrated by `studio.event`
+     frames during a Studio Session. Hidden until the phone says hello. -->
+<div id="mirror">
+  <span class="m-title">Device Mirror</span>
+  <span class="pill"><span class="dot" id="mirror-dot"></span><span class="m-device" id="mirror-device">—</span></span>
+  <span class="m-layout" id="mirror-layout">no layout open</span>
+  <span class="m-dim" id="mirror-meta"></span>
+  <span class="tab-pills" id="mirror-tabs"></span>
+  <span id="mirror-ticker"></span>
+</div>
+
 <main>
   <section id="sec-triggers">
     <h2>Triggers <span class="count" id="n-triggers">0</span>
@@ -224,6 +282,12 @@ PAGE = r"""<!doctype html>
     <h2>Data feeds <span class="count" id="n-feeds">0</span>
         <span style="font-weight:400;text-transform:none;letter-spacing:0">— push values, watch the phone update</span></h2>
     <div class="scroll" id="feeds"></div>
+  </section>
+
+  <section id="sec-controls">
+    <h2>Controls <span class="count" id="n-controls">0</span>
+        <span style="font-weight:400;text-transform:none;letter-spacing:0">— every control on the device, wired or not</span></h2>
+    <div class="scroll" id="controls"></div>
   </section>
 
   <section id="sec-wire">
@@ -244,7 +308,7 @@ PAGE = r"""<!doctype html>
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let paused = false, wireFilter = "";
-const state = { contract: null, status: null };
+const state = { contract: null, status: null, controls: [], values: {} };
 
 function toast(msg, isErr) {
   const t = $("#toast");
@@ -339,8 +403,9 @@ function renderFeeds(list) {
   $("#n-feeds").textContent = list.length;
   if (!list.length) {
     host.innerHTML = `<div class="empty"><div class="big">No data feeds</div>
-      No control listens for data yet — add a <b>sync</b> binding in the editor
-      and re-pull, then drive it from here.</div>`;
+      No control listens for data yet. You can still drive every control by id from
+      the <b>Controls</b> section — add a <b>sync</b> binding in the editor and
+      re-pull to give this layout a wire contract.</div>`;
     return;
   }
   host.innerHTML = list.map((f, i) => `<div class="card" id="feed-${esc(f.id)}">
@@ -361,6 +426,112 @@ function renderFeeds(list) {
       <div class="hint">wire frame: <a onclick="pushExample(${i})" title="send this now">
         ${esc(JSON.stringify(f.example))}</a></div>
     </div>`).join("");
+}
+
+/* ── controls (the device view) ────────────────────────────
+   Triggers/Feeds are the wire contract — a layout with no `sync` bindings has
+   nothing there. This section lists EVERY control and drives it by id over the
+   routed `set-control-state` verb, which is what makes a demo-style layout live. */
+function controlInput(c, i) {
+  const id = `ctl-in-${i}`, v = state.values[c.id];
+  if (c.expects === "enum" && c.options)
+    return `<select id="${id}">${c.options.map(o =>
+      `<option${String(v) === String(o) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  if (c.expects === "boolean")
+    return `<label class="switch"><input type="checkbox" id="${id}"${v === true ? " checked" : ""}> on / off</label>`;
+  if (c.expects === "number") {
+    if (c.min !== undefined && c.min !== null && c.max !== undefined && c.max !== null) {
+      const val = typeof v === "number" ? v : (c.min + c.max) / 2;
+      const step = c.step || (c.max - c.min <= 2 ? 0.01 : 1);
+      return `<span class="range-wrap">
+        <input type="range" id="${id}" min="${c.min}" max="${c.max}" step="${step}" value="${val}"
+               oninput="document.getElementById('${id}v').textContent=this.value">
+        <span class="range-val" id="${id}v">${val}</span></span>`;
+    }
+    return `<input type="number" id="${id}" value="${typeof v === "number" ? v : ""}" placeholder="42">`;
+  }
+  if (c.expects === "array" || c.expects === "json")
+    return `<textarea id="${id}" rows="1" placeholder='${c.expects === "array" ? "[…]" : "{…}"}'></textarea>`;
+  return `<input type="text" id="${id}" value="${v === undefined || v === null ? "" : esc(String(v))}" placeholder="text">`;
+}
+
+function valueText(v) {
+  if (v === undefined || v === null) return "unset";
+  return typeof v === "object" ? JSON.stringify(v) : String(v);
+}
+
+function renderControls(list) {
+  const host = $("#controls");
+  $("#n-controls").textContent = list.length;
+  if (!list.length) {
+    host.innerHTML = `<div class="empty"><div class="big">No controls</div>
+      Waiting for a layout from the phone.</div>`;
+    return;
+  }
+  host.innerHTML = list.map((c, i) => {
+    const v = state.values[c.id];
+    return `<div class="card ctl" id="ctl-${esc(c.id)}">
+      <div class="card-head">
+        <span class="ctl-id">${esc(c.id)}</span>
+        <span class="badge">${esc(c.type)}</span>
+        <span class="ctl-val${v === undefined || v === null ? " unset" : ""}" id="ctlv-${esc(c.id)}">${esc(valueText(v))}</span>
+        <span class="where">${esc(c.where)}</span>
+      </div>
+      <div class="push-row">${controlInput(c, i)}
+        <button class="btn primary" onclick="setControl(${i})">set</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function readControlInput(c, i) {
+  const el = document.getElementById(`ctl-in-${i}`);
+  if (!el) return null;
+  if (c.expects === "enum") return el.value;
+  if (c.expects === "boolean") return el.checked;
+  if (c.expects === "number") return Number(el.value);
+  if (c.expects === "array" || c.expects === "json") {
+    if (!el.value.trim()) return c.expects === "array" ? [] : {};
+    try { return JSON.parse(el.value); }
+    catch { toast("that isn't valid JSON", true); throw new Error("bad json"); }
+  }
+  return el.value;
+}
+
+async function setControl(i) {
+  const c = state.controls[i];
+  try {
+    const value = readControlInput(c, i);
+    const res = await api("/api/set", { id: c.id, value });
+    if ((res.skipped || []).includes(c.id)) {
+      toast(`the device skipped '${c.id}' — wrong value shape for a ${c.type}?`, true);
+      flash("ctl-" + c.id);
+      return;
+    }
+    applyControlValue(c.id, value);
+    flash("ctl-" + c.id, "flash-ok");
+  } catch (err) { if (err.message !== "bad json") toast("set failed: " + err.message, true); }
+}
+
+/* Repaint one row's current value — from our own push, or from a mirrored
+   `value` event when the user moves the control on the phone. */
+function applyControlValue(id, value) {
+  state.values[id] = value;
+  const el = document.getElementById("ctlv-" + id);
+  if (!el) return;
+  el.textContent = valueText(value);
+  el.classList.toggle("unset", value === undefined || value === null);
+}
+
+async function refreshControls() {
+  try {
+    const r = await fetch("/api/controls");
+    if (!r.ok) return;
+    const d = await r.json();
+    state.controls = d.controls || [];
+    state.values = d.values || {};
+    renderControls(state.controls);
+  } catch { /* server restarting */ }
 }
 
 function readInput(f, i) {
@@ -413,16 +584,119 @@ function addFrame(evt) {
   div.className = "frame";
   const dir = evt.kind === "push" ? '<span class="dir-out">→ phone</span>'
                                   : '<span class="dir-in">← phone</span>';
-  const tag = evt.command ? ` <span class="cmd" style="font-size:11px">${esc(evt.command)}</span>` : "";
+  const label = evt.command || (evt.kind === "studio" ? "studio · " + evt.event : "");
+  const tag = label ? ` <span class="cmd" style="font-size:11px">${esc(label)}</span>` : "";
   div.innerHTML = `<div class="fh">${dir}${tag}<span style="margin-left:auto">${new Date(evt.ts * 1000).toLocaleTimeString()}</span></div>
                    <pre>${esc(JSON.stringify(evt.data, null, 1))}</pre>`;
   wire.prepend(div);
   while (wire.children.length > 200) wire.lastChild.remove();
 }
 
+/* ── device mirror ────────────────────────────────────────
+   The phone narrates its own navigation over `studio.event`; this paints it and
+   lets you jump from a mirrored control id straight to that control's feed input,
+   which is the "respond" half of the loop. */
+const mirror = { tabs: [], tab: null, fires: new Map() };
+
+function renderMirror(m) {
+  if (!m) return;
+  const host = $("#mirror");
+  const live = !!(m.device || m.layout);
+  host.classList.toggle("on", live);
+  if (!live) return;
+  $("#mirror-dot").className = "dot " + (m.alive ? "on" : "wait");
+  $("#mirror-device").textContent = m.device || "phone";
+  $("#mirror-layout").textContent = m.layout || "no layout open";
+  const bits = [];
+  if (m.appVersion) bits.push("v" + m.appVersion);
+  if (m.controls != null) bits.push(m.controls + " controls");
+  // A mirror primed from the routed pull is not "ended" — it just hasn't heard
+  // the phone narrate anything yet. Only an actual `bye` retires the session.
+  if (!m.alive) bits.push(m.lastEvent === "bye" ? "session ended" : "awaiting events");
+  $("#mirror-meta").textContent = bits.join(" · ");
+  mirror.tabs = m.tabs || [];
+  mirror.tab = m.tab;
+  renderMirrorTabs();
+}
+
+function renderMirrorTabs() {
+  $("#mirror-tabs").innerHTML = mirror.tabs.map(t =>
+    `<span class="tab-pill${t.id === mirror.tab ? " active" : ""}">${esc(t.title || t.id)}</span>`
+  ).join("");
+}
+
+/* One line in the live ticker of what the user touched. */
+function addTick(kind, controlId, detail) {
+  const host = $("#mirror-ticker");
+  const div = document.createElement("span");
+  div.className = "tick " + kind;
+  div.innerHTML = `<span class="k">${esc(kind)}</span>` +
+    `<span class="cid" onclick="revealFeed('${esc(controlId)}')" title="jump to this control's feed input">${esc(controlId)}</span>` +
+    `<span class="pl">${esc(detail)}</span>`;
+  host.prepend(div);
+  while (host.children.length > 12) host.lastChild.remove();
+}
+
+/* Click a mirrored control id -> scroll its feed card into view and focus the
+   typed input, so answering what the phone just did is one click away. */
+function revealFeed(id) {
+  const card = document.getElementById("feed-" + id);
+  if (!card) { toast("no data feed for '" + id + "' in this contract"); return; }
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  flash("feed-" + id);
+  const i = (state.contract && state.contract.feeds || []).findIndex(f => f.id === id);
+  const input = i >= 0 && document.getElementById("in-" + i);
+  if (input) input.focus();
+}
+
+/* A mirrored `action` flashes its trigger card immediately — usually before the
+   phone's own action frame reaches us through the relay. Remember what we flashed
+   so the real frame arriving a moment later doesn't double-count the fire. */
+function noteMirrorFire(command, data) {
+  const key = command + " | " + JSON.stringify(data);
+  mirror.fires.set(key, Date.now());
+  return key;
+}
+function wasMirrorFire(command, data) {
+  const key = command + " | " + JSON.stringify(data);
+  const at = mirror.fires.get(key);
+  if (at === undefined || Date.now() - at > 2000) return false;
+  mirror.fires.delete(key);
+  return true;
+}
+
+function markFired(command, data) {
+  const el = document.getElementById("fired-" + command);
+  if (el) {
+    el._n = (el._n || 0) + 1;
+    el.innerHTML = `<b>fired ×${el._n}</b> · ${new Date().toLocaleTimeString()} · <code style="font-family:var(--mono)">${esc(JSON.stringify(data))}</code>`;
+  }
+  flash("trig-" + command);
+}
+
+function handleStudio(evt) {
+  const d = evt.data || {};
+  if (evt.event === "tab") { mirror.tab = d.tab; renderMirrorTabs(); }
+  if (evt.event === "action") {
+    const payload = d.payload || {};
+    addTick("action", d.control, JSON.stringify(payload));
+    const command = payload.msg_type || payload.type;
+    if (command) { noteMirrorFire(command, payload); markFired(command, payload); }
+  }
+  if (evt.event === "value") {
+    addTick("value", d.control, JSON.stringify(d.value));
+    applyControlValue(d.control, d.value);      // the phone moved it — repaint the row
+  }
+  // hello / layout / layout-closed / bye all land in `mirror` server-side, so one
+  // status fetch repaints the panel. Activity events (action/value) are already
+  // painted above — don't spend a round trip on each one.
+  if (["hello", "layout", "layout-closed", "bye"].includes(evt.event)) refresh();
+}
+
 /* ── status + contract loading ────────────────────────── */
 function renderStatus(s) {
   state.status = s;
+  renderMirror(s.mirror);
   const rd = $("#relay-dot"), rl = $("#relay-label");
   rd.className = "dot " + (s.connected ? "on" : "wait");
   const where = s.kind === "local"
@@ -466,6 +740,7 @@ function renderContract(c) {
   renderTriggers(c.triggers);
   renderFeeds(c.feeds);
   renderAppDirect(c.appDirect);
+  refreshControls();
 }
 
 /* ── pairing QR (inline SVG, drawn from the module matrix the server sends —
@@ -508,6 +783,7 @@ function renderWaiting(qr, qrMatrix) {
       </div>` : qr ? `<div class="qr-note">pairing JSON:<code>${esc(qr)}</code></div>` : ""}
   </div>`;
   $("#feeds").innerHTML = "";
+  renderControls([]);
 }
 
 async function refresh() {
@@ -527,13 +803,15 @@ const es = new EventSource("/events");
 es.onmessage = m => {
   const evt = JSON.parse(m.data);
   if (evt.kind === "contract") { state.contract = null; refresh(); return; }
+  if (evt.kind === "controls") {
+    state.values = (evt.data || {}).values || {};
+    renderControls(state.controls);
+    return;
+  }
+  if (evt.kind === "studio") { handleStudio(evt); addFrame(evt); return; }
   if (evt.kind === "trigger") {
-    const el = document.getElementById("fired-" + evt.command);
-    if (el) {
-      el._n = (el._n || 0) + 1;
-      el.innerHTML = `<b>fired ×${el._n}</b> · ${new Date(evt.ts * 1000).toLocaleTimeString()} · <code style="font-family:var(--mono)">${esc(JSON.stringify(evt.data))}</code>`;
-    }
-    flash("trig-" + evt.command);
+    // Skip if the mirror already flashed this exact fire moments ago.
+    if (!wasMirrorFire(evt.command, evt.data)) markFired(evt.command, evt.data);
   }
   addFrame(evt);
 };
