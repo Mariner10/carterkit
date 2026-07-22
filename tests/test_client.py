@@ -41,8 +41,9 @@ class _FakeSock:
     async def wait_until_ready(self):
         self.events.append("ready")
 
-    async def stop(self):
+    async def stop(self, reason=None):
         self.events.append("stop")
+        self.stopped_reason = reason   # meshsocket >= 0.1.2 records fault stops
 
 
 def _client(key=K, **kw):
@@ -607,3 +608,146 @@ def test_room_client_notify_encrypt_false_stays_clear():
         assert p["title"] == "Plain" and "data" not in p
 
     asyncio.run(run())
+
+
+# ---------------------------------------------------------------------------
+# Device-token refresh POLICY.
+#
+# The HTTP mapping (403 -> CarterDeviceRevoked) was always covered, but the loop
+# that CONSUMES it was not — and that is where the damage was: one 403 set
+# `revoked`, stopped the socket and returned, with no log and no retry, leaving a
+# hub permanently unreachable while looking healthy. The validator answers 401 for
+# a bad credential, so a 403 is not by itself proof the device is gone.
+# ---------------------------------------------------------------------------
+
+class _RefusingValidator:
+    """Stands in for device_refresh_http: 403s `fails` times, then succeeds."""
+
+    def __init__(self, fails, forever=False):
+        self.fails, self.forever, self.calls = fails, forever, 0
+
+    def __call__(self, *a, **k):
+        self.calls += 1
+        if self.forever or self.calls <= self.fails:
+            raise CarterDeviceRevoked("forbidden")
+        return {"deviceToken": f"tok-{self.calls}", "expiresAt": 9}
+
+
+def _refresh_client(validator, **kw):
+    c = _client(key=None, validator_url="https://v/", device_id="dv_1",
+                refresh_token="secret", **kw)
+    ckclient.device_refresh_http = validator
+    return c
+
+
+def test_isolated_403_does_not_revoke_or_stop_the_socket():
+    """The exact production failure: one transient 403 must not kill the client."""
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=1)
+        c = _refresh_client(v)
+
+        async def run():
+            await c._refresh_confirming_revocation(delay=0)
+
+        asyncio.run(run())
+        assert c.revoked is False
+        assert "stop" not in c._sock.events, "a single 403 must not stop the socket"
+        assert c._sock.auth_token.startswith("tok-"), "the retry must apply its token"
+    finally:
+        ckclient.device_refresh_http = orig
+
+
+def test_sustained_403_still_confirms_revocation():
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=0, forever=True)
+        c = _refresh_client(v)
+
+        async def run():
+            with pytest.raises(CarterDeviceRevoked):
+                await c._refresh_confirming_revocation(delay=0)
+
+        asyncio.run(run())
+        assert v.calls == ckclient.REFRESH_CONFIRM_ATTEMPTS, \
+            "revocation must be confirmed, not assumed on the first refusal"
+    finally:
+        ckclient.device_refresh_http = orig
+
+
+def test_refresh_loop_survives_transient_403_and_keeps_running():
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=1)
+        c = _refresh_client(v)
+        c._refresh_interval = 0
+
+        async def run():
+            task = asyncio.create_task(c._device_refresh_loop())
+            for _ in range(50):                    # let several ticks run
+                await asyncio.sleep(0)
+            done = task.done()
+            task.cancel()
+            return done
+
+        assert asyncio.run(run()) is False, "the loop must not exit on a transient 403"
+        assert c.revoked is False
+        assert "stop" not in c._sock.events
+    finally:
+        ckclient.device_refresh_http = orig
+
+
+def test_refresh_loop_stops_socket_with_a_reason_on_real_revocation():
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=0, forever=True)
+        c = _refresh_client(v)
+        c._refresh_interval = 0
+        saved = ckclient.REFRESH_CONFIRM_DELAY
+        ckclient.REFRESH_CONFIRM_DELAY = 0
+        try:
+            asyncio.run(c._device_refresh_loop())    # returns once confirmed
+        finally:
+            ckclient.REFRESH_CONFIRM_DELAY = saved
+        assert c.revoked is True
+        assert "stop" in c._sock.events, "a confirmed revocation must stop the socket"
+        assert c._sock.stopped_reason and "revoked" in c._sock.stopped_reason, \
+            "the stop must be marked a FAULT so the supervisor logs why it died"
+    finally:
+        ckclient.device_refresh_http = orig
+
+
+def test_connect_survives_a_transient_403_instead_of_crashing_the_caller():
+    """An unguarded connect() that re-raises on one 403 crash-loops the consumer."""
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=1)
+        c = _refresh_client(v)
+        saved = ckclient.REFRESH_CONNECT_DELAY
+        ckclient.REFRESH_CONNECT_DELAY = 0
+        try:
+            asyncio.run(c.connect())                 # must NOT raise
+        finally:
+            ckclient.REFRESH_CONNECT_DELAY = saved
+        assert c.revoked is False
+        assert c._sock.events[:2] == ["start", "ready"]
+    finally:
+        ckclient.device_refresh_http = orig
+
+
+def test_connect_still_raises_when_revocation_is_confirmed():
+    orig = ckclient.device_refresh_http
+    try:
+        v = _RefusingValidator(fails=0, forever=True)
+        c = _refresh_client(v)
+        saved = ckclient.REFRESH_CONNECT_DELAY
+        ckclient.REFRESH_CONNECT_DELAY = 0
+        try:
+            with pytest.raises(CarterDeviceRevoked):
+                asyncio.run(c.connect())
+        finally:
+            ckclient.REFRESH_CONNECT_DELAY = saved
+        assert c.revoked is True
+        assert "start" not in c._sock.events
+    finally:
+        ckclient.device_refresh_http = orig

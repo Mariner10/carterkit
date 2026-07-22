@@ -7,13 +7,26 @@ push to every device on a Connect+ account (POST /alerts/notify). `notify_http` 
 stdlib-only (urllib) so a cron job can fire a notification without the MeshSocket stack."""
 import asyncio
 import base64
+import inspect
 import json
+import logging
 import os
 import sys
 import time
 import urllib.error
 import urllib.request
 import uuid
+
+log = logging.getLogger(__name__)
+
+# A device token refresh that comes back 403 is NOT on its own proof the device is
+# gone: the validator answers 401 for an unknown or bad credential, so 403 also
+# covers edge/WAF/gateway rejections that clear on their own. Treating a single one
+# as permanent revocation once killed a hub's link for ~30 h. Require the rejection
+# to repeat before believing it.
+REFRESH_CONFIRM_ATTEMPTS = 3      # consecutive 403s before declaring revocation
+REFRESH_CONFIRM_DELAY = 60.0      # gap between confirmation attempts (background)
+REFRESH_CONNECT_DELAY = 2.0       # ...and at connect(), where boot latency matters
 
 try:
     from meshsocket import MeshSocket          # pip install meshsocket
@@ -548,33 +561,72 @@ class CarterClient:
             self._sock.auth_token = token  # MeshSocket re-sends this on every (re)connect
         return res
 
+    async def _stop_socket(self, reason):
+        """Stop the socket, marking it a fault. meshsocket >= 0.1.2 records the reason
+        and logs the supervisor's exit; older builds only accept the bare call."""
+        try:
+            takes_reason = "reason" in inspect.signature(self._sock.stop).parameters
+        except (TypeError, ValueError):
+            takes_reason = False
+        if takes_reason:
+            await self._sock.stop(reason=reason)
+        else:
+            await self._sock.stop()
+
+    async def _refresh_confirming_revocation(self, delay):
+        """Refresh the device token, treating 403 as suspect until it repeats.
+
+        Returns normally on success. Raises CarterDeviceRevoked only after
+        REFRESH_CONFIRM_ATTEMPTS consecutive 403s — a genuinely revoked device keeps
+        being refused, a transient rejection does not. Non-403 errors (network, 5xx)
+        propagate immediately for the caller to treat as transient."""
+        for attempt in range(1, REFRESH_CONFIRM_ATTEMPTS + 1):
+            try:
+                await self.refresh_device_token()
+                if attempt > 1:
+                    log.warning("device token refresh recovered after %d rejection(s) "
+                                "— the 403 was transient, not a revocation", attempt - 1)
+                return
+            except CarterDeviceRevoked as exc:
+                log.warning("device token refresh rejected 403 (%d/%d): %s",
+                            attempt, REFRESH_CONFIRM_ATTEMPTS, exc)
+                if attempt == REFRESH_CONFIRM_ATTEMPTS:
+                    raise
+                await asyncio.sleep(delay)
+
     async def _device_refresh_loop(self):
-        """Keep the short-lived device token fresh ahead of expiry. On revocation, stop the
-        socket and flag `revoked`; transient errors are retried on the next tick."""
+        """Keep the short-lived device token fresh ahead of expiry. On *confirmed*
+        revocation, stop the socket and flag `revoked`; transient errors — including
+        an isolated 403 — are retried rather than treated as fatal."""
         while True:
             await asyncio.sleep(self._refresh_interval)
             try:
-                await self.refresh_device_token()
-            except CarterDeviceRevoked:
+                await self._refresh_confirming_revocation(REFRESH_CONFIRM_DELAY)
+            except CarterDeviceRevoked as exc:
+                log.error("device revoked after %d consecutive 403s — stopping the "
+                          "client; it will not reconnect: %s",
+                          REFRESH_CONFIRM_ATTEMPTS, exc)
                 self.revoked = True
-                await self._sock.stop()
+                await self._stop_socket(f"device token revoked: {exc}")
                 return
-            except Exception:
-                pass  # transient (network/5xx) — retry next interval
+            except Exception as exc:
+                log.warning("device token refresh failed, retrying next tick: %s", exc)
 
     async def connect(self):
         # A hub that sat stopped past its short-lived token's expiry can never
         # identify (the relay drops it with "not admitted" forever) — when we hold
         # a refresh credential, pre-mint a fresh token so (re)starts self-heal.
-        # A transient validator error falls through to the stored token.
+        # A transient validator error falls through to the stored token; only a
+        # CONFIRMED revocation aborts the connect, so a momentary 403 can't turn
+        # startup into a crash-loop for the consumer.
         if self._device_id and self._refresh_token and self._validator_url:
             try:
-                await self.refresh_device_token()
+                await self._refresh_confirming_revocation(REFRESH_CONNECT_DELAY)
             except CarterDeviceRevoked:
                 self.revoked = True
                 raise
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("device token pre-mint failed, using stored token: %s", exc)
         await self._sock.start()
         await self._sock.wait_until_ready()
         # Auto-start the refresh loop only for a self-refreshing external device.
