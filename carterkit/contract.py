@@ -61,6 +61,17 @@ def _enum(ctrl: dict, key: str = "options") -> dict:
     return spec
 
 
+def _mapped_keys(ctrl: dict) -> list[str]:
+    """Values a label/image value map has an entry for — what a feed should send."""
+    keys: set[str] = set()
+    for field in ("valueMap", "iconMap", "colorMap"):
+        m = ctrl.get(field)
+        if isinstance(m, dict):
+            keys |= set(m)
+    keys.discard("default")
+    return sorted(keys)
+
+
 VALUE_SPECS: dict[str, Callable[[dict], dict]] = {
     "button":           lambda c: {"type": "none", "note": "static payload — button has no value"},
     "toggle":           lambda c: {"type": "boolean"},
@@ -100,14 +111,22 @@ EXPECTS_SPECS: dict[str, Callable[[dict], dict]] = {
         {"type": "string", "enum": sorted(c["statusColors"])}
         if isinstance(c.get("statusColors"), dict) and c["statusColors"]
         else {"type": "string", "note": "status word or color"}),
-    "label":        lambda c: {"type": "string", "note": "numbers/bools are stringified"},
+    "label":        lambda c: (
+        {"type": "string", "enum": _mapped_keys(c),
+         "note": "mapped through valueMap/iconMap/colorMap"}
+        if _mapped_keys(c)
+        else {"type": "string", "note": "numbers/bools are stringified"}),
     "textInput":    lambda c: {"type": "string"},
     "segmentedControl": lambda c: _enum(c),
     "picker":       lambda c: _enum(c),
-    "image":        lambda c: {"type": "string", "format": "url-or-base64"},
+    "image":        lambda c: (
+        {"type": "string", "enum": _mapped_keys(c),
+         "note": "mapped through iconMap/valueMap to a symbol or image URL"}
+        if _mapped_keys(c)
+        else {"type": "string", "format": "url-or-base64"}),
     "qrCode":       lambda c: {"type": "string", "note": "encoded into the QR"},
     "colorPicker":  lambda c: {"type": "string", "format": "hex-color"},
-    "map":          lambda c: {"type": "number", "note": "coordinate — bind lat and lng valuePaths"},
+    "map":          lambda c: {"type": "json", "note": "{center, markers, paths} or GeoJSON — see the map ControlDoc"},
     "list":         lambda c: {"type": "array", "items": "object", "note": "rows replace"},
     "cardList":     lambda c: {"type": "array", "items": "object", "note": "cards replace"},
     "logConsole":   lambda c: {"type": "string", "note": "or {text, level}, or an array of either"},

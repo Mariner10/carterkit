@@ -74,7 +74,19 @@ Inherits all [[shared-properties]]. Key fields:
 
 ## Data Flow
 
-Unlike other controls that store a single value, sparklines maintain a **ring buffer** of numeric values in `AppState.sparklineBuffers`. Each synced value is appended to the buffer. When the buffer exceeds `sparklinePoints`, the oldest value is dropped.
+Unlike other controls that store a single value, sparklines maintain a **ring buffer** of numeric values in `AppState.sparklineBuffers`. When the buffer exceeds `sparklinePoints`, the oldest value is dropped.
+
+A sync payload feeds that buffer one of two ways, decided by what the `valuePath` resolves to:
+
+| Payload at `valuePath` | Effect |
+|---|---|
+| a number | Appended as one new point — the live-telemetry case |
+| an **array of numbers** | Taken as the whole series, **replacing** the buffer (trimmed to the last `sparklinePoints`) |
+
+The array form is what a forecast or history endpoint returns, and is the same
+shape [[chart]] accepts — so `hourly.temperature_2m` works in both. `null`s inside
+the array are skipped (feeds pad trailing hours with them). When an array arrives,
+the sparkline's header value shows its last element.
 
 The sparkline renders all points in the buffer as a line path, auto-scaling Y to the min/max of the current buffer.
 
@@ -108,7 +120,26 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 }
 ```
 
+### Forecast series from an HTTP feed
+```json
+{
+  "type": "sparkline",
+  "id": "temp-forecast",
+  "position": [1, 0],
+  "span": [1, 4],
+  "sparklinePoints": 48,
+  "sparklineFill": true,
+  "tint": "#0A84FF",
+  "label": "Next 48h",
+  "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&hourly=temperature_2m", "interval": 900, "valuePath": "hourly.temperature_2m" }]
+}
+```
+
+The endpoint returns a plain numeric array at that path; each poll replaces the
+whole series rather than appending a point.
+
 ## Behavior
+- A numeric payload appends a point; a numeric array replaces the series
 - New data points animate in smoothly
 - The Y axis auto-scales to the min/max of current buffer data
 - When fewer than 2 points exist, shows a `"--"` placeholder

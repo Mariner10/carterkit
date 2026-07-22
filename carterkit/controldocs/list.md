@@ -64,9 +64,26 @@ Inherits all [[shared-properties]]. Key fields:
 |-------|------|---------|-------------|
 | `label` | string | falls back to `id` | Header label |
 | `listColumns` | array | — | Column definitions: `[{key, label, format}]` |
+| `listColumns[].key` | string | required | Field to read from each row. A **dot path** reaches into nested rows — see [[#Column keys]] |
+| `listColumns[].label` | string | required | Column header text |
+| `listColumns[].format` | string | — | Number format applied to numeric cells (same formats as [[label]]) |
 | `tint` | color | `"#FFFFFF"` | Header text color |
 | `hideLabel` | bool | `false` | Hide header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
+
+## Column keys
+
+A `key` is looked up flat on the row first, so `"key": "name"` reads `row.name` and a
+row whose field name genuinely contains a dot still works.
+
+If there's no flat match and the key contains dots, it's walked as a **dot path**:
+
+- `"properties.title"` → `row.properties.title`
+- `"geometry.coordinates.0"` → an integer segment indexes an array
+
+That's what makes a nested public feed usable without a server in between: rows from
+a GeoJSON `features[]` keep their data under `properties`, and a path key reads it
+directly. A key that resolves to nothing renders as `—`.
 
 ## Examples
 
@@ -86,6 +103,26 @@ Inherits all [[shared-properties]]. Key fields:
   "sync": { "method": "meshsocket", "event": "device_list" }
 }
 ```
+
+### Nested feed rows (USGS GeoJSON, no server)
+```json
+{
+  "type": "list",
+  "id": "quake-list",
+  "position": [2, 0],
+  "span": [3, 4],
+  "label": "Recent quakes",
+  "listColumns": [
+    { "key": "properties.mag", "label": "M", "format": "number" },
+    { "key": "properties.place", "label": "Place" },
+    { "key": "geometry.coordinates.2", "label": "Depth", "format": "number" }
+  ],
+  "sync": [{ "method": "http", "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson", "interval": 300, "valuePath": "features" }]
+}
+```
+
+`valuePath` picks the row array out of the document; each column key then reaches
+into that row.
 
 ## Related
 - [[shared-properties]] — Base fields

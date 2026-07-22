@@ -35,6 +35,15 @@ fields:
   - name: formatValue
     type: string
     description: Value display format (see formatValue table)
+  - name: valueMap
+    type: object
+    description: Incoming value → display text ("default" catches the rest)
+  - name: iconMap
+    type: object
+    description: Incoming value → SF Symbol name
+  - name: colorMap
+    type: object
+    description: Incoming value → hex tint
 themeFields:
   - name: controlPadding
     type: number
@@ -66,6 +75,35 @@ Inherits all [[shared-properties]]. Key fields:
 | `align` | string | `"leading"` | `"leading"`, `"center"`, `"trailing"` |
 | `scrollable` | bool | `false` | Fixed-height scrolling terminal/log view (pair with `controlHeight`) |
 | `formatValue` | string | — | Value display format (see formatValue table below) |
+| `valueMap` | object | — | Incoming value → display text — see [[#Value maps]] |
+| `iconMap` | object | — | Incoming value → SF Symbol name |
+| `colorMap` | object | — | Incoming value → hex tint |
+
+## Value maps
+
+A feed you don't control emits codes — a WMO weather code, a device state, an alarm
+level — and the label should read as words, not `61`. `valueMap`, `iconMap`, and
+`colorMap` say what each value looks like, declaratively:
+
+```json
+"valueMap": { "0": "Clear", "3": "Overcast", "61": "Rain", "default": "—" },
+"iconMap":  { "0": "sun.max.fill", "3": "cloud.fill", "61": "cloud.rain.fill" },
+"colorMap": { "61": "#0A84FF" }
+```
+
+- **Keys match the stringified value**, so `0`, `"0"`, `true`, and `"rain"` all work
+  from the same map. `true`/`false` also match `yes`/`no`/`on`/`off`/`1`/`0`, and a
+  number matches whether it arrives as `61` or `61.00`. Key lookup falls back to a
+  case-insensitive match.
+- **`"default"`** is the catch-all for any value with no entry.
+- **No match and no `"default"`** ⇒ the label degrades gracefully: the raw value for
+  `valueMap`, the control's own `icon`/`tint` for `iconMap`/`colorMap`. It never
+  blanks out.
+- A `valueMap` hit is the text as written — `formatValue` is not applied on top.
+- The maps apply to the **synced** value; before the first sync the static `text`
+  placeholder still shows.
+
+The same three fields work on [[image]], where `valueMap` maps to an image URL.
 
 ## Format Values
 
@@ -170,12 +208,47 @@ Feed it like any synced label (a `.string` value); see the
 }
 ```
 
+### Weather code → words, no server
+```json
+{
+  "type": "label",
+  "id": "wx-text",
+  "position": [0, 0],
+  "span": [1, 2],
+  "text": "…",
+  "style": "headline",
+  "align": "center",
+  "valueMap": { "0": "Clear", "1": "Mainly clear", "2": "Partly cloudy", "3": "Overcast", "45": "Fog", "51": "Drizzle", "61": "Rain", "71": "Snow", "80": "Showers", "95": "Thunderstorm", "default": "—" },
+  "iconMap": { "0": "sun.max.fill", "1": "sun.max.fill", "2": "cloud.sun.fill", "3": "cloud.fill", "45": "cloud.fog.fill", "51": "cloud.drizzle.fill", "61": "cloud.rain.fill", "71": "cloud.snow.fill", "80": "cloud.heavyrain.fill", "95": "cloud.bolt.rain.fill" },
+  "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code", "interval": 900, "valuePath": "current.weather_code" }]
+}
+```
+
+### Boolean state as words and colour
+```json
+{
+  "type": "label",
+  "id": "pump-state",
+  "position": [1, 0],
+  "span": [1, 2],
+  "text": "—",
+  "align": "center",
+  "valueMap": { "true": "Running", "false": "Stopped" },
+  "iconMap": { "true": "bolt.fill", "false": "bolt.slash" },
+  "colorMap": { "true": "#30D158", "false": "#8E8E93" },
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "pump" }, "valuePath": "running" }]
+}
+```
+
 ## Behavior
 - When synced, the `text` field serves as a placeholder until the first sync value arrives
 - Text updates animate with a smooth numeric content transition
 - Labels have no action — they are display-only
+- `valueMap`/`iconMap`/`colorMap` translate the synced value on the way to the screen —
+  see [[#Value maps]]
 
 ## Related
 - [[shared-properties]] — Base fields
+- [[image]] — the same value maps, mapping to symbols and image URLs
 - [[style-properties#Label Styles]] — Style variants
 - [[sync]] — Live value updates
