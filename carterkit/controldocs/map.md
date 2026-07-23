@@ -159,6 +159,56 @@ have:
 | `ripple` | object | — | Ring styling (`color`/`period`/`radius`) for those markers |
 | `maxMarkers` | number | `400` | Cap on rendered markers — public feeds can be unbounded |
 
+### Object-array feeds (not GeoJSON)
+
+Many public feeds are plain-JSON arrays of point objects, not GeoJSON — a flight feed
+`{ "ac": [ { "lat": …, "lon": …, "flight": … } ] }`, a single-point tracker (the ISS:
+`{ "latitude": …, "longitude": … }`), or a raw `[lng, lat, weight]` grid. Point the map
+at those by naming the coordinate fields; all the styling keys above still apply (their
+"property" is a key on each object). Declaring `markersPath` or `markerLatProperty`
+switches the map into this mode — ordinary payloads are unaffected.
+
+| `mapConfig` field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `markersPath` | string | — | Dot-path to the array of objects (e.g. `"ac"`). Omit if the payload *is* the array, or a single point object. |
+| `markerLatProperty` / `markerLngProperty` | string | — | Latitude/longitude keys on each object. `lat`/`lon`/`latitude`/`longitude` are auto-detected when omitted. |
+| `markerIdProperty` | string | — | Stable identity per marker across polls — **required for smooth `motion`** with more than one marker (e.g. `"hex"`). |
+| `coordinateOrder` | string | `"lnglat"` | For raw `[a, b, weight]` number triples (e.g. NOAA aurora): `"lnglat"` or `"latlng"`. The third element feeds size (`markerSizeDomain`) and ripple. |
+| `minWeight` | number | `0` | Number-triple mode: drop points weaker than this before the `maxMarkers` cap keeps the strongest. |
+
+### Marker style & SF Symbols
+
+| `mapConfig` field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `markerStyle` | enum | `"dot"` | `dot`, `symbol` (a bare SF Symbol), or `puck` (an SF Symbol inside a filled circle). |
+| `markerSymbol` | string | — | Default SF Symbol name for `symbol`/`puck` (e.g. `"airplane"`). |
+| `markerSymbolProperty` | string | — | Per-object property giving an SF Symbol name, overriding `markerSymbol`. A feed property named `symbol`/`sf-symbol` is honored without config. |
+
+### Motion & camera
+
+| `mapConfig` field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `motion` | bool | `false` | Smoothly **interpolate** marker positions between polls so they glide instead of teleporting. Needs `markerIdProperty` for >1 marker. |
+| `motionDuration` | number | `1.2` | Seconds a glide takes — set near your poll interval. |
+| `recenter` | enum | `"auto"` | How the camera reacts to new data: `auto` (frame + follow, but **stop the moment the user pans/zooms**), `always` (refit every update), `initial` (frame once), `off` (never move). |
+| `center` | [lat, lng] | — | Pin the camera to a fixed point (and the control's `mapZoom`) instead of fitting the data's bounds — e.g. frame a high-latitude feed. |
+
+### Example — live flight radar, no server
+
+```json
+{
+  "type": "map", "id": "flights", "position": [0, 0], "span": [8, 4],
+  "mapStyle": "hybrid", "mapZoom": 3.2, "tint": "#30D158",
+  "mapConfig": {
+    "markersPath": "ac", "markerLatProperty": "lat", "markerLngProperty": "lon",
+    "markerIdProperty": "hex", "markerLabelProperty": "flight",
+    "markerStyle": "puck", "markerSymbol": "airplane",
+    "motion": true, "motionDuration": 8, "recenter": "initial", "maxMarkers": 200
+  },
+  "sync": [{ "method": "http", "url": "https://api.adsb.lol/v2/lat/40.7/lon/-74/dist/100", "interval": 8 }]
+}
+```
+
 ## Examples
 
 ### Vehicle tracker
