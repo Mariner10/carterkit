@@ -74,8 +74,17 @@ class CarterAmbientError(Exception):
         self.body = body
 
 
+#: Sent on every request. The relay host sits behind Cloudflare, whose browser
+#: integrity check rejects urllib's default `Python-urllib/x.y` agent with a bare
+#: `403 error code: 1010` — a body that looks exactly like an entitlement failure
+#: and sends you hunting the wrong bug. Verified on dev: default agent 403s, this
+#: one gets through. Do not remove.
+_USER_AGENT = "carterkit/python"
+
+
 def _post(url, token, payload, *, method="POST", _send=None):
-    headers = {"Authorization": token, "Content-Type": "application/json"}
+    headers = {"Authorization": token, "Content-Type": "application/json",
+               "User-Agent": _USER_AGENT}
     body_bytes = json.dumps(payload).encode()
     if _send is not None:
         return _send(url, headers, body_bytes, method)

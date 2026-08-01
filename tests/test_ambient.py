@@ -228,3 +228,18 @@ def test_module_is_importable_without_the_meshsocket_stack():
     src = open(ambient.__file__).read()
     for forbidden in ("import meshsocket", "from meshsocket", "from .e2ee"):
         assert forbidden not in src
+
+
+def test_every_request_sends_an_explicit_user_agent():
+    """The relay host is behind Cloudflare, whose browser integrity check rejects
+    urllib's default `Python-urllib/x.y` with a bare `403 error code: 1010` — a
+    body indistinguishable from an entitlement failure. Verified on dev."""
+    r = Recorder({"delivered": True})
+    mesh_broadcast("https://r/", "T", channel="home", event="x", _send=r)
+    assert r.headers.get("User-Agent"), "no User-Agent — Cloudflare will 403 this"
+    assert "urllib" not in r.headers["User-Agent"].lower()
+
+    r2 = Recorder({"registered": 1})
+    live_activity_register("https://v/", "J", layout_id="x", push_token="T",
+                           bundle_id="B", _send=r2)
+    assert r2.headers.get("User-Agent")
