@@ -751,3 +751,78 @@ def test_connect_still_raises_when_revocation_is_confirmed():
         assert "start" not in c._sock.events
     finally:
         ckclient.device_refresh_http = orig
+
+
+# ─── glance refresh + silent route (the hybrid delivery decision) ─────────────
+
+GLANCE = {"layoutId": "printer.json",
+          "hero": {"controlId": "nozzle", "label": "Nozzle", "kind": "gauge", "value": 213}}
+
+
+def _capture():
+    captured = {}
+
+    def fake_send(url, headers, body_bytes):
+        captured["payload"] = json.loads(body_bytes.decode())
+        return {"sent": 1, "stale": 0}
+
+    return captured, fake_send
+
+
+def test_alerting_push_carries_glance_alongside_the_alert():
+    """The alerting route is the one that still refreshes surfaces after a
+    force-quit, because it runs the notification service extension."""
+    captured, send = _capture()
+    notify_http("https://v/", "jwt", "Hot", "213C", glance=GLANCE, _send=send)
+    p = captured["payload"]
+    assert p["glance"] == GLANCE
+    assert p["title"] == "Hot" and p["body"] == "213C"
+    assert "silent" not in p
+
+
+def test_silent_push_drops_every_presentation_field():
+    """A background push must carry no alert/sound/badge — including any of them
+    makes APNs treat it as user-visible and the silence is lost. Presentation
+    fields are dropped rather than sent and ignored."""
+    captured, send = _capture()
+    notify_http("https://v/", "jwt", "", "", silent=True, glance=GLANCE,
+                channel="home", subtitle="ignored", badge=3,
+                interruption="time-sensitive", image="https://x/i.jpg", _send=send)
+    p = captured["payload"]
+    assert p["silent"] is True
+    assert p["glance"] == GLANCE
+    assert p["channel"] == "home"          # routing survives
+    for gone in ("title", "body", "sound", "subtitle", "badge",
+                 "interruption", "imageURL"):
+        assert gone not in p, f"silent push must not carry {gone}"
+
+
+def test_silent_push_needs_something_to_deliver():
+    ok = lambda *a: {}
+    with pytest.raises(ValueError, match="glance= or data="):
+        notify_http("https://v/", "jwt", "", "", silent=True, _send=ok)
+    # ...but a glance block alone is a complete silent push.
+    notify_http("https://v/", "jwt", "", "", silent=True, glance=GLANCE, _send=ok)
+    # ...and so is data alone.
+    notify_http("https://v/", "jwt", "", "", silent=True, data={"k": "v"}, _send=ok)
+
+
+def test_silent_push_does_not_require_title_or_body():
+    """They are meaningless on a route that shows nothing; requiring them would
+    force callers to send dead text."""
+    ok = lambda *a: {}
+    notify_http("https://v/", "jwt", "", "", silent=True, glance=GLANCE, _send=ok)
+
+
+def test_alerting_push_still_requires_title_and_body():
+    ok = lambda *a: {}
+    with pytest.raises(ValueError, match="title"):
+        notify_http("https://v/", "jwt", "", "b", glance=GLANCE, _send=ok)
+    with pytest.raises(ValueError, match="body"):
+        notify_http("https://v/", "jwt", "t", "", glance=GLANCE, _send=ok)
+
+
+def test_glance_must_be_a_dict():
+    ok = lambda *a: {}
+    with pytest.raises(ValueError, match="glance must be a dict"):
+        notify_http("https://v/", "jwt", "t", "b", glance="nope", _send=ok)

@@ -28,6 +28,11 @@ from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import (CarterClient, notify_http, CarterNotifyError,
                      device_refresh_http, CarterDeviceRevoked)
+from . import ambient
+from .ambient import (CarterAmbientError, apple_date, slot, content_state,
+                      activity_attributes, canonical_layout_id,
+                      live_activity_register, live_activity_deregister,
+                      live_activity_push, mesh_broadcast)
 from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
@@ -88,6 +93,10 @@ __all__ = [
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
     "device_refresh_http", "CarterDeviceRevoked",
+    "ambient", "CarterAmbientError", "apple_date", "slot", "content_state",
+    "activity_attributes", "canonical_layout_id",
+    "live_activity_register", "live_activity_deregister", "live_activity_push",
+    "mesh_broadcast",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "controldocs_dir",

@@ -131,7 +131,7 @@ def _normalize_actions(actions):
 def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, channel=None,
                 category=None, badge=None, sound="default", interruption=None,
                 relevance=None, thread_id=None, image=None, sender=None, actions=None,
-                notif_id=None, data=None, _send=None):
+                notif_id=None, data=None, glance=None, silent=False, _send=None):
     """Send a one-shot push to every device on the account (POST /alerts/notify).
 
     Stdlib-only. `validator_url` is the Connect+ validator base URL; `session_jwt` is the
@@ -150,11 +150,35 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
     list of `{"id", "title", "destructive"?}` — callback dispatch lives on
     `CarterClient.notify`, not here); `notif_id` is echoed back by button taps. `sound`
     is a sound file name bundled in the app, "default", or "none" (silent) — remote
-    sound URLs are not a thing APNs supports."""
-    if not title or len(title) > 256:
-        raise ValueError("title must be non-empty and <= 256 chars")
-    if not body or len(body) > 256:
-        raise ValueError("body must be non-empty and <= 256 chars")
+    sound URLs are not a thing APNs supports.
+
+    Ambient-surface fields:
+
+    `glance` is a glance-refresh object (see `carterkit.ambient`) placed at the
+    payload's top level; it updates the device's widgets and Control Center values.
+
+    `silent=True` sends a BACKGROUND push instead of a user-visible one: no
+    notification is shown, and `title`/`body` are ignored (pass empty strings).
+    It needs `glance` or `data` to carry something.
+
+    **Know what each route guarantees.** A silent push is free and invisible, but
+    iOS SUPPRESSES it once the user has force-quit the app — the surfaces then go
+    stale until the app is opened. An alerting push (`silent=False`) always shows a
+    notification and always runs the notification service extension, which is the
+    only process of ours iOS will start after a force-quit, so its `glance` refresh
+    is the one that always lands. Choose deliberately; do not treat `silent=True`
+    as a quiet way to get the same result."""
+    if silent:
+        if not glance and not data:
+            raise ValueError("a silent push needs glance= or data= to deliver "
+                             "(it shows nothing, so title/body carry nothing)")
+    else:
+        if not title or len(title) > 256:
+            raise ValueError("title must be non-empty and <= 256 chars")
+        if not body or len(body) > 256:
+            raise ValueError("body must be non-empty and <= 256 chars")
+    if glance is not None and not isinstance(glance, dict):
+        raise ValueError("glance must be a dict")
     if subtitle is not None and len(subtitle) > 256:
         raise ValueError("subtitle must be <= 256 chars")
     if interruption is not None and interruption not in _INTERRUPTION_LEVELS:
@@ -175,29 +199,40 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
         raise ValueError("action callbacks need a mesh connection — use "
                          "CarterClient.notify(); notify_http sends buttons only")
 
-    payload = {"title": title, "body": body, "sound": sound}
-    if subtitle is not None:
-        payload["subtitle"] = subtitle
+    if silent:
+        # A background push must carry NO alert/sound/badge — including any of
+        # them makes APNs treat it as user-visible and the silence is lost. So a
+        # silent request carries only what a background push can act on, and every
+        # presentation field is deliberately dropped rather than sent and ignored.
+        payload = {"silent": True}
+    else:
+        payload = {"title": title, "body": body, "sound": sound}
+        if subtitle is not None:
+            payload["subtitle"] = subtitle
+        if category is not None:
+            payload["category"] = category
+        if badge is not None:
+            payload["badge"] = badge
+        if interruption is not None:
+            payload["interruption"] = interruption
+        if relevance is not None:
+            payload["relevance"] = relevance
+        if thread_id is not None:
+            payload["threadId"] = thread_id
+        if image is not None:
+            payload["imageURL"] = image
+        if sender is not None:
+            payload["sender"] = sender
+        if wire_actions is not None:
+            payload["actions"] = wire_actions
+        if notif_id is not None:
+            payload["notifId"] = notif_id
+    # Carried by both routes: the client applies a glance block through one code
+    # path whether it arrived silently or on an alert.
+    if glance is not None:
+        payload["glance"] = glance
     if channel is not None:
         payload["channel"] = channel
-    if category is not None:
-        payload["category"] = category
-    if badge is not None:
-        payload["badge"] = badge
-    if interruption is not None:
-        payload["interruption"] = interruption
-    if relevance is not None:
-        payload["relevance"] = relevance
-    if thread_id is not None:
-        payload["threadId"] = thread_id
-    if image is not None:
-        payload["imageURL"] = image
-    if sender is not None:
-        payload["sender"] = sender
-    if wire_actions is not None:
-        payload["actions"] = wire_actions
-    if notif_id is not None:
-        payload["notifId"] = notif_id
     if data is not None:
         payload["data"] = data
 
@@ -474,8 +509,8 @@ class CarterClient:
     async def notify(self, title, body, *, subtitle=None, channel=None, category=None,
                      badge=None, sound="default", interruption=None, criticality=None,
                      relevance=None, thread_id=None, image=None, sender=None,
-                     actions=None, notif_id=None, data=None, encrypt=None,
-                     placeholder_title="", placeholder_body="New notification"):
+                     actions=None, notif_id=None, data=None, glance=None, silent=False,
+                     encrypt=None, placeholder_title="", placeholder_body="New notification"):
         """Send a one-shot push to every device on the account. Requires `validator_url`
         and `session_jwt` to have been passed to the constructor (the mesh auth token is
         NOT the session JWT — distinct credentials). Returns
@@ -501,7 +536,14 @@ class CarterClient:
           (`encrypt=None`); pass `encrypt=False` to send in the clear, `encrypt=True`
           to fail loudly when no room cipher is available. Delivery hints
           (interruption/relevance/thread/sound/badge/channel/actions) always ride in
-          the clear."""
+          the clear.
+        - `glance` refreshes the device's widgets and Control Center values, and
+          `silent=True` delivers it as a background push instead of a visible one.
+          Read the delivery table in `carterkit.ambient` before choosing: a silent
+          push is suppressed once the user force-quits the app, while an alerting
+          one always runs the notification extension and always lands. E2EE never
+          seals `glance` — it is surface values, not message content, and the
+          extension applies it before the decrypt step."""
         if not self._validator_url or not self._session_jwt:
             raise CarterNotifyError(0, "notify() requires validator_url and session_jwt "
                                        "on the CarterClient constructor")
@@ -545,7 +587,7 @@ class CarterClient:
             subtitle=subtitle, channel=channel, category=category, badge=badge,
             sound=sound, interruption=interruption, relevance=relevance,
             thread_id=thread_id, image=image, sender=sender, actions=wire_actions,
-            notif_id=notif_id, data=data)
+            notif_id=notif_id, data=data, glance=glance, silent=silent)
 
     async def refresh_device_token(self):
         """Re-mint this device's relay token from its refresh secret and apply it to the
