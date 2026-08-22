@@ -37,7 +37,8 @@ import os
 
 #: Connect+ validator (token refresh / alerts) used when a device credential
 #: doesn't carry its own ``validator`` key. Overridable via ``validator=``.
-DEFAULT_VALIDATOR = "https://connect.carterbeaudoin.net"
+#: This is the HTTPS validator API, not the WebSocket relay host.
+DEFAULT_VALIDATOR = "https://zzko0nn851.execute-api.us-east-1.amazonaws.com"
 
 _LOCAL_DEFAULT_PORT = 8765
 

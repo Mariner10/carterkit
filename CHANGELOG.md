@@ -3,6 +3,40 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.9.1]
+
+### Added
+- **`carterkit.ambient`** — the surfaces that reach a device when the app is not
+  running: the Live Activity / Dynamic Island push pipeline
+  (`live_activity_register` / `live_activity_deregister` / `live_activity_push`,
+  with the `apple_date` / `content_state` / `activity_attributes` helpers and the
+  wire constants they guard) and `mesh_broadcast`, the relay's HTTP bridge that
+  carries a press with no socket held open. Stdlib-only, like `notify_http`.
+  Includes the silent-push vs NSE-alert delivery-guarantee table — a silent
+  refresh stops at force-quit; an alerting one always works.
+
+### Fixed
+- **`DEFAULT_VALIDATOR` pointed at the relay, not the validator.** The fallback
+  used when a device credential carries no `validator` key was the WebSocket
+  relay host (`connect.carterbeaudoin.net`), which serves no HTTP API — so a
+  credential without an embedded validator could never refresh its token or send
+  alerts. It is now the Connect+ validator base
+  (`https://zzko0nn851.execute-api.us-east-1.amazonaws.com`), matching the app's
+  Release config.
+- **Ambient HTTP calls send an explicit User-Agent** — Cloudflare 403s urllib's
+  default.
+- **Re-vendored `map.md`**: object-array feeds, SF-symbol/puck markers, motion,
+  recenter.
+
+## [0.9.0]
+
+Control docs for the live-data feature set: vendors the ControlDocs that let a
+layout render real public-API data with no server (map markers/GeoJSON/globe,
+label/image value→text/symbol/tint maps, list dot-path columns, bare-array
+sparkline) and teaches `contract.py` about them. Also stops a single validator
+HTTP 403 from being treated as permanent device revocation (3 consecutive 403s
+now required), which silently killed a Connect+ hub's phone link.
+
 ## [0.8.0]
 
 **Studio Mirror** — `carterkit explore` now mirrors the phone live, and can drive any
