@@ -27,10 +27,16 @@ fields:
     default: false
     description: Growing composer with a Send button (Return inserts a newline)
   - name: minLines
+    min: 1
+    max: 20
+    step: 1
     type: number
     default: 1
     description: Composer starting line count
   - name: maxLines
+    min: 1
+    max: 50
+    step: 1
     type: number
     default: 6
     description: Composer max lines before it scrolls internally
@@ -64,10 +70,16 @@ fields:
     description: Hide the header label
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -88,10 +100,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size

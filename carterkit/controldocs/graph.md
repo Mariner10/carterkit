@@ -16,6 +16,7 @@ fields:
     default: "#667eea"
     description: Fallback node color
   - name: attractionForce
+    bounds: none
     type: number
     default: 0.01
     description: How strongly connected nodes pull together
@@ -25,6 +26,7 @@ fields:
     description: Graph canvas background
     group: graphConfig
   - name: centerForce
+    bounds: none
     type: number
     default: 0.02
     description: How strongly nodes are pulled toward center
@@ -34,6 +36,9 @@ fields:
     description: (Reserved) Event for content-push model
     group: graphConfig
   - name: damping
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.9
     description: Velocity dampening per tick (0-1, lower = more friction)
@@ -53,11 +58,17 @@ fields:
     description: Use curved (quadratic) edges instead of straight
     group: graphConfig
   - name: edgeOpacity
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.4
     description: Edge line opacity (0-1)
     group: graphConfig
   - name: edgeWidth
+    min: 0.5
+    max: 12
+    step: 0.5
     type: number
     default: 1.0
     description: Edge line width
@@ -72,6 +83,9 @@ fields:
     description: Node glow effect
     group: graphConfig
   - name: glowRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 6.0
     description: Glow blur radius
@@ -90,11 +104,17 @@ fields:
     description: Label text color
     group: graphConfig
   - name: labelOffset
+    min: 0
+    max: 40
+    step: 1
     type: number
     default: 12.0
     description: Distance from node center to label
     group: graphConfig
   - name: labelSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 10.0
     description: Label font size
@@ -108,6 +128,9 @@ fields:
     description: Border stroke color
     group: graphConfig
   - name: nodeBorderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 0
     description: Border stroke width around nodes
@@ -121,6 +144,9 @@ fields:
     description: Color when node is active/selected
     group: graphConfig
   - name: nodeSize
+    min: 2
+    max: 40
+    step: 1
     type: number
     default: 8.0
     description: Base node radius in points
@@ -130,10 +156,12 @@ fields:
     description: (Reserved) Particle color
     group: graphConfig
   - name: particleSpeed
+    bounds: none
     type: number
     description: (Reserved) Particle animation speed
     group: graphConfig
   - name: repulsionForce
+    bounds: none
     type: number
     default: 100
     description: How strongly nodes push apart
@@ -149,6 +177,9 @@ fields:
     description: (Reserved) Animated particles along edges
     group: graphConfig
   - name: velocityDecay
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.6
     description: Velocity decay rate (0-1, lower = faster settling)
@@ -159,10 +190,16 @@ fields:
     group: graphConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -179,10 +216,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size

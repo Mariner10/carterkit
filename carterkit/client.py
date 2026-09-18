@@ -17,6 +17,8 @@ import urllib.error
 import urllib.request
 import uuid
 
+from .notifications import notification_action
+
 log = logging.getLogger(__name__)
 
 # A device token refresh that comes back 403 is NOT on its own proof the device is
@@ -78,64 +80,58 @@ def _normalize_sender(sender):
 
 
 def _normalize_actions(actions):
-    """Accept the dict form `{"ack": "Acknowledge"}` / `{"ack": ("Acknowledge", fn)}` /
-    `{"ack": {"name"/"title": ..., "func": fn, "destructive": bool}}` or a wire-style
-    list of dicts → `(wire_actions, callbacks)` where callbacks maps action id → fn
-    (empty when none were given)."""
+    """Preserve every iOS action option while retaining legacy shorthand forms."""
     if actions is None:
         return None, {}
-    wire, callbacks = [], {}
+    items = []
     if isinstance(actions, dict):
-        items = []
         for aid, spec in actions.items():
             if isinstance(spec, str):
                 items.append({"id": aid, "title": spec})
             elif callable(spec):
-                items.append({"id": aid, "title": aid})
-                callbacks[aid] = spec
+                items.append({"id": aid, "title": aid, "callback": spec})
             elif isinstance(spec, (tuple, list)) and len(spec) == 2:
-                items.append({"id": aid, "title": spec[0]})
-                callbacks[aid] = spec[1]
+                items.append({"id": aid, "title": spec[0], "callback": spec[1]})
             elif isinstance(spec, dict):
-                item = {"id": aid, "title": spec.get("title") or spec.get("name") or aid}
-                if spec.get("destructive"):
-                    item["destructive"] = True
-                fn = spec.get("func") or spec.get("funct") or spec.get("callback")
-                if fn is not None:
-                    callbacks[aid] = fn
-                items.append(item)
+                items.append({**spec, "id": aid, "title": spec.get("title") or spec.get("name") or aid})
             else:
                 raise ValueError(f"action {aid!r}: expected title, callable, (title, fn), or dict")
-        wire = items
     elif isinstance(actions, (list, tuple)):
-        for a in actions:
-            if not isinstance(a, dict) or not a.get("id") or not a.get("title"):
-                raise ValueError("wire-style actions need dicts with id and title")
-            item = {"id": a["id"], "title": a["title"]}
-            if a.get("destructive"):
-                item["destructive"] = True
-            fn = a.get("func") or a.get("callback")
-            if fn is not None:
-                callbacks[a["id"]] = fn
-            wire.append(item)
+        items = list(actions)
     else:
         raise ValueError("actions must be a dict or a list of dicts")
-    if len(wire) > 4:
+    if len(items) > 4:
         raise ValueError("at most 4 actions per notification")
-    for a in wire:
-        if len(a["id"]) > 64 or len(a["title"]) > 48:
-            raise ValueError(f"action {a['id']!r}: id <= 64 and title <= 48 chars")
+    wire, callbacks, seen = [], {}, set()
+    for item in items:
+        if not isinstance(item, dict):
+            raise ValueError("wire-style actions need dicts with id and title")
+        fn = item.get("func") or item.get("funct") or item.get("callback")
+        action = notification_action(item.get("id"), item.get("title"), callback=fn,
+            destructive=item.get("destructive", False), foreground=item.get("foreground", False),
+            authentication_required=item.get("authentication_required", item.get("authenticationRequired", False)),
+            text_input=item.get("text_input", item.get("textInput", False)),
+            text_input_button_title=item.get("text_input_button_title", item.get("textInputButtonTitle")),
+            text_input_placeholder=item.get("text_input_placeholder", item.get("textInputPlaceholder")))
+        aid = action["id"]
+        if aid in seen:
+            raise ValueError("action ids must be unique")
+        seen.add(aid)
+        if "callback" in action:
+            callbacks[aid] = action.pop("callback")
+        wire.append(action)
     return wire, callbacks
 
 
 def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, channel=None,
                 category=None, badge=None, sound="default", interruption=None,
                 relevance=None, thread_id=None, image=None, sender=None, actions=None,
-                notif_id=None, data=None, glance=None, silent=False, _send=None):
+                notif_id=None, data=None, glance=None, silent=False, layout_id=None, timeout=10, _send=None):
     """Send a one-shot push to every device on the account (POST /alerts/notify).
 
     Stdlib-only. `validator_url` is the Connect+ validator base URL; `session_jwt` is the
-    Connect+ account session token (NOT the MeshSocket auth token). Returns the parsed
+    owner session or an authorized Add Hub device token (the argument name is legacy).
+    A local relay key or room membership token cannot authorize this endpoint. Returns the parsed
     `{"sent": N, "stale": M, "notifId"?: id}` response. Raises CarterNotifyError on an
     HTTP error or ValueError on an invalid field. `_send` is a test seam: a callable
     (url, headers, body_bytes) -> dict that bypasses the network.
@@ -147,7 +143,8 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
     https URL the device downloads and attaches; `sender` renders the push as a
     Communication Notification "from" that persona — name + circular avatar (see
     `_normalize_sender` for accepted shapes); `actions` adds up to 4 buttons (wire-style
-    list of `{"id", "title", "destructive"?}` — callback dispatch lives on
+    list from `notification_action(...)`, including inline replies and authentication
+    options — callback dispatch lives on
     `CarterClient.notify`, not here); `notif_id` is echoed back by button taps. `sound`
     is a sound file name bundled in the app, "default", or "none" (silent) — remote
     sound URLs are not a thing APNs supports.
@@ -161,13 +158,17 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
     notification is shown, and `title`/`body` are ignored (pass empty strings).
     It needs `glance` or `data` to carry something.
 
-    **Know what each route guarantees.** A silent push is free and invisible, but
-    iOS SUPPRESSES it once the user has force-quit the app — the surfaces then go
-    stale until the app is opened. An alerting push (`silent=False`) always shows a
-    notification and always runs the notification service extension, which is the
-    only process of ours iOS will start after a force-quit, so its `glance` refresh
-    is the one that always lands. Choose deliberately; do not treat `silent=True`
-    as a quiet way to get the same result."""
+    Delivery is best-effort: iOS may throttle background pushes and suppress them
+    after force-quit. Visible alerts can refresh through the notification service
+    extension, but neither presentation nor extension execution is guaranteed.
+    `sent` counts APNs acceptance, not on-device application. `channel` and
+    `layout_id` route taps; they do not limit the account's recipient devices."""
+    from .ambient import _finite_number, _json_size
+    _finite_number(timeout, "timeout")
+    if timeout <= 0:
+        raise ValueError("timeout must be positive")
+    if layout_id is not None and (not isinstance(layout_id, str) or not layout_id or len(layout_id.encode("utf-8")) > 128):
+        raise ValueError("layout_id must be non-empty and <= 128 UTF-8 bytes")
     if silent:
         if not glance and not data:
             raise ValueError("a silent push needs glance= or data= to deliver "
@@ -179,6 +180,8 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
             raise ValueError("body must be non-empty and <= 256 chars")
     if glance is not None and not isinstance(glance, dict):
         raise ValueError("glance must be a dict")
+    if glance is not None:
+        _json_size(glance, 2048, "glance")
     if subtitle is not None and len(subtitle) > 256:
         raise ValueError("subtitle must be <= 256 chars")
     if interruption is not None and interruption not in _INTERRUPTION_LEVELS:
@@ -235,20 +238,28 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
         payload["channel"] = channel
     if data is not None:
         payload["data"] = data
+    if layout_id is not None:
+        payload["layoutId"] = layout_id
 
     url = validator_url.rstrip("/") + "/alerts/notify"
-    headers = {"Authorization": session_jwt, "Content-Type": "application/json"}
-    body_bytes = json.dumps(payload).encode()
+    headers = {"Authorization": session_jwt, "Content-Type": "application/json",
+               "User-Agent": "carterkit/python"}
+    body_bytes = json.dumps(payload, allow_nan=False, ensure_ascii=False, separators=(",", ":")).encode()
 
     if _send is not None:
         return _send(url, headers, body_bytes)
 
     req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read().decode())
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            result = json.loads(resp.read().decode())
+            if not isinstance(result, dict):
+                raise ValueError("notify endpoint returned a non-object JSON response")
+            return result
     except urllib.error.HTTPError as e:
         raise CarterNotifyError(e.code, e.read().decode(errors="replace")) from None
+    except (OSError, ValueError) as e:
+        raise CarterNotifyError(0, str(e)) from None
 
 
 class CarterDeviceRevoked(Exception):
@@ -509,19 +520,22 @@ class CarterClient:
 
     def on_notif_action(self, handler):
         """Catch-all for notification button taps: handler(data) gets the flat
-        `notif_action` frame `{"msg_type", "notifId", "actionId", "threadId"?}`.
+        `notif_action` frame with notifId, actionId, optional threadId and userText.
+        The handler can be used as a decorator and should be restored at startup.
         Per-send callbacks passed via notify(actions=...) fire first."""
         self._notif_action_handler = handler
         self._ensure_broadcast_listener()
+        return handler
 
     async def notify(self, title, body, *, subtitle=None, channel=None, category=None,
                      badge=None, sound="default", interruption=None, criticality=None,
                      relevance=None, thread_id=None, image=None, sender=None,
                      actions=None, notif_id=None, data=None, glance=None, silent=False,
-                     encrypt=None, placeholder_title="", placeholder_body="New notification"):
+                     encrypt=None, placeholder_title="", placeholder_body="New notification",
+                     layout_id=None, timeout=10):
         """Send a one-shot push to every device on the account. Requires `validator_url`
-        and `session_jwt` to have been passed to the constructor (the mesh auth token is
-        NOT the session JWT — distinct credentials). Returns
+        and either an owner `session_jwt` or Add Hub device credentials. Device
+        authorization follows the socket's renewed token. Returns
         `{"sent": N, "stale": M, "notifId"?: id}`.
 
         On top of `notify_http`'s fields this adds the mesh-connected conveniences:
@@ -531,9 +545,11 @@ class CarterClient:
         - `actions` may carry callbacks — `{"ack": ("Acknowledge", fn)}` or
           `{"ack": {"name": "Acknowledge", "func": fn}}`; when the user taps the
           button, the app broadcasts `notif_action` on the channel and the callback
-          fires with the flat frame. Best-effort: taps only arrive while the app holds
-          a live connection on that channel. A `notif_id` is minted per send to key
-          the dispatch (pass your own to override).
+          fires with the flat frame (inline replies include `userText`). iOS may
+          queue actions for retry; delivery and execution are best-effort. The hub
+          must be listening. A `notif_id` is minted per send to key the dispatch.
+          Callbacks live in memory; register `on_notif_action` at startup for a
+          stable handler that can also handle responses to earlier notifications.
         - `sender` (persona) defaults `thread_id` to the sender's name so avatar
           grouping and thread grouping agree.
         - `criticality` is an alias for `interruption`.
@@ -547,14 +563,11 @@ class CarterClient:
           the clear.
         - `glance` refreshes the device's widgets and Control Center values, and
           `silent=True` delivers it as a background push instead of a visible one.
-          Read the delivery table in `carterkit.ambient` before choosing: a silent
-          push is suppressed once the user force-quits the app, while an alerting
-          one always runs the notification extension and always lands. E2EE never
+          Both routes are best-effort; silent pushes can be suppressed after
+          force-quit. E2EE never
           seals `glance` — it is surface values, not message content, and the
           extension applies it before the decrypt step."""
-        if not self._validator_url or not self._session_jwt:
-            raise CarterNotifyError(0, "notify() requires validator_url and session_jwt "
-                                       "on the CarterClient constructor")
+        authorization = self._ambient_authorization()
         if interruption is None:
             interruption = criticality
         if channel is None:
@@ -563,12 +576,12 @@ class CarterClient:
         if sender is not None and thread_id is None:
             thread_id = sender["name"]
         wire_actions, callbacks = _normalize_actions(actions)
-        if callbacks:
-            if notif_id is None:
-                notif_id = "n" + uuid.uuid4().hex[:16]
-            for aid, fn in callbacks.items():
-                self._notif_callbacks[(notif_id, aid)] = fn
-            self._ensure_broadcast_listener()
+        # Register before sending so an immediate reply cannot race registration.
+        # Restore any previous callbacks if validation or the HTTP request fails.
+        if callbacks and silent:
+            raise ValueError("silent pushes cannot carry action callbacks")
+        if callbacks and notif_id is None:
+            notif_id = "n" + uuid.uuid4().hex[:16]
 
         can_seal = self._session is not None and getattr(self._session, "is_group", False)
         if encrypt is None:
@@ -590,12 +603,56 @@ class CarterClient:
             title, body = placeholder_title or "CAR-TER", placeholder_body
             subtitle = image = sender = None
 
-        return await asyncio.to_thread(
-            notify_http, self._validator_url, self._session_jwt, title, body,
-            subtitle=subtitle, channel=channel, category=category, badge=badge,
-            sound=sound, interruption=interruption, relevance=relevance,
-            thread_id=thread_id, image=image, sender=sender, actions=wire_actions,
-            notif_id=notif_id, data=data, glance=glance, silent=silent)
+        keys = {(notif_id, aid): fn for aid, fn in callbacks.items()}
+        previous = {key: self._notif_callbacks[key] for key in keys if key in self._notif_callbacks}
+        self._notif_callbacks.update(keys)
+        if callbacks:
+            self._ensure_broadcast_listener()
+        try:
+            return await asyncio.to_thread(
+                notify_http, self._validator_url, authorization, title, body,
+                subtitle=subtitle, channel=channel, category=category, badge=badge,
+                sound=sound, interruption=interruption, relevance=relevance,
+                thread_id=thread_id, image=image, sender=sender, actions=wire_actions,
+                notif_id=notif_id, data=data, glance=glance, silent=silent,
+                layout_id=layout_id, timeout=timeout)
+        except BaseException:
+            for key, fn in keys.items():
+                if self._notif_callbacks.get(key) is fn:
+                    self._notif_callbacks.pop(key, None)
+                    if key in previous:
+                        self._notif_callbacks[key] = previous[key]
+            raise
+
+    def _ambient_authorization(self):
+        """Owner session or the current, refreshable Add Hub credential."""
+        if self.revoked:
+            raise CarterNotifyError(0, "this hub credential has been revoked")
+        token = self._session_jwt
+        if not token and self._device_id and self._refresh_token:
+            token = self._sock.auth_token
+        if not self._validator_url or not token:
+            raise CarterNotifyError(0, "ambient APIs require validator_url and session_jwt, "
+                                       "or an Add Hub device credential; a local relay key is not sufficient")
+        return token
+
+    async def push_live_activity(self, *, layout_id, event, content_state, **options):
+        """Async ActivityKit connector using this hub's current authorization."""
+        from .ambient import live_activity_push
+        token = self._ambient_authorization()
+        return await asyncio.to_thread(live_activity_push, self._validator_url, token,
+            layout_id=layout_id, event=event, content_state=content_state, **options)
+
+    async def refresh_glance(self, *, layout_id, values=None, controls=None, **options):
+        """Request a silent widget/control refresh. iOS may delay or suppress it.
+
+        Use ``notify(glance=glance_update(...))`` to attach data to a visible alert.
+        This is explicit; ``push()`` never spends a push budget automatically.
+        """
+        from .ambient import glance_update
+        update = glance_update(layout_id=layout_id, values=values, controls=controls, **options)
+        return await self.notify("", "", layout_id=layout_id, glance=update, silent=True, encrypt=False)
+
 
     async def refresh_device_token(self):
         """Re-mint this device's relay token from its refresh secret and apply it to the

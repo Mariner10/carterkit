@@ -32,6 +32,9 @@ fields:
     type: string
     description: Path against the source's baseURL (http)
   - name: interval
+    min: 1
+    max: 3600
+    step: 1
     type: number
     description: Poll interval in seconds (http)
 ---

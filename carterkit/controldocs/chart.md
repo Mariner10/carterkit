@@ -5,6 +5,10 @@ icon: chart.bar.xaxis
 category: controls
 defaultSpan: [3, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the chart
@@ -19,11 +23,17 @@ fields:
     type: string
     description: Formatter for axis/readout numbers (see control-def)
   - name: barCornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 3
     description: Bar corner rounding
     group: chartConfig
   - name: bins
+    min: 1
+    max: 50
+    step: 1
     type: number
     description: Bin count for histogram series
     group: chartConfig
@@ -41,11 +51,17 @@ fields:
     description: Horizontal bars — categories run down the leading edge
     group: chartConfig
   - name: lineWidth
+    min: 0.5
+    max: 12
+    step: 0.5
     type: number
     default: 2
     description: Line/area stroke width
     group: chartConfig
   - name: maxPoints
+    min: 10
+    max: 1000
+    step: 10
     type: number
     default: 100
     description: Rolling window applied to {'append': …} pushes
@@ -55,6 +71,9 @@ fields:
     description: Falling waterfall delta
     group: chartConfig
   - name: pointSize
+    min: 2
+    max: 20
+    step: 1
     type: number
     default: 6
     description: Scatter point / vertex dot diameter
@@ -108,19 +127,27 @@ fields:
     description: Waterfall running-total bars
     group: chartConfig
   - name: yMax
+    bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
     group: chartConfig
   - name: yMin
+    bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
     group: chartConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -133,6 +160,9 @@ themeFields:
     default: #FFFFFF99
     description: Secondary text color
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size

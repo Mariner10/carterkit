@@ -5,10 +5,18 @@ icon: gauge.medium
 category: controls
 defaultSpan: [2, 2]
 fields:
+  - name: animation
+    type: enum
+    values: [smooth, snappy, bouncy, gentle, instant]
+    description: Motion profile for value changes
   - name: min
+    default: 0
+    bounds: none
     type: number
     description: Minimum value
   - name: max
+    default: 100
+    bounds: none
     type: number
     description: Maximum value
   - name: gaugeStyle
@@ -19,6 +27,13 @@ fields:
   - name: segments
     type: array
     description: Color zone breakpoints [{limit, color}]
+  - name: colorBlend
+    min: 0
+    max: 1
+    step: 0.05
+    type: number
+    default: 0
+    description: "How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments."
   - name: tint
     type: color
     default: "#667eea"
@@ -30,18 +45,28 @@ fields:
     type: string
     description: SF Symbol in the center
   - name: step
+    bounds: none
     type: number
     default: 1
     description: Determines decimal formatting of center value
   - name: arcAngle
+    min: 1
+    max: 360
+    step: 1
     type: number
     default: 180
     description: Arc sweep in degrees (1-360)
   - name: arcRotation
+    min: -180
+    max: 180
+    step: 1
     type: number
     default: 0
     description: Rotates the arc start position in degrees
   - name: arcThickness
+    min: 1
+    max: 40
+    step: 1
     type: number
     default: auto
     description: Arc stroke width in points. Omit to auto-scale with the gauge's size.
@@ -51,10 +76,16 @@ fields:
     description: Show just the arc — hide the center value
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -79,10 +110,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size
@@ -181,6 +218,8 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
   "label": "Living Room",
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "room": "living" }, "valuePath": "temperature" }],
   "longPressGroup": {
+    "position": [0, 0],
+    "span": [2, 2],
     "id": "temp-detail",
     "label": "Temperature History",
     "grid": { "columns": 2, "rows": 2 },

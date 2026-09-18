@@ -5,6 +5,10 @@ icon: square.grid.3x3.fill
 category: controls
 defaultSpan: [2, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the grid
@@ -23,11 +27,17 @@ fields:
     description: cellAction
     group: heatmapConfig
   - name: cellCorner
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 3
     description: Cell corner rounding
     group: heatmapConfig
   - name: cellGap
+    min: 0
+    max: 40
+    step: 1
     type: number
     default: 2
     description: Gap between cells
@@ -80,15 +90,20 @@ fields:
     description: Numeric value inside each cell (when cells are large enough)
     group: heatmapConfig
   - name: vMax
+    bounds: none
     type: number
     description: Continuous color-scale bounds
     group: heatmapConfig
   - name: vMin
+    bounds: none
     type: number
     description: Continuous color-scale bounds
     group: heatmapConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

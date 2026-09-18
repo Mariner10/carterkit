@@ -5,14 +5,24 @@ icon: square.on.square.dashed
 category: input
 defaultSpan: [10, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label
   - name: controlHeight
+    min: 100
+    max: 1200
+    step: 10
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids)
   - name: aspect
+    min: 0.2
+    max: 5
+    step: 0.1
     type: number
     default: 1.0
     description: Surface aspect ratio (width ÷ height)
@@ -28,11 +38,17 @@ fields:
     description: Faint dot lattice on the surface (uses the snap increment when set)
     group: canvasConfig
   - name: snap
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0
     description: Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free)
     group: canvasConfig
   - name: maxZoom
+    min: 0.5
+    max: 4
+    step: 0.1
     type: number
     default: 3
     description: Max pinch-zoom scale (1 disables zoom and panning)

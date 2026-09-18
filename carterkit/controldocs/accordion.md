@@ -11,6 +11,7 @@ fields:
     default: single
     description: Whether one or many sections can be open
   - name: expandedIndex
+    bounds: none
     type: number
     default: 0
     description: Section open on load (-1 = all collapsed)

@@ -5,6 +5,10 @@ icon: align.vertical.center
 category: controls
 defaultSpan: [3, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the plot
@@ -27,6 +31,9 @@ fields:
     description: boxAction
     group: boxPlotConfig
   - name: boxWidth
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.55
     description: Box width as a fraction of the category slot
@@ -70,15 +77,20 @@ fields:
     description: 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)
     group: boxPlotConfig
   - name: yMax
+    bounds: none
     type: number
     description: Pin the value axis
     group: boxPlotConfig
   - name: yMin
+    bounds: none
     type: number
     description: Pin the value axis
     group: boxPlotConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

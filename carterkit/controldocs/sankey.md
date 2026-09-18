@@ -5,6 +5,10 @@ icon: arrow.triangle.branch
 category: controls
 defaultSpan: [3, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the diagram
@@ -23,6 +27,9 @@ fields:
     description: Node color cycle (per-node color wins)
     group: sankeyConfig
   - name: linkOpacity
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.32
     description: Ribbon opacity (selection brightens involved ribbons)
@@ -32,11 +39,17 @@ fields:
     description: nodeAction
     group: sankeyConfig
   - name: nodeSpacing
+    min: 0
+    max: 40
+    step: 1
     type: number
     default: 10
     description: Minimum vertical gap between nodes in a column
     group: sankeyConfig
   - name: nodeWidth
+    min: 1
+    max: 40
+    step: 1
     type: number
     default: 10
     description: Node bar width in points
@@ -58,6 +71,9 @@ fields:
     group: sankeyConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

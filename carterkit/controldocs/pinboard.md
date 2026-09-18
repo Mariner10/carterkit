@@ -5,10 +5,17 @@ icon: mappin.and.ellipse
 category: input
 defaultSpan: [10, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label
   - name: controlHeight
+    min: 100
+    max: 1200
+    step: 10
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids)
@@ -17,6 +24,9 @@ fields:
     description: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
     group: pinboardConfig
   - name: surfaceAspect
+    min: 0.2
+    max: 5
+    step: 0.1
     type: number
     default: 1.4
     description: Surface aspect ratio (width ÷ height)

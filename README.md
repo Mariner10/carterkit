@@ -15,6 +15,24 @@ definitions.
 pip install carterkit
 ```
 
+## iOS surfaces from your backend
+
+Use `hub.surfaces` to refresh widgets and Control Center state, send notifications
+with buttons and inline replies, and start/update/end Live Activities. It derives
+payloads from your layout and uses the hub's renewed Add Hub credential. Existing
+`@control.on` handlers receive actions from widgets, Control Center and Shortcuts.
+
+```python
+await hub.surfaces.refresh()  # latest values published through hub.push/control.push
+await hub.surfaces.notify("Workshop", "Job complete", include_glance=True)
+await hub.surfaces.update_activity({temperature: 25})
+```
+
+See the [connector guide](docs/ios-surfaces.md) for setup, notification actions,
+delivery semantics, payload limits and lower-level APIs. The
+[example](examples/ios_surfaces.py) previews offline by default. These additions
+are in this checkout; installing the existing PyPI release does not include them.
+
 ## Explore the controls (zero config)
 
 ```python

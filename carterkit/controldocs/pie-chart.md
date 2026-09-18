@@ -5,6 +5,10 @@ icon: chart.pie.fill
 category: controls
 defaultSpan: [2, 2]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Label under the chart
@@ -32,6 +36,9 @@ fields:
     description: Slice color cycle (per-slice color wins)
     group: pieConfig
   - name: donutRatio
+    min: 0
+    max: 0.85
+    step: 0.05
     type: number
     description: Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3)
     group: pieConfig
@@ -63,6 +70,9 @@ fields:
     description: sliceAction
     group: pieConfig
   - name: spinDuration
+    min: 0.1
+    max: 10
+    step: 0.1
     type: number
     default: 4
     description: Approximate seconds a full-strength spin takes to settle
@@ -73,12 +83,18 @@ fields:
     description: Haptic tick per slice boundary while spinning
     group: pieConfig
   - name: startAngle
+    min: 0
+    max: 360
+    step: 1
     type: number
     default: 0
     description: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
     group: pieConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

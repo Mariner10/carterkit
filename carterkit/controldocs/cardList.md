@@ -5,10 +5,6 @@ icon: list.bullet.rectangle.fill
 category: display
 defaultSpan: [4, 4]
 fields:
-  - name: hideBackground
-    type: bool
-    default: "true"
-    description: Let the list fill its container without a card background
 ---
 
 A searchable, scrollable browser that renders the same node data as the [[graph]]
@@ -27,7 +23,6 @@ uses only the `nodes` (edges are ignored).
   "id": "control-browser",
   "position": [0, 0],
   "span": [6, 4],
-  "hideBackground": true,
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "catalog", "valuePath": "graph" }]
 }
 ```
