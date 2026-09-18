@@ -23,7 +23,7 @@ import json
 import math
 import urllib.error
 import urllib.request
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import quote, urlsplit, urlunsplit
 
 __all__ = [
     "APPLE_REFERENCE_EPOCH", "LA_ATTRIBUTES_TYPE", "CONTENT_STATE_VERSION",
@@ -32,6 +32,9 @@ __all__ = [
     "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",
     "mesh_broadcast", "glance_update",
+    "SURFACE_TOKEN_KINDS", "SURFACE_STATE_LIMIT", "ACTIVITY_PRIORITIES",
+    "surfaces_register_token", "surfaces_deregister_token",
+    "surfaces_get_state", "surfaces_put_state", "surfaces_publish",
 ]
 
 #: ActivityKit decodes ContentState with Swift's DEFAULT ``Codable``, so every
@@ -74,11 +77,17 @@ _USER_AGENT = "carterkit/python"
 
 
 def _post(url, token, payload, *, method="POST", timeout=10, _send=None):
-    headers = {"Authorization": token, "Content-Type": "application/json",
-               "User-Agent": _USER_AGENT}
+    """One request. ``payload=None`` sends no body at all — that is how the GET
+    routes ride this helper, and why `Content-Type` is omitted in that case
+    rather than announcing a JSON body that isn't there."""
+    headers = {"Authorization": token, "User-Agent": _USER_AGENT}
     if not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("timeout must be a finite positive number")
-    body_bytes = _json_size(payload)
+    if payload is None:
+        body_bytes = None
+    else:
+        headers["Content-Type"] = "application/json"
+        body_bytes = _json_size(payload)
     if _send is not None:
         return _send(url, headers, body_bytes, method)
     req = urllib.request.Request(url, data=body_bytes, headers=headers, method=method)
@@ -462,3 +471,280 @@ def mesh_broadcast(relay_url, token, *, channel, event, payload=None,
             out["status"] = e.status
             return out
         raise
+
+
+# ── /surfaces — the relay's retained surface state + push fan-out ─────────────
+#
+# The Live Activity route above pushes ONE surface. `/surfaces` is the other half
+# of the same story: the relay keeps the layout's latest values, and one publish
+# pokes every surface that can render them — Home/Lock Screen widgets (iOS 26
+# WidgetKit push), Control Center controls (iOS 18 control push) and the Live
+# Activity — then the surface pulls the retained state back when iOS wakes it.
+#
+# That retention is the point. A widget woken by the system hours later has no
+# socket and no app process; `GET /surfaces/state/<layoutId>` is the only place
+# it can read a value from. A hub that publishes and then dies still leaves every
+# surface correct.
+
+#: Push-token kinds the relay stores per layout. `widget` tokens come from
+#: WidgetKit's push handler, `control` tokens from the Control Center push
+#: handler; each is scoped by a `key` (the widget/control kind) and the bundle id
+#: that minted it, because the APNs topic is `<bundleId>.push-type.<kind>`.
+SURFACE_TOKEN_KINDS = ("widget", "control")
+
+#: The relay stores the merged surface state as one JSON string with a hard 8 KB
+#: cap. Exceeding it is rejected server-side, so it is checked here where the
+#: caller can still see which publish was too big.
+SURFACE_STATE_LIMIT = 8192
+
+#: `activity.priority` on a publish. These are the ActivityKit words, not the
+#: APNs numbers `live_activity_push` takes (`immediate` = 10, `opportunistic` = 5)
+#: — the relay does that translation.
+ACTIVITY_PRIORITIES = ("immediate", "opportunistic")
+
+#: `activity.event` on a publish. There is no `"start"`: a publish drives the
+#: activities that are already registered for the layout. Use
+#: :func:`live_activity_push` with `event="start"` and explicit attributes to
+#: open one.
+ACTIVITY_EVENTS = ("update", "end")
+
+_ACTIVITY_KEYS = ("contentState", "staleSeconds", "priority", "relevanceScore", "event")
+
+
+def _surface_layout_id(layout_id):
+    """Every `/surfaces` route is keyed by the canonical layout id — see
+    :func:`canonical_layout_id`. A wrong one is the worst failure here: the call
+    returns 200 and no surface ever changes.
+
+    `#` and `|` are refused because the relay builds its storage keys out of them
+    (`sf#<layoutId>`, and `"<kind>|<key>|<bundleId>|<token>"` token entries): a
+    layout id containing either could address another layout's rate-limit item or
+    split a stored token apart."""
+    if not isinstance(layout_id, str) or not layout_id:
+        raise ValueError("layout_id must be a non-empty string "
+                         "— see canonical_layout_id()")
+    if len(layout_id.encode()) > 128:
+        raise ValueError("layout_id must be <= 128 UTF-8 bytes")
+    bad = [c for c in ("#", "|") if c in layout_id]
+    if bad:
+        raise ValueError(f"layout_id may not contain {bad} — the relay's surface "
+                         f"storage keys are delimited by them")
+    return layout_id
+
+
+def _surface_map(mapping, name):
+    """Validate a `values`/`controls` map: non-empty string ids to scalars.
+
+    Unlike :func:`glance_update`, `controls` is NOT restricted to booleans — a v2
+    Control Center tile may be a `cycle` (string state), a `step` or a `set`
+    (numbers), so its mirrored state is any scalar the app's `ControlValue`
+    decodes."""
+    if not isinstance(mapping, dict):
+        raise ValueError(f"{name} must map control ids to scalar values")
+    for key, value in mapping.items():
+        if not isinstance(key, str) or not key:
+            raise ValueError(f"{name} keys must be non-empty control ids")
+        try:
+            _scalar(value)
+        except ValueError:
+            raise ValueError(f"{name}[{key!r}] must be a string, bool or finite "
+                             f"number — surfaces carry scalars, not objects") from None
+    return dict(mapping)
+
+
+def _surface_state_body(layout_id, values, controls, is_connected):
+    """The `{values, controls, isConnected}` half every surface route shares.
+    Omitted keys are left alone server-side; the relay merges onto what it holds."""
+    body = {"layoutId": _surface_layout_id(layout_id)}
+    if values is not None:
+        body["values"] = _surface_map(values, "values")
+    if controls is not None:
+        body["controls"] = _surface_map(controls, "controls")
+    if is_connected is not None:
+        if not isinstance(is_connected, bool):
+            raise ValueError("is_connected must be a bool")
+        body["isConnected"] = is_connected
+    return body
+
+
+def _surface_activity(activity):
+    """Validate the optional `activity` block of a publish.
+
+    Only the five documented keys are accepted. An unknown key is a typo the relay
+    would drop in silence, which on this pipeline reads as "the Live Activity just
+    doesn't update" — so it fails here instead."""
+    if not isinstance(activity, dict):
+        raise ValueError("activity must be an object — see ACTIVITY_PRIORITIES")
+    unknown = sorted(set(activity) - set(_ACTIVITY_KEYS))
+    if unknown:
+        raise ValueError(f"unknown activity key(s) {unknown}; allowed: "
+                         f"{list(_ACTIVITY_KEYS)}")
+    out = {}
+    content = activity.get("contentState")
+    if content is not None:
+        if not isinstance(content, dict):
+            raise ValueError("activity.contentState must be an object — build it "
+                             "with content_state()")
+        _json_size(content, 3072, "activity.contentState")
+        out["contentState"] = content
+    stale = activity.get("staleSeconds")
+    if stale is not None:
+        if isinstance(stale, bool) or not isinstance(stale, int) or stale <= 0:
+            raise ValueError("activity.staleSeconds must be a positive integer")
+        out["staleSeconds"] = stale
+    priority = activity.get("priority")
+    if priority is not None:
+        if priority not in ACTIVITY_PRIORITIES:
+            raise ValueError(f"activity.priority must be one of "
+                             f"{list(ACTIVITY_PRIORITIES)}, got {priority!r}")
+        out["priority"] = priority
+    relevance = activity.get("relevanceScore")
+    if relevance is not None:
+        _finite_number(relevance, "activity.relevanceScore")
+        if not 0 <= relevance <= 100:
+            raise ValueError("activity.relevanceScore must be within 0..100")
+        out["relevanceScore"] = relevance
+    event = activity.get("event")
+    if event is not None:
+        if event not in ACTIVITY_EVENTS:
+            raise ValueError(f"activity.event must be one of {list(ACTIVITY_EVENTS)}, "
+                             f"got {event!r} — a publish drives registered "
+                             f"activities; open one with live_activity_push(event='start')")
+        out["event"] = event
+    return out
+
+
+def _surface_token_body(layout_id, kind, key, bundle_id, token):
+    if kind not in SURFACE_TOKEN_KINDS:
+        raise ValueError(f"kind must be one of {list(SURFACE_TOKEN_KINDS)}, got {kind!r}")
+    fields = {"key": key, "token": token}
+    for name, value in fields.items():
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"{name} is required and must be a non-empty string")
+    if len(token) > 200:
+        raise ValueError("token must be <= 200 characters")
+    # `bundleId` is optional: omitting it lets the relay fall back to its own
+    # configured topic. It is part of the stored entry either way, so register and
+    # de-register must agree — omit it in both calls or in neither.
+    if bundle_id is not None:
+        if not isinstance(bundle_id, str) or not bundle_id:
+            raise ValueError("bundle_id must be a non-empty string or None")
+        fields["bundleId"] = bundle_id
+    return {"layoutId": _surface_layout_id(layout_id), "kind": kind, **fields}
+
+
+def surfaces_register_token(validator_url, session_jwt, *, layout_id, kind, key,
+                            bundle_id, token, timeout=10, _send=None):
+    """Register a widget or Control Center push token (POST /surfaces/tokens).
+
+    The device normally does this itself; this exists so a hub, a test or a
+    provisioning script can drive the same route. `key` is the widget/control
+    kind the token was issued for, `bundle_id` the build that minted it — both
+    ride the APNs topic (`<bundleId>.push-type.<kind>`), so a mismatch is
+    rejected by APNs as `DeviceTokenNotForTopic`.
+
+    Anyone on the account may register; only an owner/device/hub credential may
+    publish."""
+    return _post(validator_url.rstrip("/") + "/surfaces/tokens", session_jwt,
+                 _surface_token_body(layout_id, kind, key, bundle_id, token),
+                 timeout=timeout, _send=_send)
+
+
+def surfaces_deregister_token(validator_url, session_jwt, *, layout_id, kind, key,
+                              bundle_id, token, timeout=10, _send=None):
+    """Drop a registered surface token (DELETE /surfaces/tokens).
+
+    Pass exactly what was registered — the stored entry is the whole
+    `kind|key|bundleId|token` tuple. Idempotent."""
+    return _post(validator_url.rstrip("/") + "/surfaces/tokens", session_jwt,
+                 _surface_token_body(layout_id, kind, key, bundle_id, token),
+                 method="DELETE", timeout=timeout, _send=_send)
+
+
+def surfaces_get_state(validator_url, session_jwt, *, layout_id, timeout=10, _send=None):
+    """Read the relay's retained surface state (GET /surfaces/state/<layoutId>).
+
+    Returns `{layoutId, values, controls, isConnected, updatedAt, status}`, or
+    **None** when the relay holds nothing for this layout yet. A 404 is the normal
+    answer before the first publish, not an error — that is why it is `None`
+    rather than a raise."""
+    url = (validator_url.rstrip("/") + "/surfaces/state/"
+           + quote(_surface_layout_id(layout_id), safe=""))
+    try:
+        out = _post(url, session_jwt, None, method="GET", timeout=timeout, _send=_send)
+    except CarterAmbientError as e:
+        if e.status == 404:
+            return None
+        raise
+    if isinstance(out, dict) and out.get("status") == 404:
+        return None
+    return out
+
+
+def surfaces_put_state(validator_url, session_jwt, *, layout_id, values=None,
+                       controls=None, is_connected=None, timeout=10, _send=None):
+    """Merge values into the retained state WITHOUT pushing (PUT /surfaces/state/…).
+
+    Use this for the readings a surface should show the next time iOS wakes it,
+    when there is no reason to spend a push budget now — telemetry between
+    publishes, or seeding state before any surface exists. Returns
+    `{ok, updatedAt}`.
+
+    The merge is per key: named keys are replaced, unnamed ones are kept, and
+    `isConnected` changes only when sent — so a hub that publishes one sensor does
+    not blank the others. Members get `403`; only an owner/device/hub credential
+    may write state."""
+    body = _surface_state_body(layout_id, values, controls, is_connected)
+    if len(body) == 1:
+        raise ValueError("nothing to put — pass values, controls or is_connected")
+    _json_size(body, SURFACE_STATE_LIMIT, "surface state")
+    url = (validator_url.rstrip("/") + "/surfaces/state/"
+           + quote(body["layoutId"], safe=""))
+    return _post(url, session_jwt, body, method="PUT", timeout=timeout, _send=_send)
+
+
+def surfaces_publish(validator_url, session_jwt, *, layout_id, values=None,
+                     controls=None, is_connected=None, activity=None, force=False,
+                     timeout=10, _send=None):
+    """Merge state AND poke every surface for the layout (POST /surfaces/publish).
+
+    One call reaches all three push paths: widget tokens, Control Center control
+    tokens, and the layout's registered Live Activities. Pass `activity` (even
+    `{}`) to include the Live Activity — without it the state merges and only the
+    widget/control tokens are poked. With `activity` but no `contentState`, the
+    relay builds the content state from the merged values, so a hub rarely needs
+    to assemble one.
+
+    The reply reports what happened per surface::
+
+        {"ok": true, "updatedAt": 1758… , "widgets": 2, "controls": 1,
+         "activity": 1, "pruned": 0,
+         "suppressed": {"widgets": false, "controls": false, "activity": false}}
+
+    `suppressed` is not a failure. The relay enforces its own floors (widgets
+    ≥ 60 s, controls ≥ 10 s, activity ≥ 2 s per account+layout): inside a floor
+    the **state still merges** — the surface shows the new value at its next
+    wake — only the push is skipped. Publishing at telemetry rate is therefore
+    safe and simply coalesces. `force=True` asks for the higher-priority push
+    where the floor allows it; it does not lift the floor.
+
+    `pruned` counts tokens APNs rejected (410 / BadDeviceToken) and the relay
+    dropped.
+
+    Two rejections to expect, both raised as :class:`CarterAmbientError`: `413`
+    when the MERGED state passes 8 KB (the size checked here is only what this
+    call sends — the relay holds the rest), and `429` with a `retryAfter` body
+    when the account's publish bucket (burst 120, 10/min) is empty."""
+    body = _surface_state_body(layout_id, values, controls, is_connected)
+    if activity is not None:
+        body["activity"] = _surface_activity(activity)
+    if force:
+        if not isinstance(force, bool):
+            raise ValueError("force must be a bool")
+        body["force"] = True
+    if len(body) == 1:
+        raise ValueError("nothing to publish — pass values, controls, is_connected "
+                         "or activity")
+    _json_size(body, SURFACE_STATE_LIMIT, "surfaces publish body")
+    return _post(validator_url.rstrip("/") + "/surfaces/publish", session_jwt, body,
+                 timeout=timeout, _send=_send)

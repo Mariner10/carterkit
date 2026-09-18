@@ -3,6 +3,56 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.11.0] — unreleased
+
+Ambient Surfaces v2: the layout reaches iOS *outside* the app as widgets, a
+Dynamic Island, a lock-screen banner and Control Center buttons — and one call
+keeps all of them live.
+
+### Added
+- **`hub.surfaces.publish(...)`** — ONE request (`POST /surfaces/publish`) that
+  merges this layout's values into the relay's retained state and pokes every
+  surface: widget push tokens, Control Center control tokens and the registered
+  Live Activities. Values are keyed by control handle or id, `controls=` mirrors
+  Control Center tile state, and `activity=True` lets the relay synthesize the
+  content state from the merged values (`"end"` finishes the session, a dict says
+  exactly what to send). Publishing at telemetry rate is safe: inside the relay's
+  floors the state still merges and the surface is reported `suppressed`.
+- **`hub.surfaces.state()`** — what a widget pulls when iOS wakes it
+  (`GET /surfaces/state/<layoutId>`), or `None` before the first publish.
+- **`hub.surfaces.register_token()` / `.deregister_token()`** — register a widget
+  or Control Center push token for the layout, for provisioning and tests.
+- **`carterkit.ambient.surfaces_*`** — the stdlib-only request builders behind
+  those: `surfaces_register_token`, `surfaces_deregister_token`,
+  `surfaces_get_state` (404 → `None`), `surfaces_put_state` (merge without
+  spending a push) and `surfaces_publish`. They validate what the relay would
+  otherwise reject in silence: scalars only, layout ids ≤ 128 bytes and free of
+  the `#`/`|` the relay's storage keys are delimited by, an 8 KB body, and the
+  five documented `activity` keys (`contentState`, `staleSeconds`, `priority`,
+  `relevanceScore`, `event`).
+- **`carterkit.glance`** — builders for the v2 `glance` block, exported at the top
+  level: `tile`, `scene`, `widget`, `island`, `live`, `state`, and the Control
+  Center set `cc_toggle` / `cc_button` / `cc_cycle` / `cc_step` / `cc_set`. Every
+  `control=` takes a `Layout` control handle as well as an id, and the kind's
+  required fields are checked at build time — a `cycle` with one state or a `step`
+  with nothing to step raises here instead of rendering as a dead button.
+- **`Layout.glance(...)` takes the v2 fields** — `controls` entries of kind
+  `toggle`/`button`/`cycle`/`step`/`set` (with `on`/`off` styling, `valueControl`,
+  `valueLabel`, `states`, `delta`, `value`), plus `live`, `widgets`, `island` and
+  `lock_screen`. The v1 signature is unchanged and v1 layouts emit exactly what
+  they did before. Control handles are resolved to ids anywhere in the block,
+  including inside hand-written dicts.
+- **`validate_layout` lints the v2 block** — `bad_glance` for a tile, control,
+  `valueControl`, hero or slot naming a control that isn't in the layout;
+  `bad_glance_tile` for an unknown tile kind; `bad_glance_control` (error) for a
+  `step`/`cycle`/`set` with no `control`, a `cycle` with fewer than two states, or
+  a non-numeric `delta`; `bad_glance_family`, `bad_glance_live`,
+  `bad_glance_island` (a single-tile island region handed a scene) and
+  `bad_glance_span` (a tile or row wider than its scene).
+- **ControlDocs**: the new `glance.md` — the full surface reference, from what iOS
+  allows per surface to the tile table and the liveness tiers — and the
+  `layout-config.md` that points at it. `carterkit.doc("glance")` resolves it.
+
 ## [0.10.0]
 
 ### Added

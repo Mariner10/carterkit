@@ -243,3 +243,210 @@ def test_every_request_sends_an_explicit_user_agent():
     live_activity_register("https://v/", "J", layout_id="x", push_token="T",
                            bundle_id="B", _send=r2)
     assert r2.headers.get("User-Agent")
+
+
+# ── /surfaces: retained state + the one-call push fan-out ────────────────────
+#
+# The failure mode these guard is the same one the Live Activity tests guard: a
+# call that returns 200 while no surface ever changes. For `/surfaces` that means
+# a wrong layout id, a scalar that is quietly an object, or an `activity` key the
+# relay does not read.
+
+class SurfaceRecorder(Recorder):
+    """Like Recorder, but tolerates the GET route's bodiless request."""
+
+    def __call__(self, url, headers, body_bytes, method="POST"):
+        self.url, self.headers, self.method = url, headers, method
+        self.body = json.loads(body_bytes.decode()) if body_bytes else None
+        out = dict(self.response)
+        out["status"] = self.status
+        return out
+
+
+def test_register_token_posts_the_stored_tuple():
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_register_token("https://v.example/", "jwt", layout_id="printer",
+                                    kind="widget", key="temps",
+                                    bundle_id="Mariner.CAR-TER", token="a1b2",
+                                    _send=rec)
+    assert rec.url == "https://v.example/surfaces/tokens" and rec.method == "POST"
+    assert rec.body == {"layoutId": "printer", "kind": "widget", "key": "temps",
+                        "token": "a1b2", "bundleId": "Mariner.CAR-TER"}
+
+
+def test_deregister_token_uses_delete_with_the_same_body():
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_deregister_token("https://v.example", "jwt", layout_id="printer",
+                                      kind="control", key="lights",
+                                      bundle_id="Mariner.CAR-TER", token="a1b2",
+                                      _send=rec)
+    assert rec.method == "DELETE"
+    assert rec.body["kind"] == "control" and rec.body["key"] == "lights"
+
+
+def test_token_registration_rejects_a_bad_kind_and_an_oversized_token():
+    with pytest.raises(ValueError, match="kind must be one of"):
+        ambient.surfaces_register_token("https://v.example", "jwt", layout_id="p",
+                                        kind="island", key="k", bundle_id="b",
+                                        token="a1", _send=SurfaceRecorder())
+    with pytest.raises(ValueError, match="200 characters"):
+        ambient.surfaces_register_token("https://v.example", "jwt", layout_id="p",
+                                        kind="widget", key="k", bundle_id="b",
+                                        token="f" * 201, _send=SurfaceRecorder())
+
+
+def test_bundle_id_is_optional_so_the_relay_can_use_its_own_topic():
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_register_token("https://v.example", "jwt", layout_id="p",
+                                    kind="widget", key="k", bundle_id=None,
+                                    token="a1", _send=rec)
+    assert "bundleId" not in rec.body
+
+
+def test_get_state_uses_GET_with_no_body_and_an_escaped_layout_id():
+    rec = SurfaceRecorder({"layoutId": "my printer", "values": {"nozzle": 210}})
+    out = ambient.surfaces_get_state("https://v.example", "jwt",
+                                     layout_id="my printer", _send=rec)
+    assert rec.method == "GET" and rec.body is None
+    assert rec.url == "https://v.example/surfaces/state/my%20printer"
+    assert out["values"] == {"nozzle": 210}
+
+
+def test_get_state_returns_none_when_nothing_has_been_published():
+    """404 is the normal answer before the first publish, not a failure — the
+    caller wants `None`, not an exception to special-case."""
+    assert ambient.surfaces_get_state("https://v.example", "jwt", layout_id="p",
+                                      _send=SurfaceRecorder(status=404)) is None
+
+    def raiser(url, headers, body, method="GET"):
+        raise CarterAmbientError(404, "no state")
+    assert ambient.surfaces_get_state("https://v.example", "jwt", layout_id="p",
+                                      _send=raiser) is None
+
+
+def test_get_state_still_raises_on_a_real_error():
+    def raiser(url, headers, body, method="GET"):
+        raise CarterAmbientError(403, "not entitled")
+    with pytest.raises(CarterAmbientError):
+        ambient.surfaces_get_state("https://v.example", "jwt", layout_id="p",
+                                   _send=raiser)
+
+
+def test_put_state_merges_without_pushing():
+    rec = SurfaceRecorder({"ok": True, "updatedAt": 1700000000})
+    ambient.surfaces_put_state("https://v.example", "jwt", layout_id="printer",
+                               values={"nozzle": 215}, is_connected=True, _send=rec)
+    assert rec.method == "PUT"
+    assert rec.url == "https://v.example/surfaces/state/printer"
+    assert rec.body == {"layoutId": "printer", "values": {"nozzle": 215},
+                        "isConnected": True}
+
+
+def test_put_state_needs_something_to_merge():
+    with pytest.raises(ValueError, match="nothing to put"):
+        ambient.surfaces_put_state("https://v.example", "jwt", layout_id="p",
+                                   _send=SurfaceRecorder())
+
+
+def test_publish_sends_state_and_activity_in_one_call():
+    rec = SurfaceRecorder({"ok": True, "updatedAt": 1, "widgets": 2, "controls": 1,
+                           "activity": 1, "pruned": 0,
+                           "suppressed": {"widgets": False, "controls": False,
+                                          "activity": False}})
+    out = ambient.surfaces_publish("https://v.example", "jwt", layout_id="printer",
+                                   values={"nozzle": 215, "state": "printing"},
+                                   controls={"lights": True}, is_connected=True,
+                                   activity={"priority": "opportunistic",
+                                             "staleSeconds": 120, "event": "update"},
+                                   force=True, _send=rec)
+    assert rec.url == "https://v.example/surfaces/publish" and rec.method == "POST"
+    assert rec.body == {"layoutId": "printer",
+                        "values": {"nozzle": 215, "state": "printing"},
+                        "controls": {"lights": True}, "isConnected": True,
+                        "activity": {"staleSeconds": 120, "priority": "opportunistic",
+                                     "event": "update"},
+                        "force": True}
+    assert out["suppressed"] == {"widgets": False, "controls": False, "activity": False}
+
+
+def test_publish_omits_activity_unless_asked():
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                             values={"a": 1}, _send=rec)
+    assert "activity" not in rec.body and "force" not in rec.body
+
+
+def test_publish_accepts_an_empty_activity_so_the_relay_synthesizes_the_state():
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                             values={"a": 1}, activity={}, _send=rec)
+    assert rec.body["activity"] == {}
+
+
+def test_publish_rejects_a_nested_value():
+    """Surfaces carry scalars; a dict would be stored and then fail to decode into
+    the app's ControlValue, which reads on-device as 'the widget never updated'."""
+    with pytest.raises(ValueError, match="values\\['nozzle'\\]"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values={"nozzle": {"c": 1}}, _send=SurfaceRecorder())
+
+
+def test_publish_control_state_is_not_restricted_to_booleans():
+    """A v2 Control Center tile may be a cycle (string) or a step (number), so its
+    mirrored state is any scalar — unlike the v1 glance_update payload."""
+    rec = SurfaceRecorder({"ok": True})
+    ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                             controls={"fan": "high", "volume": 40}, _send=rec)
+    assert rec.body["controls"] == {"fan": "high", "volume": 40}
+
+
+def test_publish_rejects_an_unknown_activity_key():
+    with pytest.raises(ValueError, match="unknown activity key"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values={"a": 1}, activity={"contentstate": {}},
+                                 _send=SurfaceRecorder())
+
+
+def test_publish_rejects_a_start_event():
+    """A publish drives activities that are already registered; opening one needs
+    the attributes only /alerts/live-activity/push carries."""
+    with pytest.raises(ValueError, match="event must be one of"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values={"a": 1}, activity={"event": "start"},
+                                 _send=SurfaceRecorder())
+
+
+def test_publish_rejects_a_bad_priority_and_relevance():
+    with pytest.raises(ValueError, match="priority must be one of"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values={"a": 1}, activity={"priority": 10},
+                                 _send=SurfaceRecorder())
+    with pytest.raises(ValueError, match="relevanceScore"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values={"a": 1}, activity={"relevanceScore": 400},
+                                 _send=SurfaceRecorder())
+
+
+def test_publish_rejects_an_oversized_body():
+    big = {f"c{i}": "x" * 80 for i in range(200)}
+    with pytest.raises(ValueError, match="8192-byte limit"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="p",
+                                 values=big, _send=SurfaceRecorder())
+
+
+def test_surface_layout_id_rejects_the_relay_key_delimiters():
+    """`sf#<layoutId>` and `<kind>|<key>|…` are built by string concatenation, so a
+    layout id carrying either could reach another layout's stored items."""
+    for bad in ("ratelimit#other", "a|b"):
+        with pytest.raises(ValueError, match="may not contain"):
+            ambient.surfaces_publish("https://v.example", "jwt", layout_id=bad,
+                                     values={"a": 1}, _send=SurfaceRecorder())
+
+
+def test_surface_layout_id_must_be_present_and_bounded():
+    with pytest.raises(ValueError, match="non-empty string"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="",
+                                 values={"a": 1}, _send=SurfaceRecorder())
+    with pytest.raises(ValueError, match="128 UTF-8 bytes"):
+        ambient.surfaces_publish("https://v.example", "jwt", layout_id="x" * 129,
+                                 values={"a": 1}, _send=SurfaceRecorder())

@@ -73,12 +73,16 @@ It can also emit a layout or run against a supplied Add Hub credential.
 | Publish live telemetry | `await control.push(value)` / `hub.push(control, value)` | MeshSocket; retains state for later surface previews and pushes |
 | Handle widget, Shortcuts or Control Center actions | `@control.on` / `hub.on(control, handler)` | Existing layout action binding; no separate handler per iOS surface |
 | Refresh cached readings and toggle state | `await hub.surfaces.refresh(values)` | Validator `/alerts/notify`, silent `glance` payload |
+| Refresh every surface at once, and retain the values | `await hub.surfaces.publish(values, activity=True)` | Validator `/surfaces/publish`; widget + control + Live Activity pushes off one request |
+| Read what a surface will render when iOS wakes it | `await hub.surfaces.state()` | Validator `/surfaces/state/<layoutId>`; `None` before the first publish |
+| Register a widget / Control Center push token | `await hub.surfaces.register_token(kind=..., key=..., bundle_id=..., token=...)` | Validator `/surfaces/tokens`; the device does this itself, this is for provisioning |
 | Send notification with buttons/replies | `await hub.surfaces.notify(title, body, actions=...)` | Validator `/alerts/notify`; optional `include_glance=True` |
 | Handle notification responses | `@hub.surfaces.on_notification` | Channel's `notif_action` frames; includes `userText` for replies |
 | Start/update/end Live Activity | `await hub.surfaces.start_activity(...)`, `update_activity(...)`, `end_activity(...)` | Validator `/alerts/live-activity/push`; identity, metadata and Apple dates derived |
 | Send a command without holding a socket | `mesh_broadcast(relay_url, token, channel=..., event=..., payload=..., action_id=...)` | Relay host `/mesh/broadcast`; accepts HTTP(S) or WS(S) base URL |
 | Drive surfaces without a `Hub` layout | `CarterClient.refresh_glance`, `push_live_activity`, `notify` | Async helpers using current client authorization |
 | Cron / synchronous backend | `notify_http`, `glance_update`, `notification_action`, `live_activity_push`, `content_state`, `activity_attributes`, `slot` | Low-level HTTP helpers with explicit validator credentials |
+| Cron / synchronous backend, retained state | `surfaces_publish`, `surfaces_put_state`, `surfaces_get_state`, `surfaces_register_token`, `surfaces_deregister_token` | Same, for the `/surfaces` routes |
 
 Mesh-backed buttons and toggles are derived into system controls by the app.
 Shortcuts reuse the same action definitions and cached reading catalog; they do
@@ -89,6 +93,44 @@ protocol binding is not automatically an HTTP bridge action.
 `glance.controls` may also declare custom tiles. Their state map is keyed by
 **tile ID**, while `values` uses **layout control ID**. The layout-aware connector
 maps bound Boolean values to the correct authored tile IDs automatically.
+
+## Retained surface state (`/surfaces`)
+
+`refresh` pushes a payload *at* the device and hopes a process is alive to apply
+it. `/surfaces` inverts that: the relay **retains** the layout's latest values, and
+a surface pulls them whenever iOS wakes it. A widget that reloads at 3am renders
+current data with no app process, no socket and nothing queued.
+
+```python
+await hub.surfaces.publish({nozzle: 214.5, bed: 60},
+                           controls={"lights": True}, activity=True)
+```
+
+One request merges the state and pokes all three push paths — widget tokens
+(iOS 26 WidgetKit push), Control Center control tokens (iOS 18) and the layout's
+registered Live Activities. Omit `activity` for the first two only; pass `True` to
+let the relay synthesize the Live Activity content state from the merged values,
+`"end"` to finish the session, or a dict (`contentState`, `staleSeconds`,
+`priority`, `relevanceScore`, `event`) to say exactly what to send.
+
+Publishing at telemetry rate is safe. The relay enforces per-surface floors —
+widgets 60s, controls 10s, activity 2s per account and layout — and inside a floor
+the **state still merges** while the push is skipped and reported in
+`suppressed`. The surface shows the newest value at its next wake either way, so a
+suppressed surface is not a failed one. `force=True` raises the APNs priority
+where the floor allows; it does not lift the floor. On top of that, publishes share
+one account bucket (burst 120, 10/min) and `429` carries `retryAfter`.
+
+`surfaces_put_state` merges without pushing at all — the right call for readings
+that should be correct on the next wake but do not justify spending a budget now.
+
+The merge is per key: named keys are replaced, unnamed ones kept, and
+`isConnected` changes only when sent, so a hub publishing one sensor never blanks
+the others. `values` is keyed by **layout control id** (handles are resolved for
+you); `controls` is keyed by **`glance.controls[].id`**, and unlike the v1 glance
+payload its values are any scalar — a `cycle` reports a string, a `step` a number.
+Only an owner, device or hub credential may publish or `PUT`; members get `403`
+but may register tokens and read state.
 
 ## Identity, values and limits
 

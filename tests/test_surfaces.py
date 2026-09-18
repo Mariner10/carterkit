@@ -2,7 +2,7 @@
 import asyncio
 import json
 import pytest
-from carterkit import (Hub, Layout, CarterNotifyError, CarterAmbientError,
+from carterkit import (Hub, HubError, Layout, CarterNotifyError, CarterAmbientError,
                        apple_date, glance_update, notification_action, slot)
 from carterkit import ambient
 from carterkit import client as client_module
@@ -251,3 +251,122 @@ def test_malformed_http_response_is_a_connector_error(monkeypatch, response):
         client_module.notify_http("https://v", "t", "T", "B")
     with pytest.raises(CarterAmbientError):
         ambient.mesh_broadcast("https://r", "t", channel="home", event="go")
+
+
+# ── hub.surfaces: /surfaces publish, state and token registration ────────────
+
+def capture_surfaces(monkeypatch, name, response=None, status=200):
+    """Intercept one ambient surfaces builder at its HTTP seam, so the request the
+    relay would receive is asserted rather than the arguments carterkit passed."""
+    requests = []
+    original = getattr(ambient, name)
+    def send(url, headers, body, method="POST"):
+        requests.append((url, headers, json.loads(body.decode()) if body else None, method))
+        out = dict(response or {"ok": True})
+        out["status"] = status
+        return out
+    monkeypatch.setattr(ambient, name, lambda *a, **kw: original(*a, **kw, _send=send))
+    monkeypatch.setattr("carterkit.surfaces." + name, getattr(ambient, name))
+    return requests
+
+
+def test_publish_resolves_handles_to_ids_and_sends_one_request(monkeypatch):
+    """One call is the whole point: widgets, Control Center and the Live Activity
+    all come off a single POST, keyed by control ids rather than handles."""
+    requests = capture_surfaces(monkeypatch, "surfaces_publish",
+                               {"ok": True, "updatedAt": 17, "widgets": 2, "controls": 1,
+                                "activity": 1, "pruned": 0,
+                                "suppressed": {"widgets": False, "controls": True,
+                                               "activity": False}})
+    hub, temp, fan, humidity = make_hub()
+    async def run():
+        return await hub.surfaces.publish({temp: 21.5, humidity: 40},
+                                          controls={"ventilation": True},
+                                          activity=True)
+    out = asyncio.run(run())
+    assert len(requests) == 1
+    url, headers, body, method = requests[0]
+    assert url == "https://validator.invalid/surfaces/publish" and method == "POST"
+    assert headers["Authorization"] == "device-token"
+    assert body == {"layoutId": "workshop",
+                    "values": {"temperature": 21.5, "humidity": 40},
+                    "controls": {"ventilation": True},
+                    "isConnected": True, "activity": {}}
+    assert out["suppressed"]["controls"] is True
+
+
+def test_publish_accepts_a_string_id_and_omits_the_activity_by_default(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, _, _, _ = make_hub()
+    asyncio.run(hub.surfaces.publish({"temperature": 19}))
+    body = requests[0][2]
+    assert body["values"] == {"temperature": 19} and "activity" not in body
+
+
+def test_publish_end_closes_the_live_activity(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    asyncio.run(hub.surfaces.publish({temp: 0}, is_connected=False, activity="end"))
+    body = requests[0][2]
+    assert body["activity"] == {"event": "end"} and body["isConnected"] is False
+
+
+def test_publish_rejects_an_unknown_control_before_the_network(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, _, _, _ = make_hub()
+    with pytest.raises(HubError, match="ghost"):
+        asyncio.run(hub.surfaces.publish({"ghost": 1}))
+    assert requests == []
+
+
+def test_publish_uses_the_renewed_device_token(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    async def run():
+        hub.client._sock.auth_token = "rotated"
+        await hub.surfaces.publish({temp: 1})
+    asyncio.run(run())
+    assert requests[0][1]["Authorization"] == "rotated"
+
+
+def test_state_reads_back_what_a_widget_would_pull(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_get_state",
+                               {"layoutId": "workshop", "values": {"temperature": 21},
+                                "controls": {}, "isConnected": True, "updatedAt": 17})
+    hub, _, _, _ = make_hub()
+    out = asyncio.run(hub.surfaces.state())
+    url, _, body, method = requests[0]
+    assert url == "https://validator.invalid/surfaces/state/workshop"
+    assert method == "GET" and body is None
+    assert out["values"] == {"temperature": 21}
+
+
+def test_state_is_none_before_anything_is_published(monkeypatch):
+    capture_surfaces(monkeypatch, "surfaces_get_state", {}, status=404)
+    hub, _, _, _ = make_hub()
+    assert asyncio.run(hub.surfaces.state()) is None
+
+
+def test_token_registration_round_trip(monkeypatch):
+    reg = capture_surfaces(monkeypatch, "surfaces_register_token")
+    dereg = capture_surfaces(monkeypatch, "surfaces_deregister_token")
+    hub, _, _, _ = make_hub()
+    async def run():
+        await hub.surfaces.register_token(kind="widget", key="temps",
+                                          bundle_id="Mariner.CAR-TER", token="a1b2")
+        await hub.surfaces.deregister_token(kind="widget", key="temps",
+                                            bundle_id="Mariner.CAR-TER", token="a1b2")
+    asyncio.run(run())
+    assert reg[0][0] == "https://validator.invalid/surfaces/tokens"
+    assert reg[0][3] == "POST" and dereg[0][3] == "DELETE"
+    assert reg[0][2] == dereg[0][2] == {"layoutId": "workshop", "kind": "widget",
+                                        "key": "temps", "token": "a1b2",
+                                        "bundleId": "Mariner.CAR-TER"}
+
+
+def test_surfaces_need_a_validator_credential(monkeypatch):
+    """A local relay key cannot authorize the validator host; fail before the
+    request rather than sending a credential the endpoint will 403."""
+    hub = Hub({"name": "Local", "id": "local", "tabs": []})
+    with pytest.raises(CarterNotifyError, match="Add Hub"):
+        asyncio.run(hub.surfaces.publish(is_connected=True))

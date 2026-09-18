@@ -15,6 +15,8 @@ Quick map:
   - ``infer`` / ``codegen`` / ``theming`` / ``tune`` — generate layouts, servers, themes
   - ``Connection`` — ONE parser for every connection artifact (relay URL, pairing
     QR JSON, Connect+ Add-Device credential, layout connection block)
+  - ``glance`` — ``tile``/``scene``/``widget``/``island``/``live``/``cc_*`` builders
+    for the layout's iOS surfaces, driven live by ``hub.surfaces``
   - ``Hub`` / ``Layout.serve()`` — drive the layout you built: ``ctrl.push(value)``
     and ``@ctrl.on`` derived from the very sync/action bindings you authored
   - ``CarterClient`` / ``notify_http`` — the lower-level client: connect, push, alerts
@@ -32,7 +34,12 @@ from . import ambient
 from .ambient import (CarterAmbientError, apple_date, slot, content_state,
                       activity_attributes, canonical_layout_id,
                       live_activity_register, live_activity_deregister,
-                      live_activity_push, mesh_broadcast, glance_update)
+                      live_activity_push, mesh_broadcast, glance_update,
+                      surfaces_register_token, surfaces_deregister_token,
+                      surfaces_get_state, surfaces_put_state, surfaces_publish)
+from . import glance
+from .glance import (tile, scene, widget, island, live,
+                     cc_toggle, cc_button, cc_cycle, cc_step, cc_set)
 from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
@@ -99,6 +106,10 @@ __all__ = [
     "activity_attributes", "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",
     "mesh_broadcast", "glance_update", "notification_action", "LayoutSurfaces",
+    "surfaces_register_token", "surfaces_deregister_token", "surfaces_get_state",
+    "surfaces_put_state", "surfaces_publish",
+    "glance", "tile", "scene", "widget", "island", "live",
+    "cc_toggle", "cc_button", "cc_cycle", "cc_step", "cc_set",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "controldocs_dir",

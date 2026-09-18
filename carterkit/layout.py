@@ -454,21 +454,56 @@ class Layout:
     # ─── glance (widgets / lock screen / Dynamic Island / Live Activity) ────────
     def glance(self, *, enabled: bool = None, title: str = None, icon: str = None,
                tint: str = None, hero: str = None, slots: list = None,
-               live_activity: bool = None, controls: list = None) -> "Layout":
+               live_activity: bool = None, controls: list = None,
+               live: dict = None, widgets: list = None, island: dict = None,
+               lock_screen: dict = None) -> "Layout":
         """Project this layout onto glance surfaces (widgets, lock screen, Dynamic
-        Island, Live Activities). `hero`/`slots` accept control IDs or handles; enabling
-        `live_activity` lets the relay push updates to a running Live Activity. See
-        GlanceConfig / glance.md."""
+        Island, Live Activities, Control Center). See glance.md.
+
+        `hero`/`slots` name the controls that represent the layout on the smallest
+        surfaces, and `live_activity` lets the relay push a running Live Activity.
+
+        The rest is the v2 vocabulary, and `carterkit.glance` builds each piece so
+        the key spellings and per-kind required fields are checked here rather than
+        on a phone:
+
+        - `controls` — Control Center / Action-button tiles: `cc_toggle`,
+          `cc_button`, `cc_cycle`, `cc_step`, `cc_set`.
+        - `widgets` — `widget(id, …, scene=scene(row, row))` entries the user can
+          place on the Home or Lock Screen.
+        - `island` / `lock_screen` — `island(compact_leading=tile(…), …)` and a
+          `scene` for the lock-screen banner (defaults to `island.expanded.bottom`).
+        - `live` — `live(tier="fresh", …)`, how fresh each surface should be.
+
+        Control ids and `Layout` control handles are interchangeable everywhere,
+        including inside hand-written dicts."""
+        from .glance import CONTROL_KINDS, normalize
         def control_id(value):
             return value.id if isinstance(value, Control) else value
         hero = control_id(hero)
         slots = [control_id(value) for value in slots] if slots is not None else None
+        if controls is not None:
+            for index, entry in enumerate(controls):
+                if not isinstance(entry, dict) or not entry.get("id"):
+                    raise ValueError(f"glance.controls[{index}] must be a dict with an "
+                                     f"'id' — build it with carterkit.cc_toggle() etc.")
+                kind = entry.get("kind")
+                if kind is not None and kind not in CONTROL_KINDS:
+                    raise ValueError(f"glance.controls[{index}] kind must be one of "
+                                     f"{list(CONTROL_KINDS)}, got {kind!r}")
+        if widgets is not None:
+            for index, entry in enumerate(widgets):
+                if not isinstance(entry, dict) or not entry.get("id"):
+                    raise ValueError(f"glance.widgets[{index}] must be a dict with an "
+                                     f"'id' — build it with carterkit.widget()")
         block: dict = {}
         for k, v in (("enabled", enabled), ("title", title), ("icon", icon),
                      ("tint", tint), ("hero", hero), ("slots", slots),
-                     ("liveActivity", live_activity), ("controls", controls)):
+                     ("liveActivity", live_activity), ("controls", controls),
+                     ("live", live), ("widgets", widgets), ("island", island),
+                     ("lockScreen", lock_screen)):
             if v is not None:
-                block[k] = v
+                block[k] = normalize(v)
         self._buf.layout["glance"] = block
         return self
 
