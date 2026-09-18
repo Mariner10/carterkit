@@ -81,23 +81,199 @@ def validate_layout(layout: dict, catalog: dict) -> list[dict]:
                                f"source '{name}' is declared but never referenced by any "
                                f"control binding"))
 
-    # glance `hero`/`slots` surface an EXISTING control's value, so those ids must exist.
-    # (`glance.controls[]` are standalone glance-surface controls with their own ids — a
-    # Control Center button / Dynamic Island element — not references, so they're skipped.)
     glance = layout.get("glance")
     if isinstance(glance, dict):
-        refs: list[str] = []
-        if isinstance(glance.get("hero"), str):
-            refs.append(glance["hero"])
-        for gid in (glance.get("slots") or []):
-            if isinstance(gid, str):
-                refs.append(gid)
-        for gid in refs:
-            if gid not in seen_ids:
-                findings.append(_f("warn", "bad_glance", "glance",
-                                   f"glance hero/slot references control id '{gid}' that isn't "
-                                   f"in the layout"))
+        _validate_glance(glance, seen_ids, findings)
     return findings
+
+
+# ── glance: the layout projected onto iOS surfaces (see controldocs/glance.md) ──
+#
+# Everything here is a WARNING unless the surface cannot work at all. A tile whose
+# control id is missing is simply omitted on-device — annoying, not fatal — while a
+# `step` with nothing to step is a control the user can press forever with no
+# effect, which is worth failing a push for.
+
+def _glance_ref(cid, where, what, seen_ids, findings):
+    """A glance field that names an EXISTING layout control. Unknown id ⇒ the
+    surface silently renders without it, so say so at authoring time."""
+    if isinstance(cid, str) and cid and cid not in seen_ids:
+        findings.append(_f("warn", "bad_glance", where,
+                           f"{what} references control id '{cid}' that isn't in the layout"))
+
+
+def _validate_glance_tile(t, where, seen_ids, findings):
+    from .glance import TILE_KINDS
+    if not isinstance(t, dict):
+        findings.append(_f("error", "bad_glance_tile", where,
+                           "a tile must be an object — see glance.md"))
+        return
+    kind = t.get("tile")
+    if kind is not None and kind not in TILE_KINDS:
+        findings.append(_f("warn", "bad_glance_tile", where,
+                           f"unknown tile kind '{kind}' — it renders as a plain value; "
+                           f"expected one of {list(TILE_KINDS)}"))
+    _glance_ref(t.get("control"), where, "tile", seen_ids, findings)
+    if "delta" in t and (isinstance(t["delta"], bool) or not isinstance(t["delta"], (int, float))):
+        findings.append(_f("error", "bad_glance_control", where,
+                           f"delta must be a number, got {t['delta']!r}"))
+
+
+def _validate_glance_scene(sc, where, seen_ids, findings):
+    if not isinstance(sc, dict):
+        findings.append(_f("error", "bad_glance_tile", where,
+                           "a scene must be an object with 'rows'"))
+        return
+    rows = sc.get("rows")
+    if not isinstance(rows, list):
+        findings.append(_f("error", "bad_glance_tile", where,
+                           "a scene needs a 'rows' array of tile rows"))
+        return
+    widths, lengths = [], []
+    for ri, row in enumerate(rows):
+        if not isinstance(row, list):
+            findings.append(_f("error", "bad_glance_tile", f"{where}.rows[{ri}]",
+                               "each row must be an array of tiles"))
+            widths.append(0)
+            lengths.append(0)
+            continue
+        widths.append(sum(_span(t) for t in row))
+        lengths.append(len(row))
+        for ti, t in enumerate(row):
+            _validate_glance_tile(t, f"{where}.rows[{ri}][{ti}]", seen_ids, findings)
+    # `columns` defaults on-device to the longest row — its tile COUNT, not its
+    # summed spans, or an over-wide tile would silently define the grid it
+    # overflows and nothing would ever be reported.
+    declared = sc.get("columns")
+    columns = declared if isinstance(declared, int) and declared > 0 else (max(lengths) if lengths else 0)
+    if not columns:
+        return
+    for ri, row in enumerate(rows):
+        if not isinstance(row, list):
+            continue
+        for ti, t in enumerate(row):
+            span = _span(t)
+            if span > columns:
+                findings.append(_f("warn", "bad_glance_span", f"{where}.rows[{ri}][{ti}]",
+                                   f"span {span} is wider than the scene's {columns} "
+                                   f"column(s) — it is clamped when rendered"))
+        if widths[ri] > columns:
+            findings.append(_f("warn", "bad_glance_span", f"{where}.rows[{ri}]",
+                               f"row spans {widths[ri]} column(s) but the scene has "
+                               f"{columns} — the overflow is dropped"))
+
+
+def _span(t) -> int:
+    span = t.get("span") if isinstance(t, dict) else None
+    return span if isinstance(span, int) and not isinstance(span, bool) and span > 0 else 1
+
+
+def _validate_glance_controls(controls, seen_ids, findings):
+    from .glance import CONTROL_KINDS
+    for i, c in enumerate(controls):
+        where = f"glance.controls[{i}]"
+        if not isinstance(c, dict):
+            findings.append(_f("error", "bad_glance_control", where,
+                               "a glance control must be an object"))
+            continue
+        kind = c.get("kind", "button")
+        if kind not in CONTROL_KINDS:
+            findings.append(_f("warn", "bad_glance_control", where,
+                               f"unknown control kind '{kind}'; expected one of "
+                               f"{list(CONTROL_KINDS)}"))
+        _glance_ref(c.get("control"), where, "control", seen_ids, findings)
+        _glance_ref(c.get("valueControl"), where, "valueControl", seen_ids, findings)
+        if kind in ("cycle", "step", "set") and not c.get("control"):
+            findings.append(_f("error", "bad_glance_control", where,
+                               f"a '{kind}' drives a layout control — it needs "
+                               f"'control'; without one a press does nothing"))
+        if kind == "cycle":
+            states = c.get("states")
+            if not isinstance(states, list) or len(states) < 2:
+                findings.append(_f("error", "bad_glance_control", where,
+                                   "a 'cycle' needs at least two states to cycle through"))
+        if "delta" in c and (isinstance(c["delta"], bool) or not isinstance(c["delta"], (int, float))):
+            findings.append(_f("error", "bad_glance_control", where,
+                               f"delta must be a number, got {c['delta']!r}"))
+
+
+def _validate_glance(glance: dict, seen_ids: dict, findings: list) -> None:
+    from .glance import (ISLAND_REGIONS, ISLAND_TILE_REGIONS, LIVE_TIERS,
+                         WIDGET_FAMILIES)
+    # hero/slots surface an EXISTING control's value, so those ids must exist.
+    # (`glance.controls[]` are standalone surface controls with their own ids — a
+    # Control Center button, not a reference — so only their `control` is checked.)
+    refs: list[str] = []
+    if isinstance(glance.get("hero"), str):
+        refs.append(glance["hero"])
+    for gid in (glance.get("slots") or []):
+        if isinstance(gid, str):
+            refs.append(gid)
+    for gid in refs:
+        if gid not in seen_ids:
+            findings.append(_f("warn", "bad_glance", "glance",
+                               f"glance hero/slot references control id '{gid}' that isn't "
+                               f"in the layout"))
+
+    controls = glance.get("controls")
+    if isinstance(controls, list):
+        _validate_glance_controls(controls, seen_ids, findings)
+
+    widgets = glance.get("widgets")
+    if isinstance(widgets, list):
+        for i, w in enumerate(widgets):
+            where = f"glance.widgets[{i}]"
+            if not isinstance(w, dict):
+                findings.append(_f("error", "bad_glance_tile", where,
+                                   "a widget must be an object"))
+                continue
+            families = w.get("families")
+            if isinstance(families, list):
+                for fam in families:
+                    if fam not in WIDGET_FAMILIES:
+                        findings.append(_f("warn", "bad_glance_family", where,
+                                           f"unknown widget family '{fam}'; expected "
+                                           f"one of {list(WIDGET_FAMILIES)}"))
+            if w.get("scene") is not None:
+                _validate_glance_scene(w["scene"], f"{where}.scene", seen_ids, findings)
+            for fam in WIDGET_FAMILIES:
+                if w.get(fam) is not None:
+                    _validate_glance_scene(w[fam], f"{where}.{fam}", seen_ids, findings)
+
+    isl = glance.get("island")
+    if isinstance(isl, dict):
+        for region in ISLAND_TILE_REGIONS:
+            value = isl.get(region)
+            if value is None:
+                continue
+            if isinstance(value, dict) and "rows" in value:
+                findings.append(_f("warn", "bad_glance_island", f"glance.island.{region}",
+                                   f"'{region}' shows exactly one tile — a scene here is "
+                                   f"reduced to its first tile"))
+                _validate_glance_scene(value, f"glance.island.{region}", seen_ids, findings)
+            else:
+                _validate_glance_tile(value, f"glance.island.{region}", seen_ids, findings)
+        expanded = isl.get("expanded")
+        if isinstance(expanded, dict):
+            for region in ISLAND_REGIONS:
+                value = expanded.get(region)
+                if value is None:
+                    continue
+                where = f"glance.island.expanded.{region}"
+                if region == "bottom" or (isinstance(value, dict) and "rows" in value):
+                    _validate_glance_scene(value, where, seen_ids, findings)
+                else:
+                    _validate_glance_tile(value, where, seen_ids, findings)
+
+    if glance.get("lockScreen") is not None:
+        _validate_glance_scene(glance["lockScreen"], "glance.lockScreen", seen_ids, findings)
+
+    live = glance.get("live")
+    if isinstance(live, dict) and live.get("tier") is not None:
+        if live["tier"] not in LIVE_TIERS:
+            findings.append(_f("warn", "bad_glance_live", "glance.live",
+                               f"unknown tier '{live['tier']}'; expected one of "
+                               f"{list(LIVE_TIERS)} — the app falls back to 'fresh'"))
 
 
 def _collect_source_refs(children, sources, referenced):

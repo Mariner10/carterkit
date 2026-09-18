@@ -8,7 +8,9 @@ import time
 import re
 
 from .ambient import (activity_attributes, apple_date, canonical_layout_id,
-                      content_state, glance_update, slot, _scalar)
+                      content_state, glance_update, slot, surfaces_deregister_token,
+                      surfaces_get_state, surfaces_publish, surfaces_register_token,
+                      _scalar)
 
 _KINDS = {"gauge": "gauge", "progressRing": "ring", "statusLight": "light",
           "sparkline": "number", "slider": "number", "stepper": "number",
@@ -30,8 +32,14 @@ class LayoutSurfaces:
     """A hub's notifications, widgets, Control Center state and Live Activities.
 
     The layout must declare a stable ``id`` or have been loaded from a filename.
-    ``snapshot`` and ``activity_state`` are pure preview helpers; only ``refresh``,
-    ``notify`` and ``start/update/end_activity`` make HTTP requests.
+    ``snapshot`` and ``activity_state`` are pure preview helpers; every other
+    method here makes an HTTP request to the validator host.
+
+    Two routes reach the same surfaces from opposite directions. ``refresh`` and
+    ``notify`` push a payload *at* the device, so something of ours must be alive
+    to apply it. ``publish`` writes the relay's **retained** state and pokes every
+    surface, so a widget iOS wakes tomorrow can pull current values with no app
+    process at all — that is the one to reach for.
     """
     def __init__(self, hub):
         self.hub = hub
@@ -162,3 +170,106 @@ class LayoutSurfaces:
     async def end_activity(self, values=None, **options):
         return await self.hub.client.push_live_activity(layout_id=self.layout_id, event="end",
             content_state=self.activity_state(values, is_connected=False), **options)
+
+    # ── /surfaces: the relay's retained state + one push for every surface ────
+    #
+    # `refresh` above spends a notification budget to nudge a *running* app; these
+    # go the other way. The relay holds the layout's latest values, so a widget
+    # iOS wakes tomorrow morning still has something to render, and one `publish`
+    # pokes widgets, Control Center and the Live Activity together.
+
+    def _values_by_id(self, values):
+        """Resolve `{handle-or-id: value}` to `{controlId: value}` — the wire keys
+        the relay stores. Same resolution `refresh` uses, so the two agree about
+        what a handle means."""
+        if values is None:
+            return None
+        out = {}
+        for target, value in values.items():
+            control = self.hub._control(target)
+            cid = control.get("id")
+            if not cid:
+                raise ValueError(f"control {target!r} has no id to publish under")
+            _scalar(value)
+            out[cid] = value
+        return out
+
+    def _controls_by_id(self, controls):
+        """Glance-control ids (`glance.controls[].id`), not layout control ids —
+        a Control Center tile is its own thing. A handle is still accepted, for
+        the common case where the tile mirrors one control."""
+        if controls is None:
+            return None
+        out = {}
+        for target, value in controls.items():
+            cid = target if isinstance(target, str) else getattr(target, "id", None)
+            if not isinstance(cid, str) or not cid:
+                raise ValueError(f"control key {target!r} must be a glance control id "
+                                 f"or a Layout control handle")
+            _scalar(value)
+            out[cid] = value
+        return out
+
+    async def publish(self, values=None, *, controls=None, is_connected=True,
+                      activity=None, force=False):
+        """Publish this layout's state and poke every surface (POST /surfaces/publish).
+
+        ONE call refreshes the widgets, the Control Center controls and the Live
+        Activity, and leaves the values retained on the relay for whatever iOS
+        wakes later::
+
+            await hub.surfaces.publish({nozzle: 214.5, bed: 60}, activity=True)
+
+        `values` is keyed by control handle or id (ids go on the wire); `controls`
+        mirrors Control Center tile state keyed by `glance.controls[].id`.
+
+        `activity` chooses whether the Live Activity is pushed too: omit it for
+        widgets and controls only, pass ``True`` to let the relay build the content
+        state from the merged values, ``"end"`` to finish the session, or a dict
+        (`contentState`, `staleSeconds`, `priority`, `relevanceScore`, `event`) to
+        say exactly what to send. :meth:`activity_state` builds a `contentState`
+        from this layout's own hero/slots if you want the app's shape verbatim.
+
+        Publishing at telemetry rate is safe. The relay's floors (widgets ≥ 60 s,
+        controls ≥ 10 s, activity ≥ 2 s) skip the *push* inside a window but still
+        merge the state, and report that as `suppressed`; the surface shows the
+        newest value at its next wake either way. `force=True` asks for the
+        higher-priority push where the floor allows it — it does not lift it."""
+        if activity is True:
+            activity = {}
+        elif activity == "end":
+            activity = {"event": "end"}
+        elif activity is False:
+            activity = None
+        return await self.hub.client._ambient_call(
+            surfaces_publish, layout_id=self.layout_id,
+            values=self._values_by_id(values), controls=self._controls_by_id(controls),
+            is_connected=is_connected, activity=activity, force=force)
+
+    async def state(self):
+        """Read back what the relay holds for this layout (GET /surfaces/state/…).
+
+        `{layoutId, values, controls, isConnected, updatedAt}`, or **None** before
+        anything has been published. This is the same state a widget pulls when
+        iOS wakes it, so it answers "what would the Home Screen show right now"."""
+        return await self.hub.client._ambient_call(surfaces_get_state,
+                                                   layout_id=self.layout_id)
+
+    async def register_token(self, *, kind, key, bundle_id, token):
+        """Register a widget or Control Center push token for this layout.
+
+        The device registers its own tokens; this exists for provisioning and
+        tests. `kind` is `"widget"` or `"control"`, `key` the widget/control kind
+        the token was issued for, and `bundle_id` the build that minted it — the
+        APNs topic is `<bundleId>.push-type.<kind>`, so a mismatched bundle id is
+        refused by APNs, not here."""
+        return await self.hub.client._ambient_call(
+            surfaces_register_token, layout_id=self.layout_id, kind=kind, key=key,
+            bundle_id=bundle_id, token=token)
+
+    async def deregister_token(self, *, kind, key, bundle_id, token):
+        """Drop a registered surface token. Pass exactly what was registered;
+        de-registering an unknown token succeeds."""
+        return await self.hub.client._ambient_call(
+            surfaces_deregister_token, layout_id=self.layout_id, kind=kind, key=key,
+            bundle_id=bundle_id, token=token)

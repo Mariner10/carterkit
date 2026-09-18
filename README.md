@@ -23,10 +23,33 @@ payloads from your layout and uses the hub's renewed Add Hub credential. Existin
 `@control.on` handlers receive actions from widgets, Control Center and Shortcuts.
 
 ```python
-await hub.surfaces.refresh()  # latest values published through hub.push/control.push
+await hub.surfaces.publish({temperature: 25}, activity=True)  # widgets + Control Center + island
 await hub.surfaces.notify("Workshop", "Job complete", include_glance=True)
-await hub.surfaces.update_activity({temperature: 25})
+print(await hub.surfaces.state())     # what a widget pulls when iOS wakes it
 ```
+
+`publish` is one request to the relay, which **retains** the values: a widget iOS
+wakes hours later still renders something, and the relay's own floors coalesce a
+chatty publisher rather than burning the app's push budget (a skipped push comes
+back as `suppressed`, with the state merged either way).
+
+Design the surfaces in the layout, in the same vocabulary as the controls:
+
+```python
+from carterkit import tile, scene, widget, island, live, cc_toggle, cc_step
+
+ui.glance(hero=nozzle, live=live(tier="fresh"),
+          widgets=[widget("temps", title="Temps", families=["systemMedium"],
+                          scene=scene([tile("gauge", nozzle), tile("gauge", bed)],
+                                      [tile("sparkline", nozzle, span=2)]))],
+          island=island(compact_trailing=tile("ring", progress),
+                        expanded=dict(bottom=scene([tile("gauge", nozzle)]))),
+          controls=[cc_toggle("lights", "Lights", lights),
+                    cc_step("fan-up", "Fan +10", fan_speed, delta=10)])
+```
+
+Control Center has toggles and buttons only, so a slider becomes `cc_step`/`cc_set`
+and a picker becomes `cc_cycle`; `carterkit.doc("glance")` has the full reference.
 
 See the [connector guide](docs/ios-surfaces.md) for setup, notification actions,
 delivery semantics, payload limits and lower-level APIs. The
@@ -108,7 +131,7 @@ Author the rest of the app's surface from Python too:
 ui.publisher("heading", interval=0.25)                     # stream a sensor to a hub/server
 ui.alert(event="broadcast", value_path="temp", operator="gt", value=30,
          title="Too hot", body="Greenhouse over 30°C")     # relay-watcher push rule
-ui.glance(hero="temp", slots=["fan"], live_activity=True)  # widgets / Live Activity
+ui.glance(hero="temp", slots=["fan"], live_activity=True)  # widgets / island / Control Center
 ui.poll_group("tick", event="broadcast_request", interval=10, payload={"msg_type": "poll"})
 ui.appearance(color_scheme="dark", show_header=True)
 ui.dynamic_tab("inject_tab")                               # runtime-injected tab

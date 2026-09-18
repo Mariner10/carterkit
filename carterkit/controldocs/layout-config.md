@@ -44,6 +44,9 @@ fields:
   - name: batchPublishers
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
+  - name: glance
+    type: object
+    description: Widgets, Dynamic Island, lock screen and Control Center surfaces projected from this layout (see glance)
 ---
 
 Top-level JSON structure for a CAR-TER remote.
@@ -70,7 +73,8 @@ Top-level JSON structure for a CAR-TER remote.
   "tabs": [ ... ],
   "pollGroups": { ... },
   "dynamicTabs": [ ... ],
-  "keepAwake": true
+  "keepAwake": true,
+  "glance": { "hero": "cpu", "liveActivity": true, "controls": [ ... ], "widgets": [ ... ] }
 }
 ```
 
@@ -166,8 +170,19 @@ Battery note: a held screen drains fast off the charger. Reserve it for layouts
 that really are the display — a car dashboard, a wall panel, a telemetry source —
 not a remote that is glanced at and pocketed.
 
+## Glance surfaces
+
+`glance` projects the layout outside the app: Home/Lock Screen widgets, the
+Dynamic Island and lock-screen Live Activity, Control Center / Action-button
+controls, StandBy, the watch Smart Stack and CarPlay — kept live by the relay
+while the app is closed. Widgets and island regions are **scenes of tiles**
+bound to control ids, Control Center tiles are toggles/buttons/cycles/steps,
+and a `live` block says how fresh each surface should be. Absent block ⇒ an
+auto-derived glance. Full reference: [[glance]].
+
 ## Related
 
+- [[glance]] — widgets, Dynamic Island, lock screen, Control Center
 - [[sources]] — MQTT/HTTP data sources
 - [[theming]] — Full theme system, light/dark variants, live builder
 - [[appearance]] — Color scheme, header, status bar, background image

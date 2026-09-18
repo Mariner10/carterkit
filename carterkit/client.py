@@ -643,6 +643,14 @@ class CarterClient:
         return await asyncio.to_thread(live_activity_push, self._validator_url, token,
             layout_id=layout_id, event=event, content_state=content_state, **options)
 
+    async def _ambient_call(self, request, **kwargs):
+        """Run one `carterkit.ambient` request builder off the event loop with this
+        client's current authorization — the same credential resolution
+        `push_live_activity` uses, so a renewed Add Hub device token is picked up on
+        every call rather than captured once at construction."""
+        token = self._ambient_authorization()
+        return await asyncio.to_thread(request, self._validator_url, token, **kwargs)
+
     async def refresh_glance(self, *, layout_id, values=None, controls=None, **options):
         """Request a silent widget/control refresh. iOS may delay or suppress it.
 
