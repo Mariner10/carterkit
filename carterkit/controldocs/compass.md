@@ -5,19 +5,32 @@ icon: location.north.circle.fill
 category: input
 defaultSpan: [7, 3]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label
   - name: controlHeight
+    min: 100
+    max: 1200
+    step: 10
     type: number
     default: 420
     description: Rendered height in points (required in flow-mode grids)
   - name: tolerance
+    min: 1
+    max: 90
+    step: 1
     type: number
     default: 15
     description: Half-angle (°) within which the needle counts as pointing at a puck
     group: compassConfig
   - name: dwell
+    min: 0
+    max: 10
+    step: 0.1
     type: number
     default: 1.2
     description: Seconds to hold on a puck before its action fires (0 = instant)
@@ -26,6 +39,18 @@ fields:
     type: bool
     default: true
     description: Draw N/E/S/W ticks
+    group: compassConfig
+  - name: cardinalSize
+    min: 8
+    max: 40
+    step: 1
+    type: number
+    default: 13
+    description: Cardinal glyph point size
+    group: compassConfig
+  - name: cardinalColor
+    type: color
+    description: "E/S/W cardinal color (default secondary grey; N always follows tint)"
     group: compassConfig
   - name: editable
     type: bool

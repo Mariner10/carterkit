@@ -5,6 +5,10 @@ icon: hexagon.fill
 category: controls
 defaultSpan: [2, 2]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Label under the chart
@@ -33,15 +37,22 @@ fields:
     description: Drag the **first** series' vertices along their axes
     group: radarConfig
   - name: fillOpacity
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.25
     description: Polygon fill opacity 0–1
     group: radarConfig
   - name: maxValue
+    bounds: none
     type: number
     description: Per-axis maximum (payload max wins)
     group: radarConfig
   - name: rings
+    min: 1
+    max: 12
+    step: 1
     type: number
     default: 4
     description: Concentric grid rings
@@ -67,11 +78,15 @@ fields:
     description: Numeric value beside each vertex (the dragged vertex always shows)
     group: radarConfig
   - name: step
+    bounds: none
     type: number
     description: Snap dragged values to this step (e.g. 1, 5, 0.1)
     group: radarConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

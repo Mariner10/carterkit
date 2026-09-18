@@ -46,6 +46,9 @@ fields:
     description: Incoming value → hex tint
 themeFields:
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding

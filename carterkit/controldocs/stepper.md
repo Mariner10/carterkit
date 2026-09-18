@@ -5,18 +5,37 @@ icon: plus.forwardslash.minus
 category: controls
 defaultSpan: [1, 2]
 fields:
+  - name: animation
+    type: enum
+    values: [smooth, snappy, bouncy, gentle, instant]
+    description: Motion profile for value changes
   - name: min
+    bounds: none
     type: number
     default: 0
     description: Minimum value
   - name: max
+    bounds: none
     type: number
     default: 100
     description: Maximum value
   - name: step
+    bounds: none
     type: number
     default: 1
-    description: Increment/decrement amount
+    description: Positive increment/decrement amount; zero or negative falls back to 1
+  - name: repeatOnHold
+    type: bool
+    default: false
+    description: Hold plus or minus to repeat steps using the system repeat behavior
+  - name: wraps
+    type: bool
+    default: false
+    description: Step past an endpoint to cycle to the opposite endpoint
+  - name: hideValue
+    type: bool
+    default: false
+    description: Hide the numeric readout; keep the buttons, label, and spoken value
   - name: label
     type: string
     description: Display label
@@ -28,6 +47,7 @@ fields:
     default: decimal
     description: "Value format: decimal, time, percent"
   - name: defaultValue
+    bounds: none
     type: number
     description: Initial value
   - name: haptic
@@ -37,10 +57,16 @@ fields:
     description: Default haptic on step
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -57,10 +83,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size
   - name: valueFontSize
+    min: 8
+    max: 28
+    step: 1
     type: number
     default: 14
     description: Value text size
@@ -69,10 +101,16 @@ themeFields:
     default: #667eea
     description: Button fill color
   - name: buttonRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 8
     description: Button corner radius
   - name: buttonSize
+    min: 12
+    max: 50
+    step: 1
     type: number
     default: 32
     description: Button diameter
@@ -105,6 +143,17 @@ Inherits all [[shared-properties]]. Key fields:
 
 ## Examples
 
+### Cyclic selector with hold-to-repeat
+
+```json
+{
+  "type": "stepper", "id": "preset", "position": [0, 0],
+  "label": "Preset", "min": 1, "max": 8, "step": 1,
+  "repeatOnHold": true, "wraps": true
+}
+```
+
+
 ### Thermostat target
 
 ```json
@@ -124,8 +173,13 @@ Inherits all [[shared-properties]]. Key fields:
 
 ## Behavior
 - Displays current value with animated numeric transition
-- +/- buttons respect min/max bounds
-- Fires action on each increment/decrement
+- With `wraps: false` (default), +/- buttons disable and dim at their respective limits. An unchanged value emits no action, including VoiceOver adjustments.
+- Buttons and VoiceOver use the same bounded increment. Zero, negative, or non-finite `step` falls back to 1.
+- Reversed min/max bounds are sorted; equal bounds disable both buttons. Incoming values outside the range are clamped for display and the next adjustment starts from that boundary.
+
+- `repeatOnHold: true` enables press-and-hold repetition for both buttons. Releasing or cancelling the press stops repetition. The normal bounds or wrap behavior applies to each step.
+- `wraps: true` cycles from max to min (plus) and min to max (minus), including VoiceOver. A step that overshoots first lands on the boundary; the next step wraps. Equal bounds still disable both buttons.
+- `hideValue: true` hides only the visible number; VoiceOver still announces the value.
 
 ## Related
 - [[shared-properties]] — Base fields

@@ -27,6 +27,9 @@ themeFields:
     default: "#FFFFFF0F"
     description: Face card background
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Face corner radius

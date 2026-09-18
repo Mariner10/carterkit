@@ -5,10 +5,17 @@ icon: rectangle.3.group.fill
 category: input
 defaultSpan: [10, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label
   - name: controlHeight
+    min: 100
+    max: 1200
+    step: 10
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids — see Sizing)
@@ -28,6 +35,9 @@ fields:
     description: Hide the option area (server-seeded boards where items start placed)
     group: sortboardConfig
   - name: columns
+    min: 1
+    max: 12
+    step: 1
     type: number
     default: 2
     description: How many zone columns to lay out

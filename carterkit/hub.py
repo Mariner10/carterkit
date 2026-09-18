@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import asyncio
 import json as _json
+from pathlib import Path
 
 from .client import CarterClient
 from .connection import Connection
@@ -76,6 +77,9 @@ def _walk_children(layout: dict):
             for panel in ch.get("panels") or []:
                 if isinstance(panel, dict):
                     yield from walk(panel.get("children"))
+            popup = ch.get("longPressGroup")
+            if isinstance(popup, dict):
+                yield from walk(popup.get("children"))
             cfg = ch.get("canvasConfig")
             if isinstance(cfg, dict):
                 for item in cfg.get("items") or []:
@@ -101,6 +105,9 @@ class Hub:
 
     def __init__(self, layout=None, connection=None, *, name: str | None = None,
                  state_authority: bool = True, **conn_overrides):
+        self._layout_filename = Path(layout).name if isinstance(layout, (str, Path)) else None
+        if isinstance(layout, Path):
+            layout = str(layout)
         self._layout_obj = None
         if layout is not None and not isinstance(layout, (dict, str)):
             # a carterkit.Layout — bind its handles so ctrl.push()/ctrl.on() work
@@ -138,6 +145,8 @@ class Hub:
         if isinstance((layout or {}).get("state"), dict) and layout["state"].get("acks"):
             self.client.enable_command_acks()
         self.client.on_broadcast(self._dispatch)
+        from .surfaces import LayoutSurfaces
+        self.surfaces = LayoutSurfaces(self)
         if self._layout_obj is not None:
             self._layout_obj._active_hub = self
 

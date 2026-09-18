@@ -16,6 +16,9 @@ fields:
     default: dots
     description: Page indicator style
   - name: autoAdvance
+    min: 0
+    max: 60
+    step: 1
     type: number
     default: 0
     description: Seconds between auto-advances (0 = off)
@@ -39,6 +42,9 @@ themeFields:
     default: "#667eea"
     description: Active indicator color
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Panel corner radius

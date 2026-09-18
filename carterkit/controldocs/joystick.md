@@ -18,6 +18,9 @@ fields:
     default: analog
     description: "analog (free) or dpad (4/8-direction snapping)"
   - name: deadzone
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.1
     description: Center deadzone radius (0-1)
@@ -26,6 +29,9 @@ fields:
     default: false
     description: Stick stays where released instead of snapping to center
   - name: sendRate
+    min: 0.1
+    max: 10
+    step: 0.1
     type: number
     default: 0.1
     description: Throttle interval in seconds for action firing
@@ -35,10 +41,16 @@ fields:
     description: Hide label and coordinate readout
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -59,10 +71,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size

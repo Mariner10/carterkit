@@ -19,6 +19,9 @@ fields:
     description: Line style
 themeFields:
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size

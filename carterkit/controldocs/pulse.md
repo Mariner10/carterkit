@@ -17,10 +17,16 @@ fields:
     default: outward
     description: Ring expands outward or contracts inward
   - name: spread
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: "0.1"
     description: Ring travel as a fraction of the group's size (0.1 = 10%)
   - name: duration
+    min: 0.1
+    max: 10
+    step: 0.1
     type: number
     default: "0.9"
     description: Pulse length in seconds

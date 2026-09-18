@@ -5,15 +5,24 @@ icon: square.grid.3x3
 category: models
 fields:
   - name: columns
+    min: 1
+    max: 50
+    step: 1
     type: number
     description: Number of columns the grid is divided into (required)
   - name: rows
+    min: 1
+    max: 50
+    step: 1
     type: number
     description: Number of rows the grid is divided into (required)
   - name: mode
     type: string
     description: '"grid" (2-D, default) or "flow" (legacy row-banded)'
   - name: rowHeight
+    min: 12
+    max: 200
+    step: 1
     type: number
     description: Points per row-unit in 2-D mode (default 56)
 ---

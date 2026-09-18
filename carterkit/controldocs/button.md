@@ -37,10 +37,16 @@ fields:
     description: Haptic feedback on press
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -57,6 +63,9 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
@@ -123,6 +132,8 @@ Inherits all [[shared-properties]]. Key fields:
   "style": "tinted",
   "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "home-hub", "type": "macro", "payload": { "name": "movie_mode" } } },
   "longPressGroup": {
+    "position": [0, 0],
+    "span": [2, 2],
     "id": "movie-detail",
     "label": "Movie Mode Settings",
     "grid": { "columns": 2, "rows": 2 },

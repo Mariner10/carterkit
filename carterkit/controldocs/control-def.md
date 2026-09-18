@@ -40,7 +40,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `tint` | string | `"#667eea"` | Hex color for accents |
 | `style` | string | varies | Style variant (per control type) |
 | `hideLabel` | bool | `false` | Suppress the label |
-| `hideValue` | bool | `false` | Hide the numeric readout (e.g. a ring/gauge's center value) so the control becomes a pure compact visual that scales to fill its cell |
+| `hideValue` | bool | `false` | Hide the numeric readout (e.g. a ring/gauge's center value) so the control becomes a pure compact visual that scales to fill its cell. Also hides slider and stepper readouts while preserving interaction and accessibility |
 | `hideBackground` | bool | `false` | Remove the glass card behind the control — it floats on the page and fills its cell. Pairs with `hideValue` for a minimal glyph |
 | `formatValue` | string | — | Number formatter for displayed values (see below) |
 
@@ -61,13 +61,15 @@ Controls store their value as one of three types:
 | Format | Example input | Output |
 |--------|---------------|--------|
 | `percent` | `50.8` | `50.8%` |
-| `decimal:N` | `3.14159` | `decimal:2` → `3.14` |
+| `decimal:N` | `3.14159` | `decimal:2` → `3.14`; N clamps to 0–12 |
 | `suffix:X` | `63.5` | `suffix:°C` → `63.5°C` |
 | `bytes` | `1048576` | `1.00 MB` |
 | `bytesKB` | `873740` | source is **KB** → `853.26 MB` |
 | `bps` | `1500000` | `1.50 Mbps` |
 | `duration` | `3725` | `1h 2m` |
 | `time` | `125` | `2:05` |
+
+Numeric readouts preserve positive step precision (for example, `step: 0.01` shows `0.12`, and `step: 0.25` shows `0.25`). Precision is capped at 12 decimal places. Non-finite values display `—`; `none` still hides them. Negative time and duration values use one leading minus sign. Times outside the integer range display seconds in scientific notation instead of failing conversion.
 
 ## Per-Control Theme Overrides
 

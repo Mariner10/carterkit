@@ -5,6 +5,10 @@ icon: rectangle.3.group.fill
 category: controls
 defaultSpan: [3, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the map
@@ -19,11 +23,17 @@ fields:
     type: string
     description: Formatter for item values
   - name: cellCornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 5
     description: Cell corner rounding
     group: treemapConfig
   - name: cellGap
+    min: 0
+    max: 40
+    step: 1
     type: number
     default: 2
     description: Gap between cells
@@ -58,6 +68,9 @@ fields:
     group: treemapConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

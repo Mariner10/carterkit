@@ -5,6 +5,10 @@ icon: chart.bar.doc.horizontal
 category: controls
 defaultSpan: [3, 4]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the timeline
@@ -16,6 +20,9 @@ fields:
     default: "#667eea"
     description: First-task color and palette seed
   - name: barCornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 5
     description: Bar corner rounding
@@ -30,6 +37,9 @@ fields:
     description: Drag along a bar to set its progress
     group: ganttConfig
   - name: rowHeight
+    min: 12
+    max: 100
+    step: 1
     type: number
     default: 30
     description: Points per task row
@@ -60,6 +70,9 @@ fields:
     description: Dashed 'now' line (date timelines only)
     group: ganttConfig
   - name: step
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.05
     description: Progress snap while dragging
@@ -70,6 +83,9 @@ fields:
     group: ganttConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

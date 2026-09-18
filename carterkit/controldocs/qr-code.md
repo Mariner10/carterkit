@@ -15,11 +15,6 @@ fields:
     type: color
     default: "#FFFFFF"
     description: QR code foreground color
-  - name: style
-    type: enum
-    values: [default, rounded]
-    default: default
-    description: "default (square modules) or rounded"
   - name: correctionLevel
     type: enum
     values: [L, M, Q, H]
@@ -31,10 +26,16 @@ fields:
     description: Remove glass card background
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -51,10 +52,16 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width
   - name: labelFontSize
+    min: 8
+    max: 24
+    step: 1
     type: number
     default: 12
     description: Label text size
@@ -75,7 +82,6 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | falls back to `id` | Label below the QR code |
 | `text` | string | — | Static content to encode (overridden by sync) |
 | `tint` | color | `"#FFFFFF"` | QR code foreground color |
-| `style` | string | `"default"` | `"default"` (square modules) or `"rounded"` |
 | `correctionLevel` | string | `"M"` | Error correction level: `"L"`, `"M"`, `"Q"`, `"H"` |
 | `hideBackground` | bool | `false` | Remove glass card background |
 
@@ -91,7 +97,6 @@ Inherits all [[shared-properties]]. Key fields:
   "label": "Guest Wi-Fi",
   "text": "WIFI:T:WPA;S:GuestNetwork;P:welcome123;;",
   "tint": "#FFFFFF",
-  "style": "rounded",
   "correctionLevel": "H"
 }
 ```

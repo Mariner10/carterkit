@@ -13,26 +13,17 @@ Two hosts, and they are NOT the same one:
   the socket dials with `wss://`) — pass `relay_url`. It is served by the gateway
   so a press costs no Connect+ slot.
 
-Delivery guarantees, which the choice of route decides (see also `notify_http`'s
-`silent=`):
-
-=========================  ===========  ===========  ==================
-App state                  silent push  NSE (alert)  Live Activity push
-=========================  ===========  ===========  ==================
-foreground / backgrounded  yes          yes          yes
-evicted by system          yes          yes          yes
-**force-quit by user**     **NO**       **yes**      yes
-=========================  ===========  ===========  ==================
-
-A widget or Control Center value can only be refreshed by a process of ours, and
-after a force-quit the only one iOS will start is the notification service
-extension — which exists to service a *user-visible* notification. So a silent
-refresh is free and invisible but stops at force-quit; an alerting one always
-shows a notification and always works. Never promise the latter on the former.
+Delivery is best-effort. Silent background pushes may be delayed or suppressed,
+including after a force-quit. Visible notifications can carry a glance refresh
+through the notification extension, but delivery and extension execution are not
+guaranteed. ActivityKit uses its own push route. Direct WidgetKit pushes on iOS 26
+are not registered by this backend yet.
 """
 import json
+import math
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit, urlunsplit
 
 __all__ = [
     "APPLE_REFERENCE_EPOCH", "LA_ATTRIBUTES_TYPE", "CONTENT_STATE_VERSION",
@@ -40,7 +31,7 @@ __all__ = [
     "apple_date", "slot", "content_state", "activity_attributes",
     "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",
-    "mesh_broadcast",
+    "mesh_broadcast", "glance_update",
 ]
 
 #: ActivityKit decodes ContentState with Swift's DEFAULT ``Codable``, so every
@@ -82,21 +73,108 @@ class CarterAmbientError(Exception):
 _USER_AGENT = "carterkit/python"
 
 
-def _post(url, token, payload, *, method="POST", _send=None):
+def _post(url, token, payload, *, method="POST", timeout=10, _send=None):
     headers = {"Authorization": token, "Content-Type": "application/json",
                "User-Agent": _USER_AGENT}
-    body_bytes = json.dumps(payload).encode()
+    if not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("timeout must be a finite positive number")
+    body_bytes = _json_size(payload)
     if _send is not None:
         return _send(url, headers, body_bytes, method)
     req = urllib.request.Request(url, data=body_bytes, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read().decode()
             out = json.loads(raw) if raw.strip() else {}
+            if not isinstance(out, dict):
+                raise ValueError("endpoint returned a non-object JSON response")
             out["status"] = resp.status
             return out
     except urllib.error.HTTPError as e:
         raise CarterAmbientError(e.code, e.read().decode(errors="replace")) from None
+    except (OSError, ValueError) as e:
+        raise CarterAmbientError(0, str(e)) from None
+
+
+def _finite_number(value, name):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError(f"{name} must be a finite number")
+
+
+def _scalar(value):
+    if isinstance(value, (str, bool)):
+        return
+    _finite_number(value, "control value")
+
+
+def _json_size(value, limit=None, name="payload"):
+    encoded = json.dumps(value, allow_nan=False, ensure_ascii=False, separators=(",", ":")).encode()
+    if limit is not None and len(encoded) > limit:
+        raise ValueError(f"{name} exceeds the backend's {limit}-byte limit")
+    return encoded
+
+
+def _validate_slot(value):
+    if not isinstance(value, dict):
+        raise ValueError("a slot must be an object built with slot()")
+    if value.get("kind") not in SLOT_KINDS or not isinstance(value.get("controlId"), str) or not value["controlId"]:
+        raise ValueError("slot requires a controlId and supported kind")
+    if not isinstance(value.get("label"), str):
+        raise ValueError("slot requires a string label")
+    if value.get("value") is not None:
+        _scalar(value["value"])
+    for key in ("min", "max"):
+        if value.get(key) is not None:
+            _finite_number(value[key], key)
+    for key in ("formatValue", "tint"):
+        if value.get(key) is not None and not isinstance(value[key], str):
+            raise ValueError(f"slot {key} must be a string")
+    colors = value.get("statusColors")
+    if colors is not None and (not isinstance(colors, dict) or
+                              any(not isinstance(k, str) or not isinstance(v, str) for k, v in colors.items())):
+        raise ValueError("statusColors must map strings to color strings")
+
+
+def glance_update(*, layout_id, values=None, controls=None, hero=None, slots=None,
+                  is_connected=None, title=None, icon=None, tint=None):
+    """Build a widget/Control Center refresh for ``notify_http(glance=...)``.
+
+    ``values`` updates existing readings by control ID without replacing the
+    featured slots. ``controls`` mirrors toggle state keyed by system-control ID.
+    Use title/icon plus hero/slots to seed a snapshot before its first publication.
+    """
+    if not isinstance(layout_id, str) or not layout_id or len(layout_id.encode()) > 128:
+        raise ValueError("layout_id must be non-empty and <= 128 UTF-8 bytes")
+    out = {"layoutId": layout_id}
+    for name, mapping in (("values", values), ("controls", controls)):
+        if mapping is not None:
+            if not isinstance(mapping, dict) or any(not isinstance(k, str) or not k for k in mapping):
+                raise ValueError(f"{name} must map non-empty control IDs to values")
+            for value in mapping.values():
+                if name == "controls" and not isinstance(value, bool):
+                    raise ValueError("controls must contain Boolean toggle states")
+                _scalar(value)
+            out[name] = dict(mapping)
+    if is_connected is not None:
+        if not isinstance(is_connected, bool):
+            raise ValueError("is_connected must be a bool")
+        out["isConnected"] = is_connected
+    if slots is not None:
+        if len(slots) > 3:
+            raise ValueError("glance supports at most 3 secondary slots; use values for other readings")
+        out["slots"] = list(slots)
+        for entry in out["slots"]:
+            _validate_slot(entry)
+    if hero is not None:
+        _validate_slot(hero)
+    for key, value in (("title", title), ("icon", icon), ("tint", tint)):
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"{key} must be a string")
+    for key, value in (("hero", hero), ("title", title), ("icon", icon), ("tint", tint)):
+        if value is not None:
+            out[key] = value
+    _json_size(out, 2048, "glance")
+    return out
 
 
 # ── Shapes ───────────────────────────────────────────────────────────────────
@@ -104,6 +182,7 @@ def _post(url, token, payload, *, method="POST", _send=None):
 def apple_date(unix_seconds):
     """Convert a normal unix timestamp to the reference-date seconds ActivityKit
     expects. Always run timestamps through this — see APPLE_REFERENCE_EPOCH."""
+    _finite_number(unix_seconds, "unix_seconds")
     return unix_seconds - APPLE_REFERENCE_EPOCH
 
 
@@ -112,8 +191,18 @@ def slot(control_id, label, kind, value, **extra):
     on-device decode and the push disappears with no error to trace."""
     if kind not in SLOT_KINDS:
         raise ValueError(f"kind must be one of {SLOT_KINDS}, got {kind!r}")
+    if not isinstance(control_id, str) or not control_id or not isinstance(label, str):
+        raise ValueError("control_id must be non-empty and label must be a string")
+    if value is not None:
+        _scalar(value)
+    aliases = {"format_value": "formatValue", "status_colors": "statusColors"}
+    extra = {aliases.get(key, key): val for key, val in extra.items()}
+    if {"controlId", "label", "kind", "value"}.intersection(extra):
+        raise ValueError("extra fields cannot override slot identity or value")
     out = {"controlId": control_id, "label": label, "kind": kind, "value": value}
     out.update(extra)
+    _validate_slot(out)
+    _json_size(out)
     return out
 
 
@@ -126,6 +215,9 @@ def content_state(*, hero=None, slots=None, is_connected=True, updated_at,
     because a wrong epoch here is the single most common silent failure in this
     pipeline, and a default would hide it.
     """
+    _finite_number(updated_at, "updated_at")
+    if not isinstance(is_connected, bool):
+        raise ValueError("is_connected must be a bool")
     if updated_at > APPLE_REFERENCE_EPOCH:
         raise ValueError(
             "updated_at looks like a unix timestamp; ActivityKit wants seconds "
@@ -136,9 +228,20 @@ def content_state(*, hero=None, slots=None, is_connected=True, updated_at,
         "updatedAt": updated_at,
     }
     if hero is not None:
+        _validate_slot(hero)
         state["hero"] = hero
+    for entry in state["slots"]:
+        _validate_slot(entry)
     if hero_history:
-        state["heroHistory"] = [float(v) for v in hero_history]
+        history = list(hero_history)
+        if len(history) > 24:
+            raise ValueError("hero_history supports at most 24 points")
+        for value in history:
+            _finite_number(value, "hero_history")
+        state["heroHistory"] = history
+    if len(state["slots"]) > 3:
+        raise ValueError("a Live Activity supports at most 3 secondary slots")
+    _json_size(state, 3072, "content_state")
     return state
 
 
@@ -155,6 +258,12 @@ def activity_attributes(*, layout_id, title, icon, started_at, tint=None):
         if value is None or value == "":
             raise ValueError(f"{name} is required — a missing key makes iOS drop "
                              "the push-to-start silently")
+    _finite_number(started_at, "started_at")
+    for name, value in (("layout_id", layout_id), ("title", title), ("icon", icon)):
+        if not isinstance(value, str):
+            raise ValueError(f"{name} must be a string")
+    if tint is not None and not isinstance(tint, str):
+        raise ValueError("tint must be a string")
     if started_at > APPLE_REFERENCE_EPOCH:
         raise ValueError(
             "started_at looks like a unix timestamp; pass apple_date(time.time())")
@@ -162,6 +271,7 @@ def activity_attributes(*, layout_id, title, icon, started_at, tint=None):
              "startedAt": started_at}
     if tint is not None:
         attrs["tint"] = tint
+    _json_size(attrs, 1024, "attributes")
     return attrs
 
 
@@ -177,15 +287,18 @@ def canonical_layout_id(layout, *, filename=None):
     `layout` may be a dict (a parsed layout), an object with `.id`, or None.
     """
     declared = None
+    if not isinstance(layout, dict) and isinstance(getattr(layout, "layout", None), dict):
+        layout = layout.layout
     if isinstance(layout, dict):
         declared = layout.get("id")
     elif layout is not None:
         declared = getattr(layout, "id", None)
-    if declared:
-        return declared
-    if not filename:
+    resolved = declared or filename
+    if not resolved:
         raise ValueError("layout declares no id — pass filename= for the fallback")
-    return filename
+    if not isinstance(resolved, str) or len(resolved.encode()) > 128:
+        raise ValueError("layout id must be a string of at most 128 UTF-8 bytes")
+    return resolved
 
 
 # ── Live Activity ────────────────────────────────────────────────────────────
@@ -235,7 +348,7 @@ def live_activity_deregister(validator_url, session_jwt, *, layout_id, push_toke
 def live_activity_push(validator_url, session_jwt, *, layout_id, event,
                        content_state, attributes=None, alert_title=None,
                        alert_body=None, stale_seconds=None, priority=10,
-                       relevance_score=None, _send=None):
+                       relevance_score=None, timeout=10, _send=None):
     """Drive a device's Live Activity (POST /alerts/live-activity/push).
 
     `event` is ``"start"`` (open one on a device where the app is not running),
@@ -251,6 +364,23 @@ def live_activity_push(validator_url, session_jwt, *, layout_id, event,
         raise ValueError('event "start" requires attributes — see activity_attributes()')
     if priority not in (5, 10):
         raise ValueError("priority must be 5 (opportunistic) or 10 (immediate)")
+    if not isinstance(layout_id, str) or not layout_id or len(layout_id.encode()) > 128:
+        raise ValueError("layout_id must be non-empty and <= 128 UTF-8 bytes")
+    if not isinstance(content_state, dict):
+        raise ValueError("content_state must be an object")
+    _json_size(content_state, 3072, "content_state")
+    if attributes is not None:
+        if not isinstance(attributes, dict):
+            raise ValueError("attributes must be an object")
+        if attributes.get("layoutId") != layout_id:
+            raise ValueError("attributes.layoutId must match layout_id")
+        _json_size(attributes, 1024, "attributes")
+    if stale_seconds is not None and (isinstance(stale_seconds, bool) or not isinstance(stale_seconds, int) or stale_seconds <= 0):
+        raise ValueError("stale_seconds must be a positive integer")
+    if relevance_score is not None:
+        _finite_number(relevance_score, "relevance_score")
+        if not 0 <= relevance_score <= 100:
+            raise ValueError("relevance_score must be within 0..100")
     payload = {"layoutId": layout_id, "event": event, "contentState": content_state,
                "priority": priority}
     if attributes is not None:
@@ -264,13 +394,13 @@ def live_activity_push(validator_url, session_jwt, *, layout_id, event,
     if relevance_score is not None:
         payload["relevanceScore"] = relevance_score
     return _post(validator_url.rstrip("/") + "/alerts/live-activity/push",
-                 session_jwt, payload, _send=_send)
+                 session_jwt, payload, timeout=timeout, _send=_send)
 
 
 # ── Outbound mesh bridge ─────────────────────────────────────────────────────
 
 def mesh_broadcast(relay_url, token, *, channel, event, payload=None,
-                   layout_id=None, action_id=None, _send=None):
+                   layout_id=None, action_id=None, timeout=10, _send=None):
     """Put one broadcast frame on a channel over HTTP (POST /mesh/broadcast).
 
     This is the escape hatch for a caller that cannot hold a WebSocket — the
@@ -282,8 +412,8 @@ def mesh_broadcast(relay_url, token, *, channel, event, payload=None,
     dials with `wss://`), NOT the validator base URL. `token` is the same
     credential the layout connects with.
 
-    `action_id` makes the call idempotent. Re-POSTing the same one never
-    re-broadcasts: the reply carries ``duplicate: true`` and echoes the first
+    `action_id` makes the call idempotent. The relay deduplicates within its ten-minute window; retrying inside that window
+    normally avoids rebroadcasting: the reply carries ``duplicate: true`` and echoes the first
     result. Pass one for anything non-idempotent — a toggle re-fired by a retry
     flips the light back.
 
@@ -304,6 +434,16 @@ def mesh_broadcast(relay_url, token, *, channel, event, payload=None,
         raise ValueError("channel and event are required")
     if payload is not None and not isinstance(payload, dict):
         raise ValueError("payload must be a dict (it is merged as siblings of msg_type)")
+    parts = urlsplit(relay_url)
+    scheme = {"wss": "https", "ws": "http"}.get(parts.scheme, parts.scheme)
+    if scheme not in ("https", "http") or not parts.netloc or parts.username or parts.password:
+        raise ValueError("relay_url must be an HTTP(S) or WS(S) endpoint without embedded credentials")
+    relay_url = urlunsplit((scheme, parts.netloc, "", "", ""))
+    # Match CAR-TER's bridge: broadcast_request is a transport verb; the
+    # semantic msg_type in the authored payload is the event the hub handles.
+    semantic = payload.get("msg_type") if payload else None
+    if isinstance(semantic, str) and semantic.strip():
+        event = semantic
     body = {"channel": channel, "event": event}
     if payload is not None:
         body["payload"] = payload
@@ -312,7 +452,7 @@ def mesh_broadcast(relay_url, token, *, channel, event, payload=None,
     if action_id is not None:
         body["actionId"] = action_id
     try:
-        return _post(relay_url.rstrip("/") + "/mesh/broadcast", token, body, _send=_send)
+        return _post(relay_url.rstrip("/") + "/mesh/broadcast", token, body, timeout=timeout, _send=_send)
     except CarterAmbientError as e:
         if e.status in (429, 503):
             try:

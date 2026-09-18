@@ -5,6 +5,10 @@ icon: circle.hexagonpath.fill
 category: controls
 defaultSpan: [3, 3]
 fields:
+  - name: haptic
+    type: enum
+    values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
+    description: Touch feedback on interaction (supported hardware)
   - name: label
     type: string
     description: Header label above the diagram
@@ -27,11 +31,17 @@ fields:
     description: Group color cycle (payload colors wins)
     group: chordConfig
   - name: pad
+    min: 0
+    max: 20
+    step: 0.5
     type: number
     default: 2.5
     description: Degrees of breathing room between arcs
     group: chordConfig
   - name: ribbonOpacity
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.4
     description: Ribbon opacity (selection brightens involved ribbons)
@@ -48,6 +58,9 @@ fields:
     group: chordConfig
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius

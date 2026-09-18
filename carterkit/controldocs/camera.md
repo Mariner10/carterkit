@@ -21,6 +21,9 @@ fields:
     default: auto
     description: "auto sends every stabilized detection; tap sends only items the user taps"
   - name: debounce
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 3
     description: Seconds before the same decoded value can fire again
@@ -33,10 +36,16 @@ fields:
     default: false
     description: Show a shutter button (implied when snapshotAction is set)
   - name: snapshotQuality
+    min: 0
+    max: 1
+    step: 0.05
     type: number
     default: 0.6
     description: JPEG quality 0–1 (auto-lowered to fit the mesh frame budget)
   - name: snapshotMaxDimension
+    min: 240
+    max: 4096
+    step: 1
     type: number
     default: 1280
     description: Longest snapshot edge in pixels
@@ -46,10 +55,16 @@ fields:
     description: Hide the header label (the LIVE chip moves into the viewfinder)
 themeFields:
   - name: cornerRadius
+    min: 0
+    max: 30
+    step: 1
     type: number
     default: 12
     description: Control corner radius
   - name: controlPadding
+    min: 0
+    max: 24
+    step: 1
     type: number
     default: 8
     description: Internal padding
@@ -70,6 +85,9 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    min: 0
+    max: 5
+    step: 0.5
     type: number
     default: 1
     description: Border width

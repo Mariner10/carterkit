@@ -325,9 +325,13 @@ class TabHandle(_ScopeProxy):
 
 class Layout:
     def __init__(self, name: str = "Layout", *, cols: int = None, rows: int = 6,
-                 columns: int = None, accent: str = "#667eea"):
+                 columns: int = None, accent: str = "#667eea", id: str = None):
         cols = cols if cols is not None else (columns if columns is not None else 4)
         self._buf = LayoutBuffer.blank(name=name, columns=cols, rows=rows, accent=accent)
+        if id is not None:
+            if not isinstance(id, str) or not id or len(id.encode("utf-8")) > 128:
+                raise ValueError("id must be non-empty and <= 128 UTF-8 bytes")
+            self._buf.layout["id"] = id
         # Remember the layout's grid so tabs inherit it unless they override — otherwise
         # `Layout(rows=12)` would be silently ignored and every tab would fall back to a
         # fixed 6-row grid, surprising callers who sized the grid on the Layout.
@@ -452,9 +456,13 @@ class Layout:
                tint: str = None, hero: str = None, slots: list = None,
                live_activity: bool = None, controls: list = None) -> "Layout":
         """Project this layout onto glance surfaces (widgets, lock screen, Dynamic
-        Island, Live Activities). `hero`/`slots` are control ids to surface; enabling
+        Island, Live Activities). `hero`/`slots` accept control IDs or handles; enabling
         `live_activity` lets the relay push updates to a running Live Activity. See
         GlanceConfig / glance.md."""
+        def control_id(value):
+            return value.id if isinstance(value, Control) else value
+        hero = control_id(hero)
+        slots = [control_id(value) for value in slots] if slots is not None else None
         block: dict = {}
         for k, v in (("enabled", enabled), ("title", title), ("icon", icon),
                      ("tint", tint), ("hero", hero), ("slots", slots),
