@@ -116,3 +116,23 @@ def test_glance_reference_validation():
     ui.glance(title="Sys", hero="cpu", slots=["ghost"], live_activity=True)
     warns = {f["kind"] for f in ui.validate() if f["severity"] == "warn"}
     assert "bad_glance" in warns   # 'ghost' isn't a control; 'cpu' is fine
+
+
+def test_keep_awake_is_a_bare_top_level_bool():
+    from carterkit import Layout
+    ui = Layout("Dash")
+    assert "keepAwake" not in ui.layout
+    ui.keep_awake()
+    assert ui.layout["keepAwake"] is True
+    ui.keep_awake(False)
+    assert "keepAwake" not in ui.layout
+
+
+def test_batch_publishers_is_a_bare_top_level_bool():
+    from carterkit import Layout
+    ui = Layout("Dash")
+    assert "batchPublishers" not in ui.layout
+    ui.batch_publishers()
+    assert ui.layout["batchPublishers"] is True
+    ui.batch_publishers(False)
+    assert "batchPublishers" not in ui.layout

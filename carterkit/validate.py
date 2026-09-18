@@ -386,6 +386,17 @@ def _validate_top_level(layout, findings):
         v = layout.get(key)
         if v is not None and not isinstance(v, typ):
             findings.append(_f("warn", "bad_top_level", "root", f"'{key}' should be {label}"))
+    # batchPublishers — a bare bool, like keepAwake.
+    batch = layout.get("batchPublishers")
+    if batch is not None and not isinstance(batch, bool):
+        findings.append(_f("warn", "bad_top_level", "root", "'batchPublishers' should be true or false"))
+    if batch is True and not layout.get("publishers"):
+        findings.append(_f("info", "bad_top_level", "root", "'batchPublishers' has no effect without a 'publishers' block"))
+
+    # keepAwake — a bare bool (Swift decodes `Bool?`; "true"/1 would fail on the phone).
+    keep_awake = layout.get("keepAwake")
+    if keep_awake is not None and not isinstance(keep_awake, bool):
+        findings.append(_f("warn", "bad_top_level", "root", "'keepAwake' should be true or false"))
 
     # alerts — relay-watcher push rules (AlertRule). Each needs the fields the watcher
     # matches on (event + valuePath + operator + value) and the push copy (title/body).

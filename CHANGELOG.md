@@ -3,6 +3,20 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.10.0]
+
+### Added
+- **`Layout.batch_publishers()`** — emits the top-level `batchPublishers: true`: the
+  phone sends one `sensor_batch` frame per tick of its fastest publisher interval,
+  each sensor riding the ticks where its own interval is due. `CarterClient`
+  unbatches transparently (`on_broadcast` / Hub handlers see plain `sensor`
+  frames); `validate_layout` checks the flag is a bare bool and notes when there is
+  no `publishers` block. Docs re-vendored (publishers, layout-config, sources).
+- **`Layout.keep_awake()`** — emits the new top-level `keepAwake: true`, asking the
+  app to suppress the iOS auto screen lock while the layout is on screen (a
+  request the user can veto in Permissions → Data Pipe). `validate_layout` warns
+  when the field isn't a bare bool. Docs re-vendored (layout-config, publishers).
+
 ## [0.9.1]
 
 ### Added

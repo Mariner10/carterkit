@@ -826,3 +826,24 @@ def test_glance_must_be_a_dict():
     ok = lambda *a: {}
     with pytest.raises(ValueError, match="glance must be a dict"):
         notify_http("https://v/", "jwt", "t", "b", glance="nope", _send=ok)
+
+
+def test_dispatch_broadcast_unbatches_sensor_batch():
+    import asyncio
+    from carterkit.client import CarterClient
+    client = CarterClient.__new__(CarterClient)
+    seen = []
+    client._session = None
+    client._notif_callbacks = {}
+    client._notif_action_handler = None
+    client._is_state_authority = False
+    client._join_handler = None
+    client._ack_commands = False
+    client._broadcast_handler = lambda d: seen.append(d)
+    batch = {"msg_type": "sensor_batch", "device": "phone", "count": 2, "readings": [
+        {"msg_type": "sensor", "sensor": "motion", "value": 1.0},
+        {"msg_type": "sensor", "sensor": "location", "value": 2.0},
+        "not-a-reading",
+    ]}
+    asyncio.run(client._dispatch_broadcast(batch))
+    assert [r["sensor"] for r in seen] == ["motion", "location"]

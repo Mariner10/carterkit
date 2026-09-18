@@ -464,6 +464,31 @@ class Layout:
         self._buf.layout["glance"] = block
         return self
 
+    # ─── keep awake (hold the screen on while this layout is open) ──────────────
+    def keep_awake(self, enabled: bool = True) -> "Layout":
+        """Ask the app to suppress the iOS auto screen lock while this layout is on
+        screen — for a layout that *is* the display (car dashboard, wall panel,
+        telemetry source). A request the user can veto in Permissions → Data Pipe;
+        the header shows a sun pill whenever the screen is being held. See
+        layout-config.md."""
+        if enabled:
+            self._buf.layout["keepAwake"] = True
+        else:
+            self._buf.layout.pop("keepAwake", None)
+        return self
+
+    # ─── batched publishing (one sensor_batch frame per tick of the fastest stream) ──
+    def batch_publishers(self, enabled: bool = True) -> "Layout":
+        """Publish this layout's sensors as ONE `sensor_batch` frame per tick of the
+        fastest declared interval, each sensor riding the ticks where its own
+        interval is due — far fewer radio wake-ups at identical cadences. Receivers
+        loop over `readings` (CarterClient does this for you). See publishers.md."""
+        if enabled:
+            self._buf.layout["batchPublishers"] = True
+        else:
+            self._buf.layout.pop("batchPublishers", None)
+        return self
+
     # ─── poll groups (server-timer polling) ─────────────────────────────────────
     def poll_group(self, name: str, *, event: str, interval: float, payload=None) -> "Layout":
         """Fire `event` (with optional `payload`) every `interval` seconds so a server

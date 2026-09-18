@@ -8,6 +8,7 @@ fields:
     type: string
     description: Display name (required)
   - name: version
+    bounds: none
     type: number
     description: Schema version (required)
   - name: headerTitle
@@ -37,6 +38,12 @@ fields:
   - name: sources
     type: object
     description: Named external data sources (MQTT brokers, HTTP APIs)
+  - name: keepAwake
+    type: bool
+    description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
+  - name: batchPublishers
+    type: bool
+    description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
 ---
 
 Top-level JSON structure for a CAR-TER remote.
@@ -62,7 +69,8 @@ Top-level JSON structure for a CAR-TER remote.
   "sources": { "broker": { "type": "mqtt", "url": "mqtt://..." } },
   "tabs": [ ... ],
   "pollGroups": { ... },
-  "dynamicTabs": [ ... ]
+  "dynamicTabs": [ ... ],
+  "keepAwake": true
 }
 ```
 
@@ -128,6 +136,35 @@ Controls visual styling — colors, fonts, spacing, and per-control type themes.
 Fonts set at the theme level propagate to all controls. Per-control overrides are supported via the `theme` field on any control definition.
 
 For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-themes** (`toggle`, `slider`, `stepper`, `segmented`, `progressBar`), and a live theme builder, see [[theming]].
+
+## Keep awake
+
+A dashboard mounted in a car or on a desk is useless once iOS dims and locks it.
+`"keepAwake": true` asks the app to suppress the auto screen lock for as long as
+this layout is the one on screen (and CAR-TER is frontmost). A sun pill appears
+in the header whenever the screen is being held awake, and tapping it opens the
+Permissions panel.
+
+It is a **request, not an order**. Layouts are untrusted JSON, so the user keeps
+a veto: Permissions → Data Pipe → "Layouts May Keep Screen Awake" (on by default).
+
+The user can also **designate any layout** as keep-awake from inside the app —
+the layout's Layout Info & Permissions sheet (Permissions → Screen → "Keep Screen
+Awake") or the Data Pipe card's "Keep “<layout>” Awake" row. Designating simply
+writes `"keepAwake": true` into the layout's JSON file (and switching it off removes
+the key), so the choice travels with the file and is subject to the same veto.
+Independently of any layout, the user's own "Keep Screen Awake" gate can hold the
+screen for every layout, or only while [[publishers]] are streaming. The screen is
+held whenever *either* path says so.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `keepAwake` | bool | `false` | Hold the screen on while this layout is open, unless the user vetoed layout requests |
+| `batchPublishers` | bool | `false` | Publish sensors as one `sensor_batch` frame per tick of the fastest interval — see [[publishers]] |
+
+Battery note: a held screen drains fast off the charger. Reserve it for layouts
+that really are the display — a car dashboard, a wall panel, a telemetry source —
+not a remote that is glanced at and pocketed.
 
 ## Related
 

@@ -378,6 +378,14 @@ class CarterClient:
     _PROTOCOL_BROADCASTS = ("control_sync_request", "control_snapshot", "command_ack")
 
     async def _dispatch_broadcast(self, data):
+        # A phone publishing with `batchPublishers: true` sends one `sensor_batch`
+        # frame per tick; every element of `readings` is a complete `sensor` frame,
+        # so hubs see exactly what they'd see unbatched.
+        if isinstance(data, dict) and data.get("msg_type") == "sensor_batch":
+            for reading in data.get("readings") or []:
+                if isinstance(reading, dict):
+                    await self._dispatch_broadcast(reading)
+            return
         # Notification action taps (the app's flat `notif_action` frame) are kit
         # plane, like protocol frames: dispatched to the per-send callback
         # registered by notify(actions=...) and the on_notif_action catch-all,

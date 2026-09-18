@@ -27,6 +27,9 @@ fields:
     type: object
     description: Extra HTTP headers sent with every poll/request
   - name: interval
+    min: 1
+    max: 3600
+    step: 1
     type: number
     default: 5
     description: Default poll interval (seconds) for HTTP syncs that omit their own
@@ -137,6 +140,19 @@ payloads send as JSON bodies; string payloads send as text.
 A layout may use MeshSocket, MQTT, HTTP, and [[sensors]] together — each sync
 entry picks its own `method`. A control with several sync entries takes whichever
 delivered last.
+
+## What the header shows
+
+The connection dot in the header stands for the layout's MeshSocket relay link.
+A layout that pulls through `sources` gets one extra glyph beside the dot per
+pipe — a poll cycle (↻) for each HTTP host, a fan-out mark for each MQTT
+broker — each in its own health color: yellow while the first poll or the
+broker dial is in flight, green once data is arriving, red after a failed poll
+or a dropped session, grey for a source nothing is bound to. A layout with no
+relay at all takes the pipes' aggregate color for the dot instead of the idle
+grey, so an HTTP-fed dashboard never reads as "Not connected". Tapping the dot
+or a glyph opens the connection hub, whose **Data Pipes** box lists every pipe
+with its host, cadence or topic count, and state.
 
 ## Notes
 

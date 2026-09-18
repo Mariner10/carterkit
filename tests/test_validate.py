@@ -103,3 +103,28 @@ def test_group_recursion_and_nested_ids():
 
 def test_format_findings_clean():
     assert "No issues" in validate.format_findings([])
+
+
+def test_keep_awake_must_be_bool():
+    from carterkit.validate import validate_layout
+    base = {"name": "K", "version": 1, "tabs": []}
+    assert not [f for f in validate_layout({**base, "keepAwake": True}, {})
+                if f["kind"] == "bad_top_level"]
+    bad = [f for f in validate_layout({**base, "keepAwake": "true"}, {})
+           if f["kind"] == "bad_top_level"]
+    assert bad and "keepAwake" in bad[0]["detail"]
+
+
+def test_batch_publishers_must_be_bool_and_needs_publishers():
+    from carterkit.validate import validate_layout
+    base = {"name": "B", "version": 1, "tabs": []}
+    bad = [f for f in validate_layout({**base, "batchPublishers": "yes"}, {})
+           if f["kind"] == "bad_top_level"]
+    assert bad and "batchPublishers" in bad[0]["detail"]
+    lonely = [f for f in validate_layout({**base, "batchPublishers": True}, {})
+              if f["kind"] == "bad_top_level"]
+    assert lonely and lonely[0]["severity"] == "info"
+    ok = [f for f in validate_layout({**base, "batchPublishers": True,
+                                      "publishers": [{"sensor": "motion"}]}, {})
+          if f["kind"] == "bad_top_level"]
+    assert not ok
