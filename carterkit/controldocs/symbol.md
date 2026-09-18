@@ -487,7 +487,7 @@ the synced state — it runs while the workout is on.
   "tint": "#FF375F",
   "hideBackground": true,
   "symbolConfig": { "tapEffect": "bounce" },
-  "action": { "method": "meshsocket", "mode": "broadcast", "event": "like", "payload": { "symbol": "{{value}}" } }
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "like", "symbol": "{{value}}" } }
 }
 ```
 
