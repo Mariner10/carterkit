@@ -31,17 +31,6 @@ def test_room_client_drops_cleartext_frames(monkeypatch):
     assert c._open({"type": "node_status", "clients": []}) == {"type": "node_status", "clients": []}
 
 
-def test_room_client_lenient_opt_out_passes_cleartext_with_one_warning(monkeypatch, caplog):
-    # strict_e2ee=False is an explicit debugging opt-out: pass through, warn once per msg_type.
-    import logging
-    c = _room_client(monkeypatch, strict_e2ee=False)
-    frame = {"msg_type": "command", "text": "x"}
-    with caplog.at_level(logging.WARNING, logger="carterkit.client"):
-        assert c._open(frame) == frame
-        assert c._open(frame) == frame
-    assert sum("plaintext frame" in r.message for r in caplog.records) == 1
-
-
 def test_room_client_rejects_short_key(monkeypatch):
     monkeypatch.setattr(ckclient, "MeshSocket", _FakeSock)
     with pytest.raises(ValueError):

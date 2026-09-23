@@ -71,6 +71,11 @@ was staged as 0.11.0 and never published (folded in below).
   and the frozen test vectors still hold with `stamp=False`.
 - `Connection.parse(None).key` is a fresh random key instead of `""`; `qr_json()` and
   `layout_block()` therefore carry a `token` for local relays.
+- `Connection.app_url()` returns `ws://127.0.0.1:<port>` for a loopback-bound embedded
+  relay instead of the LAN ip a phone could not reach anyway; `Hub`, `carterkit relay`
+  and `carterkit explore` log/print a one-line hint that `host="0.0.0.0"` / `--lan` is
+  needed for a phone on the LAN. `carterkit explore --lan` added.
+- `Hub(strict_e2ee=, max_inflight=, rate_per_type=)` pass through to `CarterClient`.
 - The explorer's `/api/status.qr` is the pairing JSON minus `token`/`k`.
 - Docs (README, `relay.py`, `client.py`) now state what the code guarantees: room mode
   does not authenticate senders; plaintext in an E2EE session is dropped; the

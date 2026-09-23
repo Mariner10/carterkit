@@ -75,7 +75,7 @@ def _cmd_explore(args) -> int:
     overrides = {k: v for k, v in (("channel", args.channel), ("token", args.token))
                  if v is not None}
     explorer = build_explorer(args.source, device=args.device, port=args.port,
-                              **overrides)
+                              host="0.0.0.0" if args.lan else "127.0.0.1", **overrides)
 
     def ready(ex):
         url = f"http://127.0.0.1:{ex.port}"
@@ -87,6 +87,9 @@ def _cmd_explore(args) -> int:
             from .qr import encode as qr_encode
             print(qr_encode(payload, ecc="M").ascii())
             print(f"  {payload}")
+            if conn.is_loopback_relay():
+                print("  (relay bound to 127.0.0.1 — a phone on the LAN cannot reach it; "
+                      "pass --lan)", file=sys.stderr)
         if ex.pull is not None and ex.hub.layout is None:
             print("waiting for the phone to join — the layout appears the moment it does")
         if not args.no_open:
@@ -120,6 +123,8 @@ def _cmd_relay(args) -> int:
     where = f"ws://{lan_ip()}:{args.port}" if host == "0.0.0.0" else f"ws://{host}:{args.port}"
     auth = "open — NO AUTH" if not key else "shared-key auth"
     print(f"MeshSocket relay on {where} ({auth})", file=sys.stderr)
+    if host in ("127.0.0.1", "localhost", "::1"):
+        print("bound to loopback: a phone on the LAN cannot reach it — add --lan", file=sys.stderr)
 
     async def run():
         async with relay:
@@ -181,6 +186,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--port", type=int, default=8770, help="explorer web port")
     c.add_argument("--no-open", action="store_true",
                    help="don't auto-open the browser")
+    c.add_argument("--lan", action="store_true",
+                   help="bind the embedded relay on 0.0.0.0 so a phone on the LAN can pair")
     c.set_defaults(fn=_cmd_explore)
 
     c = sub.add_parser("relay", help="run the bundled MeshSocket relay (keyed, loopback by default)")

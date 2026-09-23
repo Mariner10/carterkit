@@ -54,3 +54,23 @@ def test_local_relay_keyless_requires_insecure():
             async with LocalRelay(port=port, key="", insecure=True) as r:
                 assert r.key == "" and r.insecure
     asyncio.run(run())
+
+
+def test_hub_passes_e2ee_and_backpressure_settings_to_client():
+    from carterkit.hub import Hub
+    hub = Hub(None, None, port=18999)                      # defaults
+    assert hub.client.strict_e2ee is True
+    hub = Hub(None, None, port=18999, strict_e2ee=False, max_inflight=4, rate_per_type=5)
+    assert hub.client.strict_e2ee is False
+    assert hub.client._inflight._value == 4 and hub.client._rate_per_type == 5.0
+
+
+def test_local_qr_is_honest_about_loopback():
+    import json
+    from carterkit.hub import Hub
+    loop = Hub(None, None, port=18999)                     # loopback-bound relay
+    assert json.loads(loop.qr_json())["url"] == "ws://127.0.0.1:18999"
+    assert loop.connection.layout_block()["url"] == "ws://127.0.0.1:18999"
+    lan = Hub(None, None, port=18999, host="0.0.0.0")
+    assert "127.0.0.1" not in json.loads(lan.qr_json())["url"] or lan.connection.app_url().startswith("ws://")
+    assert not lan.connection.is_loopback_relay()

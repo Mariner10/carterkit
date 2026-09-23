@@ -84,7 +84,7 @@ class Connection:
                  device_id: str | None = None, refresh_token: str | None = None,
                  validator: str | None = None, hub: str | None = None,
                  port: int = _LOCAL_DEFAULT_PORT, key: str | None = None,
-                 allow_insecure_validator: bool = False):
+                 allow_insecure_validator: bool = False, host: str = "127.0.0.1"):
         self.kind = kind
         self.url = url
         self.channel = channel
@@ -98,6 +98,9 @@ class Connection:
         self.validator = _checked_validator(validator, allow_insecure_validator)
         self.hub = hub                        # preferred mesh name for a serving hub
         self.port = port                      # local-relay bind (kind == "local")
+        #: Local-relay bind address. Loopback by default: only this machine can reach
+        #: it, and app_url() says so honestly. "0.0.0.0" lets a phone on the LAN pair.
+        self.host = host
         # Local-relay shared key. A fresh random key by default (0.12+) so an embedded
         # relay is never open; pass key="" only together with LocalRelay(insecure=True).
         self.key = generate_relay_key() if (kind == "local" and key is None) else (key or "")
@@ -176,11 +179,20 @@ class Connection:
             f"a layout connection block, a pairing JSON, or an Add-Device credential")
 
     # ─── emissions ───────────────────────────────────────────────────────────
+    def is_loopback_relay(self) -> bool:
+        """True for an embedded relay bound to loopback — reachable from this
+        machine only, so a phone on the LAN cannot pair with it."""
+        return self.kind == "local" and self.host in ("127.0.0.1", "localhost", "::1")
+
     def app_url(self) -> str:
-        """The URL the APP should dial. For kind 'local' that's this machine's LAN
-        address (the phone can't reach 127.0.0.1)."""
+        """The URL the APP should dial. For kind 'local' that is this machine's LAN
+        address when the relay is bound to the LAN (``host="0.0.0.0"``), and an honest
+        ``ws://127.0.0.1:port`` when it is bound to loopback (only a simulator or a
+        browser on this machine can reach that — pass ``host="0.0.0.0"`` for a phone)."""
         if self.url:
             return self.url
+        if self.is_loopback_relay():
+            return f"ws://127.0.0.1:{self.port}"
         from .relay import lan_ip
         return f"ws://{lan_ip()}:{self.port}"
 

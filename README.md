@@ -271,8 +271,11 @@ the stdlib-only `carterkit.notify_http(...)`.
 ### Security defaults
 
 - The embedded `LocalRelay` (and `Hub()` / `ui.serve()` with no connection) gets a
-  random shared key and binds `127.0.0.1`. Pass `host="0.0.0.0"` for LAN pairing (the
-  QR carries the LAN address and the key); a keyless relay needs `insecure=True`.
+  random shared key and binds `127.0.0.1`; the pairing QR then honestly says
+  `ws://127.0.0.1:…`, which only this machine can reach. Pass `host="0.0.0.0"` (or
+  `carterkit explore --lan` / `carterkit relay --lan`) for a phone on the LAN — the QR
+  then carries the LAN address and the key. A keyless relay needs `insecure=True`.
+- `Hub(strict_e2ee=, max_inflight=, rate_per_type=)` pass through to its `CarterClient`.
 - A device credential's `validator` must be `https`. Plain `http` is accepted only for
   `127.0.0.1`/`localhost` with `allow_insecure_validator=True`.
 - `carterkit explore` serves loopback only, refuses foreign `Host`/`Origin`, requires a

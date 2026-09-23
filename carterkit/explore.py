@@ -645,7 +645,7 @@ class Explorer:
 
 
 def build_explorer(source: str | None = None, *, device: str | None = None,
-                   port: int = 8770, **conn_overrides) -> Explorer:
+                   port: int = 8770, host: str = "127.0.0.1", **conn_overrides) -> Explorer:
     """Wire up an Explorer from CLI-ish arguments.
 
     ``source`` is a layout JSON path, a connection artifact (pairing/device
@@ -676,5 +676,5 @@ def build_explorer(source: str | None = None, *, device: str | None = None,
     elif layout is None:
         pull = "current"                  # zero-config: pull whatever is live
 
-    hub = Hub(layout, connection, name="layout-link", **conn_overrides)
+    hub = Hub(layout, connection, name="layout-link", host=host, **conn_overrides)
     return Explorer(hub, port=port, pull=pull)
