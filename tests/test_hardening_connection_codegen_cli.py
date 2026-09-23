@@ -31,3 +31,26 @@ def test_relay_subcommand_requires_key_or_insecure():
     p = build_parser()
     args = p.parse_args(["relay"])
     assert hasattr(args, "key") and hasattr(args, "insecure")   # neither exists today
+
+
+def test_local_relay_keyless_requires_insecure():
+    import asyncio
+    import socket
+    import warnings
+    from carterkit.relay import LocalRelay
+    with pytest.raises(ValueError):
+        LocalRelay(key="")                                   # open relay without opting in
+    with pytest.raises(ValueError):
+        LocalRelay(key="", host="0.0.0.0")                   # ...and never on a LAN bind
+    assert len(LocalRelay().key) >= 24                       # default: a generated key
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+
+    async def run():
+        # An explicit insecure relay starts without the meshsocket "open server" warning.
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            async with LocalRelay(port=port, key="", insecure=True) as r:
+                assert r.key == "" and r.insecure
+    asyncio.run(run())

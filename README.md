@@ -258,17 +258,17 @@ credential — which is the hub's identity, so it is never embedded into a layou
 End-to-end encryption (ChaCha20-Poly1305 + per-session salt) is applied to every frame
 the client sends when an `e2ee_key` is present, and every sealed frame it receives is
 opened, replay-checked and freshness-checked (±120 s) before a handler sees it. Keys
-must be exactly 32 bytes (base64). What E2EE does **not** do: room mode is one
-symmetric key per room, so it does not tell members apart — any member can send as
-any other. And in 0.12 a *plaintext* frame arriving in an E2EE session is still passed
-through (with a one-time warning per `msg_type`) because the current app answers
-routed requests in the clear; pass `CarterClient(strict_e2ee=True)` to drop them, which
-becomes the default in 0.13. Relay control frames are always plaintext.
+must be exactly 32 bytes (base64). A *plaintext* frame arriving in an E2EE session is
+dropped and counted (`client.dropped["plaintext"]`); relay control frames are always
+plaintext and always pass. `CarterClient(strict_e2ee=False)` passes plaintext through
+with a one-time warning per `msg_type` — a debugging aid for a peer that is not sealing
+yet, not a supported mode. What E2EE does **not** do: room mode is one symmetric key
+per room, so it does not tell members apart — any member can send as any other.
 
 Send a push to every device on a Connect+ account with `CarterClient.notify(...)` or
 the stdlib-only `carterkit.notify_http(...)`.
 
-### Security defaults (0.12)
+### Security defaults
 
 - The embedded `LocalRelay` (and `Hub()` / `ui.serve()` with no connection) gets a
   random shared key and binds `127.0.0.1`. Pass `host="0.0.0.0"` for LAN pairing (the

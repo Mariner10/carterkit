@@ -14,9 +14,9 @@ authors = [{ name = "Carter Beaudoin" }]
 keywords = ["car-ter", "carter", "iot", "dashboard", "remote", "meshsocket", "layout"]
 dependencies = [
     # Upper bounds: both are security-relevant and their majors have broken us before.
-    # 0.2.0 (identify-after-auth closes, name validation) is being prepared; widen the
-    # floor to >=0.2.0 once it is on PyPI.
-    "meshsocket>=0.1.2,<0.3",
+    # meshsocket 0.2.0 = identify-after-auth closes, identity validation, fail-closed
+    # server defaults; carterkit 0.12 relies on those.
+    "meshsocket>=0.2.0,<0.3",
     "cryptography>=42,<50",
 ]
 classifiers = [

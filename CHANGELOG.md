@@ -24,13 +24,12 @@ was staged as 0.11.0 and never published (folded in below).
 - **32-byte keys only.** `E2EESession`, `CarterClient(e2ee_key=)`, `Connection` (layout
   `e2eeKey`, QR/credential `k`) and `bind.connection()` reject keys that are not
   strict base64 of exactly 32 bytes.
-- **Fail-closed receive path, staged.** `CarterClient._open` never raises into a
-  handler: an undecryptable envelope is dropped and counted (`client.dropped`).
-  A plaintext frame in an E2EE session is dropped when `strict_e2ee=True`; the 0.12
-  default is `False` (pass-through with one warning per `msg_type`) because the app
-  currently on TestFlight answers routed requests in the clear. **0.13 flips the
-  default to `True`.** Relay control frames (`welcome`, `node_status`, `roster`, …)
-  are always allowed.
+- **Fail-closed receive path.** `CarterClient._open` never raises into a handler: an
+  undecryptable envelope is dropped and counted (`client.dropped`). A plaintext frame
+  in an E2EE session is dropped by default (`strict_e2ee=True`); `strict_e2ee=False`
+  passes it through with one warning per `msg_type` as a debugging aid only. Relay
+  control frames (`welcome`, `node_status`, `roster`, …) are always allowed. No
+  compatibility path: peers that do not seal every frame must be upgraded together.
 - **Inbound backpressure.** Dispatch runs under `asyncio.Semaphore(32)`
   (`max_inflight=`) and a per-`msg_type` token bucket (`rate_per_type=20`, burst 2x);
   excess frames are dropped with a counter and a rate-limited warning.
@@ -61,7 +60,7 @@ was staged as 0.11.0 and never published (folded in below).
   derived from each control's spec, and the pairing payload rendered as an ASCII QR
   instead of printed JSON.
 - **`Layout.save` writes 0600.**
-- **Packaging:** `meshsocket>=0.1.2,<0.3`, `cryptography>=42,<50`; `MANIFEST.in`
+- **Packaging:** `meshsocket>=0.2.0,<0.3`, `cryptography>=42,<50`; `MANIFEST.in`
   excludes `tests/`; the publish workflow pins actions by SHA, runs the test suite
   first, checks the tag against `pyproject.toml`, and publishes from the protected
   `pypi` environment.
@@ -74,8 +73,10 @@ was staged as 0.11.0 and never published (folded in below).
   `layout_block()` therefore carry a `token` for local relays.
 - The explorer's `/api/status.qr` is the pairing JSON minus `token`/`k`.
 - Docs (README, `relay.py`, `client.py`) now state what the code guarantees: room mode
-  does not authenticate senders; plaintext is still accepted in 0.12 unless
-  `strict_e2ee=True`; the explorer's redaction covers layout and status, not the QR.
+  does not authenticate senders; plaintext in an E2EE session is dropped; the
+  explorer's redaction covers layout and status, not the QR.
+- **Requires `meshsocket>=0.2.0`** (identify-after-auth closes, identity validation,
+  fail-closed server defaults).
 
 ### Ambient Surfaces v2 (staged as 0.11.0, unpublished)
 

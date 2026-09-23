@@ -104,8 +104,14 @@ class LocalRelay:
         on_auth = None
         if self.on_join:
             on_auth = lambda client, ip, tok: self.on_join(getattr(client, "name", "?"), ip)
-        self._server = MeshServer(host=self.host, port=self.port,
-                                  auth_handler=auth, on_authenticated=on_auth)
+        kwargs = dict(host=self.host, port=self.port, auth_handler=auth, on_authenticated=on_auth)
+        if self.insecure and not self.key:
+            # meshsocket >= 0.2 warns on an open server unless the caller opts in
+            # explicitly; `insecure=True` IS that opt-in.
+            import inspect
+            if "allow_anonymous" in inspect.signature(MeshServer.__init__).parameters:
+                kwargs["allow_anonymous"] = True
+        self._server = MeshServer(**kwargs)
         self._task = asyncio.create_task(self._server.start())
         await asyncio.sleep(0.5)      # let the listener bind before clients dial in
         return self

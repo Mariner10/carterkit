@@ -23,19 +23,18 @@ def _room_client(monkeypatch, **kw):
 
 
 def test_room_client_drops_cleartext_frames(monkeypatch):
-    # strict_e2ee=True is the fail-closed mode; 0.13 makes it the default.
-    c = _room_client(monkeypatch, strict_e2ee=True)
+    # fail-closed is the default
+    c = _room_client(monkeypatch)
     assert c._open({"msg_type": "command", "text": "rm -rf /"}) is None
     assert c.dropped["plaintext"] == 1
     # relay control frames are plaintext by nature and always pass
     assert c._open({"type": "node_status", "clients": []}) == {"type": "node_status", "clients": []}
 
 
-def test_room_client_default_passes_cleartext_with_one_warning(monkeypatch, caplog):
-    # 0.12 default (strict_e2ee=False): the TestFlight app still answers routed requests
-    # in plaintext, so pass through — but warn exactly once per msg_type.
+def test_room_client_lenient_opt_out_passes_cleartext_with_one_warning(monkeypatch, caplog):
+    # strict_e2ee=False is an explicit debugging opt-out: pass through, warn once per msg_type.
     import logging
-    c = _room_client(monkeypatch)
+    c = _room_client(monkeypatch, strict_e2ee=False)
     frame = {"msg_type": "command", "text": "x"}
     with caplog.at_level(logging.WARNING, logger="carterkit.client"):
         assert c._open(frame) == frame

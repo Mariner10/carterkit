@@ -4,12 +4,12 @@ every frame this client SENDS (broadcasts AND request replies) is sealed, and ev
 sealed frame it receives is opened, freshness- and replay-checked, before a handler
 sees it. Cleartext otherwise.
 
-Receive-side policy in an E2EE session (`strict_e2ee`): a plaintext frame from a peer
-is passed through with a one-time warning per msg_type when `strict_e2ee=False` (the
-0.12 default — the app on TestFlight still answers routed requests in plaintext) and
-DROPPED when `strict_e2ee=True`. 0.13 flips the default to True. Relay control frames
-(`_RELAY_CONTROL_TYPES`) are always plaintext and always allowed. Room mode does not
-authenticate the sender: every member holds the same key.
+Receive-side policy in an E2EE session (`strict_e2ee`, default True): a plaintext
+frame from a peer is DROPPED and counted. `strict_e2ee=False` passes such frames
+through with a one-time warning per msg_type — a debugging aid for mixed deployments,
+not a supported mode. Relay control frames (`_RELAY_CONTROL_TYPES`) are always
+plaintext and always allowed. Room mode does not authenticate the sender: every
+member holds the same key.
 
 Also exposes `notify_http(...)` and `CarterClient.notify(...)` for sending a one-shot
 push to every device on a Connect+ account (POST /alerts/notify). `notify_http` is
@@ -361,12 +361,12 @@ class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
                  validator_url=None, session_jwt=None, room=False,
                  device_id=None, refresh_token=None, refresh_interval=2400,
-                 can_route=False, can_monitor=False, *, strict_e2ee=False,
+                 can_route=False, can_monitor=False, *, strict_e2ee=True,
                  allow_insecure_validator=False, max_inflight=DEFAULT_MAX_INFLIGHT,
                  rate_per_type=DEFAULT_RATE_PER_TYPE):
-        """`strict_e2ee=True` drops every non-envelope frame from a peer while an E2EE
-        session exists; `False` (0.12 default) passes them through with one warning per
-        msg_type. `allow_insecure_validator` permits an http:// validator on loopback
+        """`strict_e2ee=True` (default) drops every non-envelope frame from a peer while
+        an E2EE session exists; `False` passes them through with one warning per
+        msg_type (debugging aid only). `allow_insecure_validator` permits an http:// validator on loopback
         only. `max_inflight` bounds concurrent inbound handler runs; `rate_per_type` is
         a per-msg_type admission rate (frames/s, 0 disables) — excess frames are dropped
         and counted in `dropped`."""
@@ -462,9 +462,9 @@ class CarterClient:
             return None
         if mt not in self._warned_plaintext:
             self._warned_plaintext.add(mt)
-            log.warning("plaintext frame (msg_type=%r) accepted in an E2EE session; "
-                        "carterkit 0.13 will drop these by default — pass "
-                        "strict_e2ee=True to drop them now", mt)
+            log.warning("plaintext frame (msg_type=%r) accepted in an E2EE session "
+                        "because strict_e2ee=False — this peer is not sealing; fix the "
+                        "peer rather than relying on this", mt)
         return payload
 
     def _admit(self, data) -> bool:
