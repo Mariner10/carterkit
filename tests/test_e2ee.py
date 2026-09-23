@@ -10,11 +10,11 @@ def test_frozen_v2_key_vectors():
 
 def test_frozen_v2_ciphertext_vectors():
     app = E2EESession(K, is_device_side=False, seal_salt=SESS)
-    env = app.seal({"msg_type": "hello"})
+    env = app.seal({"msg_type": "hello"}, stamp=False)
     assert env["e2ee"] == 2 and env["s"] == base64.b64encode(SESS).decode() and env["n"] == 0
     assert env["ct"] == "+Nepe+TZfbf7rCjrPe7kS0SR8PGWxWwPv3/vnt+AWFoxPib+"
     hub = E2EESession(K, is_device_side=True, seal_salt=SESS)
-    assert hub.seal({"msg_type": "hello"})["ct"] == "vJtIu68f/NhxkoiDMy3PoIJiSkDLJ4JRyJ3C9yB5DwrvjZ5m"
+    assert hub.seal({"msg_type": "hello"}, stamp=False)["ct"] == "vJtIu68f/NhxkoiDMy3PoIJiSkDLJ4JRyJ3C9yB5DwrvjZ5m"
 
 def test_cross_roundtrip_random_salts():
     app = E2EESession(K, is_device_side=False)
@@ -30,7 +30,7 @@ def test_frozen_v2_group_vectors():
     # Symmetric "grp v2" room cipher — frozen, byte-identical to the app's group session.
     assert base64.b64encode(derive_key(K, SESS, b"grp v2")).decode() == "q6Mo+r3Ed3IFxfL3ASxtiBi9tcu9+PhzwktJg/PgSf8="
     s = E2EESession.group(K, seal_salt=SESS)
-    assert s.seal({"msg_type": "hello"})["ct"] == "pFc43+GgSzwf+XW0owEzh57qjImojP74Q8LgUHZmL28yT+tl"
+    assert s.seal({"msg_type": "hello"}, stamp=False)["ct"] == "pFc43+GgSzwf+XW0owEzh57qjImojP74Q8LgUHZmL28yT+tl"
 
 def test_group_multi_sender_roundtrip():
     # Any room member opens any other's envelope; independent per-session salts make it safe.

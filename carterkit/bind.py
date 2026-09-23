@@ -167,6 +167,9 @@ def connection(url: str | None, *, channel: str = "home", name: str = "CAR-TER",
     its own Connect+ relay with its own account session, and a raw url/token here
     would make it hand the wrong credential to the wrong host (reconnect loop)."""
     conn: dict = {"identity": {"name": name, "channel": channel, "role": role}}
+    if e2ee_key is not None:
+        from .e2ee import decode_key_b64
+        decode_key_b64(e2ee_key)          # strict base64, exactly 32 bytes — or ValueError
     if url is not None:
         conn["url"] = url
     if token is not None:
