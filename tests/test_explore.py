@@ -38,10 +38,18 @@ def _get(port, path):
         return r.status, r.read()
 
 
+def _token(port):
+    """The per-run CSRF token the page embeds (what the browser sends on every POST)."""
+    import re
+    _, page = _get(port, "/")
+    return re.search(rb'name="explorer-token" content="([^"]+)"', page).group(1).decode()
+
+
 def _post(port, path, body):
     req = urllib.request.Request(
         f"http://127.0.0.1:{port}{path}", data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json"}, method="POST")
+        headers={"Content-Type": "application/json", "X-Explorer-Token": _token(port)},
+        method="POST")
     with urllib.request.urlopen(req, timeout=10) as r:
         return r.status, json.loads(r.read())
 
@@ -116,7 +124,7 @@ def test_endpoints_and_push():
         got = {}
 
         def listen():
-            req = urllib.request.Request(f"http://127.0.0.1:{port}/events")
+            req = urllib.request.Request(f"http://127.0.0.1:{port}/events?token={_token(port)}")
             with urllib.request.urlopen(req, timeout=15) as r:
                 for line in r:
                     if line.startswith(b"data: "):

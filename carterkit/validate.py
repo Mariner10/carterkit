@@ -6,11 +6,20 @@ the field/enum schema stays in sync with the docs. Reports structural problems
 bad enum values, and grid overlaps/out-of-bounds (via grid.validate_placement).
 
 Findings are dicts: {"severity": "error"|"warn", "kind", "where", "detail"}.
+
+`validate_layout` NEVER raises on hostile input: a non-integer span/grid/position, a
+non-finite number, absurd nesting or control counts, dangerous URL schemes, embedded
+credentials and oversized strings all come back as findings (`bad_span`, `bad_grid`,
+`bad_position`, `non_finite`, `too_deep`, `too_many_controls`, `bad_url`,
+`embedded_secret`, `long_string`), and cell enumeration is capped so a 1500x1500 span
+is reported, not built.
 """
 
 from __future__ import annotations
 
+import math
 from typing import Optional
+from urllib.parse import urlsplit
 
 from . import grid as gridmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
@@ -36,15 +45,62 @@ def _f(severity: str, kind: str, where: str, detail: str) -> dict:
     return {"severity": severity, "kind": kind, "where": where, "detail": detail}
 
 
+#: Hostile-input caps. The app renders nothing like these; past them a layout is
+#: either broken or crafted, and the lint says so instead of working harder.
+MAX_DEPTH = 16
+MAX_CONTROLS = 2000
+MAX_STRING = 4096
+#: URL schemes a layout may point the phone at. `http` is allowed but warned.
+SAFE_URL_SCHEMES = {"https", "mqtt", "mqtts", "ws", "wss"}
+_WARN_URL_SCHEMES = {"http"}
+_URL_KEYS = {"url", "baseURL", "imageURL", "avatarURL", "src", "href", "validator"}
+
+
 def validate_layout(layout: dict, catalog: dict) -> list[dict]:
     """Validate a full layout against the catalog. `catalog` should be built with
-    include_theme=True so per-control theme fields are recognized."""
+    include_theme=True so per-control theme fields are recognized. Never raises:
+    an unexpected failure is itself reported as an `internal_error` finding."""
+    try:
+        return _validate_layout(layout, catalog)
+    except RecursionError:
+        return [_f("error", "too_deep", "root", "layout nests too deeply to validate")]
+    except Exception as e:                        # pragma: no cover - last resort
+        return [_f("error", "internal_error", "root",
+                   f"validator failed on this input ({type(e).__name__}: {e}); "
+                   f"treat the layout as invalid")]
+
+
+def _grid_dims(g, where, findings) -> tuple[int, int]:
+    """(columns, rows) for a grid block, defaulting 4x8; a non-integer or absurd
+    value is a `bad_grid` finding and falls back to the default."""
+    if g is None:
+        g = {}
+    if not isinstance(g, dict):
+        findings.append(_f("error", "bad_grid", where, f"'grid' must be an object, got {g!r}"))
+        return 4, 8
+    out = []
+    for key, default in (("columns", 4), ("rows", 8)):
+        raw = g.get(key, default)
+        v = gridmod.as_int(raw)
+        if v is None or v < 1 or v > 64:
+            findings.append(_f("error", "bad_grid", where,
+                               f"grid.{key} must be an integer 1..64, got {raw!r}"))
+            v = default
+        out.append(v)
+    return out[0], out[1]
+
+
+def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     findings: list[dict] = []
     if not isinstance(layout, dict):
         return [_f("error", "structure", "root", "layout must be a JSON object")]
     for key in ("name", "version", "tabs"):
         if key not in layout:
             findings.append(_f("error", "missing_field", "root", f"missing top-level '{key}'"))
+
+    # Whole-tree hygiene first: non-finite numbers, oversized strings, URL schemes,
+    # embedded credentials. Iterative, so hostile nesting cannot blow the stack.
+    _scan_tree(layout, findings)
 
     # Declared data sources (name -> kind), so control bindings can be checked against
     # them (an mqtt/http `source:` must name a declared source). See sources.md.
@@ -57,17 +113,26 @@ def validate_layout(layout: dict, catalog: dict) -> list[dict]:
         return findings
 
     seen_ids: dict[str, str] = {}
+    counter = {"n": 0}
     for ti, tab in enumerate(tabs):
         where = f"tab[{ti}]"
         if not isinstance(tab, dict):
             findings.append(_f("error", "structure", where, "tab must be an object"))
             continue
-        g = tab.get("grid") or {}
-        cols, rows = int(g.get("columns", 4)), int(g.get("rows", 8))
+        g = tab.get("grid")
+        cols, rows = _grid_dims(g, where, findings)
         children = tab.get("children") or []
-        _grid_findings(children, cols, rows, where, findings, g.get("mode"))
+        if not isinstance(children, list):
+            findings.append(_f("error", "structure", where, "'children' must be an array"))
+            continue
+        _grid_findings(children, cols, rows, where, findings,
+                       g.get("mode") if isinstance(g, dict) else None)
         for ch in children:
-            _validate_child(ch, catalog, where, findings, seen_ids, sources)
+            _validate_child(ch, catalog, where, findings, seen_ids, sources, 1, counter)
+    if counter["n"] > MAX_CONTROLS:
+        findings.append(_f("warn", "too_many_controls", "root",
+                           f"{counter['n']} controls — the app renders nothing usable past "
+                           f"{MAX_CONTROLS}; this layout is broken or hostile"))
 
     # A declared source that nothing binds to is dead weight (and usually a typo in a
     # binding's `source`/`topic`) — flag it so authors notice the disconnect.
@@ -276,6 +341,77 @@ def _validate_glance(glance: dict, seen_ids: dict, findings: list) -> None:
                                f"{list(LIVE_TIERS)} — the app falls back to 'fresh'"))
 
 
+def _scan_tree(layout: dict, findings: list) -> None:
+    """One iterative pass over the whole document for value-level hazards."""
+    secret_paths = set()
+    conn = layout.get("connection")
+    if isinstance(conn, dict):
+        for k in ("token", "e2eeKey", "k", "refresh"):
+            if conn.get(k):
+                secret_paths.add(f"connection.{k}")
+    srcs = layout.get("sources")
+    if isinstance(srcs, dict):
+        for name, src in srcs.items():
+            if not isinstance(src, dict):
+                continue
+            for k in ("password", "token", "apiKey"):
+                if src.get(k):
+                    secret_paths.add(f"sources.{name}.{k}")
+            headers = src.get("headers")
+            if isinstance(headers, dict):
+                for hk in headers:
+                    if any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie")):
+                        secret_paths.add(f"sources.{name}.headers.{hk}")
+    for path in sorted(secret_paths):
+        findings.append(_f("warn", "embedded_secret", path,
+                           "a credential is embedded in the layout — anyone who receives "
+                           "this JSON (share, export, MCP readback) receives the secret"))
+
+    stack = [(layout, "root", 0)]
+    seen_urls = 0
+    while stack:
+        node, path, depth = stack.pop()
+        if depth > 64:
+            findings.append(_f("error", "too_deep", path, "document nests deeper than 64 levels"))
+            continue
+        if isinstance(node, dict):
+            for k, v in node.items():
+                sub = f"{path}.{k}"
+                if isinstance(v, str) and k in _URL_KEYS and depth > 0 and path != "root.connection":
+                    seen_urls += 1
+                    if seen_urls <= 500:
+                        _check_url(v, sub, findings)
+                stack.append((v, sub, depth + 1))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                stack.append((v, f"{path}[{i}]", depth + 1))
+        elif isinstance(node, float):
+            if math.isnan(node) or math.isinf(node):
+                findings.append(_f("error", "non_finite", path,
+                                   f"{node!r} is not valid JSON — the app's decoder rejects the whole layout"))
+        elif isinstance(node, str):
+            if len(node) > MAX_STRING:
+                findings.append(_f("warn", "long_string", path,
+                                   f"string is {len(node)} chars (> {MAX_STRING}); the app truncates or chokes"))
+
+
+def _check_url(value: str, path: str, findings: list) -> None:
+    if not value or "{{" in value:              # templated at runtime; scheme unknown here
+        return
+    if value.startswith("/") or "://" not in value and ":" not in value.split("/", 1)[0]:
+        return                                  # a relative path against a source baseURL
+    scheme = urlsplit(value).scheme.lower()
+    if scheme in SAFE_URL_SCHEMES:
+        return
+    if scheme in _WARN_URL_SCHEMES:
+        findings.append(_f("warn", "bad_url", path,
+                           f"plain http URL — data and any credentials travel in the clear"))
+        return
+    findings.append(_f("error", "bad_url", path,
+                       f"URL scheme {scheme or '(none)'!r} is not allowed here; use one of "
+                       f"{sorted(SAFE_URL_SCHEMES | _WARN_URL_SCHEMES)}"))
+
+
 def _collect_source_refs(children, sources, referenced):
     """Record every source a binding references — explicitly (`source:`) or implicitly
     (an mqtt/http binding with no `source` but exactly one declared source of that kind)."""
@@ -317,9 +453,17 @@ def _grid_findings(children, cols, rows, where, findings, mode=None):
                            f"{', '.join(str(i) for i in ids)}: {issue['detail']}"))
 
 
-def _validate_child(ch, catalog, where, findings, seen_ids, sources=None):
+def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=1, counter=None):
     if not isinstance(ch, dict):
         findings.append(_f("error", "structure", where, "child must be an object"))
+        return
+    if counter is not None:
+        counter["n"] += 1
+        if counter["n"] > MAX_CONTROLS:
+            return                      # counted and reported once at the root
+    if depth > MAX_DEPTH:
+        findings.append(_f("error", "too_deep", where,
+                           f"groups nest deeper than {MAX_DEPTH} levels — the app cannot render this"))
         return
     sources = sources or {}
     ctype = ch.get("type")
@@ -341,11 +485,15 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None):
             if k not in GROUP_FIELDS:
                 findings.append(_f("warn", "unknown_field", spot, f"group: unknown field '{k}'"))
         sub_children = ch.get("children") or []
-        g = ch.get("grid") or {}
-        _grid_findings(sub_children, int(g.get("columns", 4)), int(g.get("rows", 8)),
-                       spot, findings, g.get("mode"))
+        if not isinstance(sub_children, list):
+            findings.append(_f("error", "structure", spot, "group 'children' must be an array"))
+            return
+        g = ch.get("grid")
+        cols, rows = _grid_dims(g, spot, findings)
+        _grid_findings(sub_children, cols, rows, spot, findings,
+                       g.get("mode") if isinstance(g, dict) else None)
         for sub in sub_children:
-            _validate_child(sub, catalog, spot, findings, seen_ids, sources)
+            _validate_child(sub, catalog, spot, findings, seen_ids, sources, depth + 1, counter)
         return
 
     if not ctype:

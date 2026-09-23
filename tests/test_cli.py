@@ -52,4 +52,4 @@ def test_gen_emits_hub_service(tmp_path, capsys):
     assert cli.main(["gen", str(f)]) == 0
     out = capsys.readouterr().out
     assert "from carterkit import Hub" in out
-    assert f'Hub("{f}")' in out          # stub loads the layout it was generated from
+    assert f'Hub("{f}", key=KEY, host=HOST)' in out   # loads the layout it was generated from, keyed

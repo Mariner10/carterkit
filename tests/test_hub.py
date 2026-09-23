@@ -219,7 +219,10 @@ def test_live_end_to_end_author_serve_drive():
             got["cmd"] = data
 
         async with hub:
+            # The embedded relay is keyed by default (0.12): the phone presents the
+            # key it read from the pairing QR.
             app = MeshSocket(url=f"ws://127.0.0.1:{port}", name="phone",
+                             auth_token=hub.connection.key,
                              channel="home", role="controller", can_broadcast=True)
             app.on("broadcast", lambda p: got["frames"].append(p))
             asyncio.ensure_future(app.start())

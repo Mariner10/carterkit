@@ -18,16 +18,28 @@ and renders its contract. Point it at a saved layout instead with
 
 Stdlib only (http.server + SSE) — the HTTP side runs in threads and hops onto
 the Hub's asyncio loop with ``run_coroutine_threadsafe``.
+
+Browser-side security: the server listens on loopback only, refuses any request whose
+``Host`` is not this loopback origin (DNS rebinding), refuses POSTs with a foreign
+``Origin``, and requires a per-run token (embedded in the page, sent as
+``X-Explorer-Token`` / ``?token=``) on every POST, on ``/events`` and on
+``/api/pairing``. ``/api/status`` and ``/api/layout`` never carry the relay key, the
+room key, or source passwords; the full pairing payload is served only via
+``/api/pairing`` to the page itself.
 """
 
 from __future__ import annotations
 
 import asyncio
+import copy
 import functools
+import hmac
 import json
 import queue
+import secrets
 import threading
 import time
+from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .codegen import generate_service_stub
@@ -112,6 +124,50 @@ def _blank_mirror() -> dict:
             "alive": False, "lastEvent": None, "ts": None}
 
 
+#: Secrets scrubbed from every layout the explorer serves to the browser.
+_REDACTED = "••• redacted"
+
+
+def redact_layout(layout: dict) -> dict:
+    """A deep copy of ``layout`` with connection/source secrets replaced by a marker:
+    ``connection.token``, ``connection.e2eeKey``, ``sources.*.password``,
+    ``sources.*.headers.Authorization`` (any header named like auth/token/key)."""
+    out = copy.deepcopy(layout)
+    conn = out.get("connection")
+    if isinstance(conn, dict):
+        for k in ("token", "e2eeKey", "k"):
+            if k in conn:
+                conn[k] = _REDACTED
+    sources = out.get("sources")
+    if isinstance(sources, dict):
+        for src in sources.values():
+            if not isinstance(src, dict):
+                continue
+            for k in ("password", "token", "apiKey"):
+                if k in src:
+                    src[k] = _REDACTED
+            headers = src.get("headers")
+            if isinstance(headers, dict):
+                for hk in list(headers):
+                    if any(w in hk.lower() for w in ("authorization", "token", "key", "secret", "cookie")):
+                        headers[hk] = _REDACTED
+    return out
+
+
+def redact_pairing(pairing: str | None) -> str | None:
+    """The pairing JSON minus its secrets (``token``/``k``) for display."""
+    if not pairing:
+        return pairing
+    try:
+        obj = json.loads(pairing)
+    except ValueError:
+        return None
+    if isinstance(obj, dict):
+        for k in ("token", "k"):
+            obj.pop(k, None)
+    return json.dumps(obj)
+
+
 @functools.lru_cache(maxsize=4)
 def _qr_matrix_for(payload: str) -> list[list[bool]]:
     """The pairing QR's module matrix for `payload` — cached, since `status()`
@@ -145,6 +201,9 @@ class Explorer:
         self._subs: list[queue.Queue] = []
         self._httpd: ThreadingHTTPServer | None = None
         self._repull = asyncio.Event()
+        #: Per-run CSRF token: embedded in the page, required on every POST and on
+        #: /events and /api/pairing. Regenerated each Explorer instance.
+        self.token = secrets.token_urlsafe(24)
 
     # ── event bus (loop thread → HTTP/SSE threads) ───────────────────────────
     def publish(self, evt: dict) -> None:
@@ -353,17 +412,41 @@ class Explorer:
     def _call(self, coro, timeout: float = 15.0):
         return asyncio.run_coroutine_threadsafe(coro, self.loop).result(timeout)
 
-    def status(self) -> dict:
+    def pairing(self) -> str | None:
+        """The FULL pairing JSON (relay key + room key included) — only ever served
+        to the page itself, behind the per-run token."""
         conn = self.hub.connection
-        pairing = self.hub.qr_json() if conn.kind in ("local", "selfhosted") else None
+        return self.hub.qr_json() if conn.kind in ("local", "selfhosted") else None
+
+    def status(self) -> dict:
+        """Status for the page. ``qr`` is the pairing JSON WITHOUT its secrets; the
+        scannable ``qrMatrix`` still encodes the full payload (the phone needs it)."""
+        conn = self.hub.connection
+        pairing = self.pairing()
         return {"connected": self.connected, "kind": conn.kind,
                 "channel": conn.channel, "connectError": self.connect_error,
                 "url": conn.url, "port": getattr(conn, "port", None),
                 "peers": self.peers, "hasLayout": self.hub.layout is not None,
-                "qr": pairing,
+                "qr": redact_pairing(pairing),
                 "qrMatrix": _qr_matrix_for(pairing) if pairing else None,
                 "device": self.device_info,
                 "mirror": dict(self.mirror)}
+
+    # ── request gate ─────────────────────────────────────────────────────────
+    def _allowed_hosts(self) -> set:
+        return {f"127.0.0.1:{self.port}", f"localhost:{self.port}", f"[::1]:{self.port}"}
+
+    def host_ok(self, host: str | None) -> bool:
+        return (host or "").strip().lower() in self._allowed_hosts()
+
+    def origin_ok(self, origin: str | None) -> bool:
+        if origin is None or origin == "":
+            return True
+        parts = urlsplit(origin)
+        return parts.scheme == "http" and (parts.netloc or "").lower() in self._allowed_hosts()
+
+    def token_ok(self, presented: str | None) -> bool:
+        return isinstance(presented, str) and hmac.compare_digest(presented, self.token)
 
     def start_http(self) -> None:
         explorer = self
@@ -388,12 +471,39 @@ class Explorer:
             def _err(self, msg, status=400):
                 self._send({"error": str(msg)}, status=status)
 
+            def _gate(self, *, post: bool) -> bool:
+                """Refuse DNS-rebinding (foreign Host → 421) and cross-site writes
+                (foreign Origin or missing/wrong token → 403). True = proceed."""
+                if not explorer.host_ok(self.headers.get("Host")):
+                    # Reads: 421 (misdirected). Writes: every refusal is a flat 403.
+                    self._err("misdirected request: bad Host", 403 if post else 421)
+                    return False
+                if post:
+                    if not explorer.origin_ok(self.headers.get("Origin")):
+                        self._err("cross-site request refused", 403)
+                        return False
+                    if not explorer.token_ok(self.headers.get("X-Explorer-Token")):
+                        self._err("missing or bad explorer token", 403)
+                        return False
+                return True
+
+            def _query_token(self):
+                q = parse_qs(urlsplit(self.path).query)
+                return (q.get("token") or [None])[0]
+
             def do_GET(self):
+                if not self._gate(post=False):
+                    return
                 path = self.path.split("?")[0]
                 if path == "/":
-                    return self._send(PAGE, "text/html; charset=utf-8")
+                    page = PAGE.replace("__EXPLORER_TOKEN__", explorer.token)
+                    return self._send(page, "text/html; charset=utf-8")
                 if path == "/api/status":
                     return self._send(explorer.status())
+                if path == "/api/pairing":
+                    if not explorer.token_ok(self.headers.get("X-Explorer-Token") or self._query_token()):
+                        return self._err("missing or bad explorer token", 403)
+                    return self._send({"qr": explorer.pairing()})
                 if path == "/api/contract":
                     if explorer.contract is None:
                         return self._err("no layout yet", 404)
@@ -404,22 +514,33 @@ class Explorer:
                 if path == "/api/layout":
                     if explorer.hub.layout is None:
                         return self._err("no layout yet", 404)
-                    return self._send(explorer.hub.layout)
+                    return self._send(redact_layout(explorer.hub.layout))
                 if path == "/api/stub":
                     if explorer.hub.layout is None:
                         return self._err("no layout yet", 404)
-                    stub = generate_service_stub(explorer.hub.layout)
+                    stub = generate_service_stub(redact_layout(explorer.hub.layout))
                     return self._send(stub, "text/x-python", download="bridge.py")
                 if path == "/events":
+                    if not explorer.token_ok(self._query_token()):
+                        return self._err("missing or bad explorer token", 403)
                     return self._sse()
                 self._err("not found", 404)
 
             def do_POST(self):
-                length = int(self.headers.get("Content-Length") or 0)
+                if not self._gate(post=True):
+                    return
+                try:
+                    length = int(self.headers.get("Content-Length") or 0)
+                except ValueError:
+                    return self._err("bad Content-Length")
+                if length > 1_000_000:
+                    return self._err("body too large", 413)
                 try:
                     body = json.loads(self.rfile.read(length) or b"{}")
                 except json.JSONDecodeError:
                     return self._err("body must be JSON")
+                if not isinstance(body, dict):
+                    return self._err("body must be a JSON object")
                 path = self.path.split("?")[0]
                 try:
                     if path == "/api/push":

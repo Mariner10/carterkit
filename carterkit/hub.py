@@ -101,10 +101,15 @@ class Hub:
     By default the hub declares itself the control-state authority: every
     :meth:`push` is snapshotted, and replicas that join late (or reconnect) get the
     current values via the app's control-sync handshake. Pass
-    ``state_authority=False`` to opt out."""
+    ``state_authority=False`` to opt out.
+
+    The embedded relay (no connection given) gets a random shared key and binds
+    loopback; pass ``host="0.0.0.0"`` so a phone on the LAN can pair, and
+    ``insecure=True`` only if you really want a keyless relay (``key=""``)."""
 
     def __init__(self, layout=None, connection=None, *, name: str | None = None,
-                 state_authority: bool = True, **conn_overrides):
+                 state_authority: bool = True, host: str = "127.0.0.1",
+                 insecure: bool = False, **conn_overrides):
         self._layout_filename = Path(layout).name if isinstance(layout, (str, Path)) else None
         if isinstance(layout, Path):
             layout = str(layout)
@@ -138,6 +143,10 @@ class Hub:
         self._demux: dict[str, list] = {}      # broadcast msg_type -> [handlers]
         self._user_broadcast = None
         self._relay = None                     # embedded LocalRelay (kind "local")
+        #: Bind address for the embedded relay: loopback by default; "0.0.0.0" lets a
+        #: phone on the LAN pair (the QR already carries the LAN ip + the key).
+        self.relay_host = host
+        self.relay_insecure = insecure
         if state_authority:
             self.client.enable_state_authority()
         # The layout's `state.acks` opts its controls into ack'd commands — the
@@ -158,7 +167,9 @@ class Hub:
             # script's) — join it rather than failing the way a second relay would.
             if not port_in_use(self.connection.port):
                 self._relay = await LocalRelay(port=self.connection.port,
-                                               key=self.connection.key).start()
+                                               key=self.connection.key,
+                                               host=self.relay_host,
+                                               insecure=self.relay_insecure).start()
         await self.client.connect()
         return self
 

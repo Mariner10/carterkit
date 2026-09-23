@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 
 #: Connect+ validator (token refresh / alerts) used when a device credential
 #: doesn't carry its own ``validator`` key. Overridable via ``validator=``.
@@ -41,6 +42,27 @@ import os
 DEFAULT_VALIDATOR = "https://zzko0nn851.execute-api.us-east-1.amazonaws.com"
 
 _LOCAL_DEFAULT_PORT = 8765
+
+
+def _checked_key(e2ee_key):
+    """A layout/QR/credential E2EE key: strict base64 of exactly 32 bytes, or None."""
+    if e2ee_key is None:
+        return None
+    from .e2ee import decode_key_b64
+    decode_key_b64(e2ee_key)              # raises ValueError with the reason
+    return e2ee_key
+
+
+def _checked_validator(validator, allow_insecure=False):
+    if validator is None:
+        return None
+    from .client import check_validator_url
+    return check_validator_url(validator, allow_insecure=allow_insecure)
+
+
+def generate_relay_key() -> str:
+    """A fresh shared key for an embedded LocalRelay (carried to the phone in the QR)."""
+    return secrets.token_urlsafe(24)
 
 
 class Connection:
@@ -61,20 +83,24 @@ class Connection:
                  e2ee_key: str | None = None, room: bool = True,
                  device_id: str | None = None, refresh_token: str | None = None,
                  validator: str | None = None, hub: str | None = None,
-                 port: int = _LOCAL_DEFAULT_PORT, key: str = ""):
+                 port: int = _LOCAL_DEFAULT_PORT, key: str | None = None,
+                 allow_insecure_validator: bool = False):
         self.kind = kind
         self.url = url
         self.channel = channel
         self.role = role
         self.token = token
-        self.e2ee_key = e2ee_key
+        self.e2ee_key = _checked_key(e2ee_key)
         self.room = room                      # group cipher (the app's mode:"room")
         self.device_id = device_id
         self.refresh_token = refresh_token
-        self.validator = validator
+        self.allow_insecure_validator = allow_insecure_validator
+        self.validator = _checked_validator(validator, allow_insecure_validator)
         self.hub = hub                        # preferred mesh name for a serving hub
         self.port = port                      # local-relay bind (kind == "local")
-        self.key = key                        # local-relay shared key
+        # Local-relay shared key. A fresh random key by default (0.12+) so an embedded
+        # relay is never open; pass key="" only together with LocalRelay(insecure=True).
+        self.key = generate_relay_key() if (kind == "local" and key is None) else (key or "")
 
     # ─── parsing ─────────────────────────────────────────────────────────────
     @classmethod
@@ -108,6 +134,11 @@ class Connection:
         for k, v in overrides.items():
             if not hasattr(conn, k):
                 raise TypeError(f"unknown connection field {k!r}")
+            if k == "e2ee_key":
+                v = _checked_key(v)
+            elif k == "validator":
+                v = _checked_validator(v, overrides.get("allow_insecure_validator",
+                                                        conn.allow_insecure_validator))
             setattr(conn, k, v)
         return conn
 
@@ -208,6 +239,8 @@ class Connection:
             kw["device_id"] = self.device_id
             kw["refresh_token"] = self.refresh_token
             kw["validator_url"] = self.validator or DEFAULT_VALIDATOR
+            if self.allow_insecure_validator:
+                kw["allow_insecure_validator"] = True
         return kw
 
     def __repr__(self) -> str:

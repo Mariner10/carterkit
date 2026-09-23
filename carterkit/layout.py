@@ -664,9 +664,16 @@ class Layout:
 
     def save(self, path: str, indent: int = 2) -> str:
         """Write the layout JSON to `path` (live push to a device is the app/MCP's job —
-        `push_layout` — not this offline builder). Returns the path."""
-        with open(path, "w") as f:
+        `push_layout` — not this offline builder). The file is created owner-only
+        (0600): a layout may carry a relay key or room key. Returns the path."""
+        import os
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
             f.write(self.json(indent))
+        try:
+            os.chmod(path, 0o600)          # pre-existing files keep their mode otherwise
+        except OSError:
+            pass
         return path
 
     # context-manager sugar so `with Layout(...) as ui:` reads cleanly

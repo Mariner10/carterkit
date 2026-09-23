@@ -16,10 +16,19 @@ of seconds. Failing fast with a clear message beats debugging that.
                            channel="home", role="device")
         await hub.connect()
         ...                       # push values; the app connects to the same relay
+
+Security model (0.12+): the relay authenticates every client with ONE shared key
+(``key``), generated at random when you don't pass one — carry it to the phone in the
+pairing QR. It binds to ``127.0.0.1`` by default; for a phone on the LAN bind
+``host="0.0.0.0"`` (or ``lan_ip()``). Running with no key at all is possible only with
+``insecure=True`` and means anyone who can reach the port can join every channel.
+The relay does no per-channel authorization and no TLS: anything on the LAN path
+sees plaintext unless the layout uses an E2EE key.
 """
 from __future__ import annotations
 
 import asyncio
+import secrets
 import socket as _socket
 
 try:                                  # ships with the meshsocket dependency
@@ -59,17 +68,30 @@ def port_in_use(port: int, host: str = "127.0.0.1") -> bool:
 class LocalRelay:
     """An in-process MeshSocket relay with shared-key auth, for local testing.
 
-    ``key`` is the shared key clients must present (``""`` runs open, no auth).
+    ``key`` is the shared key clients must present. ``None`` (the default) generates a
+    fresh random key — read it back from ``relay.key`` and put it in the pairing QR.
+    ``""`` runs the relay OPEN (no auth) and requires ``insecure=True``. ``host``
+    defaults to loopback; binding ``0.0.0.0`` keyless also requires ``insecure=True``.
     ``on_join(name, ip)`` fires when a client authenticates — handy for pushing a
     fresh snapshot to a device the moment it connects. Use it as an async context
     manager, or call :meth:`start` / :meth:`stop` yourself. Raises ``RuntimeError``
     if the port is already in use and ``ImportError`` if the server isn't installed.
     """
 
-    def __init__(self, port: int = 8765, key: str = "", host: str = "0.0.0.0", on_join=None):
+    def __init__(self, port: int = 8765, key: str | None = None, host: str = "127.0.0.1",
+                 on_join=None, *, insecure: bool = False):
         if MeshServer is None:
             raise ImportError("LocalRelay needs the MeshSocket server; run `pip install meshsocket`.")
-        self.port, self.key, self.host, self.on_join = port, key, host, on_join
+        if key is None and not insecure:
+            key = secrets.token_urlsafe(24)
+        if not key and not insecure:
+            raise ValueError("LocalRelay needs a key; pass insecure=True to run it open "
+                             "(LAN demos only — anyone reaching the port joins every channel)")
+        if not key and host not in ("127.0.0.1", "localhost", "::1") and not insecure:
+            raise ValueError("refusing to bind a keyless relay on a non-loopback host "
+                             "without insecure=True")
+        self.port, self.key, self.host, self.on_join = port, key or "", host, on_join
+        self.insecure = insecure
         self._server = None
         self._task: asyncio.Task | None = None
 

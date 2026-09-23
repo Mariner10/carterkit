@@ -101,9 +101,34 @@ def _cmd_explore(args) -> int:
 
 def _cmd_relay(args) -> int:
     import asyncio
-    from socket_server import MeshServer  # bundled with meshsocket
-    print(f"MeshSocket relay on ws://{args.host}:{args.port}", file=sys.stderr)
-    asyncio.run(MeshServer(host=args.host, port=args.port).start())
+    from .relay import LocalRelay, lan_ip
+
+    host = "0.0.0.0" if args.lan else args.host
+    key = args.key
+    if key is None and not args.insecure:
+        import secrets
+        key = secrets.token_urlsafe(24)
+        print(f"relay key (pass as the pairing token): {key}", file=sys.stderr)
+    if not key and not args.insecure:
+        print("refusing to run an open relay: pass --key or --insecure", file=sys.stderr)
+        return 2
+    try:
+        relay = LocalRelay(port=args.port, key=key or "", host=host, insecure=args.insecure)
+    except ValueError as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    where = f"ws://{lan_ip()}:{args.port}" if host == "0.0.0.0" else f"ws://{host}:{args.port}"
+    auth = "open — NO AUTH" if not key else "shared-key auth"
+    print(f"MeshSocket relay on {where} ({auth})", file=sys.stderr)
+
+    async def run():
+        async with relay:
+            await asyncio.Event().wait()
+
+    try:
+        asyncio.run(run())
+    except KeyboardInterrupt:
+        pass
     return 0
 
 
@@ -151,15 +176,21 @@ def build_parser() -> argparse.ArgumentParser:
                    help="pull a layout off the paired phone: a saved layout's "
                         "file/name, or (bare) whatever is live right now")
     c.add_argument("--channel", help="mesh channel to join")
-    c.add_argument("--token", help="relay auth token / shared key")
+    c.add_argument("--token", help="relay auth token / shared key (visible in `ps`; "
+                   "prefer a pairing/device JSON file)")
     c.add_argument("--port", type=int, default=8770, help="explorer web port")
     c.add_argument("--no-open", action="store_true",
                    help="don't auto-open the browser")
     c.set_defaults(fn=_cmd_explore)
 
-    c = sub.add_parser("relay", help="run the bundled MeshSocket relay")
-    c.add_argument("--host", default="0.0.0.0")
+    c = sub.add_parser("relay", help="run the bundled MeshSocket relay (keyed, loopback by default)")
+    c.add_argument("--host", default="127.0.0.1", help="bind address (default loopback)")
+    c.add_argument("--lan", action="store_true", help="bind 0.0.0.0 so phones on the LAN can join")
     c.add_argument("--port", type=int, default=8765)
+    c.add_argument("--key", default=None,
+                   help="shared key clients must present (default: generated and printed once)")
+    c.add_argument("--insecure", action="store_true",
+                   help="run with NO key — anyone reaching the port joins every channel")
     c.set_defaults(fn=_cmd_relay)
 
     c = sub.add_parser("version", help="print the carterkit version")

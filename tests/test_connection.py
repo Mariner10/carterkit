@@ -1,5 +1,6 @@
 """Tests for connection.py — the one-parser-for-every-artifact story."""
 
+import base64
 import json
 
 import pytest
@@ -11,8 +12,9 @@ from carterkit.connection import DEFAULT_VALIDATOR
 DEVICE_CRED = {
     "url": "wss://relay.example.net", "channel": "tmux", "role": "hub",
     "token": "short.lived.jwt", "refresh": "-longsecret", "did": "dv_abc",
-    "k": "AAAA+base64key=",
+    "k": base64.b64encode(bytes([5]) * 32).decode(),
 }
+ROOM_KEY = DEVICE_CRED["k"]
 
 
 def test_parse_none_is_local():
@@ -41,7 +43,7 @@ def test_parse_device_credential():
     assert kw["device_id"] == "dv_abc"
     assert kw["refresh_token"] == "-longsecret"
     assert kw["validator_url"] == DEFAULT_VALIDATOR
-    assert kw["e2ee_key"] == "AAAA+base64key=" and kw["room"] is True
+    assert kw["e2ee_key"] == ROOM_KEY and kw["room"] is True
     assert kw["role"] == "hub" and kw["channel"] == "tmux"
 
 
@@ -55,7 +57,7 @@ def test_device_token_never_embeds_into_layout():
     block = c.layout_block()
     assert "token" not in block               # the phone joins with its own account
     assert block["url"] == "wss://relay.example.net"
-    assert block["mode"] == "room" and block["e2eeKey"] == "AAAA+base64key="
+    assert block["mode"] == "room" and block["e2eeKey"] == ROOM_KEY
 
 
 def test_parse_layout_block_and_whole_layout():
@@ -68,7 +70,7 @@ def test_parse_layout_block_and_whole_layout():
 
 
 def test_parse_account_block_cannot_serve():
-    room = {"mode": "room", "e2eeKey": "kk", "identity": {"channel": "c", "role": "member"}}
+    room = {"mode": "room", "e2eeKey": ROOM_KEY, "identity": {"channel": "c", "role": "member"}}
     c = Connection.parse(room)
     assert c.kind == "account"
     with pytest.raises(ValueError, match="Add Hub"):
@@ -95,3 +97,14 @@ def test_qr_json_shape():
     c = Connection.parse("ws://h:1", channel="lab", token="k")
     qr = json.loads(c.qr_json())
     assert qr == {"url": "ws://h:1", "channel": "lab", "role": "controller", "token": "k"}
+
+
+def test_short_or_malformed_e2ee_key_is_rejected():
+    for bad in ("kk", "AAAA+base64key=", base64.b64encode(b"abcd").decode()):
+        with pytest.raises(ValueError):
+            Connection.parse({**DEVICE_CRED, "k": bad})
+
+
+def test_local_connection_key_is_fresh_per_parse():
+    assert Connection.parse(None).key != Connection.parse(None).key
+    assert Connection.parse(None, key="").key == ""       # explicit opt-out still possible

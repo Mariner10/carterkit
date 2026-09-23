@@ -2,7 +2,9 @@
 
 Served by :mod:`carterkit.explore`. No external assets (works offline / air-gapped
 LAN): all CSS/JS inline. The page reads `/api/contract` and `/api/status`, streams
-`/events` (SSE), and POSTs to `/api/push`, `/api/fill`, `/api/repull`.
+`/events` (SSE), and POSTs to `/api/push`, `/api/fill`, `/api/repull` — every POST and
+the SSE stream carry the per-run token the server injects into the `explorer-token`
+meta tag (CSRF protection; the server also refuses foreign Host/Origin headers).
 """
 
 PAGE = r"""<!doctype html>
@@ -10,6 +12,7 @@ PAGE = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="explorer-token" content="__EXPLORER_TOKEN__">
 <title>CAR-TER Layout Link</title>
 <style>
   :root {
@@ -305,6 +308,8 @@ PAGE = r"""<!doctype html>
 
 <script>
 "use strict";
+// Per-run CSRF token, injected by the server; required on every POST and on /events.
+const TOKEN = document.querySelector('meta[name="explorer-token"]').content;
 const $ = (s, el=document) => el.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let paused = false, wireFilter = "";
@@ -546,7 +551,8 @@ function readInput(f, i) {
 }
 
 async function api(path, body) {
-  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+  const r = await fetch(path, { method: "POST",
+                                headers: { "Content-Type": "application/json", "X-Explorer-Token": TOKEN },
                                 body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || j.error) throw new Error(j.error || r.statusText);
@@ -759,12 +765,15 @@ function qrSvg(matrix, moduleSize, quiet) {
          `<rect width="${px}" height="${px}" fill="#fff"/><g fill="#000">${rects}</g></svg>`;
 }
 
-function copyQrPayload() {
-  const text = state.status && state.status.qr;
-  if (!text) return;
-  navigator.clipboard.writeText(text)
-    .then(() => toast("pairing JSON copied"))
-    .catch(() => toast("copy failed — select the text manually", true));
+async function copyQrPayload() {
+  // The full payload (with the relay key) is served only to the page itself.
+  try {
+    const r = await fetch("/api/pairing", { headers: { "X-Explorer-Token": TOKEN } });
+    const j = await r.json();
+    if (!r.ok || !j.qr) throw new Error(j.error || r.statusText);
+    await navigator.clipboard.writeText(j.qr);
+    toast("pairing JSON copied");
+  } catch { toast("copy failed — scan the QR instead", true); }
 }
 
 function renderWaiting(qr, qrMatrix) {
@@ -799,7 +808,7 @@ async function refresh() {
 }
 
 /* ── SSE ──────────────────────────────────────────────── */
-const es = new EventSource("/events");
+const es = new EventSource("/events?token=" + encodeURIComponent(TOKEN));
 es.onmessage = m => {
   const evt = JSON.parse(m.data);
   if (evt.kind === "contract") { state.contract = null; refresh(); return; }
