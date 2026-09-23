@@ -101,6 +101,9 @@ class Connection:
         #: Local-relay bind address. Loopback by default: only this machine can reach
         #: it, and app_url() says so honestly. "0.0.0.0" lets a phone on the LAN pair.
         self.host = host
+        #: Path of the device.json this credential was parsed from, if any — the file
+        #: a rotated refresh secret is written back to (kind "device" only).
+        self.source_path: str | None = None
         # Local-relay shared key. A fresh random key by default (0.12+) so an embedded
         # relay is never open; pass key="" only together with LocalRelay(insecure=True).
         self.key = generate_relay_key() if (kind == "local" and key is None) else (key or "")
@@ -125,7 +128,10 @@ class Connection:
                 conn = cls("selfhosted", url=source)
             elif os.path.exists(source):
                 with open(source) as f:
-                    return cls.parse(json.load(f), **overrides)
+                    conn = cls.parse(json.load(f), **overrides)
+                if conn.kind == "device":
+                    conn.source_path = os.path.abspath(source)
+                return conn
             else:
                 raise ValueError(
                     f"can't parse connection source {source!r}: not a ws:// URL and "
@@ -253,6 +259,8 @@ class Connection:
             kw["validator_url"] = self.validator or DEFAULT_VALIDATOR
             if self.allow_insecure_validator:
                 kw["allow_insecure_validator"] = True
+            if self.source_path:
+                kw["credential_path"] = self.source_path
         return kw
 
     def __repr__(self) -> str:

@@ -21,6 +21,7 @@ import json
 import logging
 import os
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -357,19 +358,69 @@ class _TokenBucket:
         return False
 
 
+#: Response keys the validator may use for a rotated refresh secret. Both are accepted
+#: until the relay pins one (see docs/security-audit-2026-09-22/progress-relay.md).
+_ROTATED_REFRESH_KEYS = ("refreshToken", "refresh_token")
+
+
+def rotated_refresh_secret(response):
+    """The new refresh secret in a `/devices/sessions/refresh` response, or None."""
+    if not isinstance(response, dict):
+        return None
+    for key in _ROTATED_REFRESH_KEYS:
+        v = response.get(key)
+        if isinstance(v, str) and v:
+            return v
+    return None
+
+
+def persist_refresh_secret(path, secret):
+    """Rewrite the device.json at `path` with the rotated `refresh` secret: read, replace
+    only that key, write to a temp file in the same directory with mode 0600, then
+    `os.replace` so a crash never leaves a truncated credential. Raises OSError or
+    ValueError (not a JSON object / not a device credential)."""
+    with open(path) as f:
+        doc = json.load(f)
+    if not isinstance(doc, dict) or not ("did" in doc or "refresh" in doc):
+        raise ValueError("not an Add-Device credential file")
+    doc["refresh"] = secret
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    fd, tmp = tempfile.mkstemp(prefix=".device-", suffix=".json.tmp", dir=directory)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(doc, f, indent=2)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
                  validator_url=None, session_jwt=None, room=False,
                  device_id=None, refresh_token=None, refresh_interval=2400,
                  can_route=False, can_monitor=False, *, strict_e2ee=True,
                  allow_insecure_validator=False, max_inflight=DEFAULT_MAX_INFLIGHT,
-                 rate_per_type=DEFAULT_RATE_PER_TYPE):
+                 rate_per_type=DEFAULT_RATE_PER_TYPE, credential_path=None):
         """`strict_e2ee=True` (default) drops every non-envelope frame from a peer while
         an E2EE session exists; `False` passes them through with one warning per
         msg_type (debugging aid only). `allow_insecure_validator` permits an http:// validator on loopback
         only. `max_inflight` bounds concurrent inbound handler runs; `rate_per_type` is
         a per-msg_type admission rate (frames/s, 0 disables) — excess frames are dropped
-        and counted in `dropped`."""
+        and counted in `dropped`. `credential_path` is the device.json this credential
+        came from: when the validator rotates the refresh secret, the file is rewritten
+        (atomically, 0600) so the next start uses the new one."""
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
@@ -412,6 +463,7 @@ class CarterClient:
         # (HTTP 403) surfaces as `revoked = True` and tears the socket down.
         self._device_id = device_id
         self._refresh_token = refresh_token
+        self._credential_path = credential_path
         self._refresh_interval = refresh_interval
         self._refresh_task = None
         self.revoked = False
@@ -819,7 +871,28 @@ class CarterClient:
         token = res.get("deviceToken") if isinstance(res, dict) else None
         if token:
             self._sock.auth_token = token  # MeshSocket re-sends this on every (re)connect
+        # Rotation: the validator may hand back a NEW refresh secret (the old one is spent).
+        # Adopt it immediately and persist it, or the next restart is locked out.
+        rotated = rotated_refresh_secret(res)
+        if rotated and rotated != self._refresh_token:
+            self._refresh_token = rotated
+            await asyncio.to_thread(self._persist_rotated_secret, rotated)
         return res
+
+    def _persist_rotated_secret(self, secret):
+        if not self._credential_path:
+            log.warning("validator rotated this device's refresh secret but the credential "
+                        "was not loaded from a file — the new secret lives only in memory; "
+                        "the next restart will be refused. Load the credential from a "
+                        "device.json path (Connection.parse(path)) so it can be persisted.")
+            return
+        try:
+            persist_refresh_secret(self._credential_path, secret)
+            log.info("rotated refresh secret persisted to %s", self._credential_path)
+        except (OSError, ValueError) as exc:
+            log.error("could not persist the rotated refresh secret to %s: %s — the hub "
+                      "keeps running on the in-memory secret but will be refused after a "
+                      "restart", self._credential_path, exc)
 
     async def _stop_socket(self, reason):
         """Stop the socket, marking it a fault. meshsocket >= 0.1.2 records the reason

@@ -285,6 +285,9 @@ the stdlib-only `carterkit.notify_http(...)`.
 - `validate_layout` never raises on hostile input and flags `non_finite`, `too_deep`,
   `too_many_controls`, `bad_url`, `embedded_secret` and `long_string`.
 - `Layout.save` writes `0600` (a layout may carry a relay or room key).
+- A device credential loaded from a `device.json` path is rewritten (atomically, `0600`)
+  when the validator rotates its refresh secret; load credentials by path, not inline,
+  so a rotation survives a restart.
 - Inbound frames are dispatched under a semaphore (32) and a per-`msg_type` token
   bucket (20/s, burst 40); excess frames are dropped and counted in `client.dropped`.
 

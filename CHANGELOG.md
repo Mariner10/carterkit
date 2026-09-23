@@ -59,6 +59,13 @@ was staged as 0.11.0 and never published (folded in below).
   with `logging.basicConfig`, an exception-safe telemetry loop, typed value guards
   derived from each control's spec, and the pairing payload rendered as an ASCII QR
   instead of printed JSON.
+- **Rotated refresh secrets are adopted and persisted.** When `/devices/sessions/refresh`
+  returns a new refresh secret (`refreshToken`, or `refresh_token`, until the relay pins
+  one), `CarterClient` switches to it in memory and, when the credential was loaded from a
+  `device.json` path (`Connection.parse(path)` / `Hub(..., "device.json")`), rewrites that
+  file atomically with mode 0600, changing only `refresh`. An inline credential logs a
+  warning that the new secret cannot be persisted. Needed before the relay's
+  `REFRESH_ROTATE=true`.
 - **`Layout.save` writes 0600.**
 - **Packaging:** `meshsocket>=0.2.0,<0.3`, `cryptography>=42,<50`; `MANIFEST.in`
   excludes `tests/`; the publish workflow pins actions by SHA, runs the test suite
