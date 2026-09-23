@@ -3,11 +3,84 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.11.0] — unreleased
+## [0.12.0] — unreleased
 
-Ambient Surfaces v2: the layout reaches iOS *outside* the app as widgets, a
-Dynamic Island, a lock-screen banner and Control Center buttons — and one call
-keeps all of them live.
+Security hardening from the 2026-09-22 audit, plus the Ambient Surfaces v2 work that
+was staged as 0.11.0 and never published (folded in below).
+
+### Security
+- **E2EE `open()` is a validated parser.** Any malformed envelope — a negative, float,
+  string or ≥2^64 counter, a salt that is not 16 bytes, a ciphertext shorter than the
+  tag, loose base64, a missing field, a bad tag — raises one `ValueError`. Derived keys
+  are cached per salt (bounded LRU of 256) so HKDF no longer runs per frame.
+- **Replay and freshness inside the frozen v2 envelope.** `seal()` stamps `_ts` (unix
+  ms), `_ch` (channel) and `_from` (sender) into the plaintext; `open()` rejects a
+  duplicate `(salt, counter)` (high-water mark + 64-frame reorder window, LRU of 256
+  salts), a `_ts` more than ±120 s from local time, and a `_ch` for another channel.
+  The wire bytes are unchanged and old receivers ignore the extra keys. `_ts`/`_ch`
+  are consumed on open; `_from` is kept for handlers, and `CarterClient` overwrites it
+  with the relay-stamped sender when one is present. `seal(..., stamp=False)` seals a
+  payload verbatim (test vectors; notification `enc` content uses it).
+- **32-byte keys only.** `E2EESession`, `CarterClient(e2ee_key=)`, `Connection` (layout
+  `e2eeKey`, QR/credential `k`) and `bind.connection()` reject keys that are not
+  strict base64 of exactly 32 bytes.
+- **Fail-closed receive path, staged.** `CarterClient._open` never raises into a
+  handler: an undecryptable envelope is dropped and counted (`client.dropped`).
+  A plaintext frame in an E2EE session is dropped when `strict_e2ee=True`; the 0.12
+  default is `False` (pass-through with one warning per `msg_type`) because the app
+  currently on TestFlight answers routed requests in the clear. **0.13 flips the
+  default to `True`.** Relay control frames (`welcome`, `node_status`, `roster`, …)
+  are always allowed.
+- **Inbound backpressure.** Dispatch runs under `asyncio.Semaphore(32)`
+  (`max_inflight=`) and a per-`msg_type` token bucket (`rate_per_type=20`, burst 2x);
+  excess frames are dropped with a counter and a rate-limited warning.
+- **`LocalRelay` is keyed and loopback by default.** `key=None` generates
+  `secrets.token_urlsafe(24)` (read it back from `relay.key`; `Connection.parse(None)`
+  does the same); `host` defaults to `127.0.0.1`. A keyless relay, or a keyless bind on
+  a non-loopback host, requires `insecure=True`. `Hub(..., host=, insecure=)` passes
+  through. `carterkit relay` gained `--key` (generated and printed once when omitted),
+  `--lan` and `--insecure`; it refuses to run open without `--insecure`.
+- **Validator URL must be https.** `device_refresh_http`, `CarterClient(validator_url=)`
+  and `Connection` reject an `http://` validator unless the host is loopback and
+  `allow_insecure_validator=True`; the refresh POST has a 10 s timeout.
+- **`carterkit explore`** refuses foreign `Host` (421) and cross-site writes (403),
+  requires a per-run token (`X-Explorer-Token` header / `?token=` on `/events`) on every
+  POST, and redacts `connection.token`/`e2eeKey`, `sources.*.password` and auth-like
+  headers from `/api/layout` and the generated stub. `/api/status.qr` no longer carries
+  the relay key or room key; the full pairing payload is at `/api/pairing` (token
+  required) for the page's copy button. POST bodies are capped at 1 MB.
+- **`validate_layout` never raises.** New findings: `bad_span`, `bad_grid`,
+  `bad_position` (non-integer geometry), `non_finite` (NaN/Infinity), `too_deep`
+  (groups past 16 levels), `too_many_controls` (over 2000), `bad_url` (schemes outside
+  https/http/mqtt/mqtts/ws/wss; http warns), `embedded_secret` (connection token/key,
+  source passwords/auth headers) and `long_string` (> 4 KB). Cell enumeration is capped
+  so a `span: [1500, 1500]` is reported, not built.
+- **Generated servers are secure by default.** `carterkit gen` emits a hub keyed from
+  `CARTER_RELAY_KEY` (or a fresh key), bound to `CARTER_RELAY_HOST` (default loopback),
+  with `logging.basicConfig`, an exception-safe telemetry loop, typed value guards
+  derived from each control's spec, and the pairing payload rendered as an ASCII QR
+  instead of printed JSON.
+- **`Layout.save` writes 0600.**
+- **Packaging:** `meshsocket>=0.1.2,<0.3`, `cryptography>=42,<50`; `MANIFEST.in`
+  excludes `tests/`; the publish workflow pins actions by SHA, runs the test suite
+  first, checks the tag against `pyproject.toml`, and publishes from the protected
+  `pypi` environment.
+
+### Changed
+- `E2EESession.seal()` output for a given plaintext differs from 0.11 because of the
+  stamped fields; the construction itself (HKDF labels, nonce, cipher) is unchanged
+  and the frozen test vectors still hold with `stamp=False`.
+- `Connection.parse(None).key` is a fresh random key instead of `""`; `qr_json()` and
+  `layout_block()` therefore carry a `token` for local relays.
+- The explorer's `/api/status.qr` is the pairing JSON minus `token`/`k`.
+- Docs (README, `relay.py`, `client.py`) now state what the code guarantees: room mode
+  does not authenticate senders; plaintext is still accepted in 0.12 unless
+  `strict_e2ee=True`; the explorer's redaction covers layout and status, not the QR.
+
+### Ambient Surfaces v2 (staged as 0.11.0, unpublished)
+
+The layout reaches iOS *outside* the app as widgets, a Dynamic Island, a lock-screen
+banner and Control Center buttons — and one call keeps all of them live.
 
 ### Added
 - **`hub.surfaces.publish(...)`** — ONE request (`POST /surfaces/publish`) that

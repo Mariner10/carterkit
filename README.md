@@ -193,8 +193,13 @@ carterkit doc gauge               # print a control's documentation
 carterkit examples button         # list a control's examples (--name to print one)
 carterkit validate layout.json    # lint a layout (exit 1 on errors)
 carterkit gen layout.json         # generate a runnable Hub server stub
-carterkit relay --port 8765       # run the bundled MeshSocket relay
+carterkit relay --port 8765       # run the bundled MeshSocket relay (keyed, loopback)
+carterkit relay --lan --key s3cret  # let phones on the LAN join with that shared key
 ```
+
+`carterkit relay` generates and prints a shared key when you don't pass `--key`, and
+binds `127.0.0.1` unless you pass `--lan`. Running it open (no key) requires
+`--insecure` and means anyone who can reach the port joins every channel.
 
 ## Drive the layout you just built
 
@@ -250,9 +255,35 @@ on Connect+ the app joins with its own account while the hub holds the per-devic
 credential — which is the hub's identity, so it is never embedded into a layout.
 
 `CarterClient` remains the lower-level client (`on`/`broadcast`/`request`).
-End-to-end encryption (ChaCha20-Poly1305 + per-session salt) is transparent when an
-`e2ee_key` is present. Send a push to every device on a Connect+ account with
-`CarterClient.notify(...)` or the stdlib-only `carterkit.notify_http(...)`.
+End-to-end encryption (ChaCha20-Poly1305 + per-session salt) is applied to every frame
+the client sends when an `e2ee_key` is present, and every sealed frame it receives is
+opened, replay-checked and freshness-checked (±120 s) before a handler sees it. Keys
+must be exactly 32 bytes (base64). What E2EE does **not** do: room mode is one
+symmetric key per room, so it does not tell members apart — any member can send as
+any other. And in 0.12 a *plaintext* frame arriving in an E2EE session is still passed
+through (with a one-time warning per `msg_type`) because the current app answers
+routed requests in the clear; pass `CarterClient(strict_e2ee=True)` to drop them, which
+becomes the default in 0.13. Relay control frames are always plaintext.
+
+Send a push to every device on a Connect+ account with `CarterClient.notify(...)` or
+the stdlib-only `carterkit.notify_http(...)`.
+
+### Security defaults (0.12)
+
+- The embedded `LocalRelay` (and `Hub()` / `ui.serve()` with no connection) gets a
+  random shared key and binds `127.0.0.1`. Pass `host="0.0.0.0"` for LAN pairing (the
+  QR carries the LAN address and the key); a keyless relay needs `insecure=True`.
+- A device credential's `validator` must be `https`. Plain `http` is accepted only for
+  `127.0.0.1`/`localhost` with `allow_insecure_validator=True`.
+- `carterkit explore` serves loopback only, refuses foreign `Host`/`Origin`, requires a
+  per-run token on every write, and redacts `connection.token`, `e2eeKey` and source
+  passwords/auth headers from `/api/layout` and `/api/status`. The QR on the page still
+  encodes the full pairing payload — that is what the phone scans.
+- `validate_layout` never raises on hostile input and flags `non_finite`, `too_deep`,
+  `too_many_controls`, `bad_url`, `embedded_secret` and `long_string`.
+- `Layout.save` writes `0600` (a layout may carry a relay or room key).
+- Inbound frames are dispatched under a semaphore (32) and a per-`msg_type` token
+  bucket (20/s, burst 40); excess frames are dropped and counted in `client.dropped`.
 
 ## Built on
 

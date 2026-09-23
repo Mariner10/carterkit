@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carterkit"
-version = "0.11.0"
+version = "0.12.0"
 description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,8 +13,11 @@ license-files = ["LICENSE"]
 authors = [{ name = "Carter Beaudoin" }]
 keywords = ["car-ter", "carter", "iot", "dashboard", "remote", "meshsocket", "layout"]
 dependencies = [
-    "meshsocket>=0.1",
-    "cryptography>=42",
+    # Upper bounds: both are security-relevant and their majors have broken us before.
+    # 0.2.0 (identify-after-auth closes, name validation) is being prepared; widen the
+    # floor to >=0.2.0 once it is on PyPI.
+    "meshsocket>=0.1.2,<0.3",
+    "cryptography>=42,<50",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
