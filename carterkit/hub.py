@@ -48,7 +48,8 @@ log = logging.getLogger(__name__)
 
 #: One-line hint logged when the embedded relay is loopback-bound (a phone cannot reach it).
 LAN_HINT = ("embedded relay is bound to 127.0.0.1 — only this machine can reach it. For a "
-            "phone on the LAN pass host=\"0.0.0.0\" (Hub/ui.serve) or `carterkit relay --lan`.")
+            "phone on the LAN use Hub(host=\"0.0.0.0\"), CARTER_RELAY_HOST=0.0.0.0 (generated "
+            "stubs) or `carterkit relay --lan`.")
 
 
 class HubError(RuntimeError):

@@ -124,7 +124,8 @@ def _cmd_relay(args) -> int:
     auth = "open — NO AUTH" if not key else "shared-key auth"
     print(f"MeshSocket relay on {where} ({auth})", file=sys.stderr)
     if host in ("127.0.0.1", "localhost", "::1"):
-        print("bound to loopback: a phone on the LAN cannot reach it — add --lan", file=sys.stderr)
+        print("bound to loopback: a phone on the LAN cannot reach it — add --lan "
+              "(or Hub(host=\"0.0.0.0\") / CARTER_RELAY_HOST=0.0.0.0 in code)", file=sys.stderr)
 
     async def run():
         async with relay:
