@@ -1,6 +1,15 @@
 """carter_connect — minimal Connect+ hub client. Wraps MeshSocket + E2EE so a maker
-connects hardware to the Connect+ relay in a few lines. Transparent encryption when an
-e2ee_key is provided (broadcasts AND request replies); cleartext otherwise.
+connects hardware to the Connect+ relay in a few lines. When an e2ee_key is provided
+every frame this client SENDS (broadcasts AND request replies) is sealed, and every
+sealed frame it receives is opened, freshness- and replay-checked, before a handler
+sees it. Cleartext otherwise.
+
+Receive-side policy in an E2EE session (`strict_e2ee`): a plaintext frame from a peer
+is passed through with a one-time warning per msg_type when `strict_e2ee=False` (the
+0.12 default — the app on TestFlight still answers routed requests in plaintext) and
+DROPPED when `strict_e2ee=True`. 0.13 flips the default to True. Relay control frames
+(`_RELAY_CONTROL_TYPES`) are always plaintext and always allowed. Room mode does not
+authenticate the sender: every member holds the same key.
 
 Also exposes `notify_http(...)` and `CarterClient.notify(...)` for sending a one-shot
 push to every device on a Connect+ account (POST /alerts/notify). `notify_http` is
@@ -16,6 +25,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from urllib.parse import urlsplit
 
 from .notifications import notification_action
 
@@ -267,14 +277,38 @@ class CarterDeviceRevoked(Exception):
     device or their Connect+ lapsed. Terminal: the device should stop trying to reconnect."""
 
 
-def device_refresh_http(validator_url, device_id, refresh_token, *, _send=None):
+_LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
+
+
+def check_validator_url(validator_url, *, allow_insecure=False) -> str:
+    """The validator base URL a long-lived credential may be POSTed to. Must be
+    ``https``; ``http`` is accepted only for loopback hosts and only when the caller
+    passes ``allow_insecure=True``. Raises ValueError otherwise. A device.json pasted
+    from a chat saying ``"validator": "http://10.0.0.9"`` must never receive the
+    refresh secret in the clear."""
+    if not isinstance(validator_url, str) or not validator_url:
+        raise ValueError("validator URL must be a non-empty string")
+    parts = urlsplit(validator_url)
+    if parts.scheme == "https" and parts.hostname:
+        return validator_url
+    if parts.scheme == "http" and parts.hostname in _LOOPBACK_HOSTS and allow_insecure:
+        return validator_url
+    raise ValueError(
+        f"validator URL must be https (got {parts.scheme or 'no scheme'}://{parts.hostname}); "
+        f"plain http is allowed only for 127.0.0.1/localhost with allow_insecure_validator=True")
+
+
+def device_refresh_http(validator_url, device_id, refresh_token, *, timeout=10,
+                        allow_insecure=False, _send=None):
     """Re-mint an external device's short-lived relay token (POST /devices/sessions/refresh).
 
-    Stdlib-only, mirroring `notify_http`. `validator_url` is the Connect+ validator base URL;
-    `device_id` + `refresh_token` are the long-lived credential handed to the device at mint
-    time. Returns the parsed `{"deviceToken": ..., "expiresAt": ...}`. Raises
-    CarterDeviceRevoked on HTTP 403 (revoked / owner lapsed); other HTTP errors propagate so a
-    caller can retry transient failures. `_send` is a test seam: (url, headers, body) -> dict."""
+    Stdlib-only, mirroring `notify_http`. `validator_url` is the Connect+ validator base URL
+    (https required — see `check_validator_url`); `device_id` + `refresh_token` are the
+    long-lived credential handed to the device at mint time. Returns the parsed
+    `{"deviceToken": ..., "expiresAt": ...}`. Raises CarterDeviceRevoked on HTTP 403
+    (revoked / owner lapsed); other HTTP errors propagate so a caller can retry transient
+    failures. `_send` is a test seam: (url, headers, body) -> dict."""
+    check_validator_url(validator_url, allow_insecure=allow_insecure)
     url = validator_url.rstrip("/") + "/devices/sessions/refresh"
     headers = {"Content-Type": "application/json"}
     body_bytes = json.dumps({"deviceId": device_id, "refreshToken": refresh_token}).encode()
@@ -283,7 +317,7 @@ def device_refresh_http(validator_url, device_id, refresh_token, *, _send=None):
         if _send is not None:
             return _send(url, headers, body_bytes)
         req = urllib.request.Request(url, data=body_bytes, headers=headers, method="POST")
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode())
 
     try:
@@ -294,14 +328,54 @@ def device_refresh_http(validator_url, device_id, refresh_token, *, _send=None):
         raise CarterNotifyError(e.code, e.read().decode(errors="replace")) from None
 
 
+#: Frames the relay itself emits (or answers) in plaintext even inside an E2EE room.
+#: Always passed through `_open` untouched, whatever `strict_e2ee` says.
+_RELAY_CONTROL_TYPES = frozenset({
+    "welcome", "server_client_list", "node_status", "roster", "error", "ack", "pong",
+    "handshake", "status_request", "get_nodes", "ping", "identify",
+})
+
+#: Inbound dispatch defaults: at most this many handlers run concurrently, and each
+#: msg_type is admitted at most `DEFAULT_RATE_PER_TYPE` frames per second (burst = 2x).
+DEFAULT_MAX_INFLIGHT = 32
+DEFAULT_RATE_PER_TYPE = 20.0
+
+
+class _TokenBucket:
+    __slots__ = ("rate", "burst", "tokens", "last")
+
+    def __init__(self, rate, burst):
+        self.rate, self.burst, self.tokens, self.last = rate, burst, burst, time.monotonic()
+
+    def take(self) -> bool:
+        now = time.monotonic()
+        self.tokens = min(self.burst, self.tokens + (now - self.last) * self.rate)
+        self.last = now
+        if self.tokens >= 1:
+            self.tokens -= 1
+            return True
+        return False
+
+
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
                  validator_url=None, session_jwt=None, room=False,
                  device_id=None, refresh_token=None, refresh_interval=2400,
-                 can_route=False, can_monitor=False):
+                 can_route=False, can_monitor=False, *, strict_e2ee=False,
+                 allow_insecure_validator=False, max_inflight=DEFAULT_MAX_INFLIGHT,
+                 rate_per_type=DEFAULT_RATE_PER_TYPE):
+        """`strict_e2ee=True` drops every non-envelope frame from a peer while an E2EE
+        session exists; `False` (0.12 default) passes them through with one warning per
+        msg_type. `allow_insecure_validator` permits an http:// validator on loopback
+        only. `max_inflight` bounds concurrent inbound handler runs; `rate_per_type` is
+        a per-msg_type admission rate (frames/s, 0 disables) — excess frames are dropped
+        and counted in `dropped`."""
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
+        if validator_url is not None:
+            check_validator_url(validator_url, allow_insecure=allow_insecure_validator)
+        self._allow_insecure_validator = allow_insecure_validator
         # can_route lets this client SEND routed requests (route_msg); can_monitor
         # unlocks get_nodes roster reads. Both off by default — a plain data hub
         # needs neither; Hub turns them on to resolve and push to devices.
@@ -314,11 +388,21 @@ class CarterClient:
         # `room=True` matches the app's `mode: room`: a symmetric group cipher so the hub
         # shares an encrypted room with several members. Otherwise the directional 1:1 cipher.
         if e2ee_key:
-            secret = base64.b64decode(e2ee_key)
-            self._session = (E2EESession.group(secret) if room
-                             else E2EESession(secret, is_device_side=(role in ("device", "hub"))))
+            from .e2ee import decode_key_b64
+            secret = decode_key_b64(e2ee_key)          # strict base64, exactly 32 bytes
+            ctx = {"channel": channel, "sender": name}
+            self._session = (E2EESession.group(secret, **ctx) if room
+                             else E2EESession(secret, is_device_side=(role in ("device", "hub")), **ctx))
         else:
             self._session = None
+        self.strict_e2ee = strict_e2ee
+        #: Inbound frames refused before any handler ran, by reason.
+        self.dropped = {"plaintext": 0, "e2ee_open": 0, "rate": 0}
+        self._warned_plaintext = set()
+        self._inflight = asyncio.Semaphore(max(1, int(max_inflight)))
+        self._rate_per_type = float(rate_per_type or 0)
+        self._buckets = {}
+        self._last_rate_warning = 0.0
         # Connect+ validator credentials for notify(); distinct from the mesh auth token.
         self._validator_url = validator_url
         self._session_jwt = session_jwt
@@ -347,9 +431,61 @@ class CarterClient:
         self._notif_action_handler = None
 
     def _open(self, payload):
-        if self._session and isinstance(payload, dict) and E2EESession.is_envelope(payload):
-            return self._session.open(payload)
+        """Decrypt an inbound payload. Returns None when the frame must be DROPPED: a
+        sealed frame that fails to open (bad tag, replay, stale, malformed) never
+        reaches a handler; a plaintext frame in an E2EE session is dropped under
+        `strict_e2ee` and passed through (with a one-time warning per msg_type)
+        otherwise. Relay control frames are always passed through. Never raises."""
+        if not self._session:
+            return payload
+        if isinstance(payload, dict) and E2EESession.is_envelope(payload):
+            try:
+                data = self._session.open(payload)
+            except ValueError as exc:
+                self.dropped["e2ee_open"] += 1
+                log.warning("dropped undecryptable frame: %s", exc)
+                return None
+            # The relay stamps the sender's name on the OUTER frame; it knows who sent
+            # it, whereas the sealed `_from` is only the sender's own claim. Prefer it.
+            if isinstance(data, dict) and isinstance(payload.get("_from"), str):
+                data["_from"] = payload["_from"]
+            return data
+        if isinstance(payload, dict) and payload.get("type") in _RELAY_CONTROL_TYPES:
+            return payload
+        mt = payload.get("msg_type") if isinstance(payload, dict) else None
+        if self.strict_e2ee:
+            self.dropped["plaintext"] += 1
+            if mt not in self._warned_plaintext:
+                self._warned_plaintext.add(mt)
+                log.warning("dropped plaintext frame (msg_type=%r) in an E2EE session "
+                            "(strict_e2ee=True)", mt)
+            return None
+        if mt not in self._warned_plaintext:
+            self._warned_plaintext.add(mt)
+            log.warning("plaintext frame (msg_type=%r) accepted in an E2EE session; "
+                        "carterkit 0.13 will drop these by default — pass "
+                        "strict_e2ee=True to drop them now", mt)
         return payload
+
+    def _admit(self, data) -> bool:
+        """Per-msg_type token bucket. False means drop (counted, warning rate-limited)."""
+        if self._rate_per_type <= 0 or not isinstance(data, dict):
+            return True
+        mt = data.get("msg_type")
+        bucket = self._buckets.get(mt)
+        if bucket is None:
+            if len(self._buckets) >= 1024:          # bounded: a peer inventing msg_types
+                self._buckets.clear()
+            bucket = self._buckets[mt] = _TokenBucket(self._rate_per_type, self._rate_per_type * 2)
+        if bucket.take():
+            return True
+        self.dropped["rate"] += 1
+        now = time.monotonic()
+        if now - self._last_rate_warning > 5.0:
+            self._last_rate_warning = now
+            log.warning("inbound rate limit: dropping msg_type=%r (%d dropped so far)",
+                        mt, self.dropped["rate"])
+        return False
 
     def _seal(self, data):
         return self._session.seal(data) if (self._session and data is not None) else data
@@ -359,9 +495,12 @@ class CarterClient:
         dict reply (auto-encrypted). Sync or async handlers are supported."""
         async def wrapper(payload):
             data = self._open(payload)
-            result = handler(data)
-            if asyncio.iscoroutine(result):
-                result = await result
+            if data is None or not self._admit(data):
+                return None
+            async with self._inflight:
+                result = handler(data)
+                if asyncio.iscoroutine(result):
+                    result = await result
             return self._seal(result) if result is not None else None
         self._sock.on(msg_type, wrapper)
 
@@ -378,7 +517,11 @@ class CarterClient:
         self._broadcast_registered = True
 
         async def wrapper(payload):
-            await self._dispatch_broadcast(self._open(payload))
+            data = self._open(payload)
+            if data is None or not self._admit(data):
+                return None
+            async with self._inflight:
+                await self._dispatch_broadcast(data)
             return None
         self._sock.on("broadcast", wrapper)
 
@@ -599,7 +742,8 @@ class CarterClient:
             if sender is not None:
                 sealed["sender"] = sender
             data = dict(data or {})
-            data["enc"] = self._session.seal(sealed)
+            # Notification content rides APNs, not the mesh: no freshness/replay stamps.
+            data["enc"] = self._session.seal(sealed, stamp=False)
             title, body = placeholder_title or "CAR-TER", placeholder_body
             subtitle = image = sender = None
 
@@ -670,7 +814,8 @@ class CarterClient:
             raise CarterNotifyError(0, "refresh_device_token() needs validator_url, device_id, "
                                        "and refresh_token on the CarterClient constructor")
         res = await asyncio.to_thread(device_refresh_http, self._validator_url,
-                                      self._device_id, self._refresh_token)
+                                      self._device_id, self._refresh_token,
+                                      allow_insecure=self._allow_insecure_validator)
         token = res.get("deviceToken") if isinstance(res, dict) else None
         if token:
             self._sock.auth_token = token  # MeshSocket re-sends this on every (re)connect

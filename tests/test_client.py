@@ -71,7 +71,7 @@ def test_broadcast_sealed_peer_opens():
         assert t == "broadcast_request"
         assert E2EESession.is_envelope(payload)
         peer = E2EESession(bytes([1]) * 32, is_device_side=False)
-        assert peer.open(payload) == {"msg_type": "hello", "v": 1}
+        assert peer.open(payload) == {"msg_type": "hello", "v": 1, "_from": "hub"}   # sealed sender stamp
 
     asyncio.run(run())
 
@@ -85,7 +85,7 @@ def test_on_handler_decrypts_and_seals_reply():
         reply = await c._sock.handlers["toggle"](peer.seal({"key": "lamp", "value": True}))
         assert got == {"key": "lamp", "value": True}
         assert E2EESession.is_envelope(reply)
-        assert peer.open(reply) == {"status": "ok"}
+        assert peer.open(reply) == {"status": "ok", "_from": "hub"}
 
     asyncio.run(run())
 
@@ -114,7 +114,7 @@ def test_room_broadcast_uses_group_cipher():
         _, payload = c._sock.sent[0]
         assert E2EESession.is_envelope(payload)
         peer = E2EESession.group(bytes([1]) * 32)  # a room member opens the hub's broadcast
-        assert peer.open(payload) == {"msg_type": "metrics", "cpu": 7}
+        assert peer.open(payload) == {"msg_type": "metrics", "cpu": 7, "_from": "hub"}
 
     asyncio.run(run())
 
