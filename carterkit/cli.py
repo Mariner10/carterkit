@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · examples · validate · gen · relay · version.
+Commands: catalog · doc · examples · validate · gen · explore · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -138,6 +138,17 @@ def _cmd_relay(args) -> int:
     return 0
 
 
+def _cmd_pager(args) -> int:
+    from . import pager_install
+    if args.pager_cmd == "install":
+        return pager_install.install(event=args.event, matcher=args.matcher,
+                                     timeout=args.timeout, settings=args.settings,
+                                     dry_run=args.dry_run, connection=args.connection)
+    if args.pager_cmd == "uninstall":
+        return pager_install.uninstall(settings=args.settings, dry_run=args.dry_run)
+    return pager_install.run(connection=args.connection, timeout=args.timeout)
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -200,6 +211,32 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--insecure", action="store_true",
                    help="run with NO key — anyone reaching the port joins every channel")
     c.set_defaults(fn=_cmd_relay)
+
+    c = sub.add_parser("pager", help="approve Claude Code permission prompts from the phone")
+    psub = c.add_subparsers(dest="pager_cmd", required=True)
+    pi = psub.add_parser("install", help="install the hook + Agents layout, merge settings.json")
+    pi.add_argument("--event", choices=("PermissionRequest", "PreToolUse"),
+                    default="PermissionRequest",
+                    help="hook event (default PermissionRequest: only real prompts page)")
+    pi.add_argument("--matcher", default="*", help="tool-name matcher (default '*')")
+    pi.add_argument("--timeout", type=float, default=90.0,
+                    help="seconds before the pager auto-denies (default 90)")
+    pi.add_argument("--settings", default=None,
+                    help="Claude Code settings file (default ~/.claude/settings.json)")
+    pi.add_argument("--dry-run", action="store_true", help="show the diff, write nothing")
+    pi.add_argument("--connection", default=None,
+                    help="ws:// URL or credential/pairing JSON (non-room); omit for local")
+    pi.set_defaults(fn=_cmd_pager)
+    pu = psub.add_parser("uninstall", help="remove only the pager hook entry")
+    pu.add_argument("--settings", default=None)
+    pu.add_argument("--dry-run", action="store_true")
+    pu.set_defaults(fn=_cmd_pager)
+    pr = psub.add_parser("run", help="start the pager daemon")
+    pr.add_argument("--connection", default=None,
+                    help="default: the one given to install, else the local relay")
+    pr.add_argument("--timeout", type=float, default=None,
+                    help="auto-deny seconds (default: install's, else 90)")
+    pr.set_defaults(fn=_cmd_pager)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)

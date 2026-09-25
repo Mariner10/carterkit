@@ -528,3 +528,48 @@ def ask_via_socket(agent, tool, summary="", *, socket_path=None, timeout=None):
     if decision not in (ALLOW, DENY):
         raise ValueError(f"bad pager reply: {reply!r}")
     return decision, reply.get("reason", "")
+
+
+# ─── layout ─────────────────────────────────────────────────────────────────
+PAGER_LAYOUT_ID = "agent-pager"
+
+
+def build_pager_layout(connection=None, *, msg_type="pager") -> dict:
+    """A minimal one-tab "Agents" layout (plain JSON, no code) that shows the
+    pager's status frames: overall status, the waiting agent + tool, and the
+    decision log. Approvals come from the notification's Approve/Deny buttons in
+    phase 0 (an in-app button can't carry the nonce yet — K4/phase 2 add that).
+
+    ``connection``: a :class:`~carterkit.connection.Connection` (or anything
+    ``Connection.parse`` takes); when given, its app-side ``connection`` block is
+    embedded (a Connect+ device token never is — see ``layout_block``)."""
+    def listen(path):
+        return [{"method": "meshsocket", "type": "listen", "event": "broadcast",
+                 "filter": {"msg_type": msg_type}, "valuePath": path}]
+
+    children = [
+        {"id": "pg-status", "type": "statusLight", "label": "Pager",
+         "position": [0, 0], "span": [1, 2], "sync": listen("status")},
+        {"id": "pg-agent", "type": "label", "label": "Agent", "text": "—",
+         "position": [0, 2], "span": [1, 2], "sync": listen("agent")},
+        {"id": "pg-tool", "type": "label", "label": "Request", "text": "—",
+         "position": [1, 0], "span": [1, 4], "sync": listen("tool")},
+        {"id": "pg-log", "type": "logConsole", "label": "Decisions",
+         "position": [2, 0], "span": [3, 4], "maxLines": 200,
+         "logColors": {"info": "#34C759", "warning": "#FF9500"},
+         "sync": listen("log")},
+    ]
+    layout = {
+        "id": PAGER_LAYOUT_ID,
+        "name": "Agents",
+        "version": 1,
+        "state": {"acks": True},
+        "tabs": [{"id": "agents", "title": "Agents", "icon": "hand.raised",
+                  "grid": {"columns": 4, "rows": 5}, "children": children}],
+    }
+    if connection is not None:
+        from .connection import Connection
+        conn = connection if isinstance(connection, Connection) else Connection.parse(connection)
+        if conn.kind != "local":
+            layout["connection"] = conn.layout_block(name="Agents")
+    return layout
