@@ -587,3 +587,15 @@ def test_requires_features_name_at_n():
     assert ("unknown_feature", "warn") in kinds(["layout.fallback@2"])
     assert ("unknown_feature", "warn") in kinds(["local.store@2"])
     assert ("bad_requires", "warn") in kinds(["control gauge"])
+
+
+def test_known_features_come_from_the_vendored_app_list():
+    import carterkit
+    from carterkit.validate import app_features, known_features
+    data = app_features()
+    assert data["features"] and data["app"], "carterkit/app_features.json missing or empty"
+    have = known_features()
+    # every catalog control is a feature the app reports, and nothing else is a control
+    assert {n[len("control."):] for n in have if n.startswith("control.")} == \
+        set(carterkit.controls())
+    assert {"sync.meshsocket", "action.http", "layout.requires"} <= set(have)

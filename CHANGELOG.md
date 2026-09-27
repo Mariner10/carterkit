@@ -146,8 +146,11 @@ live in the app and bind controls to them with plain JSON query stages — no se
   contract Limits table names `softDataImageBytes`) warns `inline_blob`; the 512 KB hard cap
   is still an error. `requires.features` entries parse like the app (`parse_feature`,
   `name@N`); `unknown_feature` warns on a name no app speaks or a version above it
-  (`known_features(catalog)` mirrors DeviceCapabilities). Shared accept fixtures:
-  asset-scheme-url, data-image-soft-budget, requires-feature-version.
+  (`known_features()` reads `carterkit/app_features.json`, the app's reported feature set
+  vendored as data by `scripts/sync-app-features.py`, never hand-edited). Shared accept
+  fixtures: asset-scheme-url, data-image-soft-budget, requires-feature-version.
+- **Default target app** is one constant, `validate.DEFAULT_TARGET_APP = "1.2.4"`: the
+  newest App Store version. It moves to 1.2.5 once 1.2.5 is live, with a note here.
 
 ### Changed
 
