@@ -3,7 +3,18 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.12.1] — unreleased
+## [0.13.0] — 2026-09-27
+
+### Changed
+- **`validate_layout` now matches the device decoder** on the shared conformance fixtures
+  (`CAR-TER/CAR-TERTests/Fixtures/layout-conformance`, run by `tests/test_conformance.py`).
+  New errors for layouts the phone refuses or cannot decode: a tab missing
+  `title`/`icon`/`grid`/`children`, a tab or group grid missing `columns`/`rows`, a
+  non-integer `version`, more than 24 tabs (`too_many_tabs`), span outside 1..64 or
+  position outside 0..256, a timer under 0.25 s (`bad_timer`), `minLines > maxLines`
+  (`bad_range`), a non-ws/wss `connection.url`, and strings over 4096 UTF-8 bytes
+  (`long_string`, was a warning counted in characters).
+- `grid.rows` may go up to 512, as on the device (it was capped at 64).
 
 ### Added
 - **`_cmd` dedupe that survives hub restarts.** `CarterClient` keeps a seen-set of
