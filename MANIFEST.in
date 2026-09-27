@@ -6,6 +6,7 @@ include CHANGELOG.md
 include pyproject.toml
 recursive-include carterkit/controldocs *.md
 include carterkit/py.typed
+include carterkit/app_features.json
 prune tests
 prune docs
 prune examples

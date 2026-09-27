@@ -17,6 +17,7 @@ is reported, not built.
 
 from __future__ import annotations
 
+import functools
 import json
 import math
 import re
@@ -1555,20 +1556,28 @@ def parse_feature(feature: str) -> tuple:
     return t, 1
 
 
-#: Feature names every current app speaks besides `control.<type>` (mirrors the app's
-#: DeviceCapabilities syncMethods / actionMethods / layoutFeatures; all at version 1).
-APP_SYNC_METHODS = ("meshsocket", "mqtt", "http", "sensor")
-APP_ACTION_METHODS = ("meshsocket", "mqtt", "http")
-APP_LAYOUT_FEATURES = ("layout.requires", "layout.fallback")
+#: The app's feature set as get-device-info reports it (DeviceCapabilities.features),
+#: vendored as data by scripts/sync-app-features.py — never hand-edited here.
+_APP_FEATURES_FILE = Path(__file__).with_name("app_features.json")
 
 
-def known_features(catalog: dict) -> dict:
-    """Feature name → highest version any released app speaks, built like the app's
-    DeviceCapabilities.featureVersions from the catalog's control types."""
-    out = {f"control.{t}": 1 for t in (catalog or {}) if isinstance(t, str)}
-    out.update({f"sync.{m}": 1 for m in APP_SYNC_METHODS})
-    out.update({f"action.{m}": 1 for m in APP_ACTION_METHODS})
-    out.update({f: 1 for f in APP_LAYOUT_FEATURES})
+@functools.lru_cache(maxsize=1)
+def app_features() -> dict:
+    """{"app": <which app build it came from>, "source": ..., "features": [...]}."""
+    try:
+        return json.loads(_APP_FEATURES_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"app": None, "source": None, "features": []}
+
+
+def known_features(catalog: dict = None) -> dict:
+    """Feature name → highest version the vendored app speaks (DeviceCapabilities
+    .featureVersions). `catalog` is accepted for API symmetry and ignored."""
+    out = {}
+    for f in app_features().get("features") or ():
+        if isinstance(f, str):
+            name, ver = parse_feature(f)
+            out[name] = max(ver, out.get(name, 0))
     return out
 
 
@@ -1580,7 +1589,9 @@ def requires_feature_findings(layout: dict, catalog: dict) -> list[dict]:
     feats = req.get("features") if isinstance(req, dict) else None
     if not isinstance(feats, list):
         return []
-    have = known_features(catalog)
+    have = known_features()
+    if not have:
+        return []                                      # no vendored list: can't judge
     out = []
     for i, feat in enumerate(feats):
         if not isinstance(feat, str) or not _FEATURE.match(feat):
@@ -1694,6 +1705,8 @@ def device_support_findings(layout: dict, features) -> list[dict]:
 # fallback (carter-4fb); the author adds one or raises requires.app.
 
 #: The oldest app the kit targets when nothing else says (the 1.2.4 App Store build).
+#: The ONE default target app: the newest version live on the App Store (not TestFlight).
+#: Bump it, and note the bump in CHANGELOG, when a newer app goes live (1.2.5 next).
 DEFAULT_TARGET_APP = "1.2.4"
 
 _APP_VERSION = re.compile(r"^[0-9]+(\.[0-9]+)*$")

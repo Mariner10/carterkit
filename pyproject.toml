@@ -40,4 +40,4 @@ carterkit = "carterkit.cli:main"
 packages = ["carterkit"]
 
 [tool.setuptools.package-data]
-carterkit = ["controldocs/*.md", "py.typed"]
+carterkit = ["controldocs/*.md", "py.typed", "app_features.json"]
