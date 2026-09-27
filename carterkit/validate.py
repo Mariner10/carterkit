@@ -39,13 +39,15 @@ SHARED_FIELDS = {
     # (not per-control config) — any control may carry them; unused ones are ignored.
     # Mirrors CAR-TER/CAR-TER/Models/ControlDefinition.swift.
     "min", "max", "step", "formatValue", "controlHeight", "hideValue", "pulse",
+    # Per-presentation placement variants (grid-dimensions.md#Landscape and iPad).
+    "landscape", "regular",
     # Tool data (document-contract.md#Extensions): preserved, never interpreted.
     "extensions",
 }
 GROUP_FIELDS = {
     "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
-    "extensions",
+    "landscape", "regular", "extensions",
 }
 
 
@@ -169,6 +171,40 @@ def _grid_dims(g, where, findings) -> tuple[int, int]:
     return out[0], out[1]
 
 
+def _grid_reflow(g, where, findings) -> None:
+    """`grid.reflow` is "auto" (default) or "stretch"; the app treats anything else as
+    auto, so another value is a warning."""
+    if isinstance(g, dict) and "reflow" in g and g["reflow"] not in ("auto", "stretch"):
+        findings.append(_f("warn", "bad_grid", where,
+                           f"grid.reflow must be \"auto\" or \"stretch\", got {g['reflow']!r}"))
+
+
+def _placement_variants(ch: dict, where: str, findings) -> None:
+    """`landscape` / `regular` on a child: `{position, span}` or `{hidden: true}`. The app
+    drops a malformed variant with a warning (the default placement renders), so these
+    are warnings, never errors."""
+    for key in ("landscape", "regular"):
+        if key not in ch:
+            continue
+        v = ch[key]
+        spot = f"{where}.{key}"
+        if not isinstance(v, dict):
+            findings.append(_f("warn", "bad_placement", spot,
+                               f"'{key}' must be an object {{position, span}} or {{hidden: true}}"))
+            continue
+        for k in v:
+            if k not in ("position", "span", "hidden"):
+                findings.append(_f("warn", "unknown_field", spot, f"{key}: unknown field '{k}'"))
+        for k in ("position", "span"):
+            if k in v and not (isinstance(v[k], list) and len(v[k]) == 2
+                               and all(gridmod.as_int(n) is not None for n in v[k])):
+                findings.append(_f("warn", "bad_placement", spot,
+                                   f"{key}.{k} must be [int, int], got {v[k]!r}"))
+        if "hidden" in v and not isinstance(v["hidden"], bool):
+            findings.append(_f("warn", "bad_placement", spot,
+                               f"{key}.hidden must be true or false, got {v['hidden']!r}"))
+
+
 def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     findings: list[dict] = []
     if not isinstance(layout, dict):
@@ -227,6 +263,7 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
                 seen_tab_ids[tid] = where
         g = tab.get("grid")
         cols, rows = _grid_dims(g, where, findings)
+        _grid_reflow(g, where, findings)
         children = tab.get("children") or []
         if not isinstance(children, list):
             findings.append(_f("error", "structure", where, "'children' must be an array"))
@@ -651,6 +688,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
             return
         g = ch.get("grid")
         cols, rows = _grid_dims(g, spot, findings)
+        _grid_reflow(g, spot, findings)
+        _placement_variants(ch, spot, findings)
         _grid_findings(sub_children, cols, rows, spot, findings,
                        g.get("mode") if isinstance(g, dict) else None)
         for sub in sub_children:
@@ -671,6 +710,7 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         return
 
     _validate_extensions(ch.get("extensions"), f"{spot}.extensions", findings)
+    _placement_variants(ch, spot, findings)
     fields = {f["name"]: f for f in entry.get("fields", [])}
     theme_names = {f["name"] for f in entry.get("themeFields", [])}
     allowed = SHARED_FIELDS | set(fields) | theme_names

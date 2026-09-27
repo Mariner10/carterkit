@@ -17,6 +17,8 @@ A visual container that clusters controls into a glass card with its own interna
 | `label` | string | no | Header text shown above the group. Set to `null` for no header |
 | `position` | [row, col] | yes | Grid cell position within parent |
 | `span` | [rows, cols] | no | Grid cells occupied. Default: `[1, 1]` |
+| `landscape` | `{position, span}` or `{hidden: true}` | no | This group's cell when an iPhone is on its side; ignored in portrait. See [[grid-dimensions#Landscape and iPad]] |
+| `regular` | `{position, span}` or `{hidden: true}` | no | This group's cell on an iPad-width page |
 | `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children |
 | `children` | [[child-definition]][] | yes | Controls and nested groups |
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
