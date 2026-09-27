@@ -1,8 +1,10 @@
 # layout-ops goldens (snapshot)
 
-Synced from the app's committed carter-c1n.8 (`origin/bead/carter-c1n.8` @ `1f34a8be`,
-`CAR-TERTests/Fixtures/layout-ops/`, 27 files). **Re-sync when c1n.8 lands on master**
-(copy from `CAR-TER/CAR-TERTests/Fixtures/layout-ops/`); do not hand-edit these files.
+Synced from the app's closed carter-c1n.8 (`bead/carter-c1n.8` @ `3c474dd0`,
+`CAR-TERTests/Fixtures/layout-ops/`, 27 files; identical to 1f34a8be, where the
+carter-60fd divergences were fixed app-side). Re-sync from app master once c1n.8 lands
+there, or whenever `LayoutOps.swift` changes (deferred work: carter-kow5). Do not
+hand-edit these files.
 
 Shape: `{name, description, kit, input, batch{ops, base?, author}, expected | error,
 minted?}`. `minted: {"#0": "<regex>"}` names an id the applier mints; `expected` writes it
