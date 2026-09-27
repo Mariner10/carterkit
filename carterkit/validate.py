@@ -551,8 +551,9 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
 
 def _hosted(node, depth):
     """(child, depth) pairs `node` (sitting in a children array at `depth`) hosts, counted
-    like the app's LayoutSanitizer: a `children` or `panels` array is a level each (so a
-    panel's controls are two down), and so are `canvasConfig.items`."""
+    like the app's LayoutSanitizer: each container is ONE level — a group's or a panel's
+    `children` (the `panels` array itself is only a hop), a longPressGroup's `children`
+    and `canvasConfig.items` — matching the renderer's one `depth + 1` per spawn."""
     out = []
     if node.get("type") == "group":
         subs = node.get("children")
@@ -561,7 +562,7 @@ def _hosted(node, depth):
     if isinstance(panels, list):
         for p in panels:
             if isinstance(p, dict) and isinstance(p.get("children"), list):
-                out += [(c, depth + 2) for c in p["children"]]
+                out += [(c, depth + 1) for c in p["children"]]
     lpg = node.get("longPressGroup")
     if isinstance(lpg, dict) and isinstance(lpg.get("children"), list):
         out += [(c, depth + 1) for c in lpg["children"]]
@@ -573,12 +574,13 @@ def _hosted(node, depth):
 
 
 def _hosted_too_deep(node, depth):
-    """True when anything a container hosts sits deeper than MAX_DEPTH. Stops at the
-    limit, so a hostile chain costs at most MAX_DEPTH frames."""
+    """True when anything a container hosts has more than MAX_DEPTH enclosing levels
+    (`depth - 1`, as in `_validate_child`). Stops at the limit, so a hostile chain costs
+    at most MAX_DEPTH + 1 frames."""
     for sub, d in _hosted(node, depth):
         if not isinstance(sub, dict):
             continue
-        if d > MAX_DEPTH or _hosted_too_deep(sub, d):
+        if d - 1 > MAX_DEPTH or _hosted_too_deep(sub, d):
             return True
     return False
 

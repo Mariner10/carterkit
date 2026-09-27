@@ -94,17 +94,13 @@ def _nests_too_deep(layout):
                and "document" not in f["detail"] for f in carterkit.validate_layout(layout))
 
 
-# Levels of each kind the app's sanitizer accepts at MAX_DEPTH 16: a tab's children are
-# depth 1, a group/longPressGroup/canvas level costs 1, a panel container costs 2.
-@pytest.mark.parametrize("kind,limit", [
-    ("group", 15), ("longPressGroup", 15), ("canvas", 15),
-    ("carousel", 7), ("flipCard", 7), ("accordion", 7),
-])
-def test_every_container_kind_counts_toward_the_app_depth_limit(kind, limit):
+# Every container kind costs exactly one level, as in the app's sanitizer and renderer:
+# MAX_DEPTH containers of any kind around a leaf are accepted, one more is refused.
+@pytest.mark.parametrize("kind", ["group", "longPressGroup", "canvas", "carousel", "flipCard", "accordion"])
+def test_every_container_kind_counts_toward_the_app_depth_limit(kind):
     from carterkit.validate import MAX_DEPTH
-    assert MAX_DEPTH == 16
-    assert not _nests_too_deep(_chain(kind, limit))
-    assert _nests_too_deep(_chain(kind, limit + 1))
+    assert not _nests_too_deep(_chain(kind, MAX_DEPTH))
+    assert _nests_too_deep(_chain(kind, MAX_DEPTH + 1))
 
 
 def test_thirty_deep_canvas_is_too_deep():
