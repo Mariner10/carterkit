@@ -10,7 +10,7 @@ live in the app and bind controls to them with plain JSON query stages — no se
 
 ### Added
 
-- **`carterkit.canonical` — the one canonical JSON.** RFC 8785 (JCS) serialization
+- **`carterkit.canonical` — the one canonical JSON (carter-m7s.9).** RFC 8785 (JCS) serialization
   (`canonical_json` / `canonical_bytes`) and the layout `content_digest(layout)` →
   `"sha256:<hex>"` over the credential-stripped document minus `provenance`,
   `attestations` and `extensions.editor`. Two installs of the same template with
