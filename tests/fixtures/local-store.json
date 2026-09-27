@@ -1,0 +1,59 @@
+{
+  "name": "Reading Log",
+  "id": "reading-log",
+  "version": 1,
+  "sources": {
+    "db": {
+      "type": "local",
+      "namespace": "reading-log",
+      "weekStartsOn": "monday",
+      "collections": {
+        "books": {
+          "fields": { "title": "string", "pages": "integer", "rating": "number",
+                      "finished": "date", "genre": "string", "tags": "json", "lent": "bool" }
+        },
+        "notes": { "fields": { "book": "string", "text": "string" }, "shared": true }
+      },
+      "views": {
+        "finished": { "from": "books", "where": { "finished": { "exists": true } } },
+        "finishedThisYear": { "from": "finished", "where": { "finished": { "gte": "{{startOfYear}}" } },
+                              "orderBy": "-finished" },
+        "topShelf": { "from": "finishedThisYear", "where": { "rating": { "gte": 4 } }, "limit": 20 }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Shelf", "icon": "books.vertical",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        { "type": "label", "id": "count", "label": "Books", "position": [0, 0], "span": [1, 2],
+          "sync": [ { "method": "local", "collection": "books", "aggregate": "count" } ] },
+        { "type": "label", "id": "pages", "label": "Pages this year", "position": [0, 2], "span": [1, 2],
+          "sync": [ { "method": "local", "collection": "finishedThisYear",
+                      "aggregate": { "op": "sum", "field": "pages" } } ] },
+        { "type": "chart", "id": "perMonth", "label": "Finished per month", "position": [1, 0], "span": [2, 4],
+          "sync": [ { "method": "local", "collection": "finished",
+                      "groupBy": { "field": "finished", "bucket": "month" }, "aggregate": "count",
+                      "orderBy": "key" } ] },
+        { "type": "list", "id": "shelf", "label": "Top shelf", "position": [3, 0], "span": [3, 4],
+          "listColumns": [ { "key": "title", "label": "Title" }, { "key": "rating", "label": "Rating" } ],
+          "sync": [ { "method": "local", "collection": "topShelf", "orderBy": ["-rating", "title"], "limit": 50 } ],
+          "action": { "method": "local", "op": "select", "collection": "books", "id": "{{item}}" } },
+        { "type": "textInput", "id": "title", "label": "Title", "position": [6, 0], "span": [1, 3],
+          "sync": [ { "method": "local", "collection": "books", "where": { "id": "{{selected}}" },
+                      "valuePath": "first.title" } ],
+          "action": { "method": "local", "op": "update", "collection": "books", "id": "{{selected}}",
+                      "set": { "title": "{{value}}" } } },
+        { "type": "button", "id": "add", "label": "Add", "position": [6, 3], "span": [1, 1],
+          "action": { "method": "local", "op": "insert", "collection": "books",
+                      "set": { "title": "Untitled", "pages": 0, "rating": 3, "finished": "{{today}}",
+                               "genre": "unsorted", "lent": false } } },
+        { "type": "button", "id": "remove", "label": "Remove", "position": [7, 0], "span": [1, 2],
+          "action": { "method": "local", "op": "delete", "collection": "books", "id": "{{selected}}" } },
+        { "type": "button", "id": "clear", "label": "Deselect", "position": [7, 2], "span": [1, 2],
+          "action": { "method": "local", "op": "select", "collection": "books", "id": null } }
+      ]
+    }
+  ]
+}

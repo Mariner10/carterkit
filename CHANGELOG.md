@@ -44,6 +44,63 @@ All notable changes to **carterkit** are documented here. This project follows
   `long_string` error even when it also reads as a base64 blob, and an oversized
   data:image `url` is an `inline_blob` error.
 
+<!-- from carter-96q -->
+The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that
+live in the app and bind controls to them with plain JSON query stages — no server, no SQL.
+
+### Added
+
+- **Singleton collections** (`"singleton": true` + optional `"defaults"`): one fixed row
+  written by the ops `set`, `increment` / `decrement` (`field`, `by`) and `toggle` (bool
+  `field`); `bind.local_op` takes `field=` / `by=`, and lint checks the op against the
+  collection and field types.
+- **`Layout.source_local(name, collections, *, namespace=None, views=None,
+  week_starts_on=None)`** declares a `sources.<name>.type == "local"` store. `collections`
+  takes the full `{"fields": {...}, "shared": bool, "mirror": bool}` form or the
+  `{field: type}` shorthand (types `string number integer bool date json`).
+- **`bind.local(collection, *, where, group_by, aggregate, order_by, limit, value_path,
+  source)`** builds a `method: "local"` sync (a query stage over a collection or view);
+  **`bind.local_op(op, collection, *, id, set, source)`** builds a `method: "local"` action
+  (`insert` / `update` / `upsert` / `delete` / `select`; `select` with `id=None` clears the
+  cursor).
+- **`CarterClient.local_describe / local_query / local_query_all / local_upsert /
+  local_delete`** read and seed the paired phone's local store over the studio socket's
+  routed `local.*` verbs (needs `can_route=True, can_monitor=True`, or an explicit
+  `device_id`). Errors raise **`LocalDataError(code, reason)`**; `consent-pending` polls
+  `local.describe` every second until the owner taps, then re-sends once (70 s wait, then
+  `LocalDataError('denied', 'timeout')`). Upserts page 100 records per call with `ids` in
+  input order; `local_query_all` follows cursors; delete-by-`where` requires
+  `confirm_total`. Pure helpers (request builders, paging, reply shapes, the
+  `studio.event`/`local` change-notice parser `parse_local_event`) live in
+  **`carterkit.localdata`**.
+- **CLI:** `carterkit local describe|query|seed <file>` against a studio relay URL or
+  pairing JSON.
+- **Validator:** `mirror` is flagged anywhere but a collection of a `type: "local"` source.
+- **`carterkit.local`** — the pure lint the validator runs (`lint_source`, `lint_stage`,
+  `lint_op`, `fields_for`) plus the caps and enums, for other tools to reuse.
+- **Validator:** `local` joins the source-type, addressed-method and binding-walker
+  whitelists. A local source is checked for names, types, reserved fields (`id`,
+  `createdAt`, `updatedAt`, `_hlc`), the reserved `shared` namespace, the namespace regex,
+  32 collections / 64 fields, view `from` chains (unknown, cycles, depth 8), and a second
+  local source without an explicit namespace. Every sync stage is linted against the
+  declared fields: `where` operators, depth 8 / 32 leaves / 64 `in` members, json-only-
+  `exists`, `contains` on strings, bool `eq`/`ne` only, token spelling; `aggregate` ops and
+  field types; `groupBy` bucket/width forms; grouped `orderBy` on `key`/`value` only;
+  `limit` 1…1000. Actions: op, id where required, no reserved or undeclared `set` fields,
+  reject-never-coerce literal types, no delete-by-`where`, writes target collections only.
+  New finding kinds `bad_stage` and `unknown_collection`.
+- **codegen / contract** treat local bindings as app-direct: no stub handler, no feed,
+  listed under `appDirect` with `collection` / `op collection` as the address.
+- **Tests:** `tests/test_local.py` (builders, lint, codegen/contract) and a pure-Python
+  stage evaluator (`tests/local_eval.py`) that runs the app's shared conformance fixtures
+  (`CAR-TERTests/Fixtures/local-query`, override with `CARTER_LOCAL_FIXTURES`; skipped when
+  absent) — every stage must lint and evaluate to the fixture's verdict.
+
+### Changed
+
+- ControlDocs re-vendored from the app's `feature/local-store` branch: new `local-store.md`;
+  `sources.md`, `sync.md`, `actions.md`, `index.md` carry the `local` method and fields.
+
 ## [0.13.1] — 2026-09-27
 
 ### Changed

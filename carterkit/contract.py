@@ -289,6 +289,14 @@ def _command_of(action: dict) -> tuple[str | None, str]:
     return ev, "legacy"
 
 
+def _local_address(b: dict) -> str | None:
+    """`collection` (with the op for actions) — the "address" of a local-store binding."""
+    coll = b.get("collection")
+    if not coll:
+        return None
+    return f"{b['op']} {coll}" if b.get("op") else coll
+
+
 def extract_contract(layout: dict) -> dict:
     """The type-defined API this layout exposes on the mesh."""
     triggers: dict[str, dict] = {}
@@ -307,12 +315,13 @@ def extract_contract(layout: dict) -> dict:
 
         for akey, gesture in (("action", "tap"), ("longPressAction", "long-press")):
             a = ctrl.get(akey)
-            if isinstance(a, dict) and a.get("method") in ("mqtt", "http"):
+            if isinstance(a, dict) and a.get("method") in ("mqtt", "http", "local"):
                 # App-direct outbound: the app publishes/requests it itself, no server.
                 app_direct.append({"id": ctrl.get("id"), "type": ctype, "label": label,
                                    "where": where, "direction": "out", "gesture": gesture,
                                    "transport": a["method"],
-                                   "address": a.get("topic") or a.get("path") or a.get("url")})
+                                   "address": a.get("topic") or a.get("path") or a.get("url")
+                                              or _local_address(a)})
                 continue
             if not (isinstance(a, dict) and a.get("event")):
                 continue
@@ -341,12 +350,12 @@ def extract_contract(layout: dict) -> dict:
             if not isinstance(s, dict):
                 continue
             method = s.get("method", "meshsocket")
-            if method in ("mqtt", "http", "sensor"):
+            if method in ("mqtt", "http", "sensor", "local"):
                 # App-direct inbound: the app subscribes/polls/reads it itself, no server.
                 app_direct.append({"id": ctrl.get("id"), "type": ctype, "label": label,
                                    "where": where, "direction": "in", "transport": method,
                                    "address": s.get("topic") or s.get("path") or s.get("url")
-                                              or s.get("sensor")})
+                                              or s.get("sensor") or _local_address(s)})
                 continue
             feed = {"id": ctrl.get("id"), "type": ctype, "label": label,
                     "where": where,

@@ -48,6 +48,8 @@ from .layout import Layout, Fragment, Control, Condition, CompoundCondition
 from .connection import Connection
 from .hub import Hub, HubError
 from .notifications import notification_action
+from . import localdata
+from .localdata import LocalDataError, LocalChangeEvent, parse_local_event
 from .surfaces import LayoutSurfaces
 from . import canonical
 from .canonical import canonical_json, content_digest
@@ -121,4 +123,5 @@ __all__ = [
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
     "contract", "extract_contract", "to_inline", "to_sectioned", "is_sectioned",
+    "localdata", "LocalDataError", "LocalChangeEvent", "parse_local_event",
 ]

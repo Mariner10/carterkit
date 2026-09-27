@@ -25,6 +25,7 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from . import grid as gridmod
+from . import local as localmod
 from . import palette as palettemod
 from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
@@ -669,7 +670,7 @@ def _collect_source_refs(children, sources, referenced):
             if not isinstance(b, dict):
                 continue
             method = b.get("method")
-            if method not in ("mqtt", "http"):
+            if method not in ("mqtt", "http", "local"):
                 continue
             ref = b.get("source")
             if ref:
@@ -887,7 +888,7 @@ def _validate_relative_format(ch, ctype, spot, findings):
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a
 # MeshSocket `event` — these are APP-side runtimes (see sources.md / sensors.md).
-_ADDRESSED_METHODS = {"mqtt", "http", "sensor"}
+_ADDRESSED_METHODS = {"mqtt", "http", "sensor", "local"}
 
 
 def _validate_bindings(ch, ctype, spot, findings, sources=None):
@@ -930,11 +931,29 @@ def _source_ref_findings(binding, method, spot, ctype, what, findings, sources):
         elif sources[ref] != method:
             findings.append(_f("error", "bad_source", spot,
                                f"{ctype}.{what}: source '{ref}' is {sources[ref]}, not {method}"))
-    elif method == "mqtt" and len(declared) != 1:
-        # HTTP can use an absolute `url` with no source at all; MQTT always needs a broker.
-        detail = ("no mqtt source declared" if not declared
-                  else f"{len(declared)} mqtt sources declared — name one with 'source'")
-        findings.append(_f("warn", "bad_source", spot, f"{ctype}.{what}: {detail}"))
+    elif method in ("mqtt", "local") and len(declared) != 1:
+        # HTTP can use an absolute `url` with no source at all; MQTT always needs a broker
+        # and a local binding always needs a declared store (there is nothing else to read).
+        detail = (f"no {method} source declared" if not declared
+                  else f"{len(declared)} {method} sources declared — name one with 'source'")
+        findings.append(_f("error" if method == "local" else "warn", "bad_source", spot,
+                           f"{ctype}.{what}: {detail}"))
+
+
+def _local_schema_for(binding, sources):
+    """The normalized local-source schema a binding resolves to (explicit `source`, else
+    the single declared local source), or None when it cannot be resolved — the source
+    reference findings already explain why."""
+    schemas = getattr(sources, "local", {})
+    ref = binding.get("source")
+    if ref is not None:
+        return schemas.get(ref)
+    return next(iter(schemas.values())) if len(schemas) == 1 else None
+
+
+def _local_problems(problems, kind, spot, prefix, findings):
+    for sev, msg in problems:
+        findings.append(_f(sev, kind, spot, f"{prefix}: {msg}"))
 
 
 def _validate_sync_entry(s, ctype, spot, i, findings, sources):
@@ -959,14 +978,47 @@ def _validate_sync_entry(s, ctype, spot, i, findings, sources):
                                f"{ctype}.sync[{i}] http sync needs a 'path' or 'url'"))
         _source_ref_findings(s, "http", spot, ctype, f"sync[{i}]", findings, sources)
         return          # valuePath optional
+    if method == "local":
+        _validate_local_sync(s, ctype, spot, i, findings, sources)
+        return
     # MeshSocket (default): a listen needs a valuePath to extract from the frame.
     if not s.get("valuePath"):
         findings.append(_f("warn", "bad_sync", spot,
                            f"{ctype}.sync[{i}] is missing a 'valuePath'"))
 
 
+def _validate_local_sync(s, ctype, spot, i, findings, sources):
+    """A `method: local` sync is a query stage over a declared collection or view (see
+    local-store.md). The stage is linted against the declared fields so an undeclared
+    field, a bad op or an out-of-range limit fails here, not as a `failed` pipe."""
+    what = f"{ctype}.sync[{i}]"
+    coll = s.get("collection")
+    if not isinstance(coll, str) or not coll:
+        findings.append(_f("error", "bad_sync", spot, f"{what} local sync needs a 'collection'"))
+    for key in ("event", "topic", "url", "path", "sensor"):
+        if key in s:
+            findings.append(_f("warn", "bad_sync", spot,
+                               f"{what}: '{key}' means nothing on a local sync (no wire)"))
+    _source_ref_findings(s, "local", spot, ctype, f"sync[{i}]", findings, sources)
+    schema = _local_schema_for(s, sources)
+    if schema is None or not isinstance(coll, str):
+        return
+    fields = localmod.fields_for(schema, coll)
+    if fields is None:
+        findings.append(_f("error", "unknown_collection", spot,
+                           f"{what}: '{coll}' is not a collection or view of the local source"))
+        return
+    stage = {k: s[k] for k in ("where", "groupBy", "aggregate", "orderBy", "limit") if k in s}
+    _local_problems(localmod.lint_stage(stage, fields), "bad_stage", spot, what, findings)
+
+
 def _validate_action_entry(a, ctype, akey, spot, findings, sources):
     method = a.get("method", "meshsocket")
+    if method == "local":
+        _source_ref_findings(a, "local", spot, ctype, akey, findings, sources)
+        _local_problems(localmod.lint_op(a, _local_schema_for(a, sources)), "bad_action", spot,
+                        f"{ctype}.{akey}", findings)
+        return
     if method == "mqtt":
         if not a.get("topic"):
             findings.append(_f("error", "bad_action", spot,
@@ -1023,31 +1075,77 @@ def _validate_action_wire(a, ctype, akey, spot, findings):
                            f"{ctype}.{akey}: route_msg_noreply needs payload.target_name"))
 
 
+class _SourceMap(dict):
+    """{name: kind} for every declared source, plus `.local` = {name: normalized schema}
+    for the local stores (so binding lint can check collections and fields)."""
+    local: dict
+
+
 def _validate_sources_defs(layout, findings) -> dict:
-    """Validate top-level `sources` (mqtt/http source definitions) and return a
-    {name: kind} map for binding checks. See sources.md."""
+    """Validate top-level `sources` (mqtt/http/local source definitions) and return a
+    {name: kind} map for binding checks. See sources.md and local-store.md."""
+    out = _SourceMap()
+    out.local = {}
     raw = layout.get("sources")
     if raw is None:
-        return {}
+        return out
     if not isinstance(raw, dict):
         findings.append(_f("error", "bad_sources", "root", "'sources' must be an object of {name: source}"))
-        return {}
-    out: dict[str, str] = {}
+        return out
+    namespaces: dict[str, str] = {}
     for name, sdef in raw.items():
         where = f"sources.{name}"
         if not isinstance(sdef, dict):
             findings.append(_f("error", "bad_sources", where, "source must be an object"))
             continue
         kind = sdef.get("type")
-        if kind not in ("mqtt", "http"):
+        if kind not in ("mqtt", "http", "local"):
             findings.append(_f("error", "bad_sources", where,
-                               f"source 'type' must be 'mqtt' or 'http', got {kind!r}"))
+                               f"source 'type' must be 'mqtt', 'http' or 'local', got {kind!r}"))
             continue
         out[name] = kind
+        _lint_mirror_placement(sdef, kind, where, findings)
         if kind == "mqtt" and not sdef.get("url"):
             findings.append(_f("error", "bad_sources", where, "mqtt source needs a broker 'url'"))
         # http `baseURL` is optional — syncs may use absolute `url`s instead.
+        if kind == "local":
+            problems, schema = localmod.lint_source(sdef)
+            for sev, msg in problems:
+                findings.append(_f(sev, "bad_sources", where, msg))
+            out.local[name] = schema
+            ns = schema.get("namespace")
+            if ns is not None:
+                if ns in namespaces:
+                    findings.append(_f("error", "bad_sources", where,
+                                       f"namespace '{ns}' is already used by source '{namespaces[ns]}'"))
+                namespaces[ns] = name
+    # A layout with several local stores must name each namespace explicitly — only one
+    # may fall back to the layout's own id/name (LocalSourceSchema.schemas rule).
+    implicit = [n for n, sc in out.local.items() if sc.get("namespace") is None]
+    if len(out.local) > 1 and implicit:
+        for n in implicit:
+            findings.append(_f("error", "bad_sources", f"sources.{n}",
+                               "a second local source needs an explicit 'namespace'"))
     return out
+
+
+def _lint_mirror_placement(sdef, kind, where, findings):
+    """`mirror` (studio change-notice, readback spec §4) is a bool on a collection inside
+    a `type: "local"` source — nowhere else. The bool check on local collections lives in
+    `local.lint_source`; this catches every misplaced `mirror`."""
+    if "mirror" in sdef:
+        findings.append(_f("error", "bad_sources", where,
+                           "'mirror' belongs on a collection (collections.<name>.mirror), "
+                           "not on the source"))
+    if kind == "local":
+        return
+    colls = sdef.get("collections")
+    if isinstance(colls, dict):
+        for cname, cdef in colls.items():
+            if isinstance(cdef, dict) and "mirror" in cdef:
+                findings.append(_f("error", "bad_sources", f"{where}.collections.{cname}",
+                                   f"'mirror' is only valid on a collection of a "
+                                   f"type:'local' source, not a {kind} source"))
 
 
 _ALERT_OPERATORS = {"eq", "neq", "gt", "lt", "gte", "lte"}

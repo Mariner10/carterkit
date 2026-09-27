@@ -30,6 +30,8 @@ from collections import OrderedDict
 from urllib.parse import urlsplit
 
 from .notifications import notification_action
+from . import localdata
+from .localdata import LocalDataError
 
 log = logging.getLogger(__name__)
 
@@ -574,6 +576,9 @@ class CarterClient:
         self._sock = MeshSocket(url=gateway_url, name=name, auth_token=token,
                                 channel=channel, role=role, can_broadcast=True,
                                 can_route=can_route, can_monitor=can_monitor)
+        self.name = name
+        self._can_route = bool(can_route)
+        self._can_monitor = bool(can_monitor)
         #: The mesh channel — also the default tap-routing key notify() stamps on
         #: pushes, so tapping one opens the pinned layout for this connection.
         self.channel = channel
@@ -1123,6 +1128,158 @@ class CarterClient:
                 return
             except Exception as exc:
                 log.warning("device token refresh failed, retrying next tick: %s", exc)
+
+    # ── Local store readback/seed (studio socket; readback spec §2, §3.1, §6.1) ──
+    # The phone registers local.* ONLY on the studio socket, so this client must be
+    # joined to the studio channel (the local relay a Studio Session pairs with), not a
+    # layout channel. Calls are plaintext route_msg requests like Hub.push_layout —
+    # never self.request(), which would seal the route_msg envelope itself.
+
+    #: Injectable for tests: the consent poll's sleep, clock and interval.
+    _local_sleep = staticmethod(asyncio.sleep)
+    _local_clock = staticmethod(time.monotonic)
+    _local_poll = localdata.CONSENT_POLL
+
+    async def _local_device(self, device_id):
+        if not self._can_route:
+            raise LocalDataError(
+                "not-capable", "local_* sends routed requests: construct "
+                "CarterClient(..., can_route=True, can_monitor=True)")
+        if device_id:
+            return device_id
+        if not self._can_monitor:
+            raise LocalDataError(
+                "not-capable", "finding the phone needs a get_nodes roster read: construct "
+                "CarterClient(..., can_monitor=True) or pass device_id=")
+        res = await self._sock.request("get_nodes", None, timeout=5.0)
+        for c in (res or {}).get("clients", []) if isinstance(res, dict) else []:
+            if c.get("name") != self.name and c.get("id"):
+                return c["id"]
+        raise LocalDataError("no-device", f"no other member on channel '{self.channel}' — "
+                                          "is the phone's Studio Session connected?")
+
+    async def _local_call(self, verb, payload, device_id, *, allow_pending=False):
+        reply = await self._sock.request(
+            "route_msg", {"target_id": device_id, "type": verb, "payload": payload},
+            timeout=5.0)
+        if reply is not None and self._session is not None:
+            opened = self._open(reply)
+            if opened is None:
+                raise LocalDataError("bad-reply", "the reply could not be opened with this "
+                                                  "client's E2EE key")
+            reply = opened
+        return localdata.unwrap(reply, allow_pending=allow_pending)
+
+    async def _local_wait_consent(self, device_id, wait_consent):
+        """Poll local.describe until its `consent` leaves `pending` (§3.1)."""
+        deadline = self._local_clock() + float(wait_consent)
+        while True:
+            if self._local_clock() >= deadline:
+                raise LocalDataError("denied", "timeout")
+            await self._local_sleep(self._local_poll)
+            desc = await self._local_call(localdata.VERB_DESCRIBE,
+                                          localdata.describe_request(), device_id)
+            if desc.get("consent") != "pending":
+                return desc.get("consent")
+
+    async def _local_consented(self, verb, payload, device_id, wait_consent):
+        """Send a record verb; on consent-pending wait for the sheet, then re-send once."""
+        reply = await self._local_call(verb, payload, device_id, allow_pending=True)
+        if not localdata.is_consent_pending(reply):
+            return reply
+        await self._local_wait_consent(device_id, wait_consent)
+        return await self._local_call(verb, payload, device_id)
+
+    async def local_describe(self, device_id=None) -> dict:
+        """Schema, counts and consent state of the paired phone's local store.
+        Needs no consent. Raises LocalDataError('no-layout'|'no-local-source')."""
+        device_id = await self._local_device(device_id)
+        return await self._local_call(localdata.VERB_DESCRIBE,
+                                      localdata.describe_request(), device_id)
+
+    async def local_query(self, collection, stage=None, *, namespace=None,
+                          cursor=None, device_id=None, wait_consent=localdata.WAIT_CONSENT) -> dict:
+        """One page of records (<=200). `stage` is the opaque stage object from the
+        local-store spec. Blocks through the phone's consent sheet up to
+        `wait_consent` seconds. Returns {rows, count, total, cursor}.
+
+        Aggregate stages come back unchanged in their own shape: scalar
+        `{collection, value}` or groups `{collection, categories, series, rows}`
+        (see `localdata.reply_shape`)."""
+        payload = localdata.query_request(collection, stage, namespace=namespace, cursor=cursor)
+        device_id = await self._local_device(device_id)
+        return await self._local_consented(localdata.VERB_QUERY, payload, device_id, wait_consent)
+
+    async def local_query_all(self, collection, stage=None, **kw) -> list[dict]:
+        """Follow `cursor` until exhausted. Convenience for asserts and exports.
+        Only row stages page; a scalar/groups stage raises LocalDataError('bad-request')
+        — call local_query for those."""
+        kw.pop("cursor", None)
+        kw["device_id"] = await self._local_device(kw.get("device_id"))
+        rows, cursor, seen = [], None, set()
+        while True:
+            reply = await self.local_query(collection, stage, cursor=cursor, **kw)
+            shape = localdata.reply_shape(reply)
+            if shape != "rows":
+                raise LocalDataError(
+                    "bad-request", f"local_query_all pages row stages only; this stage "
+                                   f"returns a {shape} reply — use local_query", reply=reply)
+            page = reply.get("rows")
+            if not isinstance(page, list):
+                raise LocalDataError("bad-reply", "query reply has no rows list", reply=reply)
+            rows.extend(page)
+            cursor = reply.get("cursor")
+            if cursor is None:
+                return rows
+            if cursor in seen:
+                raise LocalDataError("bad-reply", f"cursor {cursor!r} repeated", reply=reply)
+            seen.add(cursor)
+
+    async def local_upsert(self, collection, records, *, mode="upsert",
+                           namespace=None, device_id=None,
+                           wait_consent=localdata.WAIT_CONSENT) -> dict:
+        """Seed or replace records, 100 per routed call (the client pages larger
+        lists and merges the replies). Records may carry `id`; the reply's `ids`
+        line up with the input order.
+
+        A record is either the wire form `{"id"?, "fields": {...}}` or a flat
+        `{field: value, "id"?: ...}` dict. `mode` is upsert | insert | patch."""
+        pages = localdata.page_records(records, localdata.UPSERT_PAGE)
+        payloads = [localdata.upsert_request(collection, p, mode=mode, namespace=namespace)
+                    for p in pages]
+        device_id = await self._local_device(device_id)
+        replies = []
+        for payload in payloads:
+            replies.append(await self._local_consented(
+                localdata.VERB_UPSERT, payload, device_id, wait_consent))
+        return localdata.merge_upsert_replies(replies, [len(p) for p in pages])
+
+    async def local_delete(self, collection, ids=None, *, where=None,
+                           confirm_total=None, namespace=None, device_id=None,
+                           wait_consent=localdata.WAIT_CONSENT) -> dict:
+        """Delete by id list, or by `where` with `confirm_total` (the live count
+        you just read). Refuses `where` without `confirm_total`."""
+        if ids is not None and where is not None:
+            raise LocalDataError("bad-request", "pass exactly one of ids or where")
+        if ids is not None:
+            ids = list(ids)
+            payloads = [localdata.delete_request(collection, chunk, namespace=namespace)
+                        for chunk in localdata.page_records(ids, localdata.DELETE_PAGE)]
+        else:
+            payloads = [localdata.delete_request(collection, where=where,
+                                                 confirm_total=confirm_total,
+                                                 namespace=namespace)]
+        if not payloads:
+            raise LocalDataError("bad-request", "ids must be a non-empty list of strings")
+        device_id = await self._local_device(device_id)
+        merged = {"ok": True, "deleted": 0, "total": None}
+        for payload in payloads:
+            reply = await self._local_consented(
+                localdata.VERB_DELETE, payload, device_id, wait_consent)
+            merged["deleted"] += int(reply.get("deleted") or 0)
+            if "total" in reply:
+                merged["total"] = reply["total"]
+        return merged
 
     async def connect(self):
         # A hub that sat stopped past its short-lived token's expiry can never

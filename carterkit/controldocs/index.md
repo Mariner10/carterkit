@@ -44,7 +44,7 @@ The **chart pack** blurs the line: [[chart|charts]] (bar/line/area/scatter/histo
 ![](control-preview://gauge-demo)
 
 ### Data Flow
-Every control can **sync** with a backend. Input controls fire **actions**; display controls **listen** for incoming data and update automatically. The connection block is standardized: the same `filter`/`valuePath`/`{{value}}` vocabulary works over a MeshSocket server, an **MQTT broker**, or a polled **HTTP API** ([[sources]]) — `method` just picks the wire, so you know exactly what a control accepts and emits no matter the backend.
+Every control can **sync** with a backend. Input controls fire **actions**; display controls **listen** for incoming data and update automatically. The connection block is standardized: the same `filter`/`valuePath`/`{{value}}` vocabulary works over a MeshSocket server, an **MQTT broker**, a polled **HTTP API** ([[sources]]), or the on-device [[local-store]] — `method` just picks the wire, so you know exactly what a control accepts and emits no matter the backend.
 
 ![](control-preview://sparkline-demo)
 
