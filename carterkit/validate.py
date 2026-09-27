@@ -962,10 +962,48 @@ def _local_problems(problems, kind, spot, prefix, findings):
         findings.append(_f(sev, kind, spot, f"{prefix}: {msg}"))
 
 
+#: sync.md `staleAfter` max; the app clamps above it (SyncDefinition.maxStaleAfter).
+MAX_STALE_AFTER = 86400
+
+
+def _check_stale_after(v, where, label, findings):
+    """`staleAfter` seconds (sync entry or layout `liveness`). The app never refuses a
+    layout over it: a non-number or negative value is dropped (no staleness) and a
+    value over MAX_STALE_AFTER is clamped, so both are warnings (carter-avv)."""
+    if v is None:
+        return
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v \
+            or v in (float("inf"), float("-inf")) or v < 0:
+        findings.append(_f("warn", "bad_stale_after", where,
+                           f"{label} = {v!r} must be a number of seconds >= 0 "
+                           f"(0 opts out) — the app ignores it"))
+    elif v > MAX_STALE_AFTER:
+        findings.append(_f("warn", "bad_stale_after", where,
+                           f"{label} = {v} is over {MAX_STALE_AFTER} s (a day) — "
+                           f"the app clamps it to {MAX_STALE_AFTER}"))
+
+
+def _validate_liveness(lv, findings):
+    """Layout-wide `liveness: {staleAfter}` default (layout-config.md#Liveness)."""
+    if lv is None:
+        return
+    if not isinstance(lv, dict):
+        findings.append(_f("warn", "bad_liveness", "root.liveness",
+                           "'liveness' must be an object like {\"staleAfter\": 120} — "
+                           "the app ignores it"))
+        return
+    for k in lv:
+        if k != "staleAfter":
+            findings.append(_f("warn", "unknown_field", "root.liveness",
+                               f"unknown liveness key '{k}' (only 'staleAfter')"))
+    _check_stale_after(lv.get("staleAfter"), "root.liveness", "liveness.staleAfter", findings)
+
+
 def _validate_sync_entry(s, ctype, spot, i, findings, sources):
     if not isinstance(s, dict):
         findings.append(_f("warn", "bad_sync", spot, f"{ctype}.sync[{i}] must be an object"))
         return
+    _check_stale_after(s.get("staleAfter"), spot, f"{ctype}.sync[{i}].staleAfter", findings)
     method = s.get("method", "meshsocket")
     if method == "sensor":
         if not s.get("sensor"):
@@ -1168,7 +1206,7 @@ _EXT_HINT = (" — if this is your tool's own data, move it under "
 TOP_LEVEL_KEYS = {
     "name", "headerTitle", "version", "accentColor", "appearance", "connection", "tabs",
     "pollGroups", "dynamicTabs", "theme", "alerts", "state", "id", "glance", "publishers",
-    "batchPublishers", "sources", "sensorSetup", "keepAwake",
+    "batchPublishers", "sources", "sensorSetup", "keepAwake", "liveness",
     # document contract
     "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
     "placements", "styles", "connectivity",
@@ -1256,6 +1294,7 @@ def _validate_contract(layout: dict, findings: list) -> None:
     if fmt is not None and fmt != "carter":
         findings.append(_f("warn", "bad_top_level", "root", "'format' should be \"carter\""))
     _validate_extensions(layout.get("extensions"), "root.extensions", findings)
+    _validate_liveness(layout.get("liveness"), findings)
 
     for k in layout:
         if k in RESERVED_TOP_LEVEL:
