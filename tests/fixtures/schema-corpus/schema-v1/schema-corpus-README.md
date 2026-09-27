@@ -4,8 +4,9 @@ Inline (v1) documents that `LayoutSchemaCorpusTests` and carterkit's
 `tests/test_schema_corpus.py` round-trip. Basenames are unique across all of
 `Fixtures/` because the test target flattens its resources.
 
-- `samples/` — snapshot of every `CAR-TER/SampleLayouts` file (`sample-` prefix). The
-  live `SampleLayouts` folder also runs, so a new sample is covered at once.
+- `samples/` — snapshot of every git-tracked `CAR-TER/SampleLayouts` file (`sample-` prefix,
+  listed in `schema-v1-samples-MANIFEST.txt`; gitignored local samples are skipped). The
+  tracked files also run live from `SampleLayouts`, so a sample edit is covered at once.
 - `library/` — snapshot of `layout-library/{beginner,intermediate,advanced,expert}`
   taken 2026-09-27 (`<tier>-` prefix; all 56). Skipped: `playbook/` (drafts and
   chapter snippets, not finished layouts). 17 of them seed a buffer or dataset with an
