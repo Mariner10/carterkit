@@ -183,6 +183,15 @@ live in the app and bind controls to them with plain JSON query stages — no se
   `control-def`, `group-def`, `visibility`, `document-contract`, `actions` and
   `local-store` run ahead of the app for c1n.18, hsh and the singleton ops.
 
+- **One id namespace for hosted children (carter-1o0).** `validate_layout` claims the ids
+  of container `panels[].children` and `longPressGroup.children` (document order, groups
+  and nested hosts included; the panel/popup objects' own ids stay local), like the app's
+  sanitizer, so a clash there is `duplicate_id`. `validate.identity_ids(layout)` is the
+  layout's own id set; `lint_dynamic_traffic` checks decks against it. App 1.3 behaviour:
+  the app now DROPS a dynamic deck or tab whose ids are empty, duplicated or collide with
+  the layout's own ids, so the kit reports such a deck as a `duplicate_id` error
+  (a `Hub.fill` warning for it is tracked in carter-mmpe).
+
 ### Fixed
 
 - `embedded_secret` no longer flags a `"<your-token>"`-style template placeholder; a real
