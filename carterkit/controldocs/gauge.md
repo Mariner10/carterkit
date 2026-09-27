@@ -4,6 +4,11 @@ label: Gauge
 icon: gauge.medium
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Dial
+oneLiner: A number on a dial, from low to high
+addRank: 3
+starterPreset: {"label": "Dial","min": 0,"max": 100}
 fields:
   - name: animation
     type: enum
@@ -74,6 +79,9 @@ fields:
     type: bool
     default: false
     description: Show just the arc — hide the center value
+  - name: unit
+    type: string
+    description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally."
 themeFields:
   - name: cornerRadius
     min: 0
@@ -149,6 +157,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `arcRotation` | number | `0` | Rotates the arc start position in degrees |
 | `arcThickness` | number | auto | Arc stroke width in points. Omit to auto-scale with the gauge's size; set for an absolute width |
 | `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
+| `unit` | string | — | Measurement unit of the value ([[values#Units]]). The center readout converts to the device locale — `"celsius"` reads 70.7°F in the US, 21,5 °C in Germany. `min`, `max` and `segments` stay in this unit, so the arc never moves. Unknown strings are a literal suffix |
 
 > **Note:** `gaugeStyle` is a shorthand alias. `"half"` sets `arcAngle: 180` and `"full"` sets `arcAngle: 360`. When `arcAngle` is set explicitly, it takes precedence over `gaugeStyle`.
 

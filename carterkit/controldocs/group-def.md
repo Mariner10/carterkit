@@ -12,16 +12,21 @@ A visual container that clusters controls into a glass card with its own interna
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `type` | `"group"` | yes | Discriminator — must be `"group"` |
-| `id` | string | yes | Unique identifier |
+| `id` | string | yes | Unique identifier (among the layout's controls and groups; see [[layout-config#Identity]]) |
+| `name` | string | no | Readable name the editor shows for this group. Never used for identity |
 | `label` | string | no | Header text shown above the group. Set to `null` for no header |
 | `position` | [row, col] | yes | Grid cell position within parent |
 | `span` | [rows, cols] | no | Grid cells occupied. Default: `[1, 1]` |
+| `landscape` | `{position, span}` or `{hidden: true}` | no | This group's cell when an iPhone is on its side; ignored in portrait. See [[grid-dimensions#Landscape and iPad]] |
+| `regular` | `{position, span}` or `{hidden: true}` | no | This group's cell on an iPad-width page |
 | `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children |
 | `children` | [[child-definition]][] | yes | Controls and nested groups |
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
+| `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
+| `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Example
 
@@ -87,7 +92,7 @@ which payloads trigger it, matching keys the same way a [[sync]] filter does.
 
 ## Theming
 
-A group renders as a glass card whose surface, corner radius, border, and padding come from the active [[theming|theme]] (`surfacePrimary`, `cornerRadius`, `borderColor`, `borderWidth`, `cardPadding`). Set `hideBackground: true` for a transparent group (no card), e.g. a hero row of status lights. Per-control `theme` overrides on the children still apply inside the group.
+A group renders as a glass card whose surface, corner radius, border, and padding come from the active [[theming|theme]] (`surfacePrimary`, `cornerRadius`, `borderColor`, `borderWidth`, `cardPadding`). Set `hideBackground: true` for a transparent group (no card), e.g. a hero row of status lights. A group's own `theme` overrides those keys for the card, its label and everything inside it, e.g. `"theme": {"accentColor": "$leaf", "surfacePrimary": "#1B2A1F"}`; per-control `theme` overrides on the children still apply on top. See [[theming#Cascade]].
 
 ## Rendering
 - Groups render as a glass card (frosted material + subtle border)

@@ -4,6 +4,11 @@ label: Slider
 icon: slider.horizontal.3
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Slider
+oneLiner: Slide to pick a number
+addRank: 3
+starterPreset: {"label": "Slider","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
     type: enum

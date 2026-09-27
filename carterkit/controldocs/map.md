@@ -4,6 +4,10 @@ label: Map
 icon: map.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Map
+oneLiner: A place on a map
+starterPreset: {"label": "Map","mapStyle": "standard"}
 fields:
   - name: mapStyle
     type: enum
@@ -30,6 +34,12 @@ fields:
   - name: mapConfig
     type: object
     description: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
+  - name: controlHeight
+    min: 120
+    max: 1200
+    step: 10
+    type: number
+    description: Map height in points in a flow-mode grid (2-D grids size it by rowSpan)
 themeFields:
   - name: cornerRadius
     min: 0

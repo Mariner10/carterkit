@@ -4,6 +4,11 @@ label: Accordion
 icon: list.bullet.below.rectangle
 category: controls
 defaultSpan: [3, 2]
+addIntent: organize
+friendlyName: Sections
+oneLiner: Headings that open and close
+addRank: 5
+starterPreset: {}
 fields:
   - name: accordionMode
     type: enum
@@ -25,6 +30,12 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+  - name: defaultValue
+    min: -1
+    step: 1
+    bounds: none
+    type: number
+    description: Initial open index (overrides expandedIndex; -1 = all collapsed)
 themeFields:
   - name: surfacePrimary
     type: color

@@ -4,6 +4,10 @@ label: Pinboard
 icon: mappin.and.ellipse
 category: input
 defaultSpan: [10, 4]
+addIntent: change
+friendlyName: Pin board
+oneLiner: Pin things onto a picture
+starterPreset: {"label": "Pin board"}
 fields:
   - name: haptic
     type: enum
@@ -140,7 +144,7 @@ let a server seed or rearrange placements; ids not in the catalog are ignored.
       "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
                  "payload": { "target_id": "hub", "type": "place_device",
                               "payload": { "device": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
-      "layout": { "method": "meshsocket", "mode": "send", "event": "floorplan_state" }
+      "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "floorplan_state" } }
     }
   }
 }

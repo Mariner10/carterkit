@@ -4,6 +4,11 @@ label: Picker
 icon: list.bullet
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Menu
+oneLiner: Pick one from a list
+addRank: 7
+starterPreset: {"label": "Menu","options": ["One","Two","Three"]}
 fields:
   - name: animation
     type: enum
@@ -139,7 +144,7 @@ Inherits all [[shared-properties]]. Key fields:
   "options": ["Living Room", "Bedroom", "Kitchen", "Bathroom", "Office", "Garage", "Patio"],
   "defaultValue": "Living Room",
   "label": "Room",
-  "action": { "method": "meshsocket", "mode": "request", "event": "switch_room", "payload": { "room": "{{value}}" } }
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "switch_room", "room": "{{value}}" } }
 }
 ```
 

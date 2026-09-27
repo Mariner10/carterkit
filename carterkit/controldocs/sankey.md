@@ -4,6 +4,10 @@ label: Sankey
 icon: arrow.triangle.branch
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Flows
+oneLiner: Where amounts flow from and to
+starterPreset: {"label": "Flows"}
 fields:
   - name: haptic
     type: enum
@@ -175,7 +179,7 @@ don't hang the layout, but a mostly-acyclic flow reads far better.
   "span": [3, 4],
   "label": "Requests/min",
   "sankeyConfig": {
-    "nodeAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "inspect_service", "node": "{{value}}" } }
+    "nodeAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "inspect_service", "node": "{{value}}" } }
   },
   "defaultValue": "{\"nodes\":[{\"name\":\"Edge\"},{\"name\":\"API\"},{\"name\":\"DB\"},{\"name\":\"Cache\"}],\"links\":[{\"source\":0,\"target\":1,\"value\":120},{\"source\":1,\"target\":2,\"value\":80},{\"source\":1,\"target\":3,\"value\":40}]}"
 }

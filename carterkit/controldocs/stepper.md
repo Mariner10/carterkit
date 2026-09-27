@@ -4,6 +4,11 @@ label: Stepper
 icon: plus.forwardslash.minus
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Plus / minus
+oneLiner: Count up or down one step at a time
+addRank: 4
+starterPreset: {"label": "Count","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
     type: enum

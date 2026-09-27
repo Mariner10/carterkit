@@ -4,6 +4,11 @@ label: Button
 icon: hand.tap.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Button
+oneLiner: Tap it to make something happen
+addRank: 1
+starterPreset: {"label": "Button"}
 fields:
   - name: label
     type: string
@@ -35,6 +40,19 @@ fields:
     values: [light, medium, heavy, success, warning, error, selection]
     default: medium
     description: Haptic feedback on press
+  - name: repeatOnHold
+    type: bool
+    default: false
+    description: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
+  - name: valueMap
+    type: object
+    description: Synced value → button text ("default" catches the rest)
+  - name: iconMap
+    type: object
+    description: Synced value → SF Symbol name (swaps with the native replace effect)
+  - name: colorMap
+    type: object
+    description: Synced value → hex tint
 themeFields:
   - name: cornerRadius
     min: 0
@@ -73,7 +91,8 @@ themeFields:
 
 # Button
 
-A tappable action trigger. Fires its [[actions|action]] on press. Does not store a value.
+A tappable action trigger. Fires its [[actions|action]] on press. It stores no value of its own, but a
+button with a `sync` can show server state through `valueMap` / `iconMap` / `colorMap` (a stateful key).
 
 ## Type
 `"button"`
@@ -91,6 +110,29 @@ Inherits all [[shared-properties]]. Key fields:
 | `hideLabel` | bool | `false` | Show icon only |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on tap |
 | `haptic` | string | `"medium"` | Default haptic on press |
+| `repeatOnHold` | bool | `false` | Hold to keep firing `action`, with the system's accelerating repeat (like [[stepper]]) |
+| `valueMap` | object | — | Synced value → button text (`"default"` catches the rest) |
+| `iconMap` | object | — | Synced value → SF Symbol name |
+| `colorMap` | object | — | Synced value → hex tint |
+
+### Repeat while held
+`repeatOnHold: true` makes a held button refire its action at the system's native repeat
+cadence (Apple's `buttonRepeatBehavior`, the same one [[stepper]] uses), like holding an
+arrow key. Without the field a button fires once per tap. **`repeatOnHold` is ignored when
+`longPressAction` or `longPressGroup` is set**: the long-press wrapper owns the touch, so a
+hold opens the long-press instead.
+
+### Stateful keys
+Give a button a `sync` and the maps, and it shows the server's current state, like a Stream
+Deck key. The synced value is matched against map keys the same way as on [[label]]
+(`true`/`"Yes"`/`1` all hit `"true"`; `3`/`"3.00"` hit `"3"`; strings match case-insensitively).
+
+- A hit shows the mapped text / symbol / tint. A changed symbol swaps with the native
+  `.symbolEffect(.replace)` transition.
+- No match, or no value received yet ⇒ the map's `"default"` entry, else the button's own
+  `label` / `icon` / `tint`. A button that has never received a value never shows a `"false"`
+  entry.
+- Tapping still fires `action`; `{{value}}` in the payload is the current synced value.
 
 ## Examples
 
@@ -117,6 +159,39 @@ Inherits all [[shared-properties]]. Key fields:
   "size": "large",
   "hideLabel": true,
   "tint": "#FF2D55",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "player", "type": "command", "payload": { "command": "playpause" } } }
+}
+```
+
+### Hold-to-repeat arrow key
+```json
+{
+  "type": "button",
+  "id": "t-up",
+  "position": [8, 2],
+  "label": "Up",
+  "icon": "arrow.up",
+  "style": "outlined",
+  "size": "compact",
+  "repeatOnHold": true,
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "command", "key": "Up" } }
+}
+```
+
+### Stateful play/pause key
+```json
+{
+  "type": "button",
+  "id": "btn-playpause",
+  "position": [0, 2],
+  "label": "Play/Pause",
+  "icon": "playpause.fill",
+  "size": "large",
+  "hideLabel": true,
+  "tint": "#FF2D55",
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "cider_state" }, "valuePath": "playing" }],
+  "valueMap": { "true": "Pause", "false": "Play" },
+  "iconMap": { "true": "pause.fill", "false": "play.fill" },
   "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "player", "type": "command", "payload": { "command": "playpause" } } }
 }
 ```
@@ -152,3 +227,5 @@ Inherits all [[shared-properties]]. Key fields:
 - [[actions]] — Action definition
 - [[long-press]] — Long-press behavior
 - [[haptics]] — Haptic feedback
+- [[label]] — Value maps in depth
+- [[stepper]] — The other `repeatOnHold` control

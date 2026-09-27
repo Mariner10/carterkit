@@ -4,6 +4,11 @@ label: Sparkline
 icon: chart.xyaxis.line
 category: controls
 defaultSpan: [1, 2]
+addIntent: show
+friendlyName: Trend line
+oneLiner: A little line that shows how a number changes
+addRank: 5
+starterPreset: {"label": "Trend","sparklinePoints": 60}
 fields:
   - name: sparklinePoints
     min: 5
@@ -23,6 +28,9 @@ fields:
   - name: label
     type: string
     description: Header label (also shows latest value)
+  - name: defaultValue
+    type: array
+    description: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
 themeFields:
   - name: cornerRadius
     min: 0
@@ -86,6 +94,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `sparklineFill` | bool | `false` | Fill the area under the line with a gradient |
 | `tint` | string | `"#667eea"` | Line and fill color |
 | `label` | string | — | Header label (also shows latest value) |
+| `defaultValue` | number or number[] | — | Seed series drawn before the first sync (`[41, 40, 39]`); trimmed to `sparklinePoints`. See [[control-def#defaultValue per type]] |
 
 ## Data Flow
 

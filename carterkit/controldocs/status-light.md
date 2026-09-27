@@ -4,6 +4,11 @@ label: Status Light
 icon: circle.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: show
+friendlyName: Status dot
+oneLiner: A colored dot: OK, busy, or off
+addRank: 6
+starterPreset: {"label": "Status"}
 fields:
   - name: label
     type: string

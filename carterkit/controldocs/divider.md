@@ -4,6 +4,11 @@ label: Divider
 icon: minus
 category: layout
 defaultSpan: [1, 4]
+addIntent: organize
+friendlyName: Divider
+oneLiner: A line between sections
+addRank: 1
+starterPreset: {"label": "Section"}
 fields:
   - name: label
     type: string

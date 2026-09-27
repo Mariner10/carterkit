@@ -4,6 +4,10 @@ label: List
 icon: list.bullet
 category: controls
 defaultSpan: [2, 4]
+addIntent: show
+friendlyName: Table
+oneLiner: Rows of information
+starterPreset: {"label": "Table"}
 fields:
   - name: label
     type: string
@@ -23,6 +27,9 @@ fields:
     type: bool
     default: false
     description: Remove glass card background
+  - name: defaultValue
+    type: object[]
+    description: Seed rows shown before the first sync (the same row objects a sync delivers)
 themeFields:
   - name: cornerRadius
     min: 0
@@ -76,9 +83,11 @@ Inherits all [[shared-properties]]. Key fields:
 | `listColumns[].key` | string | required | Field to read from each row. A **dot path** reaches into nested rows — see [[#Column keys]] |
 | `listColumns[].label` | string | required | Column header text |
 | `listColumns[].format` | string | — | Number format applied to numeric cells (same formats as [[label]]) |
+| `action` | [[actions\|ActionDefinition]] | — | Fired on a row tap with `{{value}}` = the row's `id` — see [[#Row taps]] |
 | `tint` | color | `"#FFFFFF"` | Header text color |
 | `hideLabel` | bool | `false` | Hide header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
+| `defaultValue` | object[] | — | Seed rows shown before the first sync, the same row objects a sync delivers. See [[control-def#defaultValue per type]] |
 
 ## Column keys
 
@@ -93,6 +102,18 @@ If there's no flat match and the key contains dots, it's walked as a **dot path*
 That's what makes a nested public feed usable without a server in between: rows from
 a GeoJSON `features[]` keep their data under `properties`, and a path key reads it
 directly. A key that resolves to nothing renders as `—`.
+
+## Row taps
+
+With an `action`, each row whose data carries an `id` becomes tappable and fires the
+action with `{{value}}` = that row's `id`. Rows from a [[local-store]] binding always
+carry one, so a checklist ticks the tapped row with
+`{"method": "local", "op": "update", "collection": "items", "id": "{{value}}", "set": {"done": true}}`
+or removes it with `op: "delete"`. To edit a row elsewhere on the screen, select it:
+`{"method": "local", "op": "select", "collection": "books", "id": "{{value}}"}` moves the
+selection cursor, and every control bound with `"where": {"id": "{{selected}}"}` refills
+with the tapped row. Rows without an `id` aren't tappable. Without an `action` the list
+stays read-only.
 
 ## Examples
 

@@ -10,19 +10,27 @@ fields:
   - name: version
     bounds: none
     type: number
-    description: Schema version (required)
+    description: The author's revision label (required; never gates anything — see document-contract)
+  - name: schemaVersion
+    min: 1
+    max: 2
+    type: number
+    description: Grammar version, optional (absent = 1); set by writers, bumped only when an older app would misread the file
+  - name: extensions
+    type: object
+    description: Reverse-DNS keyed tool data the app preserves and never interprets (64 KB cap; see document-contract)
   - name: headerTitle
     type: string
     description: Title shown in the header bar
   - name: accentColor
     type: string
-    description: Hex accent color (e.g. "#5AC8FA")
+    description: Hex accent for the layout's library card, switcher and glance fallback (e.g. "#5AC8FA"); controls use theme.accentColor (see theming#Cascade)
   - name: appearance
     type: object
     description: App shell appearance (color scheme, header, background image)
   - name: theme
     type: object
-    description: Visual theme (colors, fonts, spacing)
+    description: Visual theme (colors, fonts, spacing, palette tokens)
   - name: connection
     type: object
     description: WebSocket connection config
@@ -41,6 +49,9 @@ fields:
   - name: keepAwake
     type: bool
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
+  - name: liveness
+    type: object
+    description: Layout-wide staleness default for sync bindings, e.g. {"staleAfter": 120} (opt-in; see sync)
   - name: batchPublishers
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
@@ -74,6 +85,7 @@ Top-level JSON structure for a CAR-TER remote.
   "pollGroups": { ... },
   "dynamicTabs": [ ... ],
   "keepAwake": true,
+  "liveness": { "staleAfter": 120 },
   "glance": { "hero": "cpu", "liveActivity": true, "controls": [ ... ], "widgets": [ ... ] }
 }
 ```
@@ -141,6 +153,36 @@ Fonts set at the theme level propagate to all controls. Per-control overrides ar
 
 For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-themes** (`toggle`, `slider`, `stepper`, `segmented`, `progressBar`), and a live theme builder, see [[theming]].
 
+## Document contract
+
+`schemaVersion` vs `version`, the `extensions` block, reserved keys, provenance,
+the sectioned form, the limits table and the asset rule are defined once in
+[[document-contract]]. In short: `version` is your revision label and never gates
+anything; `schemaVersion` (optional, absent = 1) names the grammar; put tool data
+in `extensions`, not in new top-level keys.
+
+## Identity
+
+Full rules (layout id = installation, `renameId`): [[document-contract#Identity]].
+
+Every control and group has an `id`, unique among all of the layout's controls
+and groups (a tab's `children` and, recursively, group `children`). The id is the
+stable key for stored values, `sync` targeting, visibility references and edits —
+never parse it and never show it to people. Tabs may carry an optional `id` too;
+without one the tab's `title` is its id, so give a tab an `id` before renaming it.
+
+- **Hand-written and carterkit ids** stay readable slugs (`"pump-speed"`). They
+  remain valid forever and the app never rewrites them.
+- **App-created ids** (the on-device editor's add / insert / duplicate / group /
+  page) are opaque: `c_` + 6 lowercase hex for controls (`c_7f3a9e`), `g_` for
+  groups and pages, `t_` for tabs. Duplicating a group re-mints every id inside it.
+- **`name`** (optional, controls and groups) is the readable label the editor
+  shows — `name`, else `label`, else the type. It is not identity: names may
+  repeat and renaming never moves stored data.
+- A duplicate or empty id is repaired on disk loads (a later duplicate becomes
+  `id~2`, an empty one `type-N`) and listed in the Layout Hub; strict loads
+  (wire, import, join) and carterkit's validator refuse it.
+
 ## Keep awake
 
 A dashboard mounted in a car or on a desk is useless once iOS dims and locks it.
@@ -164,11 +206,25 @@ held whenever *either* path says so.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `keepAwake` | bool | `false` | Hold the screen on while this layout is open, unless the user vetoed layout requests |
+| `liveness` | object | none | `{ "staleAfter": seconds }`: layout-wide staleness default for every sync binding; see [Liveness](#liveness) |
 | `batchPublishers` | bool | `false` | Publish sensors as one `sensor_batch` frame per tick of the fastest interval — see [[publishers]] |
 
 Battery note: a held screen drains fast off the charger. Reserve it for layouts
 that really are the display — a car dashboard, a wall panel, a telemetry source —
 not a remote that is glanced at and pocketed.
+
+## Liveness
+
+`"liveness": { "staleAfter": 120 }` sets a layout-wide default for how many
+seconds a synced value may go without a new source arrival before it counts as
+stale. Staleness is **opt-in**: without this block and without a per-binding
+`staleAfter`, values look live forever, as before.
+
+A sync entry's own `staleAfter` overrides this default, and `0` at either level
+opts that binding out. Writes that do not come from a source (user gestures,
+held or reverted command-ack values, defaults, Studio writes) never refresh the
+clock. See [[sync]] for resolution, arrivals, `timestampPath`, and the sensor
+heartbeat caveat. A malformed block is ignored rather than failing the layout.
 
 ## Glance surfaces
 
@@ -182,6 +238,7 @@ auto-derived glance. Full reference: [[glance]].
 
 ## Related
 
+- [[document-contract]] — versions, extensions, identity, limits, assets
 - [[glance]] — widgets, Dynamic Island, lock screen, Control Center
 - [[sources]] — MQTT/HTTP data sources
 - [[theming]] — Full theme system, light/dark variants, live builder

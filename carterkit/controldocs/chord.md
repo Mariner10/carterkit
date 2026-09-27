@@ -4,6 +4,10 @@ label: Chord
 icon: circle.hexagonpath.fill
 category: controls
 defaultSpan: [3, 3]
+addIntent: show
+friendlyName: Connections
+oneLiner: How things connect to each other
+starterPreset: {"label": "Connections"}
 fields:
   - name: haptic
     type: enum
@@ -156,7 +160,7 @@ asymmetric matrix tapers honestly.
   "span": [3, 3],
   "label": "Hand-offs",
   "chordConfig": {
-    "arcAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "focus_team", "team": "{{value}}" } }
+    "arcAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "focus_team", "team": "{{value}}" } }
   },
   "defaultValue": "{\"labels\":[\"Design\",\"Build\",\"QA\"],\"matrix\":[[0,6,1],[2,0,5],[1,3,0]]}"
 }

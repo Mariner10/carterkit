@@ -4,6 +4,11 @@ label: Toggle
 icon: switch.2
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Switch
+oneLiner: Turns something on or off
+addRank: 2
+starterPreset: {"label": "Switch"}
 fields:
   - name: animation
     type: enum

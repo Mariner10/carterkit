@@ -4,6 +4,11 @@ label: Carousel
 icon: rectangle.stack
 category: controls
 defaultSpan: [3, 2]
+addIntent: organize
+friendlyName: Pages
+oneLiner: Swipe between pages
+addRank: 3
+starterPreset: {}
 fields:
   - name: carouselMode
     type: enum
@@ -32,6 +37,13 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+  - name: defaultValue
+    min: 0
+    step: 1
+    bounds: none
+    type: number
+    default: 0
+    description: Initial page index
 themeFields:
   - name: surfacePrimary
     type: color

@@ -4,6 +4,10 @@ label: Heatmap
 icon: square.grid.3x3.fill
 category: controls
 defaultSpan: [2, 4]
+addIntent: show
+friendlyName: Heat grid
+oneLiner: Colored squares that show how much
+starterPreset: {"label": "Heat grid"}
 fields:
   - name: haptic
     type: enum
@@ -231,7 +235,7 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
     "colors": ["#FFFFFF14", "#667eea", "#FF9500"],
     "editable": true,
     "sendMode": "matrix",
-    "cellAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "schedule_set", "schedule": "{{value}}" } }
+    "cellAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "schedule_set", "schedule": "{{value}}" } }
   },
   "defaultValue": "{\"rows\":[\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\",\"Sun\"],\"cols\":[\"6\",\"9\",\"12\",\"15\",\"18\",\"21\"],\"values\":[[0,1,0,0,1,1],[0,1,0,0,1,1],[0,1,0,0,1,1],[0,1,0,0,1,1],[0,1,0,0,1,2],[1,1,1,1,1,2],[1,1,1,1,1,0]]}"
 }
@@ -251,7 +255,7 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
     "cellShape": "circle",
     "cellGap": 3,
     "editable": true,
-    "cellAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "led_set", "pixel": "{{value}}" } }
+    "cellAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "led_set", "pixel": "{{value}}" } }
   },
   "defaultValue": "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]"
 }

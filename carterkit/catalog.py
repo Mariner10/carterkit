@@ -49,6 +49,16 @@ def _parse_int_array(value: str) -> Optional[list[int]]:
     return parts or None
 
 
+def _parse_json(value: str, kind):
+    """A one-line JSON frontmatter value (`starterPreset`, `starterVariants`), or
+    None when it is missing, malformed, or not of `kind`."""
+    try:
+        parsed = json.loads(value)
+    except ValueError:
+        return None
+    return parsed if isinstance(parsed, kind) else None
+
+
 def _make_field(raw: dict[str, str]) -> dict:
     field: dict = {"name": raw.get("name", ""), "type": raw.get("type", "string")}
     if "values" in raw:
@@ -89,6 +99,15 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
         "icon": "",
         "category": "",
         "defaultSpan": None,
+        # Lay-user Add sheet keys (app bead carter-m7s.18). `starterPreset` is the
+        # small config a NEW control is seeded from on every insert path — never
+        # `sync`/`action` (examples stay docs). One-line JSON in the frontmatter.
+        "addIntent": None,
+        "friendlyName": None,
+        "oneLiner": None,
+        "addRank": None,
+        "starterPreset": None,
+        "starterVariants": [],
         "fields": [],
         "themeFields": [],
     }
@@ -123,6 +142,16 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
                 meta["category"] = value
             elif key == "defaultSpan":
                 meta["defaultSpan"] = _parse_int_array(value)
+            elif key == "addIntent":
+                meta["addIntent"] = value if value in ("show", "change", "organize") else None
+            elif key in ("friendlyName", "oneLiner"):
+                meta[key] = value.strip('"')
+            elif key == "addRank":
+                meta["addRank"] = int(value) if value.isdigit() else None
+            elif key == "starterPreset":
+                meta["starterPreset"] = _parse_json(value, dict)
+            elif key == "starterVariants":
+                meta["starterVariants"] = _parse_json(value, list) or []
             elif key == "fields":
                 in_fields = True
                 current_list = meta["fields"]
@@ -236,6 +265,11 @@ def _compact(doc: dict, include_theme: bool = False) -> dict:
     }
     if doc.get("defaultSpan"):
         out["defaultSpan"] = doc["defaultSpan"]
+    for key in ("addIntent", "friendlyName", "oneLiner", "addRank", "starterPreset"):
+        if doc.get(key) is not None:
+            out[key] = doc[key]
+    if doc.get("starterVariants"):
+        out["starterVariants"] = doc["starterVariants"]
     if doc.get("fields"):
         out["fields"] = doc["fields"]
     if include_theme and doc.get("themeFields"):

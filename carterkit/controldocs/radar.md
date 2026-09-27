@@ -4,6 +4,10 @@ label: Radar
 icon: hexagon.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Radar
+oneLiner: Several scores on one shape
+starterPreset: {"label": "Radar"}
 fields:
   - name: haptic
     type: enum
@@ -191,7 +195,7 @@ Shorthand: `{"axes": […], "values": […]}` renders one anonymous series.
   "span": [3, 3],
   "label": "EQ bands",
   "radarConfig": { "editable": true, "step": 1, "showValues": true, "rings": 5 },
-  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "eq_set", "bands": "{{value}}" } },
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "eq_set", "bands": "{{value}}" } },
   "defaultValue": "{\"axes\":[\"60Hz\",\"250Hz\",\"1kHz\",\"4kHz\",\"12kHz\"],\"max\":10,\"series\":[{\"values\":[5,6,5,4,6]}]}"
 }
 ```

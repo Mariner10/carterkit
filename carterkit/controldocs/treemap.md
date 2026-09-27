@@ -4,6 +4,10 @@ label: Treemap
 icon: rectangle.3.group.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Blocks
+oneLiner: Sizes compared as blocks
+starterPreset: {"label": "Blocks"}
 fields:
   - name: haptic
     type: enum
@@ -176,7 +180,7 @@ children:
   "label": "Budget",
   "treemapConfig": {
     "drillDown": false,
-    "itemAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "pick_category", "item": "{{value}}" } }
+    "itemAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "pick_category", "item": "{{value}}" } }
   },
   "defaultValue": "[{\"label\":\"Rent\",\"value\":1800},{\"label\":\"Food\",\"value\":600},{\"label\":\"Fun\",\"value\":250},{\"label\":\"Save\",\"value\":900}]"
 }

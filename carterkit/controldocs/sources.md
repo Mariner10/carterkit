@@ -6,8 +6,8 @@ category: system
 fields:
   - name: type
     type: enum
-    values: [mqtt, http]
-    description: Kind of external source
+    values: [mqtt, http, local]
+    description: Kind of source (mqtt or http external, local on-device store)
   - name: url
     type: string
     description: "MQTT broker address: mqtt://host[:port] or mqtts://host[:port]"
@@ -38,7 +38,8 @@ fields:
 # Data Sources
 
 Connect controls straight to protocols you already run — an **MQTT broker** or a
-plain **HTTP API** — with no MeshSocket bridge and zero server code. MeshSocket
+plain **HTTP API** — with no MeshSocket bridge and zero server code, or to an
+on-device **local store** ([[local-store]]) with no network at all. MeshSocket
 stays the power path (dynamic content, rooms, E2EE, readback); sources are the
 zero-setup path.
 
@@ -163,8 +164,28 @@ with its host, cadence or topic count, and state.
 - Diagnostics (connects, failures, reconnects) land in the connection console
   like MeshSocket's.
 
+## Local store
+
+`"type": "local"` declares an on-device database instead of an external endpoint:
+typed collections of records the layout's controls read with `sync` and write
+with `action`, no server or network involved. The keys (`namespace`,
+`collections`, `views`, `weekStartsOn`), the field types, the JSON query stages,
+the tokens and the write ops are all documented in [[local-store]].
+
+```json
+"sources": {
+  "db": { "type": "local",
+          "collections": { "notes": { "fields": { "text": "string", "at": "date" } } } }
+}
+```
+
+A local source appears in the header's Data Pipes as `Local`; it is grey until a
+control binds it, green while serving, and red with the reason after a schema or
+write error.
+
 ## Related
 
 - [[sync]] — the standardized inbound binding
 - [[actions]] — the standardized outbound command
+- [[local-store]] — the on-device `local` source
 - [[layout-config]] — where `sources` sits

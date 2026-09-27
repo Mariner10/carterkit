@@ -4,6 +4,11 @@ label: Symbol
 icon: cloud.bolt.rain.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Symbol
+oneLiner: An icon that can animate
+addRank: 8
+starterPreset: {"systemName": "star.fill","label": "Symbol"}
 fields:
   - name: systemName
     type: string

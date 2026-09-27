@@ -4,6 +4,10 @@ label: Log Console
 icon: terminal.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Log
+oneLiner: Lines of messages as they arrive
+starterPreset: {"label": "Log"}
 fields:
   - name: label
     type: string
@@ -48,6 +52,9 @@ fields:
     type: color
     default: "#667eea"
     description: Accent color
+  - name: defaultValue
+    type: array
+    description: Seed lines shown before the first sync (strings, or objects with text and level)
 themeFields:
   - name: cornerRadius
     min: 0
@@ -121,6 +128,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `controlHeight` | number | — | Console area height in points (default: compact, capped at 200). Set it to fill a tall grid span |
 | `logColors` | object | — | Map log levels to colors |
 | `tint` | color | `"#667eea"` | Accent color |
+| `defaultValue` | array | — | Seed lines shown before the first sync: strings or `{text, level}` objects. See [[control-def#defaultValue per type]] |
 
 ## Examples
 

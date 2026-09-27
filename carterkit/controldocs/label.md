@@ -4,6 +4,12 @@ label: Label
 icon: textformat
 category: controls
 defaultSpan: [1, 2]
+addIntent: show
+friendlyName: Text
+oneLiner: A line of text, or a value with a caption
+addRank: 1
+starterPreset: {"label": "Text","text": "Hello"}
+starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]
 fields:
   - name: text
     type: string
@@ -28,13 +34,19 @@ fields:
     values: [leading, center, trailing]
     default: leading
     description: Text alignment
+  - name: unit
+    type: string
+    description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally."
   - name: scrollable
     type: bool
     default: false
     description: Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight)
   - name: formatValue
     type: string
-    description: Value display format (see formatValue table)
+    description: Value display format (see formatValue table; relative / relative:day show a date as time-since)
+  - name: placeholder
+    type: string
+    description: Shown by a relative-date label with no date yet (default "Never")
   - name: valueMap
     type: object
     description: Incoming value → display text ("default" catches the rest)
@@ -76,8 +88,10 @@ Inherits all [[shared-properties]]. Key fields:
 | `style` | string | `"default"` | See [[style-properties#Label Styles]] |
 | `tint` | string | white | Text and icon color (terminal: default text colour over the dark backdrop) |
 | `align` | string | `"leading"` | `"leading"`, `"center"`, `"trailing"` |
+| `unit` | string | — | Measurement unit of a numeric value ([[values#Units]]); shown converted to the device locale (`"celsius"` → °F in the US). A `valueMap` hit or non-numeric text shows as sent. Unknown strings are a literal suffix |
 | `scrollable` | bool | `false` | Fixed-height scrolling terminal/log view (pair with `controlHeight`) |
 | `formatValue` | string | — | Value display format (see formatValue table below) |
+| `placeholder` | string | `"Never"` | With `relative` / `relative:day`: the text shown while there is no date |
 | `valueMap` | object | — | Incoming value → display text — see [[#Value maps]] |
 | `iconMap` | object | — | Incoming value → SF Symbol name |
 | `colorMap` | object | — | Incoming value → hex tint |
@@ -120,7 +134,33 @@ The same three fields work on [[image]], where `valueMap` maps to an image URL.
 | `"bytes"` | `"1.2 GB"` | Auto-scaled byte units |
 | `"bps"` | `"54 Mbps"` | Auto-scaled bits-per-second |
 | `"suffix:X"` | `"72°F"` | Append custom suffix (e.g., `"suffix:°F"`) |
+| `"relative"` | `"4 days ago"`, `"in 2 hours"` | A **date** shown as time-since / time-until — see [[#Relative dates]] |
+| `"relative:day"` | `"Today"`, `"Yesterday"`, `"4 days ago"` | Whole local calendar days |
 | `"none"` | (hidden) | No value display |
+
+## Relative dates
+
+`formatValue: "relative"` and `"relative:day"` turn a label bound to a date into a
+time-since readout that **advances on its own** — "Fern: last watered 4 days ago"
+becomes "5 days ago" tomorrow with no server, poll or data event.
+
+- **Accepted values:** an ISO-8601 instant (`"2026-09-22T08:15:00Z"`, fractional
+  seconds and offsets allowed — the `{{now}}` encoding), a date-only string
+  (`"2026-09-22"`, read as that day in the device's **local** calendar), or an epoch
+  number (seconds; milliseconds when larger than 10^11).
+- **`relative`** picks the largest sensible unit: "Now" (under a minute), "5 minutes
+  ago", "In 2 hours", "4 days ago".
+- **`relative:day`** counts whole **local** calendar days: "Today", "Yesterday",
+  "Tomorrow", "4 days ago", "In 2 days". Something done at 23:30 reads "Yesterday"
+  at 00:30, whatever the UTC date says.
+- **No date yet** (absent, `null`, empty, unparseable, or epoch `0`) shows
+  `placeholder` — `"Never"` by default, localized. It is never blank, `"0"` or a
+  1970 date.
+- Before the first sync, a static `text` holding a date is formatted the same way.
+- Text is localized (e.g. German "Vor 4 Tagen", "Gestern").
+- The label refreshes itself once a minute with its own timer; nothing is written
+  back to the control's value. Widget slots bound to the same control show the
+  same text, refreshed whenever the widget reloads its timeline.
 
 ## Styles
 
@@ -157,6 +197,13 @@ Feed it like any synced label (a `.string` value); see the
 [tmux-bridge](https://carterbeaudoin.net/CAR-TER) server for a complete example.
 
 ## Examples
+
+### Time since (plant watering)
+```json
+{ "type": "label", "id": "fern-watered", "label": "Fern — last watered", "icon": "leaf.fill",
+  "formatValue": "relative:day", "placeholder": "Not watered yet",
+  "sync": [{ "event": "fern", "valuePath": "lastWatered" }] }
+```
 
 ### Static info label
 ```json

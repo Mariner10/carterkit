@@ -4,6 +4,10 @@ label: Joystick
 icon: dpad.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: change
+friendlyName: Joystick
+oneLiner: Steer with your thumb
+starterPreset: {"label": "Joystick"}
 fields:
   - name: label
     type: string

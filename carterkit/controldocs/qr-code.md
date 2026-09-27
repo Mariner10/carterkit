@@ -4,6 +4,10 @@ label: QR Code
 icon: qrcode
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: QR code
+oneLiner: A code a phone camera can scan
+starterPreset: {"label": "QR code","text": "https://example.com"}
 fields:
   - name: label
     type: string

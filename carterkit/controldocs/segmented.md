@@ -4,6 +4,11 @@ label: Segmented Control
 icon: rectangle.split.3x1
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Choice
+oneLiner: Pick one of a few options
+addRank: 6
+starterPreset: {"options": ["One","Two","Three"]}
 fields:
   - name: animation
     type: enum

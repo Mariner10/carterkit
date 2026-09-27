@@ -4,6 +4,10 @@ label: Graph
 icon: circle.grid.cross.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Network
+oneLiner: Dots joined by lines
+starterPreset: {"label": "Network"}
 fields:
   - name: label
     type: string

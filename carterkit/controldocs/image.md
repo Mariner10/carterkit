@@ -4,6 +4,11 @@ label: Image
 icon: photo
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Picture
+oneLiner: A photo or an icon
+addRank: 7
+starterPreset: {"systemName": "photo"}
 fields:
   - name: systemName
     type: string

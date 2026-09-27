@@ -4,6 +4,10 @@ label: Compass
 icon: location.north.circle.fill
 category: input
 defaultSpan: [7, 3]
+addIntent: change
+friendlyName: Action ring
+oneLiner: Turn a ring to pick an action
+starterPreset: {"label": "Ring"}
 fields:
   - name: haptic
     type: enum

@@ -4,6 +4,10 @@ label: Pie Chart
 icon: chart.pie.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Pie
+oneLiner: Parts of a whole
+starterPreset: {"label": "Pie"}
 fields:
   - name: haptic
     type: enum
@@ -90,6 +94,13 @@ fields:
     default: 0
     description: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
     group: pieConfig
+  - name: icon
+    type: string
+    description: SF Symbol in the wheel/menu hub before a result lands
+  - name: hideValue
+    type: bool
+    default: false
+    description: Suppress the donut/hub center readout
 themeFields:
   - name: cornerRadius
     min: 0
@@ -208,7 +219,7 @@ If `sliceAction` is omitted, taps/landings fall back to the control's own `actio
   "pieStyle": "wheel",
   "pieConfig": {
     "spinDuration": 5,
-    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "oncall_pick", "person": "{{value}}" } }
+    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "oncall_pick", "person": "{{value}}" } }
   },
   "defaultValue": "{\"slices\":[{\"label\":\"Ava\",\"value\":1},{\"label\":\"Ben\",\"value\":1},{\"label\":\"Cass\",\"value\":2},{\"label\":\"Drew\",\"value\":1}]}"
 }
@@ -225,7 +236,7 @@ If `sliceAction` is omitted, taps/landings fall back to the control's own `actio
   "pieStyle": "menu",
   "icon": "sparkles",
   "pieConfig": {
-    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "scene", "name": "{{value}}" } }
+    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "scene", "name": "{{value}}" } }
   },
   "defaultValue": "{\"slices\":[{\"label\":\"Movie\",\"icon\":\"tv\"},{\"label\":\"Focus\",\"icon\":\"moon\"},{\"label\":\"Party\",\"icon\":\"music.note\"},{\"label\":\"Off\",\"icon\":\"power\"}]}"
 }
