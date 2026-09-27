@@ -395,3 +395,22 @@ def test_dead_action_remedy_keeps_existing_msg_type():
     bare = _action_layout("button", "action", {"event": "set_power"})
     dead = [f for f in validate_layout(bare) if f["kind"] == "dead_action"]
     assert dead and "send='set_power'" in dead[0]["detail"]
+
+
+# carter-qii — list.action (row tap fires with {{value}} = row id; list.md "Row taps").
+def test_list_row_tap_action_lints_clean():
+    from carterkit import build, bind, validate_layout
+    row = build.list(id="todo", action=bind.local_op("update", "items", id="{{value}}",
+                                                     set={"done": True}))
+    assert row["action"] == {"method": "local", "op": "update", "collection": "items",
+                             "id": "{{value}}", "set": {"done": True}}
+    row.update({"position": [0, 0], "span": [2, 2],
+                "sync": [{"method": "local", "collection": "items"}]})
+    lay = {"name": "C", "version": 1,
+           "sources": {"db": {"type": "local", "namespace": "checklist", "collections": {
+               "items": {"fields": {"title": "string", "done": "bool"}}}}},
+           "tabs": [{"title": "A", "icon": "checklist", "grid": {"columns": 2, "rows": 4},
+                     "children": [row]}]}
+    findings = validate_layout(lay)
+    assert not [f for f in findings if f["severity"] == "error"], findings
+    assert "unknown_field" not in {f["kind"] for f in findings}
