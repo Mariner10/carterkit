@@ -96,7 +96,7 @@ class PendingStore:
         try:
             os.fchmod(fd, 0o600)
             with os.fdopen(fd, "w") as fh:
-                json.dump(self._data, fh, indent=1, sort_keys=True)
+                json.dump(self._data, fh, indent=1)
                 fh.flush()
                 os.fsync(fh.fileno())
             os.replace(tmp, self.path)

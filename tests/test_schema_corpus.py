@@ -28,6 +28,10 @@ KNOWN_ERRORS = {
     "schema-v1/conformance/conformance-outside-grid-bounds.json": {"out_of_bounds"},
     "schema-v1/conformance/conformance-overlapping-controls.json": {"overlap"},
     "schema-v1/samples/sample-deep-nest-test.json": {"too_deep"},
+    # Tab "Radio" has a flow grid with no `rows`: the app's `.file` decode repairs it, a
+    # strict import refuses it, and kit 0.13.0 reports it (conformance parity). The fixture
+    # is shared byte-for-byte with the app corpus, so it stays as seeded (kit-next-0.14).
+    "schema-v1/library/advanced-film-set.json": {"missing_field"},
 }
 
 

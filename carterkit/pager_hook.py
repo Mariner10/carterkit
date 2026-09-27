@@ -55,7 +55,7 @@ def summarize(tool, tool_input):
                 break
         else:
             try:
-                text = json.dumps(tool_input, sort_keys=True, default=str)
+                text = json.dumps(tool_input, default=str)
             except (TypeError, ValueError):
                 text = str(tool_input)
     text = " ".join(text.split())
