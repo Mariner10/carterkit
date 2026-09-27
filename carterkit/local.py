@@ -3,7 +3,8 @@
 A `sources.<name>.type == "local"` block declares typed collections and views; controls
 read them with `sync[].method == "local"` (a query *stage*: where / groupBy / aggregate /
 orderBy / limit) and write them with `action.method == "local"` (an *op*: insert / update /
-upsert / delete / select). Everything here mirrors what the app's `LocalSchema` and
+upsert / delete / select, plus set / increment / decrement / toggle on a `singleton: true`
+collection's one row). Everything here mirrors what the app's `LocalSchema` and
 `LocalQueryCompiler` accept — the phone rejects the same shapes, this just says so before
 the push. No SQL, no code: every rule is over JSON.
 
@@ -33,7 +34,9 @@ WEEK_STARTS = ("monday", "sunday")
 WHERE_OPS = ("eq", "ne", "gt", "gte", "lt", "lte", "in", "contains", "exists")
 AGGREGATE_OPS = ("count", "sum", "avg", "min", "max", "distinct", "first", "last")
 BUCKET_UNITS = ("day", "week", "month", "year")
-ACTION_OPS = ("insert", "update", "upsert", "delete", "select")
+ACTION_OPS = ("insert", "update", "upsert", "delete", "select", "set", "increment", "decrement", "toggle")
+SINGLETON_OPS = ("set", "increment", "decrement", "toggle")
+SINGLETON_ROW_ID = "singleton"
 TOKENS = ("now", "today", "startOfWeek", "startOfMonth", "startOfYear", "selected")
 #: Tokens the app substitutes into a local action's `set` / `id` beside the store tokens.
 ACTION_TOKENS = ("value", "item", "from", "to", "index", "x", "y", "bearing", "label", "id")
@@ -76,10 +79,11 @@ def fields_for(schema: dict, name: str) -> dict | None:
 
 def lint_source(sdef: dict) -> tuple[list[tuple[str, str]], dict]:
     """Check one `sources.<name>` block of type local. Returns (problems, schema) where
-    schema is ``{"namespace", "collections": {name: {field: type}}, "views": {...}}`` —
-    the normalized shape the binding lint consumes (collections keep only their fields)."""
+    schema is ``{"namespace", "collections": {name: {field: type}}, "views": {...},
+    "singletons": [name, ...]}`` — the normalized shape the binding lint consumes
+    (collections keep only their fields)."""
     out: list[tuple[str, str]] = []
-    schema: dict = {"namespace": None, "collections": {}, "views": {}}
+    schema: dict = {"namespace": None, "collections": {}, "views": {}, "singletons": []}
     _lint_source_header(sdef, out, schema)
     _lint_collections(sdef.get("collections"), out, schema)
     _lint_views(sdef.get("views"), out, schema)
@@ -122,11 +126,11 @@ def _lint_collections(colls, out, schema):
             continue
         if len(fields) > MAX_FIELDS:
             out.append(("error", f"collection {cname}: at most {MAX_FIELDS} fields ({len(fields)} declared)"))
-        for flag in ("shared", "mirror"):
+        for flag in ("shared", "mirror", "singleton"):
             if flag in cdef and not isinstance(cdef[flag], bool):
                 out.append(("error", f"collection {cname}: '{flag}' must be true or false"))
         for key in cdef:
-            if key not in ("fields", "shared", "mirror"):
+            if key not in ("fields", "shared", "mirror", "singleton", "defaults"):
                 out.append(("warn", f"collection {cname}: unknown key '{key}' is ignored"))
         clean: dict = {}
         for fname, ftype in fields.items():
@@ -141,6 +145,34 @@ def _lint_collections(colls, out, schema):
                 continue
             clean[fname] = ftype
         schema["collections"][cname] = clean
+        if cdef.get("singleton") is True:
+            schema["singletons"].append(cname)
+        _lint_defaults(cname, cdef, clean, out)
+
+
+def _lint_defaults(cname, cdef, fields, out):
+    """`defaults` (field → starting value) belongs to a singleton collection only."""
+    if "defaults" not in cdef:
+        return
+    d = cdef["defaults"]
+    if cdef.get("singleton") is not True:
+        out.append(("error", f"collection {cname}: 'defaults' needs 'singleton': true"))
+        return
+    if not isinstance(d, dict):
+        out.append(("error", f"collection {cname}: 'defaults' must be an object of field → value"))
+        return
+    for fname, v in d.items():
+        ftype = fields.get(fname)
+        if ftype is None:
+            out.append(("error", f"collection {cname}: default for undeclared field '{fname}'"))
+        elif token_name(v) is not None:
+            out.append(("error", f"collection {cname}.defaults.{fname}: a default is a literal, not a token"))
+        elif v is not None and ftype != "json" and not _literal_matches(v, ftype):
+            out.append(("error", f"collection {cname}.defaults.{fname}: {v!r} is not a {ftype}"))
+        elif ftype == "integer" and isinstance(v, float) and not v.is_integer():
+            out.append(("error", f"collection {cname}.defaults.{fname}: {v!r} has a fraction; the field is integer"))
+        elif ftype == "date" and isinstance(v, str) and not _valid_date(v):
+            out.append(("error", f"collection {cname}.defaults.{fname}: {v!r} is not a valid date"))
 
 
 def _lint_views(views, out, schema):
@@ -439,6 +471,12 @@ def lint_op(a: dict, schema: dict | None) -> list[tuple[str, str]]:
         elif coll not in (schema.get("collections") or {}):
             out.append(("error", f"unknown collection '{coll}'"))
         fields = fields_for(schema, coll)
+    singletons = (schema or {}).get("singletons") or []
+    if op in SINGLETON_OPS:
+        _lint_singleton_op(a, op, coll, schema, fields, singletons, out)
+        return out
+    if coll in singletons and op in ("insert", "update", "upsert"):
+        out.append(("warn", f"'{coll}' is a singleton (one row, id '{SINGLETON_ROW_ID}'); write it with op set"))
     needs_id = op in ("update", "upsert", "delete")
     if needs_id and not a.get("id"):
         out.append(("error", f"{op} needs an 'id' (a literal, '{{{{selected}}}}' or another token)"))
@@ -456,6 +494,46 @@ def lint_op(a: dict, schema: dict | None) -> list[tuple[str, str]]:
     elif "set" in a:
         out.append(("warn", f"'set' is ignored by {op}"))
     return out
+
+
+def _lint_singleton_op(a, op, coll, schema, fields, singletons, out):
+    """set / increment / decrement / toggle write a singleton's one row; the arithmetic
+    and the flip run in one SQL UPDATE on the phone (toggle is in-app only)."""
+    if schema is not None and coll in (schema.get("collections") or {}) and coll not in singletons:
+        out.append(("error", f"{op} needs a singleton collection; declare '{coll}' with 'singleton': true"))
+    if "id" in a:
+        out.append(("warn", f"'id' is ignored by {op}: a singleton has one row"))
+    if op == "set":
+        s = a.get("set")
+        if not isinstance(s, dict) or not s:
+            out.append(("error", "set needs a non-empty 'set' object of field → value"))
+        else:
+            _lint_set(s, fields, out)
+        return
+    if "set" in a:
+        out.append(("warn", f"'set' is ignored by {op}"))
+    field = a.get("field")
+    if not isinstance(field, str) or not field:
+        out.append(("error", f"{op} needs a 'field'"))
+        return
+    if op == "toggle" and "by" in a:
+        out.append(("warn", "'by' is ignored by toggle"))
+    by = a.get("by")
+    if op != "toggle" and by is not None and token_name(by) is None and (
+            isinstance(by, bool) or not isinstance(by, (int, float))):
+        out.append(("error", f"{op}: 'by' must be a number, got {by!r}"))
+        by = None
+    if fields is None:
+        return
+    ftype = fields.get(field)
+    if ftype is None or field in RESERVED_FIELDS:
+        out.append(("error", f"{op}: unknown field '{field}' (declare it on the collection)"))
+    elif op == "toggle" and ftype != "bool":
+        out.append(("error", f"toggle needs a bool field; '{field}' is {ftype}"))
+    elif op != "toggle" and ftype not in _NUMERIC:
+        out.append(("error", f"{op} needs a number or integer field; '{field}' is {ftype}"))
+    elif op != "toggle" and ftype == "integer" and isinstance(by, float) and not by.is_integer():
+        out.append(("error", f"{op}: by {by!r} has a fraction; '{field}' is integer"))
 
 
 def _lint_id(ident, out):

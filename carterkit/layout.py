@@ -422,8 +422,8 @@ class Layout:
     def source_local(self, name: str, collections: dict, *, namespace: str = None,
                      views: dict = None, week_starts_on: str = None) -> "Layout":
         """Declare an on-device local store (see local-store.md). `collections` maps a
-        name to either the full ``{"fields": {...}, "shared": bool, "mirror": bool}``
-        declaration or the shorthand ``{field: type}`` (types: string number integer
+        name to either the full ``{"fields": {...}, "shared": bool, "mirror": bool,
+        "singleton": bool, "defaults": {...}}`` declaration or the shorthand ``{field: type}`` (types: string number integer
         bool date json). Controls read it with ``bind.local("books", aggregate="count")``
         and write it with ``bind.local_op("insert", "books", set={...})``. Records live in
         the app — no server, no broker, and they survive the layout."""

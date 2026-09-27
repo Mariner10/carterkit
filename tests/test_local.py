@@ -341,3 +341,55 @@ def test_fixture_parity(path):
             if op["set"] and not any(sev == "error" for sev, _ in local.lint_op(op, store.schema)):
                 failures.append(f"{Path(path).name}: lint accepted rejected write {w}")
     assert failures == [], "\n".join(failures)
+
+
+# ── singleton collections + set / increment / decrement / toggle (carter-0gj.53) ──
+
+def _singleton_layout(action, **coll):
+    cdef = {"singleton": True, "fields": {"lastWatered": "date", "cups": "integer",
+                                          "litres": "number", "on": "bool", "note": "string"},
+            "defaults": {"cups": 0, "on": False}}
+    cdef.update(coll)
+    lay = _one_control(action=action, ctype="button")
+    lay["sources"]["db"]["collections"]["fern"] = cdef
+    lay["tabs"][0]["children"][0]["label"] = "Go"
+    return lay
+
+
+def test_singleton_ops_lint_clean():
+    for action in (bind.local_op("set", "fern", set={"lastWatered": "{{now}}"}),
+                   bind.local_op("increment", "fern", field="cups"),
+                   bind.local_op("decrement", "fern", field="cups", by=2),
+                   bind.local_op("increment", "fern", field="litres", by=0.25),
+                   bind.local_op("toggle", "fern", field="on")):
+        assert _errors(_singleton_layout(action)) == [], action
+    assert bind.local_op("increment", "fern", field="cups", by=2) == {
+        "method": "local", "op": "increment", "collection": "fern", "field": "cups", "by": 2}
+
+
+def test_singleton_ops_reject_what_the_app_rejects():
+    cases = {
+        "needs a singleton collection": bind.local_op("increment", "books", field="pages"),
+        "needs a 'field'": bind.local_op("toggle", "fern"),
+        "toggle needs a bool field": bind.local_op("toggle", "fern", field="cups"),
+        "needs a number or integer field": bind.local_op("increment", "fern", field="note"),
+        "has a fraction": bind.local_op("increment", "fern", field="cups", by=0.5),
+        "'by' must be a number": bind.local_op("increment", "fern", field="cups", by="x"),
+        "unknown field": bind.local_op("toggle", "fern", field="nope"),
+        "non-empty 'set'": bind.local_op("set", "fern"),
+    }
+    for needle, action in cases.items():
+        details = " | ".join(_details(_singleton_layout(action)))
+        assert needle in details, (needle, details)
+
+
+def test_singleton_defaults_lint():
+    ok = bind.local_op("toggle", "fern", field="on")
+    assert _errors(_singleton_layout(ok)) == []
+    bad = {"defaults need singleton": ({"singleton": False}, "'defaults' needs 'singleton': true"),
+           "undeclared": ({"defaults": {"zzz": 1}}, "undeclared field 'zzz'"),
+           "mistyped": ({"defaults": {"cups": "x"}}, "is not a integer"),
+           "token": ({"defaults": {"lastWatered": "{{now}}"}}, "not a token")}
+    for name, (over, needle) in bad.items():
+        details = " | ".join(_details(_singleton_layout(ok, **over)))
+        assert needle in details, (name, details)

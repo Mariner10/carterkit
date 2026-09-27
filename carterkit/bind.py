@@ -182,16 +182,22 @@ def local(collection: str, *, where: dict | None = None, group_by=None, aggregat
 
 
 def local_op(op: str, collection: str, *, id: str | None = None, set: dict | None = None,
-             source: str | None = None) -> dict:
+             field: str | None = None, by=None, source: str | None = None) -> dict:
     """An `action` that writes the local store: `op` is insert / update / upsert /
     delete / select; `id` a literal or token (``"{{selected}}"``); `set` maps declared
     fields to values (``"{{value}}"`` rides the control value). `select` with ``id=None``
-    clears the cursor. No wire, no server — the app commits it itself."""
+    clears the cursor. On a ``singleton: true`` collection (one row): ``set`` (with
+    `set`), ``increment`` / ``decrement`` (`field`, optional `by`, default 1) and
+    ``toggle`` (a bool `field`). No wire, no server — the app commits it itself."""
     a: dict = {"method": "local", "op": op, "collection": collection}
     if id is not None or op == "select":
         a["id"] = id
     if set is not None:
         a["set"] = set
+    if field is not None:
+        a["field"] = field
+    if by is not None:
+        a["by"] = by
     if source is not None:
         a["source"] = source
     return a

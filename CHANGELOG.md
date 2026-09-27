@@ -9,6 +9,10 @@ The on-device **local store** (CAR-TER 1.3): layouts can declare typed collectio
 live in the app and bind controls to them with plain JSON query stages — no server, no SQL.
 
 ### Added
+- **Singleton collections** (`"singleton": true` + optional `"defaults"`): one fixed row
+  written by the ops `set`, `increment` / `decrement` (`field`, `by`) and `toggle` (bool
+  `field`); `bind.local_op` takes `field=` / `by=`, and lint checks the op against the
+  collection and field types.
 - **`Layout.source_local(name, collections, *, namespace=None, views=None,
   week_starts_on=None)`** declares a `sources.<name>.type == "local"` store. `collections`
   takes the full `{"fields": {...}, "shared": bool, "mirror": bool}` form or the
