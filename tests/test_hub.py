@@ -304,3 +304,10 @@ def test_hub_on_sync_request_gets_dynamic_scope():
         assert seen and seen[0]["dynamic"] == ["scenes"]
 
     asyncio.run(run())
+
+
+def test_hub_forwards_cmd_dedupe_path(tmp_path):
+    ui, _target = _acked_thermostat()
+    path = str(tmp_path / "seen.json")
+    assert _hub(ui, cmd_dedupe_path=path).client._cmd_dedupe.path == path
+    assert _hub(ui).client._cmd_dedupe.path is None            # token-only: memory-only

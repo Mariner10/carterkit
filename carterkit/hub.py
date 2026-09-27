@@ -115,13 +115,16 @@ class Hub:
     The embedded relay (no connection given) gets a random shared key and binds
     loopback; pass ``host="0.0.0.0"`` so a phone on the LAN can pair, and
     ``insecure=True`` only if you really want a keyless relay (``key=""``).
-    ``strict_e2ee`` (default True), ``max_inflight`` and ``rate_per_type`` pass
-    through to the underlying :class:`CarterClient`."""
+    ``strict_e2ee`` (default True), ``max_inflight``, ``rate_per_type`` and
+    ``cmd_dedupe_path`` pass through to the underlying :class:`CarterClient`. A
+    token-only hub (no device.json credential) keeps its ``_cmd`` seen-set in
+    memory only unless ``cmd_dedupe_path`` is given."""
 
     def __init__(self, layout=None, connection=None, *, name: str | None = None,
                  state_authority: bool = True, host: str = "127.0.0.1",
                  insecure: bool = False, strict_e2ee: bool = True,
                  max_inflight: int | None = None, rate_per_type: float | None = None,
+                 cmd_dedupe_path: str | None = None,
                  **conn_overrides):
         self._layout_filename = Path(layout).name if isinstance(layout, (str, Path)) else None
         if isinstance(layout, Path):
@@ -150,6 +153,8 @@ class Hub:
             client_kw["max_inflight"] = max_inflight
         if rate_per_type is not None:
             client_kw["rate_per_type"] = rate_per_type
+        if cmd_dedupe_path is not None:
+            client_kw["cmd_dedupe_path"] = cmd_dedupe_path
         self.client = CarterClient(can_route=True, can_monitor=True, **client_kw,
                                    **self.connection.client_kwargs(name=hub_name))
         self.name = hub_name

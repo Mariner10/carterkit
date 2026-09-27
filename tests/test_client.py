@@ -847,3 +847,243 @@ def test_dispatch_broadcast_unbatches_sensor_batch():
     ]}
     asyncio.run(client._dispatch_broadcast(batch))
     assert [r["sensor"] for r in seen] == ["motion", "location"]
+
+
+# --- `_cmd` dedupe (seen-set survives hub restarts) ---------------------------
+
+class _Clock:
+    def __init__(self, t=1_000_000.0):
+        self.t = t
+
+    def __call__(self):
+        return self.t
+
+
+def _acks(c):
+    return [p for _, p in c._sock.sent if p.get("msg_type") == "command_ack"]
+
+
+def _cmd(cmd_id, **kw):
+    return {"msg_type": "light.power", "on": True, "_cmd": cmd_id, "_from": "Phone", **kw}
+
+
+def test_dedupe_path_defaults_beside_credential(tmp_path):
+    cred = tmp_path / "device.json"
+    c = _client(key=None, credential_path=str(cred))
+    assert c._cmd_dedupe.path == str(tmp_path / ".device.json.cmd-seen.json")
+    assert _client(key=None)._cmd_dedupe.path is None          # token-only: memory-only
+
+
+def test_duplicate_cmd_skips_handler_and_reacks(tmp_path):
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(tmp_path / "seen.json"))
+        got = []
+        c.on_broadcast(lambda d: got.append(d) or True)
+        c.enable_command_acks()
+        await c._dispatch_broadcast(_cmd("c-1"))
+        await c._dispatch_broadcast(_cmd("c-1"))
+        assert len(got) == 1
+        assert _acks(c) == [{"msg_type": "command_ack", "cmd_id": "c-1",
+                             "to": "Phone", "ok": True}] * 2
+
+    asyncio.run(run())
+
+
+def test_restart_replay_skips_and_reacks(tmp_path):
+    path = str(tmp_path / "seen.json")
+
+    async def first():
+        c = _client(key=None, cmd_dedupe_path=path)
+        c.on_broadcast(lambda d: True)
+        c.enable_command_acks()
+        await c._dispatch_broadcast(_cmd("c-1"))
+
+    async def after_restart():
+        c = _client(key=None, cmd_dedupe_path=path)             # new process, same file
+        got = []
+        c.on_broadcast(lambda d: got.append(d) or True)
+        c.enable_command_acks()
+        await c._dispatch_broadcast(_cmd("c-1"))                # replayed by the outbox
+        await c._dispatch_broadcast(_cmd("c-2"))                # genuinely new
+        return got, _acks(c)
+
+    asyncio.run(first())
+    got, acks = asyncio.run(after_restart())
+    assert [d["_cmd"] for d in got] == ["c-2"]
+    assert [(a["cmd_id"], a["ok"]) for a in acks] == [("c-1", True), ("c-2", True)]
+
+
+def test_dedupe_file_is_0600(tmp_path):
+    import os
+    import stat
+    path = tmp_path / "seen.json"
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(path))
+        c.on_broadcast(lambda d: True)
+        c.enable_command_acks()
+        await c._dispatch_broadcast(_cmd("c-1"))
+
+    asyncio.run(run())
+    assert stat.S_IMODE(os.stat(path).st_mode) == 0o600
+    doc = json.loads(path.read_text())
+    assert [row[0] for row in doc["seen"]] == ["c-1"] and doc["seen"][0][2] is True
+    assert [p.name for p in tmp_path.iterdir()] == ["seen.json"]   # no temp left over
+
+
+def test_dedupe_ttl_expires(tmp_path):
+    clock = _Clock()
+    path = str(tmp_path / "seen.json")
+
+    async def run(c, cmd_id):
+        await c._dispatch_broadcast(_cmd(cmd_id))
+
+    got = []
+    c = _client(key=None, cmd_dedupe_path=path, cmd_dedupe_clock=clock)
+    c.on_broadcast(lambda d: got.append(d) or True)
+    asyncio.run(run(c, "c-1"))
+    clock.t += 899
+    asyncio.run(run(c, "c-1"))
+    assert len(got) == 1                                          # still within 900 s
+    clock.t += 2
+    asyncio.run(run(c, "c-1"))
+    assert len(got) == 2                                          # expired, runs again
+    # expired entries are dropped when a restarted client loads the file
+    clock.t += 901
+    c2 = _client(key=None, cmd_dedupe_path=path, cmd_dedupe_clock=clock)
+    assert not c2._cmd_dedupe.seen("c-1")
+
+
+def test_dedupe_lru_is_bounded(tmp_path):
+    got = []
+    c = _client(key=None, cmd_dedupe_path=str(tmp_path / "s.json"), cmd_dedupe_max=3)
+    c.on_broadcast(lambda d: got.append(d["_cmd"]) or True)
+
+    async def run():
+        for cmd_id in ["a", "b", "c", "a", "d"]:                 # "a" re-touched, "b" evicted
+            await c._dispatch_broadcast(_cmd(cmd_id))
+        await c._dispatch_broadcast(_cmd("b"))
+        await c._dispatch_broadcast(_cmd("a"))
+
+    asyncio.run(run())
+    assert got == ["a", "b", "c", "d", "b"]
+    assert len(c._cmd_dedupe._seen) == 3
+    assert ckclient.CMD_DEDUPE_MAX == 1024 and ckclient.CMD_DEDUPE_TTL == 900.0
+
+
+def test_dedupe_raise_path_records_false_and_reacks_false(tmp_path):
+    calls = []
+
+    def boom(d):
+        calls.append(d)
+        raise RuntimeError("exploded")
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(tmp_path / "s.json"))
+        c.on_broadcast(boom)
+        c.enable_command_acks()
+        with pytest.raises(RuntimeError):
+            await c._dispatch_broadcast(_cmd("c-2"))
+        await c._dispatch_broadcast(_cmd("c-2"))                 # replay: no re-run, no raise
+        return _acks(c)
+
+    acks = asyncio.run(run())
+    assert len(calls) == 1
+    assert [(a["cmd_id"], a["ok"], a["to"]) for a in acks] == [("c-2", False, "Phone")] * 2
+
+
+def test_dedupe_unhandled_is_not_recorded(tmp_path):
+    results = [None, True]
+    got = []
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(tmp_path / "s.json"))
+        c.on_broadcast(lambda d: got.append(d) or results.pop(0))
+        c.enable_command_acks()
+        await c._dispatch_broadcast(_cmd("c-9"))                 # not mine: silent, unrecorded
+        assert _acks(c) == [] and not c._cmd_dedupe.seen("c-9")
+        await c._dispatch_broadcast(_cmd("c-9"))                 # re-delivery still runs
+        return _acks(c)
+
+    acks = asyncio.run(run())
+    assert len(got) == 2 and [a["ok"] for a in acks] == [True]
+
+
+def test_dedupe_concurrent_inflight_duplicate_dropped(tmp_path):
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(tmp_path / "s.json"))
+        gate = asyncio.Event()
+        calls = []
+
+        async def slow(d):
+            calls.append(d)
+            await gate.wait()
+            return True
+
+        c.on_broadcast(slow)
+        c.enable_command_acks()
+        first = asyncio.create_task(c._dispatch_broadcast(_cmd("c-1")))
+        await asyncio.sleep(0)
+        await c._dispatch_broadcast(_cmd("c-1"))                 # while the first awaits
+        assert len(calls) == 1 and _acks(c) == []                # dropped, no ack
+        gate.set()
+        await first
+        assert [a["ok"] for a in _acks(c)] == [True]
+        assert c._cmd_dedupe._inflight == set()
+
+    asyncio.run(run())
+
+
+def test_dedupe_active_with_acks_off(tmp_path):
+    path = str(tmp_path / "s.json")
+    got = []
+
+    async def run(c):
+        await c._dispatch_broadcast(_cmd("c-1"))
+        await c._dispatch_broadcast(_cmd("c-1"))
+
+    c = _client(key=None, cmd_dedupe_path=path)
+    c.on_broadcast(lambda d: got.append(d))                      # returns None; acks off
+    asyncio.run(run(c))
+    assert len(got) == 1 and c._sock.sent == []
+    assert json.loads(open(path).read())["seen"][0][2] is None
+    c2 = _client(key=None, cmd_dedupe_path=path)                 # survives restart too
+    c2.on_broadcast(lambda d: got.append(d))
+    asyncio.run(run(c2))
+    assert len(got) == 1
+
+
+def test_dedupe_unwritable_dir_runs_memory_only(tmp_path, caplog):
+    import os
+    ro = tmp_path / "ro"
+    ro.mkdir()
+    os.chmod(ro, 0o500)
+    got = []
+    try:
+        c = _client(key=None, cmd_dedupe_path=str(ro / "seen.json"))
+        c.on_broadcast(lambda d: got.append(d) or True)
+        c.enable_command_acks()
+
+        async def run():
+            await c._dispatch_broadcast(_cmd("c-1"))
+            await c._dispatch_broadcast(_cmd("c-1"))
+
+        with caplog.at_level("WARNING"):
+            asyncio.run(run())
+    finally:
+        os.chmod(ro, 0o700)
+    assert len(got) == 1                                         # memory dedupe still works
+    assert [a["ok"] for a in _acks(c)] == [True, True]
+    assert c._cmd_dedupe.path is None
+    assert sum("memory-only" in r.getMessage() for r in caplog.records) == 1
+
+
+def test_dedupe_corrupt_or_missing_file_does_not_crash(tmp_path):
+    bad = tmp_path / "seen.json"
+    bad.write_text("{not json")
+    c = _client(key=None, cmd_dedupe_path=str(bad))
+    assert c._cmd_dedupe._seen == {}
+    c2 = _client(key=None, cmd_dedupe_path=str(tmp_path / "nope" / "seen.json"))
+    c2.on_broadcast(lambda d: True)
+    asyncio.run(c2._dispatch_broadcast(_cmd("c-1")))             # dir missing: memory-only
+    assert c2._cmd_dedupe.seen("c-1")

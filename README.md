@@ -138,6 +138,14 @@ ui.dynamic_tab("inject_tab")                               # runtime-injected ta
 ui.state(sync=True, authority="hub", acks=True)           # device-held shared state + acks
 ```
 
+**Ack'd commands.** With `ui.state(acks=True)` the app stamps each command with a
+`_cmd` id and waits ~2 s for `command_ack`; a `Hub` serving that layout acks
+automatically (`CarterClient.enable_command_acks()` by hand). Return `True` from a handler
+that handled the frame; anything else stays silent so the control reverts. Every hub
+also dedupes `_cmd` ids — a re-delivered or replayed command never runs twice and gets
+the first ack again. The seen-set is saved beside the device.json credential (or
+`cmd_dedupe_path=`), so it survives a restart; token-only hubs keep it in memory.
+
 **Prefer a declarative style?** A class veneer compiles to the *same* layout — ids come
 from attribute names, tabs/groups are nested classes (great for fixed dashboards; the flat
 builder reads better for generated ones):
