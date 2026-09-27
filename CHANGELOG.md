@@ -179,9 +179,8 @@ live in the app and bind controls to them with plain JSON query stages — no se
   wire-valid action examples (carter-2nl) and sync listeners (carter-79s: `event:
   "broadcast"` + `filter`, `route_msg_noreply` + `target_name`), list row taps (carter-qii,
   `list.action` with `{{value}}` = row id), sensors, buttons, `values.md` and the
-  defaultValue / icon / controlHeight frontmatter backfill (carter-pku). The kit copies of
-  `control-def`, `group-def`, `visibility`, `document-contract`, `actions` and
-  `local-store` run ahead of the app for c1n.18, hsh and the singleton ops.
+  defaultValue / icon / controlHeight frontmatter backfill (carter-pku). Vendored
+  byte-for-byte from app master 281fb51a (carter-io5).
 
 - **One id namespace for hosted children (carter-1o0).** `validate_layout` claims the ids
   of container `panels[].children` and `longPressGroup.children` (document order, groups
@@ -200,7 +199,7 @@ live in the app and bind controls to them with plain JSON query stages — no se
   feature grammar was lowercase-only (carter-5q1y).
 - ControlDocs frontmatter is valid YAML again (carter-3825) and descriptions are never
   single-quoted (every loader strips only double quotes); `tests/test_controldocs_yaml.py`
-  guards it. The document-contract Requirements example names real features (carter-f0sd).
+  guards it.
 
 ## [0.13.1] — 2026-09-27
 
