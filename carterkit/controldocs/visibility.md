@@ -9,7 +9,7 @@ fields:
     description: Legacy leaf — the control ID to watch (same as ref.control)
   - name: ref
     type: object
-    description: "Leaf subject — exactly one of {'control': id} or {'selected': collection}; 'field' and 'derive' are reserved"
+    description: "Leaf subject — exactly one of {control: id} or {selected: collection}; field and derive are reserved"
   - name: operator
     type: string
     description: Comparison operator (eq, ne, gt, gte, lt, lte, in, exists; aliases neq, is, isNot). Omitted = eq

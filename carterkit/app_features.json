@@ -1,5 +1,5 @@
 {
- "app": "master 72b75d34",
+ "app": "master 281fb51a",
  "source": "derived from DeviceCapabilities.swift + ControlDefinition.swift",
  "features": [
   "action.http",

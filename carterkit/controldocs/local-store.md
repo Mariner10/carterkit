@@ -219,7 +219,10 @@ value per bucket. Three forms:
 descending. In a row query any declared field, `id`, `createdAt` or `updatedAt`
 is orderable; in a grouped query only `key` and `value` (default `key`
 ascending). Ordering is stable (`id` is always the final tiebreak) and `null`
-sorts last. A row query with no `orderBy` orders by `id`.
+sorts last. A row query with no `orderBy` orders by `id`. Two writes never share
+a `createdAt`/`updatedAt` (a write in the same millisecond is stamped 1 ms
+later), so `"createdAt"` is add order and `"-updatedAt"` is most-recently-changed
+first; rows of one batched write share a stamp and fall back to `id`.
 
 `limit` is an integer from 1 to 1000. It applies to the rows of a row query and
 to the buckets of a grouped query.

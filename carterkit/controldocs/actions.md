@@ -55,9 +55,10 @@ fields:
     type: string
     description: Singleton field an increment/decrement (number or integer) or toggle (bool) changes (local)
   - name: by
+    bounds: none
     type: number
     default: 1
-    description: Step for increment/decrement; a number or an exact token such as {{value}} (local)
+    description: Step for increment/decrement; any non-zero number or an exact token such as {{value}}; decrement subtracts it; integer fields take whole steps only (local)
 ---
 
 How controls send commands — the outbound half of the **standardized connection
