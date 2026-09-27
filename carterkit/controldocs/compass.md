@@ -140,14 +140,14 @@ Puck **drag** fires `place` `{ item, x, y, bearing }` and `layout`
     "dwell": 1.0,
     "pucks": [
       { "id": "lights", "label": "Lights", "icon": "lightbulb.fill", "tint": "#FF9500", "bearing": 0,
-        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                    "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
       { "id": "music", "label": "Music", "icon": "music.note", "tint": "#FF2D55", "bearing": 90,
-        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                    "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
       { "id": "lock", "label": "Lock", "icon": "lock.fill", "tint": "#34C759", "bearing": 180,
-        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                    "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
     ]
   },
   "sync": [{ "method": "sensor", "sensor": "heading" }]

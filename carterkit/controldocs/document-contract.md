@@ -195,7 +195,7 @@ top-level sections keyed by control or group id, instead of on the control:
   "placements": { "c_7f3a9e": { "position": [0, 0], "span": [2, 2],
                                 "landscape": { "position": [0, 2], "span": [2, 1] } } },
   "styles": { "c_7f3a9e": { "tint": "#34C759" } },
-  "connectivity": { "c_7f3a9e": { "sync": [{ "method": "meshsocket", "event": "soil" }] } }
+  "connectivity": { "c_7f3a9e": { "sync": [{ "method": "meshsocket", "event": "broadcast", "filter": { "msg_type": "soil" }, "valuePath": "moisture" }] } }
 }
 ```
 

@@ -151,7 +151,7 @@ Horizontal row of capsule-shaped buttons. Selected pill gets tinted background.
   "span": [1, 2],
   "options": ["Heat", "Cool", "Auto", "Off"],
   "defaultValue": "Auto",
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "ecobee", "type": "set_mode", "payload": { "mode": "{{value}}" } } }
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "ecobee", "type": "set_mode", "payload": { "mode": "{{value}}" } } }
 }
 ```
 

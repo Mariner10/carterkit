@@ -37,7 +37,7 @@ fields:
     description: Easing preset — springy presets overshoot
   - name: filter
     type: object
-    description: Optional payload match, e.g. { "device": "thunk-app" }
+    description: 'Optional payload match, e.g. { "device": "thunk-app" }'
 ---
 
 A **pulse** is a decorative ring that flashes around a container the moment
@@ -66,7 +66,8 @@ matching keys the same way a [[sync]] filter does.
   "grid": { "columns": 2, "rows": 2 },
   "children": [],
   "pulse": {
-    "event": "iCloudListen",
+    "event": "broadcast",
+    "filter": { "msg_type": "iCloudListen" },
     "direction": "outward",
     "color": "34C759",
     "spread": 0.12,

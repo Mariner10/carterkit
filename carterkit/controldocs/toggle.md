@@ -207,7 +207,7 @@ Icon that swaps between `onIcon` and `offIcon` with a symbol transition animatio
   "position": [0, 0],
   "label": "Main Light",
   "defaultValue": true,
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "hue-bridge", "type": "light", "payload": { "room": "living", "fixture": "main", "command": "{{value}}" } } },
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "light", "payload": { "room": "living", "fixture": "main", "command": "{{value}}" } } },
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "room": "living", "fixture": "main" }, "valuePath": "state" }]
 }
 ```

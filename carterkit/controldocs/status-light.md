@@ -117,9 +117,11 @@ Inherits all [[shared-properties]]. Key fields:
   "style": "badge",
   "pulse": true,
   "defaultValue": "offline",
-  "sync": [{ "method": "meshsocket", "type": "listen", "event": "server_health" }]
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "server_health" }, "valuePath": "state" }]
 }
 ```
+
+The server broadcasts `{"msg_type": "server_health", "state": "degraded"}`; `state` picks the `statusColors` key.
 
 ## Related
 - [[shared-properties]] — Base fields

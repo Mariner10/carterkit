@@ -196,7 +196,7 @@ Feed it like any synced label (a `.string` value); see the
 ```json
 { "type": "label", "id": "fern-watered", "label": "Fern — last watered", "icon": "leaf.fill",
   "formatValue": "relative:day", "placeholder": "Not watered yet",
-  "sync": [{ "event": "fern", "valuePath": "lastWatered" }] }
+  "sync": [{ "method": "meshsocket", "event": "broadcast", "filter": { "msg_type": "fern" }, "valuePath": "lastWatered" }] }
 ```
 
 ### Static info label

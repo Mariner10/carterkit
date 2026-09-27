@@ -146,9 +146,11 @@ Inherits all [[shared-properties]]. Key fields:
     "info": "#34C759",
     "debug": "#8E8E93"
   },
-  "sync": [{ "method": "meshsocket", "type": "listen", "event": "log_stream" }]
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "log_stream" } }]
 }
 ```
+
+Each server broadcast `{"msg_type": "log_stream", "text": "…", "level": "warn"}` appends one line. With no `valuePath` the whole frame is read, so `text` (or `line`/`message`) and `level` both land.
 
 ## Related
 - [[shared-properties]] — Base fields

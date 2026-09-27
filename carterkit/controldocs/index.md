@@ -81,13 +81,14 @@ Controls declare their data bindings in a `sync` array:
   "sync": [{
     "method": "meshsocket",
     "type": "listen",
-    "event": "telemetry",
+    "event": "broadcast",
+    "filter": { "msg_type": "telemetry" },
     "valuePath": "cpu"
   }]
 }
 ```
 
-When the server emits a `telemetry` event with `{"cpu": 73}`, the gauge updates to 73 automatically.
+When the server broadcasts `{"msg_type": "telemetry", "cpu": 73}` (a `broadcast_request`, which the relay delivers to every channel member as a `broadcast` frame), the gauge updates to 73 automatically. The `filter` keeps frames with other `msg_type`s from touching it.
 
 ---
 

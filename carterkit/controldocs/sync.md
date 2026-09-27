@@ -12,7 +12,7 @@ fields:
     description: Sync direction (listen)
   - name: event
     type: string
-    description: Event name to subscribe to (meshsocket)
+    description: MeshSocket frame type to match (meshsocket). Server broadcasts arrive as "broadcast" (demux with filter.msg_type); any other name only matches frames routed to this device by route_msg_noreply
   - name: filter
     type: object
     description: Key-value pairs to match incoming messages
@@ -86,6 +86,12 @@ transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
   "valuePath": "cpu"
 }]
 ```
+
+`event` is the MeshSocket frame type. A server's `broadcast_request` reaches every
+channel member as a `broadcast` frame, so server pushes bind `"event": "broadcast"` and
+tell streams apart with `filter.msg_type`. A custom `event` name (`"telemetry"`) only
+matches a frame routed straight to this device (`route_msg_noreply` with that `type`);
+a plain broadcast never reaches it.
 
 Equivalent bindings on other transports:
 

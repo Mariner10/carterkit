@@ -23,9 +23,11 @@ uses only the `nodes` (edges are ignored).
   "id": "control-browser",
   "position": [0, 0],
   "span": [6, 4],
-  "sync": [{ "method": "meshsocket", "type": "listen", "event": "catalog", "valuePath": "graph" }]
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "catalog" }, "valuePath": "graph" }]
 }
 ```
+
+The server feeds it with a `broadcast_request` whose payload is `{"msg_type": "catalog", "graph": {…}}`.
 
 ## Behavior
 

@@ -243,7 +243,7 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
   "step": 1,
   "defaultValue": 80,
   "label": "Brightness",
-  "action": { "method": "meshsocket", "mode": "broadcast", "event": "route_msg", "payload": { "target_id": "hue-bridge", "type": "brightness", "payload": { "room": "living", "level": "{{value}}" } } }
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "brightness", "payload": { "room": "living", "level": "{{value}}" } } }
 }
 ```
 

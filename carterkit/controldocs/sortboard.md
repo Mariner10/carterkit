@@ -157,8 +157,8 @@ disappears.
     ],
     "events": {
       "place": {
-        "method": "meshsocket", "mode": "send", "event": "route_msg",
-        "payload": { "target_id": "tracker", "type": "move_ticket",
+        "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+        "payload": { "target_name": "tracker", "type": "move_ticket",
                      "payload": { "ticket": "{{item}}", "column": "{{to}}", "index": "{{index}}" } }
       },
       "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "board_state" } }
@@ -221,8 +221,8 @@ user only rearranges between zones.
       { "id": "backup", "label": "Backup", "tint": "#34C759" }
     ],
     "events": {
-      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                 "payload": { "target_id": "pager", "type": "assign",
+      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                 "payload": { "target_name": "pager", "type": "assign",
                               "payload": { "who": "{{item}}", "role": "{{to}}" } } }
     }
   },

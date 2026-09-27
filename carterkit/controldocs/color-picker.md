@@ -84,7 +84,7 @@ Inherits all [[shared-properties]]. Key fields:
   "position": [1, 3],
   "defaultValue": "#F4B860",
   "label": "Color",
-  "action": { "method": "meshsocket", "mode": "broadcast", "event": "route_msg", "payload": { "target_id": "hue-bridge", "type": "color", "payload": { "room": "living", "hex": "{{value}}" } } }
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "color", "payload": { "room": "living", "hex": "{{value}}" } } }
 }
 ```
 
