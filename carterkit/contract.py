@@ -176,6 +176,8 @@ def walk_with_location(layout: dict):
     """Yield ``(control, tab_title, breadcrumb)`` for every control, recursing
     through groups, container panels (carousel/flipCard/accordion), and
     canvas-hosted items — the same nesting the phone's Layout Editor produces."""
+    from .sections import inline_view
+    layout = inline_view(layout)          # a sectioned (v2) document's facets fold on
 
     def walk(children, tab, crumb):
         for ch in children or []:

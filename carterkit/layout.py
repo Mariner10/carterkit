@@ -667,6 +667,12 @@ class Layout:
     def json(self, indent: int = 2) -> str:
         return json.dumps(self.layout, indent=indent)
 
+    def to_sectioned(self) -> dict:
+        """The layout as a sectioned document (schemaVersion 2): placements / styles /
+        connectivity keyed by id. The builder itself keeps writing the inline form."""
+        from .sections import to_sectioned
+        return to_sectioned(self.layout)
+
     def save(self, path: str, indent: int = 2) -> str:
         """Write the layout JSON to `path` (live push to a device is the app/MCP's job —
         `push_layout` — not this offline builder). The file is created owner-only

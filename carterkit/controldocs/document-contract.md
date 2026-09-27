@@ -178,8 +178,8 @@ top-level sections keyed by control or group id, instead of on the control:
 
 | Section | Holds, per id |
 |---------|---------------|
-| `placements` | `position`, `span`, plus optional `landscape` and `regular` variants — each `{position, span}` or `{hidden: true}` |
-| `appearance.controls` | `theme`, `tint`, `icon`, `hideLabel`, `hideValue`, `hideBackground`, `animation` |
+| `placements` | `position`, `span` (the default presentation), plus optional `landscape` and `regular` variants — each `{position, span}` or `{hidden: true}`. `default: {position, span}` is accepted as an alias of the flat keys (the flat keys win) |
+| `styles` | `theme`, `tint`, `icon`, `hideLabel`, `hideValue`, `hideBackground`, `animation` |
 | `connectivity` | `sync`, `action`, `longPressAction` |
 
 ```json
@@ -190,22 +190,31 @@ top-level sections keyed by control or group id, instead of on the control:
              "children": [{ "type": "gauge", "id": "c_7f3a9e", "name": "Soil moisture" }] }],
   "placements": { "c_7f3a9e": { "position": [0, 0], "span": [2, 2],
                                 "landscape": { "position": [0, 2], "span": [2, 1] } } },
-  "appearance": { "colorScheme": "dark",
-                  "controls": { "c_7f3a9e": { "tint": "#34C759" } } },
+  "styles": { "c_7f3a9e": { "tint": "#34C759" } },
   "connectivity": { "c_7f3a9e": { "sync": [{ "method": "meshsocket", "event": "soil" }] } }
 }
 ```
 
-- The top-level `appearance` object keeps its app-shell fields ([[appearance]]);
-  per-control appearance lives in its `controls` map.
-- **One model.** The app merges sections into the same in-memory control, so
-  the renderer and editor never know which form a file used.
+- Top-level `appearance` is the app-shell block ([[appearance]]), not a section.
+- **One model.** The app folds the sections onto the children before it decodes,
+  so the renderer, the editor and LayoutOps never know which form a file used.
+  The same layout inline or sectioned decodes to an identical model.
 - **Precedence:** a section entry overrides the same facet written inline.
-- An id in a section that matches no control or group is a lint error; loads
-  repair it by dropping the entry.
+- **Ids** are the identity namespace: a tab's `children` and, recursively, group
+  `children` (container panels and long-press groups are not addressable). If two
+  children share an id, the entry applies to the first.
+- An id in a section that matches no control or group, or an entry that isn't an
+  object, is a lint error; every load repairs it by dropping the entry.
+- **Lossless:** a key inside an entry that isn't one of that section's facets
+  stays in the section untouched (it is never copied onto the control).
+- Only the default `position`/`span` renders today; `landscape` / `regular` are
+  decoded and kept for the landscape presentation. The same two keys are also
+  accepted inline on a child.
 - The inline form stays valid forever — carterkit, the MCP and hand-written
-  layouts keep writing it. The on-device editor writes the sectioned form, so an
-  app that only knows `schemaVersion` 1 opens those files read-only.
+  layouts keep writing it. The on-device editor keeps a sectioned file sectioned
+  when it saves it, and (behind a flag, off for now) will write every save in the
+  sectioned form, so an app that only knows `schemaVersion` 1 opens those files
+  read-only.
 
 ## Limits
 

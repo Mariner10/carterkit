@@ -25,6 +25,7 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from . import grid as gridmod
+from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 
 # Base/shared properties every control may carry (from the layout schema /
@@ -158,6 +159,12 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     sources = _validate_sources_defs(layout, findings)
     _validate_top_level(layout, findings)
     _validate_contract(layout, findings)
+
+    # A sectioned document (schemaVersion 2) is checked as the app sees it: sections
+    # folded onto their children. Entries the app would drop are errors here.
+    for where, why in sectionsmod.section_issues(layout):
+        findings.append(_f("error", "bad_section", where, why))
+    layout = sectionsmod.to_inline(layout)
 
     tabs = layout.get("tabs")
     if not isinstance(tabs, list):
@@ -790,7 +797,7 @@ TOP_LEVEL_KEYS = {
     "batchPublishers", "sources", "sensorSetup", "keepAwake",
     # document contract
     "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
-    "placements", "connectivity",
+    "placements", "styles", "connectivity",
     # a wire frame's discriminator, when a pushed payload is linted as-is
     "msg_type",
 }
@@ -866,11 +873,9 @@ def _validate_contract(layout: dict, findings: list) -> None:
             findings.append(_f("warn", "bad_schema_version", "root",
                                f"schemaVersion {sv} is newer than this kit knows "
                                f"({KNOWN_SCHEMA_VERSION}); older apps open it read-only"))
-    sectioned = any(k in layout for k in ("placements", "connectivity")) or (
-        isinstance(layout.get("appearance"), dict) and "controls" in layout["appearance"])
-    if sectioned and sv != 2:
+    if sectionsmod.is_sectioned(layout) and sv != 2:
         findings.append(_f("warn", "bad_schema_version", "root",
-                           "sections (placements / connectivity / appearance.controls) "
+                           "sections (placements / styles / connectivity) "
                            "need \"schemaVersion\": 2 so older apps open the file read-only"))
     fmt = layout.get("format")
     if fmt is not None and fmt != "carter":

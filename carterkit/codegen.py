@@ -13,6 +13,8 @@ import re
 
 
 def _walk_controls(layout: dict) -> list[dict]:
+    from .sections import inline_view
+    layout = inline_view(layout)          # a sectioned (v2) document's facets fold on
     out: list[dict] = []
 
     def walk(children):
