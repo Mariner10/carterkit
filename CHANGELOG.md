@@ -129,6 +129,15 @@ live in the app and bind controls to them with plain JSON query stages — no se
   namespace parity test covers panels, canvas, longPressGroup and dynamic tabs
   (carter-m7s.39).
 
+- **Contract reservations (carter-5q1y).** `asset://` URLs are reserved: a `reserved_scheme`
+  warning, no longer a `bad_url` error (no app resolves them yet; the image shows its
+  placeholder). A `data:image` URL over the soft budget (`SOFT_DATA_IMAGE`, 64 KB unless the
+  contract Limits table names `softDataImageBytes`) warns `inline_blob`; the 512 KB hard cap
+  is still an error. `requires.features` entries parse like the app (`parse_feature`,
+  `name@N`); `unknown_feature` warns on a name no app speaks or a version above it
+  (`known_features(catalog)` mirrors DeviceCapabilities). Shared accept fixtures:
+  asset-scheme-url, data-image-soft-budget, requires-feature-version.
+
 ### Changed
 
 - **Nesting limit matches the app (carter-m7s.7).** `validate.MAX_DEPTH` is now 8 — the
@@ -164,6 +173,8 @@ live in the app and bind controls to them with plain JSON query stages — no se
 
 - `embedded_secret` no longer flags a `"<your-token>"`-style template placeholder; a real
   value still warns (carter-pby).
+- `requires.features` accepts camelCase control types (`control.progressRing`); the
+  feature grammar was lowercase-only (carter-5q1y).
 
 ## [0.13.1] — 2026-09-27
 

@@ -539,3 +539,51 @@ def test_bad_requires_shapes_are_reported_not_raised():
 def test_bundled_catalog_has_no_newer_controls_yet():
     # Every control in the vendored docs shipped in 1.2.4 (carter-0gj.27): no `since`.
     assert not [t for t, spec in CAT.items() if spec.get("since")]
+
+
+# carter-5q1y — contract reservations: asset://, data:image soft budget, name@N features.
+def _res_layout(**top):
+    lay = {"name": "R", "version": 1, "tabs": [{"title": "A", "icon": "house",
+           "grid": {"columns": 2, "rows": 2}, "children": [
+               {"type": "image", "id": "pic", "position": [0, 0], "url": top.pop("url", "https://x.example/a.png")}]}]}
+    lay.update(top)
+    return lay
+
+
+def _res(**top):
+    from carterkit import validate_layout
+    return validate_layout(_res_layout(**top))
+
+
+def test_asset_scheme_is_reserved_not_refused():
+    found = [f for f in _res(url="asset://pack/logo.png") if f["kind"] in ("reserved_scheme", "bad_url")]
+    assert [(f["kind"], f["severity"]) for f in found] == [("reserved_scheme", "warn")]
+
+
+def test_data_image_soft_budget_warns_below_the_hard_cap():
+    from carterkit.validate import SOFT_DATA_IMAGE, MAX_DATA_IMAGE
+    assert SOFT_DATA_IMAGE < MAX_DATA_IMAGE
+    head = "data:image/png;base64,"
+    small = head + "A" * 1000
+    assert "inline_blob" not in {f["kind"] for f in _res(url=small)}
+    soft = [f for f in _res(url=head + "A" * (SOFT_DATA_IMAGE + 10)) if f["kind"] == "inline_blob"]
+    assert soft and soft[0]["severity"] == "warn" and "soft budget" in soft[0]["detail"]
+    hard = [f for f in _res(url=head + "A" * (MAX_DATA_IMAGE + 10)) if f["kind"] == "inline_blob"]
+    assert hard and hard[0]["severity"] == "error"
+
+
+def test_parse_feature_matches_the_app():
+    from carterkit.validate import parse_feature
+    assert parse_feature("control.gauge") == ("control.gauge", 1)
+    assert parse_feature("layout.fallback@2") == ("layout.fallback", 2)
+    for odd in ("x@0", "x@-1", "x@two", "x@"):
+        assert parse_feature(odd) == (odd, 1)
+
+
+def test_requires_features_name_at_n():
+    kinds = lambda feats: {(f["kind"], f["severity"]) for f in _res(requires={"features": feats})}
+    ok = kinds(["control.progressRing", "sync.mqtt", "layout.fallback@1"])
+    assert not {k for k, _ in ok} & {"bad_requires", "unknown_feature"}
+    assert ("unknown_feature", "warn") in kinds(["layout.fallback@2"])
+    assert ("unknown_feature", "warn") in kinds(["local.store@2"])
+    assert ("bad_requires", "warn") in kinds(["control gauge"])
