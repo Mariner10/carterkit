@@ -313,3 +313,17 @@ def test_probable_unit_typo_warns():
     assert found and found[0]["severity"] == "warn" and "'celsius'" in found[0]["detail"]
     assert "unit_typo" in _unit_kinds("progressRing", "kilometersperhr")
     assert "bad_unit" in _unit_kinds("label", 5)
+
+
+# carter-pby — a "<your-token>" template slot is not an embedded credential.
+def test_embedded_secret_skips_template_placeholders():
+    from carterkit import validate_layout
+
+    def lay(tok):
+        return {"name": "S", "version": 1,
+                "connection": {"url": "wss://relay.example.net", "token": tok},
+                "tabs": [{"title": "A", "icon": "house", "grid": {"columns": 2, "rows": 2},
+                          "children": []}]}
+    kinds = lambda tok: {f["kind"] for f in validate_layout(lay(tok))}
+    assert "embedded_secret" not in kinds("<your-token>")
+    assert "embedded_secret" in kinds("abc123realtoken")

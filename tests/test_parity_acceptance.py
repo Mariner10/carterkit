@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import collections
 import glob
+import subprocess
 import json
 import os
 from pathlib import Path
@@ -22,7 +23,10 @@ import pytest
 import carterkit
 
 _ROOT = Path(__file__).resolve().parents[2]
-_SAMPLES = _ROOT / "CAR-TER" / "CAR-TER" / "SampleLayouts"
+# CARTER_SAMPLES_DIR points at an app checkout's SampleLayouts (e.g. from a worktree that
+# is not next to the app repo); the default is the adjacent workspace layout.
+_SAMPLES = Path(os.environ.get("CARTER_SAMPLES_DIR")
+                or _ROOT / "CAR-TER" / "CAR-TER" / "SampleLayouts")
 _TEMPLATES = _ROOT / "carter-docs-site" / "CAR-TER" / "templates"
 
 # Warning kinds the app's own bundled corpus is allowed to emit. Both are honest lint the
@@ -31,10 +35,31 @@ _TEMPLATES = _ROOT / "carter-docs-site" / "CAR-TER" / "templates"
 # appearing here means real drift to review — hence the soft assertion.
 _ALLOWED_WARNING_KINDS = {"bad_enum", "bad_action"}
 
+# Bundled samples that exist to exercise a refusal path: the error IS the expected
+# verdict (same entry as the schema corpus KNOWN_ERRORS; the app renders the
+# 'Nested too deeply' placeholder for it).
+_EXPECTED_ERRORS = {"deep-nest-test.json": {"too_deep"}}
+
+
+def _git_tracked(directory: Path):
+    """Names git tracks in `directory`, or None when it is not inside a git checkout.
+    SampleLayouts also holds gitignored local showcases on the author's Mac; only the
+    tracked set ships in the app, so only it is the parity corpus (carter-pby)."""
+    try:
+        out = subprocess.run(["git", "-C", str(directory), "ls-files", "-z", "--", "."],
+                             capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    return {os.path.basename(n) for n in out.stdout.split("\0") if n}
+
 
 def _layout_files(directory: Path) -> list[str]:
+    tracked = _git_tracked(directory)
     return [p for p in sorted(glob.glob(str(directory / "*.json")))
-            if os.path.basename(p) != "index.json"]
+            if os.path.basename(p) != "index.json"
+            and (tracked is None or os.path.basename(p) in tracked)]
 
 
 def _corpus() -> list[str]:
@@ -63,7 +88,8 @@ def test_every_bundled_layout_validates_without_errors(capsys):
         name = os.path.basename(path)
         layout = json.loads(Path(path).read_text())
         findings = carterkit.validate_layout(layout)
-        errors = [f for f in findings if f["severity"] == "error"]
+        errors = [f for f in findings if f["severity"] == "error"
+                  and f["kind"] not in _EXPECTED_ERRORS.get(name, set())]
         warns = [f for f in findings if f["severity"] == "warn"]
         if errors:
             failures[name] = [f"{f['kind']}@{f['where']}: {f['detail']}" for f in errors]
