@@ -25,6 +25,12 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+  - name: defaultValue
+    min: -1
+    step: 1
+    bounds: none
+    type: number
+    description: Initial open index (overrides expandedIndex; -1 = all collapsed)
 themeFields:
   - name: surfacePrimary
     type: color

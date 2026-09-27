@@ -21,6 +21,13 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+  - name: defaultValue
+    min: 0
+    step: 1
+    bounds: none
+    type: number
+    default: 0
+    description: Initial face index
 themeFields:
   - name: surfacePrimary
     type: color

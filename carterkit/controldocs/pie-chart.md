@@ -90,6 +90,13 @@ fields:
     default: 0
     description: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
     group: pieConfig
+  - name: icon
+    type: string
+    description: SF Symbol in the wheel/menu hub before a result lands
+  - name: hideValue
+    type: bool
+    default: false
+    description: Suppress the donut/hub center readout
 themeFields:
   - name: cornerRadius
     min: 0
