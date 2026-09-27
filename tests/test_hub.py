@@ -311,3 +311,42 @@ def test_hub_forwards_cmd_dedupe_path(tmp_path):
     path = str(tmp_path / "seen.json")
     assert _hub(ui, cmd_dedupe_path=path).client._cmd_dedupe.path == path
     assert _hub(ui).client._cmd_dedupe.path is None            # token-only: memory-only
+
+
+# carter-mmpe — decks and dynamic tabs with bad ids are sent, but warned about (1.3+ drops them).
+def test_fill_warns_on_layout_colliding_duplicate_or_empty_ids(caplog):
+    ui, temp, target, scenes = _thermostat()
+    hub = _hub(ui)
+    bad = [{"type": "button", "id": "temp", "position": [0, 0]},       # layout id
+           {"type": "button", "id": "a", "position": [0, 1]},
+           {"type": "button", "id": "a", "position": [0, 2]},          # duplicate
+           {"type": "button", "position": [0, 3]}]                     # no id
+    with caplog.at_level("WARNING", logger="carterkit.hub"):
+        payload = asyncio.run(hub.fill(scenes, bad))
+    assert payload["children"] == bad and hub.client._sock.sent        # still sent
+    msg = " ".join(r.getMessage() for r in caplog.records)
+    assert "1.3+ drops it" in msg and "3 id problems" in msg and "'temp'" in msg
+
+
+def test_fill_clean_deck_is_silent(caplog):
+    ui, temp, target, scenes = _thermostat()
+    hub = _hub(ui)
+    frag = Fragment(cols=4, rows=2)
+    frag.button("movie", label="Movie", send="scene")
+    with caplog.at_level("WARNING", logger="carterkit.hub"):
+        asyncio.run(hub.fill(scenes, frag))
+    assert not [r for r in caplog.records if "drops it" in r.getMessage()]
+
+
+def test_push_tab_warns_and_requires_a_registered_event(caplog):
+    ui, *_ = _thermostat()
+    ui.dynamic_tab("extra")
+    hub = _hub(ui)
+    tab = {"title": "Extra", "icon": "star", "grid": {"columns": 2, "rows": 2},
+           "children": [{"type": "label", "id": "target", "position": [0, 0]}]}
+    with caplog.at_level("WARNING", logger="carterkit.hub"):
+        payload = asyncio.run(hub.push_tab("extra", tab))
+    assert payload["msg_type"] == "extra" and payload["title"] == "Extra"
+    assert "dynamic tab 'extra'" in " ".join(r.getMessage() for r in caplog.records)
+    with pytest.raises(HubError, match="dynamicTabs"):
+        asyncio.run(hub.push_tab("nope", tab))
