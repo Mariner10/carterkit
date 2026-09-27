@@ -24,13 +24,13 @@ fields:
     description: Title shown in the header bar
   - name: accentColor
     type: string
-    description: Hex accent color (e.g. "#5AC8FA")
+    description: Hex accent for the layout's library card, switcher and glance fallback (e.g. "#5AC8FA"); controls use theme.accentColor (see theming#Cascade)
   - name: appearance
     type: object
     description: App shell appearance (color scheme, header, background image)
   - name: theme
     type: object
-    description: Visual theme (colors, fonts, spacing)
+    description: Visual theme (colors, fonts, spacing, palette tokens)
   - name: connection
     type: object
     description: WebSocket connection config

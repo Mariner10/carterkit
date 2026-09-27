@@ -23,6 +23,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
+| `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
 | `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Example
@@ -89,7 +90,7 @@ which payloads trigger it, matching keys the same way a [[sync]] filter does.
 
 ## Theming
 
-A group renders as a glass card whose surface, corner radius, border, and padding come from the active [[theming|theme]] (`surfacePrimary`, `cornerRadius`, `borderColor`, `borderWidth`, `cardPadding`). Set `hideBackground: true` for a transparent group (no card), e.g. a hero row of status lights. Per-control `theme` overrides on the children still apply inside the group.
+A group renders as a glass card whose surface, corner radius, border, and padding come from the active [[theming|theme]] (`surfacePrimary`, `cornerRadius`, `borderColor`, `borderWidth`, `cardPadding`). Set `hideBackground: true` for a transparent group (no card), e.g. a hero row of status lights. A group's own `theme` overrides those keys for the card, its label and everything inside it, e.g. `"theme": {"accentColor": "$leaf", "surfacePrimary": "#1B2A1F"}`; per-control `theme` overrides on the children still apply on top. See [[theming#Cascade]].
 
 ## Rendering
 - Groups render as a glass card (frosted material + subtle border)
