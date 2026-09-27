@@ -69,8 +69,8 @@ would deliver:
 | logConsole | an **array of lines** (strings or `{text, level}` objects) |
 | chart, pieChart, heatmap, radar, boxPlot, gantt, sankey, treemap, chord, graph, cardList, sortboard, pinboard, canvas, map | the control's dataset, as JSON (`{"series": […]}`) or as that JSON encoded in a string |
 
-On load the app stores an object/array seed as its encoded JSON string (≤ 4 KB, the
-string cap), so a saved layout holds the string form. A seed on any other control, or
+A seed may be at most 4 KB once encoded (the string cap). Saving keeps it exactly as
+written: an array stays an array. A seed on any other control, or
 a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
 "Repaired on load" note: one control's `defaultValue` never stops a layout loading.
 
