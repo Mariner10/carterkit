@@ -1,0 +1,1638 @@
+{
+  "name": "Regional Power Grid",
+  "headerTitle": "NORTHSTAR BA · GRID OPS",
+  "version": 1,
+  "accentColor": "#FFB020",
+  "id": "power-grid-sankey",
+  "description": "Balancing-authority console for a regional grid: generation-to-load sankey, interchange chord, substation topology, outage map, demand forecast and a frequency glance.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "batchPublishers": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#05070B",
+        "#0B1119"
+      ],
+      "light": "#F4F0E6F2"
+    }
+  },
+  "theme": {
+    "accentColor": "#FFB020",
+    "accentGradient": [
+      "#FFB020",
+      "#FF6A3D",
+      "#35E0FF"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 6,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "tabBarTint": "#FFB020",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#05070B",
+        "#0B1119",
+        "#101A22"
+      ],
+      "surfacePrimary": "#FFB0200D",
+      "surfaceSecondary": "#35E0FF0A",
+      "surfaceTertiary": "#FFFFFF06",
+      "foregroundColor": "#F2EEE3",
+      "secondaryColor": "#B9B2A0",
+      "tertiaryColor": "#6E6A5E",
+      "borderColor": "#FFB02033",
+      "tabBarBackground": "#070A0FEE"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F4F0E6",
+        "#E8E2D2"
+      ],
+      "surfacePrimary": "#FFFFFFD9",
+      "surfaceSecondary": "#FFFFFFB3",
+      "surfaceTertiary": "#00000008",
+      "foregroundColor": "#1A1712",
+      "secondaryColor": "#5C5546",
+      "tertiaryColor": "#8F8775",
+      "borderColor": "#1A171226",
+      "tabBarBackground": "#F4F0E6EE"
+    },
+    "toggle": {
+      "trackActiveColor": "#FFB020",
+      "knobColor": "#F2EEE3",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#35E0FF",
+      "thumbColor": "#F2EEE3"
+    },
+    "segmented": {
+      "trackColor": "#FFB02014",
+      "selectedColor": "#FFB020",
+      "textColor": "#B9B2A0",
+      "selectedTextColor": "#05070B"
+    },
+    "stepper": {
+      "buttonColor": "#FFB02026",
+      "iconColor": "#FFB020"
+    }
+  },
+  "connection": {
+    "mode": "pair",
+    "identity": {
+      "name": "grid-ops-console",
+      "channel": "power-grid",
+      "role": "controller",
+      "can_broadcast": true,
+      "can_route": true
+    }
+  },
+  "state": {
+    "sync": true,
+    "authority": "power-grid-sankey-hub",
+    "acks": true,
+    "ackTimeoutMs": 2500
+  },
+  "sources": {
+    "iso": {
+      "type": "http",
+      "baseURL": "https://api.northstar-iso.example",
+      "interval": 60
+    }
+  },
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 10
+    },
+    {
+      "sensor": "device",
+      "interval": 60
+    }
+  ],
+  "tabs": [
+    {
+      "title": "Balance",
+      "icon": "bolt.horizontal.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 17
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "bal-status",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "bal-st-freq",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Freq",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "nominal",
+              "statusColors": {
+                "nominal": "#3DF5B0",
+                "alert": "#FFC247",
+                "emergency": "#FF4D6D",
+                "offline": "#5A6378"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 10
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_balance"
+                  },
+                  "valuePath": "status.freq"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bal-st-agc",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "AGC",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "nominal",
+              "statusColors": {
+                "nominal": "#3DF5B0",
+                "alert": "#FFC247",
+                "emergency": "#FF4D6D",
+                "offline": "#5A6378"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 10
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_balance"
+                  },
+                  "valuePath": "status.agc"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bal-st-res",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Reserve",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "alert",
+              "statusColors": {
+                "nominal": "#3DF5B0",
+                "alert": "#FFC247",
+                "emergency": "#FF4D6D",
+                "offline": "#5A6378"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 10
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_balance"
+                  },
+                  "valuePath": "status.reserve"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bal-st-ems",
+              "position": [
+                0,
+                3
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "EMS",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "nominal",
+              "statusColors": {
+                "nominal": "#3DF5B0",
+                "alert": "#FFC247",
+                "emergency": "#FF4D6D",
+                "offline": "#5A6378"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 10
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_balance"
+                  },
+                  "valuePath": "status.ems"
+                }
+              ]
+            }
+          ],
+          "hideBackground": true
+        },
+        {
+          "type": "sankey",
+          "id": "bal-flow",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Generation → Load · MW",
+          "tint": "#FFB020",
+          "formatValue": "decimal:0",
+          "sankeyConfig": {
+            "showValues": true,
+            "scrub": true,
+            "linkOpacity": 0.34,
+            "nodeWidth": 8,
+            "nodeSpacing": 8,
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "power_grid_sankey_inspect_node",
+                "node": "{{value}}"
+              }
+            }
+          },
+          "animation": "smooth",
+          "defaultValue": "{\"nodes\":[{\"name\":\"Nuclear\",\"color\":\"#9D7BFF\"},{\"name\":\"Gas CC\",\"color\":\"#FF6A3D\"},{\"name\":\"Wind\",\"color\":\"#35E0FF\"},{\"name\":\"Solar\",\"color\":\"#FFD23F\"},{\"name\":\"Hydro\",\"color\":\"#4C9BFF\"},{\"name\":\"Imports\",\"color\":\"#B9B2A0\"},{\"name\":\"North Zone\",\"color\":\"#3DF5B0\"},{\"name\":\"Metro Zone\",\"color\":\"#FFB020\"},{\"name\":\"South Zone\",\"color\":\"#FF8FA3\"},{\"name\":\"Losses\",\"color\":\"#6E6A5E\"}],\"links\":[{\"source\":\"Nuclear\",\"target\":\"Metro Zone\",\"value\":2240},{\"source\":\"Nuclear\",\"target\":\"North Zone\",\"value\":610},{\"source\":\"Gas CC\",\"target\":\"Metro Zone\",\"value\":1880},{\"source\":\"Gas CC\",\"target\":\"South Zone\",\"value\":1120},{\"source\":\"Wind\",\"target\":\"North Zone\",\"value\":1460},{\"source\":\"Wind\",\"target\":\"South Zone\",\"value\":390},{\"source\":\"Solar\",\"target\":\"South Zone\",\"value\":940},{\"source\":\"Solar\",\"target\":\"Metro Zone\",\"value\":520},{\"source\":\"Hydro\",\"target\":\"North Zone\",\"value\":480},{\"source\":\"Imports\",\"target\":\"Metro Zone\",\"value\":730},{\"source\":\"Gas CC\",\"target\":\"Losses\",\"value\":140},{\"source\":\"Nuclear\",\"target\":\"Losses\",\"value\":110},{\"source\":\"Wind\",\"target\":\"Losses\",\"value\":60}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "sankey"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "bal-freq",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "System Hz",
+          "icon": "waveform.path",
+          "min": 59.8,
+          "max": 60.2,
+          "step": 0.001,
+          "formatValue": "decimal:3",
+          "arcAngle": 240,
+          "arcRotation": 150,
+          "tint": "#3DF5B0",
+          "colorBlend": 0.3,
+          "animation": "snappy",
+          "segments": [
+            {
+              "limit": 59.95,
+              "color": "#FF4D6D"
+            },
+            {
+              "limit": 59.98,
+              "color": "#FFC247"
+            },
+            {
+              "limit": 60.02,
+              "color": "#3DF5B0"
+            },
+            {
+              "limit": 60.05,
+              "color": "#FFC247"
+            },
+            {
+              "limit": 60.2,
+              "color": "#FF4D6D"
+            }
+          ],
+          "defaultValue": 59.987,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "freq_hz"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "bal-reserve",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Spinning reserve",
+          "icon": "gauge.with.needle.fill",
+          "min": 0,
+          "max": 100,
+          "formatValue": "percent",
+          "tint": "#35E0FF",
+          "defaultValue": 64,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "reserve_pct"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "bal-ace",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "ACE · MW",
+          "tint": "#FFB020",
+          "sparklineFill": true,
+          "sparklinePoints": 90,
+          "defaultValue": -18,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "ace_mw"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "bal-load",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "System load · MW",
+          "tint": "#35E0FF",
+          "sparklineFill": true,
+          "sparklinePoints": 90,
+          "defaultValue": 12260,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "load_mw"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "bal-forecast",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Demand forecast · MW",
+          "tint": "#FFB020",
+          "formatValue": "decimal:0",
+          "chartConfig": {
+            "smooth": true,
+            "showLegend": true,
+            "showGrid": true,
+            "lineWidth": 2,
+            "scrub": true,
+            "maxPoints": 48,
+            "datumAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "power_grid_sankey_forecast_pick",
+                "datum": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"categories\":[\"06\",\"08\",\"10\",\"12\",\"14\",\"16\",\"18\",\"20\",\"22\"],\"series\":[{\"name\":\"Forecast\",\"type\":\"area\",\"color\":\"#FFB020\",\"values\":[7900,9100,10200,11300,12100,12800,13200,12300,10400]},{\"name\":\"Actual\",\"type\":\"line\",\"color\":\"#35E0FF\",\"values\":[8020,9240,10110,11480,12260]},{\"name\":\"Net of VER\",\"type\":\"line\",\"color\":\"#9D7BFF\",\"values\":[6400,6900,6800,6700,7300,8600,10700,11200,9500]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_forecast"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "bal-lmp",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Hub LMP",
+          "icon": "dollarsign.circle",
+          "formatValue": "suffix: $/MWh",
+          "defaultValue": 47.18,
+          "sync": [
+            {
+              "method": "http",
+              "source": "iso",
+              "path": "/v1/lmp/hub/NORTHSTAR",
+              "interval": 60,
+              "valuePath": "lmp"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "bal-peak",
+          "position": [
+            14,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Peak ETA",
+          "icon": "clock.badge.exclamationmark",
+          "defaultValue": "18:00 · 13.2 GW",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_forecast"
+              },
+              "valuePath": "peak_text"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "bal-mode",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Dispatch posture",
+          "style": "pills",
+          "tint": "#FFB020",
+          "options": [
+            "normal",
+            "alert",
+            "emergency"
+          ],
+          "optionLabels": [
+            "Normal",
+            "Alert",
+            "EEA"
+          ],
+          "optionIcons": [
+            "checkmark.seal.fill",
+            "exclamationmark.triangle.fill",
+            "bolt.trianglebadge.exclamationmark.fill"
+          ],
+          "defaultValue": "normal",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "power_grid_sankey_set_posture",
+              "posture": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "posture"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "bal-conservative",
+          "position": [
+            16,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Conservative ops",
+          "icon": "shield.lefthalf.filled",
+          "tint": "#FFB020",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "power_grid_sankey_conservative_ops",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_balance"
+              },
+              "valuePath": "conservative_ops"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "bal-eea",
+          "position": [
+            16,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Declare EEA-1",
+          "icon": "megaphone.fill",
+          "style": "filled",
+          "tint": "#FF4D6D",
+          "haptic": "warning",
+          "visible": {
+            "when": "bal-mode",
+            "operator": "eq",
+            "value": "emergency"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "power_grid_sankey_declare_eea",
+              "level": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Interconnect",
+      "icon": "arrow.left.arrow.right.circle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "chord",
+          "id": "ic-chord",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Interchange · MW",
+          "tint": "#FFB020",
+          "formatValue": "decimal:0",
+          "chordConfig": {
+            "showLabels": true,
+            "pad": 3,
+            "ribbonOpacity": 0.45,
+            "scrub": true,
+            "arcAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "power_grid_sankey_focus_area",
+                "area": "{{value}}"
+              }
+            }
+          },
+          "animation": "smooth",
+          "defaultValue": "{\"labels\":[\"NorthStar\",\"Lakes ISO\",\"Prairie\",\"Cascade\",\"Gulf Tie\",\"Dakota DC\"],\"colors\":[\"#FFB020\",\"#35E0FF\",\"#3DF5B0\",\"#9D7BFF\",\"#FF6A3D\",\"#FF8FA3\"],\"matrix\":[[0,420,260,180,90,0],[610,0,120,0,0,40],[340,80,0,0,210,0],[150,0,0,0,0,70],[40,0,190,0,0,0],[380,30,0,60,0,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_interchange"
+              },
+              "valuePath": "chord"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "ic-loading",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Tie-line loading · % of limit",
+          "formatValue": "suffix:%",
+          "heatmapConfig": {
+            "colors": [
+              "#0F2A33",
+              "#35E0FF",
+              "#FFB020",
+              "#FF4D6D"
+            ],
+            "vMin": 0,
+            "vMax": 100,
+            "showScale": true,
+            "cellCorner": 2,
+            "cellGap": 2,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "power_grid_sankey_tie_cell",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"rows\":[\"Arrowhead 500\",\"Kingsway 345\",\"Red River DC\",\"Cascade 230\",\"Gulf 345\"],\"cols\":[\"00\",\"03\",\"06\",\"09\",\"12\",\"15\",\"18\",\"21\"],\"values\":[[52,48,61,74,82,88,96,79],[41,39,44,58,66,71,77,63],[88,90,92,94,95,95,97,93],[33,30,29,37,45,52,61,48],[22,25,31,44,57,63,70,51]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_interchange"
+              },
+              "valuePath": "loading"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ic-schedule",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "ic-import-limit",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Net import cap · MW",
+              "min": 0,
+              "max": 4000,
+              "step": 50,
+              "formatValue": "decimal:0",
+              "defaultValue": 3200,
+              "continuous": false,
+              "tint": "#35E0FF",
+              "minIcon": "arrow.down.to.line",
+              "maxIcon": "arrow.up.to.line",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "power_grid_sankey_set_import_cap",
+                  "mw": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_interchange"
+                  },
+                  "valuePath": "import_cap_mw"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "ic-next-hour",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Next-hr sched",
+              "min": -2000,
+              "max": 2000,
+              "step": 25,
+              "formatValue": "decimal:0",
+              "defaultValue": 450,
+              "repeatOnHold": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "power_grid_sankey_schedule_mw",
+                  "mw": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_interchange"
+                  },
+                  "valuePath": "next_hour_mw"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "ic-accept",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Tag approved",
+              "icon": "checkmark.seal",
+              "tint": "#3DF5B0",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "power_grid_sankey_approve_tag",
+                  "approved": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_interchange"
+                  },
+                  "valuePath": "tag_approved"
+                }
+              ]
+            }
+          ],
+          "label": "Interchange schedule"
+        },
+        {
+          "type": "list",
+          "id": "ic-ties",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Tie lines",
+          "tint": "#FFB020",
+          "listColumns": [
+            {
+              "key": "tie",
+              "label": "Tie"
+            },
+            {
+              "key": "dir",
+              "label": "Dir"
+            },
+            {
+              "key": "mw",
+              "label": "MW",
+              "format": "decimal:0"
+            },
+            {
+              "key": "limit",
+              "label": "Limit",
+              "format": "decimal:0"
+            },
+            {
+              "key": "status",
+              "label": "State"
+            }
+          ],
+          "defaultValue": "[{\"tie\":\"Arrowhead 500\",\"mw\":1420,\"limit\":1500,\"dir\":\"IMPORT\",\"status\":\"near limit\"},{\"tie\":\"Kingsway 345\",\"mw\":610,\"limit\":900,\"dir\":\"EXPORT\",\"status\":\"normal\"},{\"tie\":\"Red River DC\",\"mw\":1940,\"limit\":2000,\"dir\":\"IMPORT\",\"status\":\"scheduled\"},{\"tie\":\"Cascade 230\",\"mw\":180,\"limit\":400,\"dir\":\"EXPORT\",\"status\":\"normal\"},{\"tie\":\"Gulf 345\",\"mw\":350,\"limit\":700,\"dir\":\"IMPORT\",\"status\":\"normal\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_interchange"
+              },
+              "valuePath": "ties"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Substations",
+      "icon": "point.3.connected.trianglepath.dotted",
+      "grid": {
+        "columns": 4,
+        "rows": 16
+      },
+      "children": [
+        {
+          "type": "graph",
+          "id": "ss-topology",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "138–500 kV topology",
+          "graphConfig": {
+            "repulsionForce": 620,
+            "centerForce": 0.004,
+            "attractionForce": 0.004,
+            "nodeSize": 9,
+            "edgeCurved": true,
+            "edgeOpacity": 0.5,
+            "glowEnabled": true,
+            "glowRadius": 8,
+            "glowColor": "#FFB020",
+            "backgroundColor": "#05070B",
+            "labelColor": "#B9B2A0",
+            "labelSize": 9,
+            "groupColors": {
+              "ehv": "#FFB020",
+              "hv": "#35E0FF",
+              "gen": "#9D7BFF",
+              "dist": "#3DF5B0",
+              "storage": "#FF8FA3"
+            },
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "power_grid_sankey_select_substation",
+                "station": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"nodes\":[{\"id\":\"ARW\",\"label\":\"Arrowhead 500\",\"group\":\"ehv\"},{\"id\":\"KNG\",\"label\":\"Kingsway 345\",\"group\":\"ehv\"},{\"id\":\"ELM\",\"label\":\"Elm Creek 138\",\"group\":\"hv\",\"color\":\"#FF4D6D\"},{\"id\":\"RVB\",\"label\":\"Riverbend 138\",\"group\":\"hv\"},{\"id\":\"HLN\",\"label\":\"Hollins 138\",\"group\":\"hv\"},{\"id\":\"PRX\",\"label\":\"Prairie Wind\",\"group\":\"gen\"},{\"id\":\"CLR\",\"label\":\"Clearwater NPP\",\"group\":\"gen\"},{\"id\":\"MTR\",\"label\":\"Metro Dist.\",\"group\":\"dist\"},{\"id\":\"SLT\",\"label\":\"Saltmarsh Dist.\",\"group\":\"dist\"},{\"id\":\"NRT\",\"label\":\"North Dist.\",\"group\":\"dist\"},{\"id\":\"BAT\",\"label\":\"Kestrel BESS\",\"group\":\"storage\"}],\"edges\":[{\"from\":\"CLR\",\"to\":\"ARW\",\"width\":2.5},{\"from\":\"PRX\",\"to\":\"KNG\",\"width\":1.8},{\"from\":\"ARW\",\"to\":\"KNG\",\"width\":2.5},{\"from\":\"ARW\",\"to\":\"ELM\"},{\"from\":\"KNG\",\"to\":\"RVB\"},{\"from\":\"KNG\",\"to\":\"HLN\"},{\"from\":\"ELM\",\"to\":\"MTR\",\"color\":\"#FF4D6D\"},{\"from\":\"RVB\",\"to\":\"MTR\"},{\"from\":\"HLN\",\"to\":\"SLT\"},{\"from\":\"RVB\",\"to\":\"NRT\"},{\"from\":\"BAT\",\"to\":\"HLN\"},{\"from\":\"ELM\",\"to\":\"RVB\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_topology"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "map",
+          "id": "ss-outages",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Outages · customers out",
+          "mapStyle": "standard",
+          "mapZoom": 0.35,
+          "tint": "#FF4D6D",
+          "defaultValue": "{\"markers\":[{\"coordinate\":[44.9778,-93.265],\"color\":\"#FF4D6D\",\"size\":22,\"label\":\"Elm Creek \\u00b7 4,210 out\",\"ripple\":{\"color\":\"#FF4D6D\",\"period\":1.4,\"radius\":60}},{\"coordinate\":[45.0612,-93.328],\"color\":\"#FFC247\",\"size\":14,\"label\":\"Riverbend \\u00b7 380 out\"},{\"coordinate\":[44.883,-93.142],\"color\":\"#FFC247\",\"size\":12,\"label\":\"Hollins \\u00b7 95 out\"},{\"coordinate\":[45.12,-93.19],\"color\":\"#35E0FF\",\"size\":12,\"label\":\"Crew 7 en route\"}],\"paths\":[{\"points\":[[44.9778,-93.265],[45.01,-93.29],[45.0612,-93.328]],\"color\":\"#FF4D6D\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_outages"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ss-breaker",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "ss-cb-close",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "CB 52-4 closed",
+              "icon": "switch.2",
+              "style": "switch",
+              "tint": "#3DF5B0",
+              "defaultValue": false,
+              "haptic": "heavy",
+              "animation": "snappy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "power_grid_sankey_breaker",
+                  "station": "ELM",
+                  "breaker": "52-4",
+                  "closed": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_topology"
+                  },
+                  "valuePath": "elm_cb_52_4"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "ss-cb-state",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Relay 87B",
+              "statusColors": {
+                "nominal": "#3DF5B0",
+                "alert": "#FFC247",
+                "emergency": "#FF4D6D",
+                "offline": "#5A6378"
+              },
+              "defaultValue": "alert",
+              "pulse": true,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_topology"
+                  },
+                  "valuePath": "elm_relay"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "ss-isolation",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Lockout",
+              "icon": "lock.fill",
+              "defaultValue": "Tagged out · crew 7 grounds applied",
+              "tint": "#FF4D6D",
+              "visible": {
+                "when": "ss-cb-close",
+                "operator": "eq",
+                "value": false
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "power_grid_sankey_topology"
+                  },
+                  "valuePath": "elm_lockout"
+                }
+              ]
+            }
+          ],
+          "label": "Elm Creek 138 kV · Bay 4"
+        },
+        {
+          "type": "logConsole",
+          "id": "ss-log",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "SCADA events",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "alarm": "#FF4D6D",
+            "warn": "#FFC247",
+            "info": "#35E0FF",
+            "ack": "#3DF5B0"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Crews",
+      "icon": "person.2.badge.gearshape.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 4,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "cr-brief",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "caption",
+          "icon": "info.circle",
+          "defaultValue": "Dispatch pushes one card per open ticket. Cards reorder by customers affected.",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "power_grid_sankey_crews_meta"
+              },
+              "valuePath": "brief"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "cr-tickets",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "cr-placeholder",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "style": "mono",
+              "defaultValue": "Waiting for outage dispatch…"
+            }
+          ],
+          "label": "Open outage tickets",
+          "dynamic": "power_grid_sankey_crews",
+          "pulse": {
+            "event": "power_grid_sankey_crews",
+            "color": "FFB020",
+            "direction": "inward"
+          }
+        },
+        {
+          "type": "group",
+          "id": "cr-truck",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "gauge",
+              "id": "cr-battery",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Tablet battery",
+              "min": 0,
+              "max": 100,
+              "formatValue": "percent",
+              "gaugeStyle": "half",
+              "tint": "#3DF5B0",
+              "sync": [
+                {
+                  "method": "sensor",
+                  "sensor": "device.battery"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "cr-heading",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Truck heading",
+              "icon": "location.north.line.fill",
+              "style": "large-mono",
+              "sync": [
+                {
+                  "method": "sensor",
+                  "sensor": "heading.cardinal"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "cr-status",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "My status",
+              "style": "pills",
+              "options": [
+                "enroute",
+                "onsite",
+                "clear"
+              ],
+              "optionLabels": [
+                "En route",
+                "On site",
+                "Clear"
+              ],
+              "defaultValue": "enroute",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "power_grid_sankey_crew_status",
+                  "crew": "Crew 7",
+                  "status": "{{value}}"
+                }
+              }
+            }
+          ],
+          "label": "This truck · Crew 7"
+        },
+        {
+          "type": "button",
+          "id": "cr-switching",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Request switching order",
+          "icon": "doc.badge.clock.fill",
+          "style": "tinted",
+          "tint": "#FFB020",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "power_grid_sankey_switching_request",
+              "crew": "Crew 7",
+              "station": "ELM"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Ops Chat",
+      "icon": "bubble.left.and.text.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "ops-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Control room · RC desk",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "historyCount": 150,
+            "tint": "#FFB020"
+          }
+        }
+      ]
+    }
+  ],
+  "glance": {
+    "title": "Grid Hz",
+    "icon": "bolt.horizontal.circle.fill",
+    "tint": "#FFB020",
+    "hero": "bal-freq",
+    "slots": [
+      "bal-reserve",
+      "bal-ace",
+      "bal-lmp"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "cons-ops",
+        "kind": "toggle",
+        "label": "Conservative ops",
+        "control": "bal-conservative",
+        "on": {
+          "label": "Conservative",
+          "icon": "shield.lefthalf.filled",
+          "tint": "#FFB020"
+        },
+        "off": {
+          "label": "Normal",
+          "icon": "shield"
+        }
+      },
+      {
+        "id": "posture",
+        "kind": "cycle",
+        "label": "Posture",
+        "control": "bal-mode",
+        "states": [
+          {
+            "value": "normal",
+            "label": "Normal",
+            "icon": "checkmark.seal.fill",
+            "tint": "#3DF5B0"
+          },
+          {
+            "value": "alert",
+            "label": "Alert",
+            "icon": "exclamationmark.triangle.fill",
+            "tint": "#FFC247"
+          },
+          {
+            "value": "emergency",
+            "label": "EEA",
+            "icon": "bolt.trianglebadge.exclamationmark.fill",
+            "tint": "#FF4D6D"
+          }
+        ]
+      }
+    ],
+    "widgets": [
+      {
+        "id": "freq",
+        "title": "Frequency",
+        "icon": "waveform.path",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryCircular",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "bal-freq"
+              },
+              {
+                "tile": "ring",
+                "control": "bal-reserve"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "bal-ace",
+                "span": 2
+              }
+            ],
+            [
+              {
+                "tile": "light",
+                "control": "bal-st-freq"
+              },
+              {
+                "tile": "value",
+                "control": "bal-lmp"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "pulse"
+      },
+      "compactTrailing": {
+        "tile": "value",
+        "control": "bal-freq"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "bal-st-freq"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "value",
+          "control": "bal-freq"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "bal-freq"
+              },
+              {
+                "tile": "ring",
+                "control": "bal-reserve"
+              },
+              {
+                "tile": "value",
+                "control": "bal-ace"
+              }
+            ],
+            [
+              {
+                "tile": "toggle",
+                "control": "bal-conservative"
+              },
+              {
+                "tile": "open",
+                "tab": "Balance",
+                "label": "Console"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

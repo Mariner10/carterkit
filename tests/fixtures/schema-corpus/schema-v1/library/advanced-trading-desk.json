@@ -1,0 +1,1309 @@
+{
+  "name": "Trading Desk",
+  "headerTitle": "DESK · EQUITIES",
+  "version": 1,
+  "accentColor": "#4CC9F0",
+  "description": "An equity trading desk: portfolio treemap, sector exposure radar, live price chart and watchlist, a full order ticket, and a risk tab with P&L distributions and a circuit breaker.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#4CC9F0",
+    "accentGradient": [
+      "#4CC9F0",
+      "#7B8CFF"
+    ],
+    "fontDesign": "monospaced",
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 10,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#4CC9F0",
+    "pageBackgroundGradient": [
+      "#05070D",
+      "#0A1020",
+      "#0E1630"
+    ],
+    "surfacePrimary": "#8FB8FF12",
+    "surfaceSecondary": "#8FB8FF0A",
+    "surfaceTertiary": "#8FB8FF06",
+    "borderColor": "#8FB8FF2E",
+    "foregroundColor": "#E8F0FF",
+    "secondaryColor": "#9AA8C7",
+    "tertiaryColor": "#5C6B8A",
+    "segmented": {
+      "selectedColor": "#4CC9F0",
+      "selectedTextColor": "#05070D"
+    },
+    "toggle": {
+      "trackActiveColor": "#2EE59D",
+      "knobShadow": true
+    }
+  },
+  "state": {
+    "sync": true,
+    "authority": "TradingDeskHub"
+  },
+  "tabs": [
+    {
+      "title": "Book",
+      "icon": "chart.pie.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "td-netliq",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Net Liquidation",
+          "text": "$1,101,000",
+          "style": "title",
+          "tint": "#F5C451",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_account"
+              },
+              "valuePath": "net_liq_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "td-daypnl",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Day P&L",
+          "text": "+$8,412 (+0.77%)",
+          "style": "headline",
+          "tint": "#2EE59D",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_account"
+              },
+              "valuePath": "day_pnl_text"
+            }
+          ]
+        },
+        {
+          "type": "treemap",
+          "id": "td-holdings",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Holdings · by market value",
+          "formatValue": "suffix: $",
+          "treemapConfig": {
+            "showValues": true,
+            "drillDown": true,
+            "cellGap": 3,
+            "cellCornerRadius": 6,
+            "scrub": true,
+            "itemAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "trading_desk_inspect_position",
+                "item": "{{value}}"
+              }
+            }
+          },
+          "haptic": "selection",
+          "defaultValue": "[{\"label\":\"Tech\",\"color\":\"#4CC9F0\",\"children\":[{\"label\":\"NVDA\",\"value\":184200},{\"label\":\"MSFT\",\"value\":142800},{\"label\":\"AAPL\",\"value\":118400},{\"label\":\"AVGO\",\"value\":61300}]},{\"label\":\"Financials\",\"color\":\"#7B8CFF\",\"children\":[{\"label\":\"JPM\",\"value\":72400},{\"label\":\"V\",\"value\":48900},{\"label\":\"GS\",\"value\":31200}]},{\"label\":\"Health\",\"color\":\"#2EE59D\",\"children\":[{\"label\":\"LLY\",\"value\":66100},{\"label\":\"UNH\",\"value\":38700}]},{\"label\":\"Energy\",\"color\":\"#F5C451\",\"children\":[{\"label\":\"XOM\",\"value\":41800},{\"label\":\"CVX\",\"value\":22600}]},{\"label\":\"Consumer\",\"color\":\"#FF8FAB\",\"children\":[{\"label\":\"AMZN\",\"value\":88300},{\"label\":\"COST\",\"value\":29400}]},{\"label\":\"Cash\",\"color\":\"#5C6B8A\",\"value\":54900}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_positions"
+              },
+              "valuePath": "tree"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "td-buying-power",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Buying power used",
+          "icon": "creditcard.fill",
+          "min": 0,
+          "max": 100,
+          "formatValue": "percent",
+          "tint": "#4CC9F0",
+          "defaultValue": 62,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_account"
+              },
+              "valuePath": "bp_used_pct"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "td-market-state",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "NYSE",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "open",
+          "statusColors": {
+            "pre": "#F5C451",
+            "open": "#2EE59D",
+            "halted": "#FF4D6D",
+            "after": "#7B8CFF",
+            "closed": "#5C6B8A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_market"
+              },
+              "valuePath": "session"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "td-beta",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Portfolio beta",
+          "text": "1.14",
+          "style": "large-mono",
+          "formatValue": "decimal:2",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_account"
+              },
+              "valuePath": "beta"
+            }
+          ]
+        },
+        {
+          "type": "radar",
+          "id": "td-sector-radar",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Sector exposure vs S&P",
+          "radarConfig": {
+            "showLegend": true,
+            "curved": false,
+            "fillOpacity": 0.22,
+            "rings": 4,
+            "maxValue": 40,
+            "showAxisLabels": true
+          },
+          "defaultValue": "{\"axes\":[\"Tech\",\"Fin\",\"Health\",\"Energy\",\"Cons\",\"Indus\"],\"max\":40,\"series\":[{\"name\":\"Book\",\"color\":\"#4CC9F0\",\"values\":[38,17,11,7,13,4]},{\"name\":\"S&P\",\"color\":\"#8A93B8\",\"values\":[31,13,12,4,10,8]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_exposure"
+              },
+              "valuePath": "radar"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "td-fill-pulse",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "systemName": "chart.line.uptrend.xyaxis",
+          "label": "Tape · live",
+          "tint": "#2EE59D",
+          "defaultValue": "open",
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#2EE59D",
+              "#4CC9F0"
+            ],
+            "effect": "variableColor",
+            "effectOptions": [
+              "iterative"
+            ],
+            "activeWhen": "open",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "trading_desk_fill"
+                },
+                "effect": "bounce"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_market"
+              },
+              "valuePath": "session"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Markets",
+      "icon": "chart.xyaxis.line",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "picker",
+          "id": "td-ticker",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Symbol",
+          "options": [
+            "NVDA",
+            "MSFT",
+            "AAPL",
+            "AMZN",
+            "JPM",
+            "LLY",
+            "XOM"
+          ],
+          "defaultValue": "NVDA",
+          "pickerStyle": "menu",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "trading_desk_select_symbol",
+              "symbol": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "td-timeframe",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "1D",
+            "1W",
+            "1M",
+            "YTD",
+            "1Y"
+          ],
+          "defaultValue": "1M",
+          "style": "pills",
+          "tint": "#4CC9F0",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "trading_desk_set_timeframe",
+              "range": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "chart",
+          "id": "td-price-chart",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "NVDA · 1M",
+          "tint": "#4CC9F0",
+          "formatValue": "decimal:1",
+          "chartConfig": {
+            "smooth": true,
+            "scrub": true,
+            "showLegend": true,
+            "showGrid": false,
+            "lineWidth": 2.2,
+            "maxPoints": 120
+          },
+          "defaultValue": "{\"categories\":[\"9/5\",\"9/8\",\"9/9\",\"9/10\",\"9/11\",\"9/12\",\"9/15\",\"9/16\",\"9/17\",\"9/18\",\"9/19\",\"9/22\",\"9/23\",\"9/24\"],\"series\":[{\"name\":\"Close\",\"type\":\"area\",\"color\":\"#4CC9F0\",\"values\":[187.2,188.9,188.1,190.4,191.8,191.2,193.6,194.1,192.7,195.3,196.8,196.1,198.4,199.2]},{\"name\":\"20-day MA\",\"type\":\"line\",\"color\":\"#F5C451\",\"values\":[186.0,186.6,187.1,187.8,188.5,189.0,189.9,190.6,191.1,191.9,192.8,193.4,194.3,195.1]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_quote_history"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "td-spx",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "S&P 500 · 6,412",
+          "tint": "#2EE59D",
+          "defaultValue": 6412,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_index"
+              },
+              "valuePath": "spx"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "td-vix",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "VIX · 14.8",
+          "tint": "#FF4D6D",
+          "defaultValue": 14.8,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_index"
+              },
+              "valuePath": "vix"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "td-watchlist",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Watchlist",
+          "listColumns": [
+            {
+              "key": "sym",
+              "label": "Sym"
+            },
+            {
+              "key": "last",
+              "label": "Last",
+              "format": "decimal:2"
+            },
+            {
+              "key": "chg",
+              "label": "Chg %",
+              "format": "decimal:2"
+            },
+            {
+              "key": "vol",
+              "label": "Vol"
+            }
+          ],
+          "defaultValue": "[{\"sym\":\"NVDA\",\"last\":199.2,\"chg\":1.31,\"vol\":\"212M\"},{\"sym\":\"MSFT\",\"last\":468.55,\"chg\":-0.42,\"vol\":\"18M\"},{\"sym\":\"AAPL\",\"last\":241.08,\"chg\":0.66,\"vol\":\"44M\"},{\"sym\":\"AMZN\",\"last\":226.37,\"chg\":2.05,\"vol\":\"39M\"},{\"sym\":\"JPM\",\"last\":271.9,\"chg\":-0.18,\"vol\":\"8.2M\"},{\"sym\":\"LLY\",\"last\":884.12,\"chg\":-1.74,\"vol\":\"3.1M\"},{\"sym\":\"XOM\",\"last\":118.44,\"chg\":0.92,\"vol\":\"14M\"},{\"sym\":\"TSLA\",\"last\":312.6,\"chg\":-3.21,\"vol\":\"96M\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_watchlist"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "td-sector-heat",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Sector returns · last 5 sessions (%)",
+          "heatmapConfig": {
+            "colors": [
+              "#FF4D6D",
+              "#1A2238",
+              "#2EE59D"
+            ],
+            "vMin": -2.5,
+            "vMax": 2.5,
+            "showValues": true,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 2,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "trading_desk_inspect_sector_day",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "formatValue": "decimal:1",
+          "defaultValue": "{\"rows\":[\"Tech\",\"Fin\",\"Health\",\"Energy\",\"Cons\"],\"cols\":[\"Thu\",\"Fri\",\"Mon\",\"Tue\",\"Wed\"],\"values\":[[1.2,-0.4,2.1,0.6,1.3],[0.3,0.8,-0.2,-0.5,0.4],[-1.1,-0.6,0.2,-1.8,-0.9],[0.9,1.6,-0.7,0.4,1.1],[0.5,-0.3,1.4,0.9,0.2]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_sector_returns"
+              },
+              "valuePath": "grid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ticket",
+      "icon": "arrow.left.arrow.right.square.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "td-ticket",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Order Ticket",
+          "grid": {
+            "columns": 4,
+            "rows": 5
+          },
+          "children": [
+            {
+              "type": "textInput",
+              "id": "td-ord-symbol",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Symbol",
+              "placeholder": "Ticker",
+              "defaultValue": "NVDA",
+              "icon": "magnifyingglass",
+              "autocorrect": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "symbol",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "td-ord-side",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "BUY",
+                "SELL"
+              ],
+              "optionLabels": [
+                "Buy",
+                "Sell"
+              ],
+              "defaultValue": "BUY",
+              "style": "pills",
+              "tint": "#2EE59D",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "side",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "td-ord-type",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "options": [
+                "MKT",
+                "LMT",
+                "STP",
+                "STPLMT"
+              ],
+              "optionLabels": [
+                "Market",
+                "Limit",
+                "Stop",
+                "Stop Lmt"
+              ],
+              "defaultValue": "LMT",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "type",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "td-ord-qty",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Shares",
+              "min": 1,
+              "max": 10000,
+              "step": 25,
+              "defaultValue": 200,
+              "repeatOnHold": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "qty",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "td-ord-limit",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Limit $",
+              "min": 1,
+              "max": 2000,
+              "step": 0.05,
+              "defaultValue": 198.85,
+              "formatValue": "decimal:2",
+              "repeatOnHold": true,
+              "visible": {
+                "when": "td-ord-type",
+                "operator": "neq",
+                "value": "MKT"
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "limit",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "picker",
+              "id": "td-ord-tif",
+              "position": [
+                3,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Time in force",
+              "options": [
+                "DAY",
+                "GTC",
+                "IOC",
+                "FOK"
+              ],
+              "defaultValue": "DAY",
+              "pickerStyle": "menu",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "tif",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "td-ord-ext",
+              "position": [
+                3,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Extended hrs",
+              "defaultValue": false,
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_ticket_field",
+                  "field": "extended",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "td-ord-submit",
+              "position": [
+                4,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Submit",
+              "icon": "paperplane.fill",
+              "style": "filled",
+              "tint": "#2EE59D",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_submit_order",
+                  "ticket": "td-ticket"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "td-ord-cancel",
+              "position": [
+                4,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Cancel all",
+              "icon": "xmark.octagon.fill",
+              "style": "outlined",
+              "tint": "#FF4D6D",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_cancel_all"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "td-order-risk",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Ticket % of book",
+          "icon": "scalemass.fill",
+          "min": 0,
+          "max": 10,
+          "gaugeStyle": "half",
+          "formatValue": "suffix:%",
+          "defaultValue": 3.6,
+          "colorBlend": 0.3,
+          "segments": [
+            {
+              "limit": 4,
+              "color": "#2EE59D"
+            },
+            {
+              "limit": 7,
+              "color": "#F5C451"
+            },
+            {
+              "limit": 10,
+              "color": "#FF4D6D"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_ticket_preview"
+              },
+              "valuePath": "pct_of_book"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "td-est-cost",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Est. cost",
+          "text": "$39,770",
+          "style": "large-mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_ticket_preview"
+              },
+              "valuePath": "cost_text"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "td-order-status",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Last order",
+          "style": "badge",
+          "defaultValue": "working",
+          "statusColors": {
+            "working": "#F5C451",
+            "filled": "#2EE59D",
+            "partial": "#4CC9F0",
+            "rejected": "#FF4D6D",
+            "cancelled": "#5C6B8A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_order_update"
+              },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "td-open-orders",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Open orders",
+          "listColumns": [
+            {
+              "key": "sym",
+              "label": "Sym"
+            },
+            {
+              "key": "side",
+              "label": "Side"
+            },
+            {
+              "key": "qty",
+              "label": "Qty",
+              "format": "decimal"
+            },
+            {
+              "key": "px",
+              "label": "Px",
+              "format": "decimal:2"
+            },
+            {
+              "key": "state",
+              "label": "State"
+            }
+          ],
+          "defaultValue": "[{\"sym\":\"NVDA\",\"side\":\"BUY\",\"qty\":200,\"px\":198.85,\"state\":\"working\"},{\"sym\":\"LLY\",\"side\":\"SELL\",\"qty\":40,\"px\":892.0,\"state\":\"working\"},{\"sym\":\"XOM\",\"side\":\"BUY\",\"qty\":150,\"px\":117.6,\"state\":\"partial 90/150\"},{\"sym\":\"TSLA\",\"side\":\"SELL\",\"qty\":100,\"px\":325.0,\"state\":\"GTC\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_open_orders"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Risk",
+      "icon": "shield.lefthalf.filled",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "boxPlot",
+          "id": "td-pnl-dist",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Daily P&L by strategy ($k)",
+          "tint": "#4CC9F0",
+          "formatValue": "decimal:1",
+          "boxPlotConfig": {
+            "showMean": true,
+            "scrub": true,
+            "whiskers": "tukey",
+            "colors": [
+              "#4CC9F0",
+              "#7B8CFF",
+              "#F5C451",
+              "#FF8FAB"
+            ],
+            "boxAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "trading_desk_inspect_strategy",
+                "stats": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"categories\":[\"Momentum\",\"Pairs\",\"Earnings\",\"Hedge\"],\"samples\":[[4.2,-1.8,6.1,2.4,-3.3,8.7,1.1,3.9,-0.6,12.4,2.8,-2.1],[0.8,1.2,-0.4,0.9,1.5,0.3,-0.9,1.1,0.6,1.4,-2.8,0.7],[-6.2,9.8,-4.1,14.3,-2.7,0.4,11.2,-8.9,3.1,-1.3,18.6,-5.4],[-1.1,-0.7,0.4,-1.6,-0.2,0.9,-1.3,-0.8,2.2,-0.5,-1.0,0.1]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_pnl_samples"
+              },
+              "valuePath": "strategies"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "td-var",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "1-day VaR 95%",
+          "icon": "exclamationmark.shield.fill",
+          "min": 0,
+          "max": 50000,
+          "formatValue": "suffix: $",
+          "defaultValue": 21400,
+          "colorBlend": 0.35,
+          "segments": [
+            {
+              "limit": 20000,
+              "color": "#2EE59D"
+            },
+            {
+              "limit": 35000,
+              "color": "#F5C451"
+            },
+            {
+              "limit": 50000,
+              "color": "#FF4D6D"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_risk"
+              },
+              "valuePath": "var95"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "td-sharpe",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Sharpe (90d)",
+          "text": "1.82",
+          "style": "large-mono",
+          "formatValue": "decimal:2",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_risk"
+              },
+              "valuePath": "sharpe"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "td-drawdown",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Max drawdown",
+          "text": "−6.4%",
+          "style": "mono",
+          "tint": "#FF4D6D",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_risk"
+              },
+              "valuePath": "max_dd_text"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "td-attribution",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Today's P&L attribution ($)",
+          "chartConfig": {
+            "showValues": false,
+            "showGrid": false,
+            "barCornerRadius": 4,
+            "positiveColor": "#2EE59D",
+            "negativeColor": "#FF4D6D",
+            "totalColor": "#F5C451"
+          },
+          "defaultValue": "{\"categories\":[\"Open\",\"Tech\",\"Fin\",\"Health\",\"Energy\",\"Cons\",\"Fees\",\"Net\"],\"series\":[{\"type\":\"waterfall\",\"values\":[0,6120,1480,-1930,2210,760,-228,0],\"totals\":[7]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "trading_desk_attribution"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "td-kill",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Circuit breaker",
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "td-halt",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Halt new orders",
+              "icon": "hand.raised.fill",
+              "defaultValue": false,
+              "tint": "#FF4D6D",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_halt_trading",
+                  "enabled": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "trading_desk_risk"
+                  },
+                  "valuePath": "halted"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "td-flatten",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Flatten all",
+              "icon": "bolt.trianglebadge.exclamationmark.fill",
+              "style": "filled",
+              "tint": "#FF4D6D",
+              "haptic": "error",
+              "visible": {
+                "when": "td-halt",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "trading_desk_flatten_all",
+                  "confirm": true
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "name": "Plant Monitor",
+  "headerTitle": "Monstera",
+  "id": "plant-monitor",
+  "version": 1,
+  "accentColor": "#34C759",
+  "description": "A one-screen starter that watches a houseplant's soil moisture and lets you water it with a tap. Learn how a gauge, a status light, and a button share one simple wire vocabulary.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Plant",
+      "icon": "leaf.fill",
+      "grid": { "columns": 2, "rows": 7 },
+      "children": [
+        {
+          "type": "label",
+          "id": "plant-about",
+          "position": [0, 0],
+          "span": [1, 2],
+          "icon": "info.circle",
+          "style": "caption",
+          "text": "Starter: one gauge listens for moisture, the light flags thirst, the button sends a command."
+        },
+        {
+          "type": "gauge",
+          "id": "plant-soil-moisture",
+          "position": [1, 0],
+          "span": [3, 2],
+          "label": "Soil Moisture",
+          "icon": "drop.fill",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "half",
+          "defaultValue": 22,
+          "formatValue": "suffix:%",
+          "segments": [
+            { "limit": 25, "color": "#FF9500" },
+            { "limit": 70, "color": "#34C759" },
+            { "limit": 100, "color": "#0A84FF" }
+          ],
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "plant_monitor_reading" }, "valuePath": "moisture_pct" }]
+        },
+        {
+          "type": "statusLight",
+          "id": "plant-needs-water",
+          "position": [4, 0],
+          "span": [1, 1],
+          "label": "Needs Water",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "thirsty",
+          "statusColors": { "ok": "#34C759", "soon": "#FF9500", "thirsty": "#FF3B30" },
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "plant_monitor_reading" }, "valuePath": "water_status" }]
+        },
+        {
+          "type": "label",
+          "id": "plant-last-watered",
+          "position": [4, 1],
+          "span": [1, 1],
+          "icon": "clock",
+          "text": "Watered 3 days ago",
+          "align": "trailing"
+        },
+        {
+          "type": "stepper",
+          "id": "plant-dose",
+          "position": [5, 0],
+          "span": [1, 2],
+          "label": "Dose (ml)",
+          "icon": "drop.halffull",
+          "min": 50,
+          "max": 500,
+          "step": 50,
+          "defaultValue": 250,
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "plant_monitor_set_dose", "dose_ml": "{{value}}" } }
+        },
+        {
+          "type": "button",
+          "id": "plant-water-now",
+          "position": [6, 0],
+          "span": [1, 2],
+          "label": "Water Now",
+          "icon": "drop.fill",
+          "style": "filled",
+          "tint": "#0A84FF",
+          "haptic": "success",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "plant_monitor_water_now", "source": "app" } }
+        }
+      ]
+    }
+  ]
+}

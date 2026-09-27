@@ -1,0 +1,213 @@
+{
+  "name": "Two-Team Scoreboard",
+  "headerTitle": "Hawks vs Foxes",
+  "id": "scoreboard-two",
+  "version": 1,
+  "accentColor": "#FF9F0A",
+  "description": "A courtside scoreboard for two teams: tap +1 to score, step the period, and reset between games. Shows how buttons send broadcast actions and how one synced message ({home, away, period}) can drive several controls.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Game",
+      "icon": "sportscourt.fill",
+      "grid": {
+        "columns": 2,
+        "rows": 5
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "sb2-about",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "Buttons broadcast events; one scoreboard_two_score reply {home, away, period} updates the whole board.",
+          "style": "caption",
+          "icon": "lightbulb",
+          "tint": "#AEAEB2",
+          "align": "center"
+        },
+        {
+          "type": "label",
+          "id": "sb2-home-score",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "text": "24",
+          "icon": "bird.fill",
+          "style": "title",
+          "tint": "#FF9F0A",
+          "align": "center",
+          "formatValue": "decimal",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "scoreboard_two_score"
+              },
+              "valuePath": "home"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sb2-away-score",
+          "position": [
+            1,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "text": "19",
+          "icon": "pawprint.fill",
+          "style": "title",
+          "tint": "#64D2FF",
+          "align": "center",
+          "formatValue": "decimal",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "scoreboard_two_score"
+              },
+              "valuePath": "away"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sb2-home-plus",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Hawks +1",
+          "icon": "plus.circle.fill",
+          "style": "filled",
+          "tint": "#FF9F0A",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "scoreboard_two_point",
+              "team": "home",
+              "points": 1
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "sb2-away-plus",
+          "position": [
+            2,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Foxes +1",
+          "icon": "plus.circle.fill",
+          "style": "filled",
+          "tint": "#64D2FF",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "scoreboard_two_point",
+              "team": "away",
+              "points": 1
+            }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "sb2-period",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Period",
+          "icon": "clock",
+          "min": 1,
+          "max": 4,
+          "step": 1,
+          "defaultValue": 3,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "scoreboard_two_period",
+              "period": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "scoreboard_two_score"
+              },
+              "valuePath": "period"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sb2-reset",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Reset Game",
+          "icon": "arrow.counterclockwise",
+          "style": "outlined",
+          "tint": "#FF453A",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "scoreboard_two_reset"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

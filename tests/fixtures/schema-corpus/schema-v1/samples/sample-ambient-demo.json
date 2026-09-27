@@ -1,0 +1,190 @@
+{
+  "name": "Ambient Printer",
+  "version": 1,
+  "headerTitle": "Ambient Printer",
+  "accentColor": "#FF9F0A",
+  "tabs": [
+    {
+      "title": "Printer",
+      "icon": "printer.fill",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "label", "id": "amb-hdr", "text": "AMBIENT SURFACES DEMO",
+          "style": "headline", "icon": "rectangle.3.group", "tint": "#FF9F0A",
+          "span": [1, 4], "position": [0, 0]
+        },
+        {
+          "type": "gauge", "id": "nozzle", "label": "Nozzle", "min": 0, "max": 260,
+          "defaultValue": 213, "formatValue": "suffix:°", "tint": "#FF9F0A",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "nozzle", "filter": { "msg_type": "state" } }],
+          "span": [2, 2], "position": [1, 0]
+        },
+        {
+          "type": "gauge", "id": "bed", "label": "Bed", "min": 0, "max": 110,
+          "defaultValue": 60, "formatValue": "suffix:°", "tint": "#64D2FF",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "bed", "filter": { "msg_type": "state" } }],
+          "span": [2, 2], "position": [1, 2]
+        },
+        {
+          "type": "progressRing", "id": "progress", "label": "Print", "min": 0, "max": 100,
+          "defaultValue": 72, "formatValue": "suffix:%",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "progress", "filter": { "msg_type": "state" } }],
+          "span": [2, 2], "position": [3, 0]
+        },
+        {
+          "type": "statusLight", "id": "state", "label": "State",
+          "defaultValue": "printing",
+          "statusColors": { "printing": "#30D158", "paused": "#FF9F0A",
+                            "idle": "#8E8E93", "default": "#8E8E93" },
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "state", "filter": { "msg_type": "state" } }],
+          "span": [1, 2], "position": [3, 2]
+        },
+        {
+          "type": "label", "id": "eta", "label": "Finishes", "text": "0", "style": "mono",
+          "min": 0, "max": 4102444800,
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "eta", "filter": { "msg_type": "state" } }],
+          "span": [1, 2], "position": [4, 2]
+        },
+        {
+          "type": "sparkline", "id": "trend", "label": "Nozzle trend", "min": 0, "max": 260,
+          "defaultValue": 213,
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "nozzle", "filter": { "msg_type": "state" } }],
+          "span": [1, 4], "position": [5, 0]
+        },
+        {
+          "type": "toggle", "id": "lights", "label": "Chamber light",
+          "defaultValue": false,
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+                      "payload": { "msg_type": "lights", "on": "{{value}}" } },
+          "span": [1, 2], "position": [6, 0]
+        },
+        {
+          "type": "slider", "id": "fan", "label": "Part fan", "min": 0, "max": 100,
+          "step": 10, "defaultValue": 40, "formatValue": "suffix:%",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+                      "payload": { "msg_type": "fan", "value": "{{value}}" } },
+          "span": [1, 2], "position": [6, 2]
+        },
+        {
+          "type": "button", "id": "pause", "label": "Pause", "icon": "pause.circle",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+                      "payload": { "msg_type": "pause" } },
+          "span": [1, 2], "position": [7, 0]
+        },
+        {
+          "type": "label", "id": "amb-note", "style": "caption", "tint": "#8893b0",
+          "text": "Every tile kind in the scene DSL is exercised by this layout's widgets, island and lock screen.",
+          "span": [1, 2], "position": [7, 2]
+        }
+      ]
+    }
+  ],
+  "connection": {
+    "identity": {
+      "name": "phone",
+      "channel": "ambient-demo",
+      "role": "controller",
+      "can_broadcast": true,
+      "can_route": true
+    },
+    "url": "wss://relay.carterbeaudoin.net"
+  },
+  "glance": {
+    "title": "Ambient Printer",
+    "icon": "printer.fill",
+    "tint": "#FF9F0A",
+    "hero": "nozzle",
+    "slots": ["bed", "progress", "state"],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh",
+      "activity": { "start": "onConnect" }
+    },
+    "controls": [
+      {
+        "id": "cc-lights", "label": "Chamber Light", "kind": "toggle",
+        "icon": "lightbulb.fill", "control": "lights",
+        "event": "broadcast_request", "payload": { "msg_type": "lights" }
+      }
+    ],
+    "widgets": [
+      {
+        "id": "temps",
+        "title": "Temps",
+        "icon": "thermometer",
+        "families": ["systemSmall", "systemMedium", "systemLarge",
+                     "accessoryRectangular", "accessoryCircular", "accessoryInline"],
+        "scene": {
+          "columns": 2,
+          "rows": [
+            [ { "tile": "gauge", "control": "nozzle" },
+              { "tile": "gauge", "control": "bed" } ],
+            [ { "tile": "sparkline", "control": "trend", "span": 2 } ],
+            [ { "tile": "bar", "control": "progress", "span": 2 } ]
+          ]
+        },
+        "systemSmall": {
+          "rows": [ [ { "tile": "ring", "control": "progress" } ] ]
+        }
+      },
+      {
+        "id": "controls",
+        "title": "Controls",
+        "icon": "slider.horizontal.3",
+        "families": ["systemMedium", "systemLarge"],
+        "scene": {
+          "columns": 3,
+          "rows": [
+            [ { "tile": "icon", "icon": "printer.fill", "effect": "pulse" },
+              { "tile": "text", "label": "Ambient Printer" },
+              { "tile": "freshness" } ],
+            [ { "tile": "value", "control": "nozzle" },
+              { "tile": "light", "control": "state" },
+              { "tile": "timer", "control": "eta", "label": "ETA" } ],
+            [ { "tile": "toggle", "control": "lights", "icon": "lightbulb.fill" },
+              { "tile": "step", "control": "fan", "delta": 10 },
+              { "tile": "button", "control": "pause", "icon": "pause.circle" } ],
+            [ { "tile": "open", "label": "Open", "tab": 0 },
+              { "tile": "spacer", "span": 2 } ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": { "tile": "icon", "icon": "printer.fill", "effect": "bounce" },
+      "compactTrailing": { "tile": "ring", "control": "progress" },
+      "minimal": { "tile": "light", "control": "state" },
+      "expanded": {
+        "leading": { "tile": "icon", "icon": "printer.fill", "effect": "variableColor" },
+        "trailing": { "tile": "freshness" },
+        "center": { "tile": "timer", "control": "eta", "label": "ETA" },
+        "bottom": {
+          "columns": 2,
+          "rows": [
+            [ { "tile": "gauge", "control": "nozzle" },
+              { "tile": "gauge", "control": "bed" } ],
+            [ { "tile": "button", "control": "pause", "icon": "pause.circle" },
+              { "tile": "step", "control": "fan", "delta": 10 } ]
+          ]
+        }
+      }
+    },
+    "lockScreen": {
+      "columns": 2,
+      "rows": [
+        [ { "tile": "value", "control": "nozzle" },
+          { "tile": "bar", "control": "bed" } ],
+        [ { "tile": "sparkline", "control": "trend", "span": 2 } ],
+        [ { "tile": "toggle", "control": "lights", "icon": "lightbulb.fill" },
+          { "tile": "open", "label": "Open", "tab": 0 } ]
+      ]
+    }
+  }
+}

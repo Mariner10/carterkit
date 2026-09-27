@@ -1,0 +1,82 @@
+{
+  "name": "Hello Button",
+  "headerTitle": "Hello Button",
+  "id": "hello-button",
+  "version": 1,
+  "accentColor": "#5E5CE6",
+  "description": "The smallest useful CAR-TER layout: one big button that broadcasts a greeting, a label that echoes the server's reply, and a status light that shows it arrived.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Hello",
+      "icon": "hand.wave.fill",
+      "grid": { "columns": 2, "rows": 7 },
+      "children": [
+        {
+          "type": "label",
+          "id": "hello-title",
+          "position": [0, 0],
+          "span": [1, 1],
+          "text": "Hello, mesh",
+          "icon": "antenna.radiowaves.left.and.right",
+          "style": "headline"
+        },
+        {
+          "type": "statusLight",
+          "id": "hello-status",
+          "position": [0, 1],
+          "span": [1, 1],
+          "label": "Server",
+          "style": "badge",
+          "size": "default",
+          "pulse": true,
+          "defaultValue": "waiting",
+          "statusColors": { "waiting": "#8E8E93", "replied": "#30D158", "busy": "#FF9F0A" },
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "hello_button_reply" }, "valuePath": "status" }]
+        },
+        {
+          "type": "button",
+          "id": "hello-press",
+          "position": [1, 0],
+          "span": [2, 2],
+          "label": "Say Hello",
+          "icon": "hand.wave.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#5E5CE6",
+          "haptic": "success",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "hello_button_press", "greeting": "hello" } }
+        },
+        {
+          "type": "divider",
+          "id": "hello-divider",
+          "position": [3, 0],
+          "span": [1, 2],
+          "label": "Reply"
+        },
+        {
+          "type": "label",
+          "id": "hello-reply",
+          "position": [4, 0],
+          "span": [1, 2],
+          "text": "No reply yet - tap Say Hello",
+          "icon": "bubble.left.fill",
+          "style": "headline",
+          "align": "center",
+          "tint": "#BF5AF2",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "hello_button_reply" }, "valuePath": "text" }]
+        },
+        {
+          "type": "label",
+          "id": "hello-about",
+          "position": [5, 0],
+          "span": [2, 2],
+          "text": "About: tapping the button broadcasts {msg_type: hello_button_press}. A server answers with {msg_type: hello_button_reply, text, status} - the label shows text, the light shows status (waiting, busy, replied).",
+          "icon": "info.circle",
+          "style": "caption",
+          "tint": "#AEAEB2"
+        }
+      ]
+    }
+  ]
+}

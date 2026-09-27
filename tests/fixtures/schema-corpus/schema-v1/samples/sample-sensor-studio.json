@@ -1,0 +1,271 @@
+{
+  "name": "Sensor Studio",
+  "headerTitle": "Sensor Studio",
+  "version": 1,
+  "accentColor": "#64D2FF",
+  "appearance": { "colorScheme": "system" },
+  "theme": {
+    "accentColor": "#64D2FF",
+    "accentGradient": ["#64D2FF", "#30D158"],
+    "cornerRadius": 16,
+    "controlPadding": 6,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "fontDesign": "rounded",
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "dark": {
+      "pageBackgroundGradient": ["#071018", "#0B1F2A"],
+      "surfacePrimary": "#FFFFFF12",
+      "surfaceSecondary": "#FFFFFF0A",
+      "surfaceTertiary": "#FFFFFF06",
+      "foregroundColor": "#FFFFFF",
+      "secondaryColor": "#FFFFFF99",
+      "tertiaryColor": "#FFFFFF4D",
+      "borderColor": "#FFFFFF1F"
+    },
+    "light": {
+      "pageBackgroundGradient": ["#EAF6FB", "#E2F2EE"],
+      "surfacePrimary": "#FFFFFFC7",
+      "surfaceSecondary": "#FFFFFF8F",
+      "surfaceTertiary": "#FFFFFF66",
+      "foregroundColor": "#0B1F2A",
+      "secondaryColor": "#0B1F2A99",
+      "tertiaryColor": "#0B1F2A4D",
+      "borderColor": "#0B1F2A1F"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Compass",
+      "icon": "safari",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "compass-heading",
+          "position": [0, 0],
+          "span": [3, 4],
+          "min": 0,
+          "max": 360,
+          "gaugeStyle": "full",
+          "icon": "location.north.line.fill",
+          "label": "Heading",
+          "step": 1,
+          "sync": [{ "method": "sensor", "sensor": "heading" }]
+        },
+        {
+          "type": "label",
+          "id": "compass-cardinal",
+          "position": [3, 0],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "safari.fill",
+          "style": "title",
+          "align": "center",
+          "sync": [{ "method": "sensor", "sensor": "heading.cardinal" }]
+        },
+        {
+          "type": "label",
+          "id": "compass-accuracy",
+          "position": [3, 2],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "scope",
+          "style": "title",
+          "align": "center",
+          "formatValue": "decimal",
+          "sync": [{ "method": "sensor", "sensor": "heading.accuracy" }]
+        },
+        {
+          "type": "label",
+          "id": "compass-hint",
+          "position": [4, 0],
+          "span": [1, 4],
+          "text": "Everything on this screen comes from this device — no server, no network.",
+          "style": "caption",
+          "align": "center"
+        }
+      ]
+    },
+    {
+      "title": "Motion",
+      "icon": "gyroscope",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "motion-pitch",
+          "position": [0, 0],
+          "span": [2, 2],
+          "min": -90,
+          "max": 90,
+          "label": "Pitch °",
+          "icon": "arrow.up.and.down",
+          "sync": [{ "method": "sensor", "sensor": "motion.pitch" }]
+        },
+        {
+          "type": "gauge",
+          "id": "motion-roll",
+          "position": [0, 2],
+          "span": [2, 2],
+          "min": -180,
+          "max": 180,
+          "label": "Roll °",
+          "icon": "arrow.left.and.right",
+          "sync": [{ "method": "sensor", "sensor": "motion.roll" }]
+        },
+        {
+          "type": "sparkline",
+          "id": "motion-accel",
+          "position": [2, 0],
+          "span": [1, 4],
+          "label": "Acceleration (g)",
+          "sparklinePoints": 90,
+          "sparklineFill": true,
+          "sync": [{ "method": "sensor", "sensor": "motion.accel" }]
+        },
+        {
+          "type": "sparkline",
+          "id": "motion-rotation",
+          "position": [3, 0],
+          "span": [1, 4],
+          "label": "Rotation (°/s)",
+          "sparklinePoints": 90,
+          "tint": "#30D158",
+          "sync": [{ "method": "sensor", "sensor": "motion.rotation" }]
+        }
+      ]
+    },
+    {
+      "title": "Ambient",
+      "icon": "waveform",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "ambient-sound",
+          "position": [0, 0],
+          "span": [2, 2],
+          "min": 0,
+          "max": 100,
+          "label": "Sound",
+          "icon": "waveform",
+          "segments": [
+            { "limit": 55, "color": "#30D158" },
+            { "limit": 75, "color": "#FFD60A" },
+            { "limit": 100, "color": "#FF453A" }
+          ],
+          "sync": [{ "method": "sensor", "sensor": "audio" }]
+        },
+        {
+          "type": "label",
+          "id": "ambient-pressure",
+          "position": [0, 2],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "barometer",
+          "style": "title",
+          "align": "center",
+          "formatValue": "decimal:1",
+          "sync": [{ "method": "sensor", "sensor": "barometer.pressure" }]
+        },
+        {
+          "type": "label",
+          "id": "ambient-altitude",
+          "position": [1, 2],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "arrow.up.to.line",
+          "style": "title",
+          "align": "center",
+          "formatValue": "decimal:1",
+          "sync": [{ "method": "sensor", "sensor": "barometer.altitude" }]
+        },
+        {
+          "type": "sparkline",
+          "id": "ambient-sound-spark",
+          "position": [2, 0],
+          "span": [1, 4],
+          "label": "Sound level",
+          "sparklinePoints": 120,
+          "sparklineFill": true,
+          "sync": [{ "method": "sensor", "sensor": "audio.level" }]
+        },
+        {
+          "type": "sparkline",
+          "id": "ambient-pressure-spark",
+          "position": [3, 0],
+          "span": [1, 4],
+          "label": "Pressure (kPa)",
+          "sparklinePoints": 120,
+          "tint": "#BF5AF2",
+          "sync": [{ "method": "sensor", "sensor": "barometer.pressure" }]
+        }
+      ]
+    },
+    {
+      "title": "Vitals",
+      "icon": "battery.75percent",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "progressRing",
+          "id": "vitals-battery",
+          "position": [0, 0],
+          "span": [2, 2],
+          "min": 0,
+          "max": 100,
+          "label": "Battery",
+          "icon": "bolt.fill",
+          "tint": "#30D158",
+          "sync": [{ "method": "sensor", "sensor": "device.battery" }]
+        },
+        {
+          "type": "progressRing",
+          "id": "vitals-brightness",
+          "position": [0, 2],
+          "span": [2, 2],
+          "min": 0,
+          "max": 100,
+          "label": "Brightness",
+          "icon": "sun.max.fill",
+          "tint": "#FFD60A",
+          "sync": [{ "method": "sensor", "sensor": "device.brightness" }]
+        },
+        {
+          "type": "label",
+          "id": "vitals-thermal",
+          "position": [2, 0],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "thermometer.medium",
+          "style": "title",
+          "align": "center",
+          "sync": [{ "method": "sensor", "sensor": "device.thermal" }]
+        },
+        {
+          "type": "label",
+          "id": "vitals-state",
+          "position": [2, 2],
+          "span": [1, 2],
+          "text": "—",
+          "icon": "powerplug.fill",
+          "style": "title",
+          "align": "center",
+          "sync": [{ "method": "sensor", "sensor": "device.state" }]
+        },
+        {
+          "type": "label",
+          "id": "vitals-hint",
+          "position": [3, 0],
+          "span": [1, 4],
+          "text": "Add a publishers block to stream any of these to another device.",
+          "style": "caption",
+          "align": "center"
+        }
+      ]
+    }
+  ]
+}

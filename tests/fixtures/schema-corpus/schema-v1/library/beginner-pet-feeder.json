@@ -1,0 +1,83 @@
+{
+  "name": "Pet Feeder",
+  "headerTitle": "Biscuit's Bowl",
+  "id": "pet-feeder",
+  "version": 1,
+  "accentColor": "#FF9F0A",
+  "description": "A one-screen starter for a smart kibble feeder: check the hopper, pick a portion, and feed with a tap. Learn how a slider value rides along in a button-style action and how one status message drives two controls.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Feeder",
+      "icon": "pawprint.fill",
+      "grid": { "columns": 2, "rows": 5 },
+      "children": [
+        {
+          "type": "label",
+          "id": "pet-feeder-about",
+          "position": [0, 0],
+          "span": [1, 2],
+          "icon": "info.circle",
+          "style": "caption",
+          "text": "Starter: one status message lights the hopper and updates last fed; the slider and button send commands."
+        },
+        {
+          "type": "statusLight",
+          "id": "pet-feeder-hopper",
+          "position": [1, 0],
+          "span": [1, 1],
+          "label": "Hopper",
+          "style": "badge",
+          "defaultValue": "half",
+          "statusColors": { "full": "#34C759", "half": "#FFCC00", "low": "#FF9500", "empty": "#FF3B30" },
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "pet_feeder_status" }, "valuePath": "hopper_level" }]
+        },
+        {
+          "type": "label",
+          "id": "pet-feeder-last-fed",
+          "position": [1, 1],
+          "span": [1, 1],
+          "icon": "clock",
+          "align": "trailing",
+          "text": "Last fed 7:30 AM",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "pet_feeder_status" }, "valuePath": "last_fed" }]
+        },
+        {
+          "type": "divider",
+          "id": "pet-feeder-divider",
+          "label": "Feeding",
+          "position": [2, 0],
+          "span": [1, 2]
+        },
+        {
+          "type": "slider",
+          "id": "pet-feeder-portion",
+          "position": [3, 0],
+          "span": [1, 2],
+          "label": "Portion (grams)",
+          "min": 10,
+          "max": 120,
+          "step": 5,
+          "defaultValue": 45,
+          "continuous": false,
+          "minIcon": "circle.bottomhalf.filled",
+          "maxIcon": "circle.fill",
+          "tint": "#FF9F0A",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "pet_feeder_set_portion", "grams": "{{value}}" } }
+        },
+        {
+          "type": "button",
+          "id": "pet-feeder-feed-now",
+          "position": [4, 0],
+          "span": [1, 2],
+          "label": "Feed Now",
+          "icon": "fork.knife",
+          "style": "filled",
+          "tint": "#FF9F0A",
+          "haptic": "success",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "pet_feeder_feed_now", "source": "app" } }
+        }
+      ]
+    }
+  ]
+}

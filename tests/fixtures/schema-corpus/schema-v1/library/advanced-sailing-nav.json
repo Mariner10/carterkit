@@ -1,0 +1,1303 @@
+{
+  "name": "Sailing Navigator",
+  "headerTitle": "WILDCAT · NAV",
+  "version": 1,
+  "accentColor": "#64D2FF",
+  "description": "A cockpit navigator for a 40-ft racer-cruiser: heading ring with mark and layline pucks, boat speed and heel dials, a chart plotter with course marks, wind-shift history, a start/tack timer and autopilot helm controls.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#64D2FF",
+    "accentGradient": [
+      "#64D2FF",
+      "#0A84FF",
+      "#5E5CE6"
+    ],
+    "fontDesign": "rounded",
+    "cornerRadius": 14,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "tabBarTint": "#64D2FF",
+    "pageBackgroundGradient": [
+      "#020A14",
+      "#06182B",
+      "#0B2740"
+    ],
+    "surfacePrimary": "#9FD4FF14",
+    "surfaceSecondary": "#9FD4FF0B",
+    "surfaceTertiary": "#9FD4FF06",
+    "borderColor": "#9FD4FF2E",
+    "foregroundColor": "#EAF5FF",
+    "secondaryColor": "#8EB2CF",
+    "tertiaryColor": "#58789A",
+    "toggle": {
+      "trackActiveColor": "#30D158"
+    },
+    "slider": {
+      "trackActiveColor": "#64D2FF",
+      "thumbColor": "#EAF5FF"
+    }
+  },
+  "sources": {
+    "signalk": {
+      "type": "http",
+      "baseURL": "https://signalk.local:3443",
+      "interval": 2
+    }
+  },
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 5
+    }
+  ],
+  "tabs": [
+    {
+      "title": "Helm",
+      "icon": "location.north.circle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "compass",
+          "id": "sn-compass",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            2
+          ],
+          "label": "Heading · marks & wind",
+          "defaultValue": 318,
+          "compassConfig": {
+            "tolerance": 10,
+            "dwell": 2.0,
+            "editable": false,
+            "cardinalColor": "#7FA7C9",
+            "pucks": [
+              {
+                "id": "twd",
+                "label": "TWD 004°",
+                "icon": "wind",
+                "tint": "#64D2FF",
+                "bearing": 4,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "sailing_nav_steer_to",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "mark",
+                "label": "Windward",
+                "icon": "flag.fill",
+                "tint": "#FFD60A",
+                "bearing": 352,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "sailing_nav_steer_to",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "lay_p",
+                "label": "Port lay",
+                "icon": "arrow.up.left",
+                "tint": "#FF453A",
+                "bearing": 306,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "sailing_nav_steer_to",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "lay_s",
+                "label": "Stbd lay",
+                "icon": "arrow.up.right",
+                "tint": "#30D158",
+                "bearing": 42,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "sailing_nav_steer_to",
+                    "target": "{{value}}"
+                  }
+                }
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_heading"
+              },
+              "valuePath": "hdg_mag"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sn-bsp",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Boat speed",
+          "icon": "speedometer",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "formatValue": "suffix: kn",
+          "segments": [
+            {
+              "limit": 6.5,
+              "color": "#64D2FF"
+            },
+            {
+              "limit": 9,
+              "color": "#30D158"
+            },
+            {
+              "limit": 12,
+              "color": "#FFD60A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "defaultValue": 7.42,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_speed"
+              },
+              "valuePath": "bsp_kn"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-tws",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "True wind",
+          "text": "14.8 kn · TWA 41°",
+          "icon": "wind",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_wind"
+              },
+              "valuePath": "tws_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-aws",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Apparent",
+          "text": "20.3 kn · AWA 27°",
+          "icon": "arrow.up.forward",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_wind"
+              },
+              "valuePath": "aws_text"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sn-bsp-trend",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Boat speed · last 10 min",
+          "tint": "#30D158",
+          "sparklineFill": true,
+          "sparklinePoints": 120,
+          "defaultValue": "[6.8, 7.0, 7.1, 7.3, 7.2, 6.4, 5.1, 5.8, 6.6, 7.0, 7.3, 7.4, 7.5, 7.3, 7.4, 7.6, 7.5, 7.4]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_speed"
+              },
+              "valuePath": "bsp_kn"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sn-perf",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Performance · ORC polars",
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "progressRing",
+              "id": "sn-polar",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Polar %",
+              "icon": "scope",
+              "min": 0,
+              "max": 110,
+              "tint": "#FFD60A",
+              "defaultValue": 94,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_perf"
+                  },
+                  "valuePath": "polar_pct"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "sn-vmg",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "VMG",
+              "text": "5.61 kn",
+              "icon": "arrow.up.to.line",
+              "style": "mono",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_perf"
+                  },
+                  "valuePath": "vmg_text"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "sn-target",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Target BSP / TWA",
+              "text": "7.90 kn · 40°",
+              "icon": "target",
+              "style": "mono",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_perf"
+                  },
+                  "valuePath": "target_text"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chart",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "sn-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Chart plotter · Narragansett Bay",
+          "mapStyle": "hybrid",
+          "mapZoom": 0.03,
+          "tint": "#64D2FF",
+          "mapConfig": {
+            "recenter": "auto"
+          },
+          "defaultValue": "{\"markers\": [{\"coordinate\": [41.4812, -71.3279], \"color\": \"#FFD60A\", \"size\": 14, \"label\": \"Windward \\u00b7 Rose Is.\"}, {\"coordinate\": [41.4595, -71.338], \"color\": \"#FF9F0A\", \"size\": 12, \"label\": \"Leeward gate\"}, {\"coordinate\": [41.4552, -71.331], \"color\": \"#8E8E93\", \"size\": 10, \"label\": \"Committee boat\"}, {\"coordinate\": [41.4661, -71.3342], \"color\": \"#64D2FF\", \"size\": 18, \"label\": \"Wildcat \\u00b7 7.4 kn\", \"ripple\": {\"color\": \"#64D2FF\", \"period\": 1.8, \"radius\": 36}}], \"paths\": [{\"points\": [[41.4552, -71.331], [41.4604, -71.3289], [41.4631, -71.3371], [41.4661, -71.3342]], \"color\": \"#64D2FF\"}, {\"points\": [[41.4812, -71.3279], [41.465, -71.347]], \"color\": \"#FF453A80\"}, {\"points\": [[41.4812, -71.3279], [41.469, -71.315]], \"color\": \"#30D15880\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_position"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "sn-shifts",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Wind shifts · °TWD vs median",
+          "formatValue": "suffix:°",
+          "heatmapConfig": {
+            "colors": [
+              "#FF453A",
+              "#1C2A3A",
+              "#30D158"
+            ],
+            "vMin": -12,
+            "vMax": 12,
+            "showScale": true,
+            "cellCorner": 4
+          },
+          "defaultValue": "{\"rows\": [\"Leg 1\", \"Leg 2\", \"Leg 3\", \"Leg 4\"], \"cols\": [\"0\", \"2\", \"4\", \"6\", \"8\", \"10\", \"12\", \"14\"], \"values\": [[-2, -4, -7, -3, 2, 5, 8, 4], [3, 6, 4, -1, -5, -9, -6, -2], [-1, 0, 3, 7, 10, 6, 2, -3], [-4, -6, -2, 1, 4, 3, 0, -1]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_wind_shifts"
+              },
+              "valuePath": "matrix"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-nextmark",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Windward mark",
+          "text": "1.84 nm · 352°M",
+          "icon": "flag.fill",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_route"
+              },
+              "valuePath": "next_mark_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-depth",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Depth · Signal K",
+          "text": "11.6 m",
+          "icon": "water.waves",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "http",
+              "source": "signalk",
+              "path": "/signalk/v1/api/vessels/self/environment/depth/belowTransducer",
+              "interval": 2,
+              "valuePath": "value"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trim",
+      "icon": "sailboat.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "radar",
+          "id": "sn-heel-radar",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Balance profile",
+          "tint": "#64D2FF",
+          "radarConfig": {
+            "rings": 4,
+            "maxValue": 30,
+            "curved": true,
+            "showLegend": true,
+            "fillOpacity": 0.3
+          },
+          "defaultValue": "{\"axes\": [\"Heel\", \"Pitch\", \"Rudder\", \"Leeway\", \"Helm load\", \"Twist\"], \"max\": 30, \"series\": [{\"name\": \"Now\", \"color\": \"#64D2FF\", \"values\": [22, 6, 5, 4, 14, 11]}, {\"name\": \"Target\", \"color\": \"#FFD60A\", \"values\": [20, 4, 3, 3, 10, 12]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_balance"
+              },
+              "valuePath": "radar"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sn-heel",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Heel",
+          "icon": "sailboat.fill",
+          "min": 0,
+          "max": 40,
+          "step": 0.1,
+          "formatValue": "suffix:°",
+          "segments": [
+            {
+              "limit": 18,
+              "color": "#64D2FF"
+            },
+            {
+              "limit": 25,
+              "color": "#30D158"
+            },
+            {
+              "limit": 40,
+              "color": "#FF453A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "defaultValue": 21.6,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_attitude"
+              },
+              "valuePath": "heel_deg"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-rudder",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Rudder",
+          "text": "4.8° to port",
+          "icon": "helm",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_attitude"
+              },
+              "valuePath": "rudder_text"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sn-heel-trend",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Heel · last 5 min",
+          "tint": "#FF9F0A",
+          "sparklinePoints": 90,
+          "defaultValue": "[18, 19, 21, 23, 24, 22, 20, 8, -3, -14, -19, -21, -22, -20, -21, -23, -22]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_attitude"
+              },
+              "valuePath": "heel_signed"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sn-sailtrim",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Sail trim · main",
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "sn-traveler",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Traveler · cm from center",
+              "min": -40,
+              "max": 40,
+              "step": 2,
+              "defaultValue": -6,
+              "tint": "#64D2FF",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_trim_set",
+                  "control": "traveler",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_trim"
+                  },
+                  "valuePath": "traveler"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "sn-backstay",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Backstay · %",
+              "min": 0,
+              "max": 100,
+              "step": 5,
+              "defaultValue": 55,
+              "tint": "#64D2FF",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_trim_set",
+                  "control": "backstay",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_trim"
+                  },
+                  "valuePath": "backstay"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "sn-cunningham",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Cunningham · %",
+              "min": 0,
+              "max": 100,
+              "step": 5,
+              "defaultValue": 20,
+              "tint": "#64D2FF",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_trim_set",
+                  "control": "cunningham",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_trim"
+                  },
+                  "valuePath": "cunningham"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Race",
+      "icon": "flag.checkered",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "sn-gun",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "stopwatch.fill",
+          "label": "Start gun",
+          "tint": "#FFD60A",
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "pulse",
+            "loop": "periodic",
+            "loopDelay": 1.0,
+            "speed": 1.0,
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "sailing_nav_start_signal"
+                },
+                "effect": "bounce"
+              }
+            ],
+            "tapEffect": "wiggle"
+          }
+        },
+        {
+          "type": "progressRing",
+          "id": "sn-countdown",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Start sequence · s",
+          "icon": "flag.checkered",
+          "min": 0,
+          "max": 300,
+          "tint": "#FF9F0A",
+          "defaultValue": 168,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_start_timer"
+              },
+              "valuePath": "remaining_s"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sn-countdown-text",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Time to gun",
+          "text": "T-2:48 · line 0.12 nm · bias +4° pin",
+          "icon": "timer",
+          "style": "mono",
+          "align": "center",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_start_timer"
+              },
+              "valuePath": "summary"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sn-timer",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Tack & start timer",
+          "grid": {
+            "columns": 3,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "sn-t-start",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "5:00",
+              "icon": "play.fill",
+              "tint": "#30D158",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_timer",
+                  "cmd": "start",
+                  "seconds": 300
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-t-sync",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Sync",
+              "icon": "arrow.triangle.2.circlepath",
+              "style": "tinted",
+              "tint": "#FFD60A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_timer",
+                  "cmd": "sync_minute"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-t-tack",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Mark tack",
+              "icon": "arrow.left.arrow.right",
+              "style": "outlined",
+              "tint": "#64D2FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_timer",
+                  "cmd": "mark_tack"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "sn-ap-engage",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Autopilot",
+          "icon": "steeringwheel",
+          "tint": "#30D158",
+          "haptic": "heavy",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "sailing_nav_ap_engage",
+              "engaged": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_ap_state"
+              },
+              "valuePath": "engaged"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "sn-ap-state",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pilot",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": {
+            "standby": "#8E8E93",
+            "compass": "#30D158",
+            "wind": "#64D2FF",
+            "track": "#FFD60A",
+            "alarm": "#FF453A"
+          },
+          "defaultValue": "standby",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sailing_nav_ap_state"
+              },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sn-ap",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Autopilot · Raymarine EV-200",
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "segmentedControl",
+              "id": "sn-ap-mode",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Mode",
+              "options": [
+                "compass",
+                "wind",
+                "track"
+              ],
+              "optionLabels": [
+                "Hdg",
+                "Wind",
+                "Track"
+              ],
+              "defaultValue": "wind",
+              "tint": "#64D2FF",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_mode",
+                  "mode": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "sailing_nav_ap_state"
+                  },
+                  "valuePath": "mode"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "sn-ap-m10",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "-10°",
+              "icon": "chevron.left.2",
+              "style": "tinted",
+              "tint": "#0A84FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_nudge",
+                  "deg": -10
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-ap-m1",
+              "position": [
+                1,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "-1°",
+              "icon": "chevron.left",
+              "style": "tinted",
+              "tint": "#64D2FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_nudge",
+                  "deg": -1
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-ap-p1",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "+1°",
+              "icon": "chevron.right",
+              "style": "tinted",
+              "tint": "#64D2FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_nudge",
+                  "deg": 1
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-ap-p10",
+              "position": [
+                1,
+                3
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "+10°",
+              "icon": "chevron.right.2",
+              "style": "tinted",
+              "tint": "#0A84FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_nudge",
+                  "deg": 10
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sn-ap-tack",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Auto-tack",
+              "icon": "arrow.uturn.left",
+              "tint": "#FF9F0A",
+              "size": "large",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "sailing_nav_ap_tack",
+                  "confirm": true
+                }
+              }
+            }
+          ],
+          "visible": {
+            "when": "sn-ap-engage",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "label",
+          "id": "sn-ap-off",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Hand steering · pilot in standby",
+          "icon": "hand.raised.fill",
+          "tint": "#8E8E93",
+          "align": "center",
+          "visible": {
+            "when": "sn-ap-engage",
+            "operator": "eq",
+            "value": false
+          }
+        }
+      ]
+    }
+  ]
+}

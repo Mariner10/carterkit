@@ -1,0 +1,162 @@
+{
+  "name": "Water Tracker",
+  "headerTitle": "Water Tracker",
+  "id": "water-tracker",
+  "version": 1,
+  "accentColor": "#0A84FF",
+  "description": "A daily hydration tracker: log +250 ml and +500 ml drinks, set a daily goal with the stepper, and a progress ring shows the percent of that goal your server reports back.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Today",
+      "icon": "drop.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "about",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Learn: buttons send an action, the ring listens to one sync, and the stepper sends its {{value}}. Your server does the math.",
+          "icon": "lightbulb",
+          "style": "caption",
+          "tint": "#AEAEB2"
+        },
+        {
+          "type": "progressRing",
+          "id": "intake-ring",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "min": 0,
+          "max": 100,
+          "defaultValue": 70,
+          "progressStyle": "ring",
+          "tint": "#0A84FF",
+          "label": "of daily goal",
+          "icon": "drop.fill",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "water_tracker_state"
+              },
+              "valuePath": "percent_of_goal"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "btn-add-250",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "+250 ml",
+          "icon": "cup.and.saucer.fill",
+          "style": "tinted",
+          "tint": "#64D2FF",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "water_tracker_log",
+              "amount_ml": 250
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "btn-add-500",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "+500 ml",
+          "icon": "waterbottle.fill",
+          "style": "filled",
+          "tint": "#0A84FF",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "water_tracker_log",
+              "amount_ml": 500
+            }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "goal-divider",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Daily goal",
+          "style": "dashed",
+          "tint": "#8E8E93"
+        },
+        {
+          "type": "stepper",
+          "id": "goal-stepper",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Goal (ml)",
+          "icon": "target",
+          "min": 1000,
+          "max": 4000,
+          "step": 250,
+          "defaultValue": 2500,
+          "repeatOnHold": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "water_tracker_goal",
+              "goal_ml": "{{value}}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

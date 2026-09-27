@@ -1,0 +1,1971 @@
+{
+ "name": "Home Command",
+ "id": "home-command-expert",
+ "headerTitle": "JUNIPER LN · HOME",
+ "version": 1,
+ "accentColor": "#FF8A4C",
+ "description": "A wall-panel command center for a whole house: a live floorplan of working device cards, room groups the hub rewrites on the fly, an energy sankey, porch camera and PTZ, and a family chat — with presence streamed from the panel itself.",
+ "difficulty": "expert",
+ "keepAwake": true,
+ "batchPublishers": true,
+ "state": {
+  "sync": true,
+  "authority": "home-command-hub",
+  "acks": true,
+  "ackTimeoutMs": 2500
+ },
+ "publishers": [
+  {
+   "sensor": "device",
+   "interval": 60
+  },
+  {
+   "sensor": "audio",
+   "interval": 5
+  },
+  {
+   "sensor": "location",
+   "interval": 120
+  }
+ ],
+ "sources": {
+  "weather": {
+   "type": "http",
+   "baseURL": "https://api.open-meteo.com/v1",
+   "interval": 600
+  }
+ },
+ "appearance": {
+  "colorScheme": "dark",
+  "statusBarStyle": "light",
+  "showHeader": true,
+  "header": {
+   "style": "color",
+   "dark": [
+    "#0A1633",
+    "#0F1F45"
+   ],
+   "light": [
+    "#0A1633",
+    "#0F1F45"
+   ]
+  }
+ },
+ "theme": {
+  "accentColor": "#FF8A4C",
+  "accentGradient": [
+   "#FF8A4C",
+   "#FFD166"
+  ],
+  "fontDesign": "rounded",
+  "cornerRadius": 14,
+  "borderWidth": 1,
+  "cardPadding": 12,
+  "controlPadding": 8,
+  "labelFontSize": 11,
+  "valueFontSize": 16,
+  "valueFontWeight": "semibold",
+  "blurEnabled": true,
+  "tabBarTint": "#FF8A4C",
+  "tabBarBackground": "#0A1633F0",
+  "pageBackgroundGradient": [
+   "#081230",
+   "#0E1D44",
+   "#132652"
+  ],
+  "surfacePrimary": "#E8EEFF12",
+  "surfaceSecondary": "#E8EEFF0A",
+  "surfaceTertiary": "#E8EEFF06",
+  "foregroundColor": "#EEF3FF",
+  "secondaryColor": "#A9B8DC",
+  "tertiaryColor": "#6F80A8",
+  "borderColor": "#9FB6FF2E",
+  "toggle": {
+   "trackActiveColor": "#FF8A4C",
+   "knobColor": "#EEF3FF",
+   "knobShadow": true
+  },
+  "slider": {
+   "trackActiveColor": "#FF8A4C",
+   "thumbColor": "#EEF3FF"
+  },
+  "segmented": {
+   "trackColor": "#9FB6FF14",
+   "selectedColor": "#FF8A4C",
+   "textColor": "#A9B8DC",
+   "selectedTextColor": "#081230"
+  },
+  "progressBar": {
+   "trackColor": "#9FB6FF1A",
+   "trackActiveColor": "#FF8A4C"
+  }
+ },
+ "glance": {
+  "title": "Juniper Ln",
+  "icon": "house.lodge.fill",
+  "tint": "#FF8A4C",
+  "hero": "hc-battery",
+  "slots": [
+   "hc-grid-kw",
+   "hc-alarm",
+   "hc-p-maya"
+  ],
+  "liveActivity": true,
+  "live": {
+   "tier": "fresh",
+   "activity": {
+    "stale": 120
+   }
+  },
+  "controls": [
+   {
+    "id": "arm",
+    "kind": "toggle",
+    "label": "Arm system",
+    "icon": "shield.checkered",
+    "control": "hc-arm"
+   },
+   {
+    "id": "mode",
+    "kind": "cycle",
+    "label": "Home mode",
+    "control": "hc-mode",
+    "states": [
+     {
+      "value": "home",
+      "label": "Home",
+      "icon": "house.fill",
+      "tint": "#7BE0A6"
+     },
+     {
+      "value": "away",
+      "label": "Away",
+      "icon": "figure.walk.departure",
+      "tint": "#8FA9FF"
+     },
+     {
+      "value": "night",
+      "label": "Night",
+      "icon": "moon.stars.fill",
+      "tint": "#C9B8FF"
+     }
+    ]
+   },
+   {
+    "id": "alloff",
+    "kind": "button",
+    "label": "Everything off",
+    "icon": "power",
+    "control": "hc-sc-alloff"
+   }
+  ],
+  "widgets": [
+   {
+    "id": "energy",
+    "title": "Energy",
+    "icon": "bolt.house.fill",
+    "families": [
+     "systemSmall",
+     "systemMedium",
+     "accessoryRectangular"
+    ],
+    "scene": {
+     "rows": [
+      [
+       {
+        "tile": "ring",
+        "control": "hc-battery"
+       },
+       {
+        "tile": "gauge",
+        "control": "hc-grid-kw"
+       }
+      ],
+      [
+       {
+        "tile": "sparkline",
+        "control": "hc-solar",
+        "span": 2
+       }
+      ],
+      [
+       {
+        "tile": "light",
+        "control": "hc-alarm"
+       },
+       {
+        "tile": "toggle",
+        "control": "hc-arm"
+       }
+      ]
+     ]
+    }
+   }
+  ],
+  "island": {
+   "compactLeading": {
+    "tile": "icon",
+    "effect": "pulse"
+   },
+   "compactTrailing": {
+    "tile": "ring",
+    "control": "hc-battery"
+   },
+   "minimal": {
+    "tile": "light",
+    "control": "hc-alarm"
+   },
+   "expanded": {
+    "leading": {
+     "tile": "icon"
+    },
+    "trailing": {
+     "tile": "freshness"
+    },
+    "center": {
+     "tile": "value",
+     "control": "hc-grid-kw",
+     "label": "Grid"
+    },
+    "bottom": {
+     "rows": [
+      [
+       {
+        "tile": "light",
+        "control": "hc-p-maya"
+       },
+       {
+        "tile": "light",
+        "control": "hc-d-patio"
+       },
+       {
+        "tile": "ring",
+        "control": "hc-battery"
+       }
+      ],
+      [
+       {
+        "tile": "toggle",
+        "control": "hc-arm"
+       },
+       {
+        "tile": "button",
+        "control": "hc-sc-alloff"
+       }
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "tabs": [
+  {
+   "title": "House",
+   "icon": "house.lodge.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 16
+   },
+   "children": [
+    {
+     "type": "group",
+     "id": "hc-presence-row",
+     "label": null,
+     "hideBackground": true,
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 1
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "hc-p-carter",
+       "position": [
+        0,
+        0
+       ],
+       "label": "Carter",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "home": "#7BE0A6",
+        "away": "#5B6B8C",
+        "arriving": "#FF8A4C",
+        "asleep": "#8FA9FF"
+       },
+       "defaultValue": "home",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_state"
+         },
+         "valuePath": "presence.carter"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-p-maya",
+       "position": [
+        0,
+        1
+       ],
+       "label": "Maya",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "home": "#7BE0A6",
+        "away": "#5B6B8C",
+        "arriving": "#FF8A4C",
+        "asleep": "#8FA9FF"
+       },
+       "defaultValue": "arriving",
+       "pulse": true,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_state"
+         },
+         "valuePath": "presence.maya"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-p-jonah",
+       "position": [
+        0,
+        2
+       ],
+       "label": "Jonah",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "home": "#7BE0A6",
+        "away": "#5B6B8C",
+        "arriving": "#FF8A4C",
+        "asleep": "#8FA9FF"
+       },
+       "defaultValue": "home",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_state"
+         },
+         "valuePath": "presence.jonah"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-p-nana",
+       "position": [
+        0,
+        3
+       ],
+       "label": "Nana",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "home": "#7BE0A6",
+        "away": "#5B6B8C",
+        "arriving": "#FF8A4C",
+        "asleep": "#8FA9FF"
+       },
+       "defaultValue": "away",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_state"
+         },
+         "valuePath": "presence.nana"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "hc-mode",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "style": "pills",
+     "options": [
+      "home",
+      "away",
+      "night",
+      "vacation"
+     ],
+     "optionLabels": [
+      "Home",
+      "Away",
+      "Night",
+      "Trip"
+     ],
+     "optionIcons": [
+      "house.fill",
+      "figure.walk.departure",
+      "moon.stars.fill",
+      "suitcase.rolling.fill"
+     ],
+     "defaultValue": "home",
+     "haptic": "selection",
+     "animation": "smooth",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_set_mode",
+       "mode": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_state"
+       },
+       "valuePath": "mode"
+      }
+     ]
+    },
+    {
+     "type": "canvas",
+     "id": "hc-floorplan",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      10,
+      4
+     ],
+     "label": "Floorplan · 1427 Juniper Ln",
+     "canvasConfig": {
+      "aspect": 0.9,
+      "editable": true,
+      "showGrid": true,
+      "snap": 0.05,
+      "maxZoom": 2.5,
+      "items": [
+       {
+        "id": "living",
+        "x": 0.04,
+        "y": 0.04,
+        "w": 0.44,
+        "h": 0.2,
+        "control": {
+         "type": "toggle",
+         "id": "hc-fp-living",
+         "label": "Living room",
+         "icon": "sofa.fill",
+         "style": "switch",
+         "defaultValue": true,
+         "haptic": "light",
+         "animation": "snappy",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "home_command_device_set",
+           "device": "living_lights",
+           "on": "{{value}}"
+          }
+         },
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_state"
+           },
+           "valuePath": "devices.living_lights"
+          }
+         ]
+        }
+       },
+       {
+        "id": "kitchen",
+        "x": 0.52,
+        "y": 0.04,
+        "w": 0.44,
+        "h": 0.2,
+        "control": {
+         "type": "label",
+         "id": "hc-fp-kitchen",
+         "label": "Kitchen",
+         "icon": "refrigerator.fill",
+         "style": "large-mono",
+         "text": "21.4°",
+         "formatValue": "suffix:°",
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_state"
+           },
+           "valuePath": "rooms.kitchen.temp"
+          }
+         ]
+        }
+       },
+       {
+        "id": "front",
+        "x": 0.04,
+        "y": 0.3,
+        "w": 0.44,
+        "h": 0.2,
+        "control": {
+         "type": "toggle",
+         "id": "hc-fp-front-lock",
+         "label": "Front door",
+         "style": "icon-toggle",
+         "onIcon": "lock.fill",
+         "offIcon": "lock.open.fill",
+         "tint": "#7BE0A6",
+         "defaultValue": true,
+         "haptic": "heavy",
+         "animation": "bouncy",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "home_command_lock_set",
+           "door": "front",
+           "locked": "{{value}}"
+          }
+         },
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_security"
+           },
+           "valuePath": "locks.front"
+          }
+         ]
+        }
+       },
+       {
+        "id": "garage",
+        "x": 0.52,
+        "y": 0.3,
+        "w": 0.44,
+        "h": 0.2,
+        "locked": true,
+        "control": {
+         "type": "statusLight",
+         "id": "hc-fp-garage",
+         "label": "Garage",
+         "style": "badge",
+         "statusColors": {
+          "closed": "#7BE0A6",
+          "open": "#FF8A4C",
+          "moving": "#FFD166"
+         },
+         "defaultValue": "closed",
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_security"
+           },
+           "valuePath": "garage"
+          }
+         ]
+        }
+       },
+       {
+        "id": "nursery",
+        "x": 0.04,
+        "y": 0.56,
+        "w": 0.44,
+        "h": 0.2,
+        "control": {
+         "type": "slider",
+         "id": "hc-fp-nursery",
+         "label": "Nursery nightlight",
+         "min": 0,
+         "max": 100,
+         "step": 5,
+         "formatValue": "percent",
+         "defaultValue": 15,
+         "tint": "#8FA9FF",
+         "continuous": false,
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "home_command_dim_set",
+           "device": "nursery_light",
+           "level": "{{value}}"
+          }
+         },
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_state"
+           },
+           "valuePath": "devices.nursery_light_level"
+          }
+         ]
+        }
+       },
+       {
+        "id": "laundry",
+        "x": 0.52,
+        "y": 0.56,
+        "w": 0.44,
+        "h": 0.2,
+        "control": {
+         "type": "progressRing",
+         "id": "hc-fp-washer",
+         "label": "Washer",
+         "icon": "washer.fill",
+         "progressStyle": "bar",
+         "min": 0,
+         "max": 100,
+         "defaultValue": 68,
+         "tint": "#FF8A4C",
+         "animation": "gentle",
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "home_command_state"
+           },
+           "valuePath": "appliances.washer_pct"
+          }
+         ]
+        }
+       }
+      ],
+      "events": {
+       "place": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_floorplan_place",
+         "card": "{{item}}",
+         "x": "{{x}}",
+         "y": "{{y}}"
+        }
+       },
+       "layout": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_floorplan_layout"
+        }
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_floorplan"
+       },
+       "valuePath": "board"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "hc-panel-noise",
+     "position": [
+      12,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Hallway panel · sound",
+     "tint": "#FF8A4C",
+     "sparklinePoints": 60,
+     "sparklineFill": true,
+     "sync": [
+      {
+       "method": "sensor",
+       "sensor": "audio.level"
+      }
+     ]
+    },
+    {
+     "type": "progressRing",
+     "id": "hc-panel-battery",
+     "position": [
+      12,
+      2
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Panel battery",
+     "icon": "battery.75percent",
+     "min": 0,
+     "max": 100,
+     "defaultValue": 82,
+     "tint": "#7BE0A6",
+     "animation": "gentle",
+     "sync": [
+      {
+       "method": "sensor",
+       "sensor": "device.battery"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "hc-outside",
+     "position": [
+      15,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Outside · Minneapolis",
+     "icon": "thermometer.sun.fill",
+     "style": "mono",
+     "text": "12.6 °C",
+     "formatValue": "suffix: °C",
+     "sync": [
+      {
+       "method": "http",
+       "source": "weather",
+       "path": "/forecast?latitude=44.98&longitude=-93.27&current=temperature_2m",
+       "interval": 600,
+       "valuePath": "current.temperature_2m"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Rooms",
+   "icon": "square.split.bottomrightquarter.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 3,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "group",
+     "id": "hc-scenes",
+     "label": "Scenes",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 2
+     },
+     "children": [
+      {
+       "type": "button",
+       "id": "hc-sc-morning",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Good morning",
+       "icon": "sunrise.fill",
+       "style": "tinted",
+       "tint": "#FFD166",
+       "haptic": "medium",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_scene_run",
+         "scene": "good_morning"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "hc-sc-movie",
+       "position": [
+        0,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Movie night",
+       "icon": "popcorn.fill",
+       "style": "tinted",
+       "tint": "#8FA9FF",
+       "haptic": "medium",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_scene_run",
+         "scene": "movie_night"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "hc-sc-alloff",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "Everything off",
+       "icon": "power",
+       "style": "outlined",
+       "tint": "#FF6B5B",
+       "haptic": "heavy",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_scene_run",
+         "scene": "all_off"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "hc-rooms-live",
+     "label": "Rooms · live",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "dynamic": "home_command_rooms",
+     "grid": {
+      "columns": 4,
+      "rows": 4,
+      "mode": "flow"
+     },
+     "pulse": {
+      "event": "home_command_rooms",
+      "color": "#FF8A4C",
+      "direction": "inward"
+     },
+     "children": [
+      {
+       "type": "toggle",
+       "id": "hc-rm-living-on",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Living room",
+       "icon": "lightbulb.fill",
+       "defaultValue": true,
+       "haptic": "light",
+       "animation": "snappy",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_room_set",
+         "room": "living",
+         "on": "{{value}}"
+        }
+       }
+      },
+      {
+       "type": "label",
+       "id": "hc-rm-living-temp",
+       "position": [
+        0,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "style": "mono",
+       "align": "trailing",
+       "text": "21.8 °C · 44%"
+      },
+      {
+       "type": "slider",
+       "id": "hc-rm-living-dim",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "Living room brightness",
+       "min": 0,
+       "max": 100,
+       "step": 5,
+       "formatValue": "percent",
+       "defaultValue": 70,
+       "continuous": false,
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_room_dim",
+         "room": "living",
+         "level": "{{value}}"
+        }
+       }
+      },
+      {
+       "type": "toggle",
+       "id": "hc-rm-office-on",
+       "position": [
+        2,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Office",
+       "icon": "lightbulb.fill",
+       "defaultValue": false,
+       "haptic": "light",
+       "animation": "snappy",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_room_set",
+         "room": "office",
+         "on": "{{value}}"
+        }
+       }
+      },
+      {
+       "type": "label",
+       "id": "hc-rm-office-temp",
+       "position": [
+        2,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "style": "mono",
+       "align": "trailing",
+       "text": "20.1 °C · 39%"
+      },
+      {
+       "type": "slider",
+       "id": "hc-rm-office-dim",
+       "position": [
+        3,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "Office brightness",
+       "min": 0,
+       "max": 100,
+       "step": 5,
+       "formatValue": "percent",
+       "defaultValue": 0,
+       "continuous": false,
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_room_dim",
+         "room": "office",
+         "level": "{{value}}"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "hc-attention",
+     "label": "Needs attention",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "dynamic": "home_command_alerts",
+     "grid": {
+      "columns": 4,
+      "rows": 2,
+      "mode": "flow"
+     },
+     "pulse": {
+      "event": "home_command_alerts",
+      "color": "#FF6B5B",
+      "direction": "outward"
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "hc-al-1-lt",
+       "position": [
+        0,
+        0
+       ],
+       "style": "dot",
+       "statusColors": {
+        "info": "#8FA9FF",
+        "warn": "#FFD166",
+        "alert": "#FF6B5B"
+       },
+       "defaultValue": "warn"
+      },
+      {
+       "type": "label",
+       "id": "hc-al-1-tx",
+       "position": [
+        0,
+        1
+       ],
+       "span": [
+        1,
+        3
+       ],
+       "style": "mono",
+       "text": "Basement humidity 63% · dehumidifier idle"
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-al-2-lt",
+       "position": [
+        1,
+        0
+       ],
+       "style": "dot",
+       "statusColors": {
+        "info": "#8FA9FF",
+        "warn": "#FFD166",
+        "alert": "#FF6B5B"
+       },
+       "defaultValue": "info"
+      },
+      {
+       "type": "label",
+       "id": "hc-al-2-tx",
+       "position": [
+        1,
+        1
+       ],
+       "span": [
+        1,
+        3
+       ],
+       "style": "mono",
+       "text": "Furnace filter due in 9 days"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Energy",
+   "icon": "bolt.house.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 16
+   },
+   "children": [
+    {
+     "type": "sankey",
+     "id": "hc-energy-flow",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      5,
+      4
+     ],
+     "label": "Where the watts go · kW",
+     "formatValue": "suffix: kW",
+     "defaultValue": "{\"nodes\": [{\"name\": \"Rooftop PV\", \"color\": \"#FFD166\"}, {\"name\": \"Grid import\", \"color\": \"#8FA9FF\"}, {\"name\": \"Powerwall\", \"color\": \"#7BE0A6\"}, {\"name\": \"Main panel\", \"color\": \"#E8EEFF\"}, {\"name\": \"Heat pump\", \"color\": \"#FF8A4C\"}, {\"name\": \"EV charger\", \"color\": \"#5CC8FF\"}, {\"name\": \"Kitchen\", \"color\": \"#FF6B5B\"}, {\"name\": \"Lighting\", \"color\": \"#C9B8FF\"}, {\"name\": \"Always-on\", \"color\": \"#7A8BB0\"}], \"links\": [{\"source\": \"Rooftop PV\", \"target\": \"Main panel\", \"value\": 4.1}, {\"source\": \"Rooftop PV\", \"target\": \"Powerwall\", \"value\": 1.6}, {\"source\": \"Grid import\", \"target\": \"Main panel\", \"value\": 0.8}, {\"source\": \"Powerwall\", \"target\": \"Main panel\", \"value\": 0.6}, {\"source\": \"Main panel\", \"target\": \"Heat pump\", \"value\": 2.2}, {\"source\": \"Main panel\", \"target\": \"EV charger\", \"value\": 1.9}, {\"source\": \"Main panel\", \"target\": \"Kitchen\", \"value\": 0.7}, {\"source\": \"Main panel\", \"target\": \"Lighting\", \"value\": 0.3}, {\"source\": \"Main panel\", \"target\": \"Always-on\", \"value\": 0.4}]}",
+     "animation": "smooth",
+     "sankeyConfig": {
+      "showValues": true,
+      "linkOpacity": 0.38,
+      "nodeWidth": 9,
+      "nodeSpacing": 8,
+      "scrub": true,
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "home_command_inspect_circuit",
+        "node": "{{value}}"
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "sankey"
+      }
+     ]
+    },
+    {
+     "type": "gauge",
+     "id": "hc-grid-kw",
+     "position": [
+      5,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Grid",
+     "icon": "powerplug.fill",
+     "min": -6,
+     "max": 6,
+     "step": 0.1,
+     "gaugeStyle": "full",
+     "formatValue": "suffix: kW",
+     "defaultValue": -1.4,
+     "animation": "smooth",
+     "segments": [
+      {
+       "limit": 0,
+       "color": "#7BE0A6"
+      },
+      {
+       "limit": 3,
+       "color": "#FFD166"
+      },
+      {
+       "limit": 6,
+       "color": "#FF6B5B"
+      }
+     ],
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "grid_kw"
+      }
+     ]
+    },
+    {
+     "type": "progressRing",
+     "id": "hc-battery",
+     "position": [
+      5,
+      2
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Powerwall",
+     "icon": "battery.100percent.bolt",
+     "min": 0,
+     "max": 100,
+     "defaultValue": 74,
+     "tint": "#7BE0A6",
+     "animation": "gentle",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "battery_pct"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "hc-solar",
+     "position": [
+      8,
+      0
+     ],
+     "span": [
+      2,
+      4
+     ],
+     "label": "Rooftop PV · kW",
+     "tint": "#FFD166",
+     "sparklinePoints": 96,
+     "sparklineFill": true,
+     "defaultValue": 5.7,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "solar_kw"
+      }
+     ]
+    },
+    {
+     "type": "heatmap",
+     "id": "hc-usage-week",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "This week · kWh per 4 h",
+     "formatValue": "suffix: kWh",
+     "defaultValue": "{\"rows\": [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"], \"cols\": [\"00\", \"04\", \"08\", \"12\", \"16\", \"20\"], \"values\": [[0.6, 0.5, 2.1, 1.2, 3.4, 2.8], [0.7, 0.5, 1.9, 1.1, 3.1, 2.6], [0.6, 0.4, 2.3, 1.4, 3.8, 3.0], [0.8, 0.6, 2.0, 1.0, 3.2, 2.4], [0.7, 0.5, 1.8, 1.3, 2.9, 3.3], [0.9, 0.6, 1.4, 2.6, 2.2, 3.6], [0.8, 0.7, 1.6, 2.4, 2.5, 2.9]]}",
+     "heatmapConfig": {
+      "colors": [
+       "#101C3A",
+       "#2D4C8F",
+       "#FF8A4C",
+       "#FFD166"
+      ],
+      "showScale": true,
+      "showRowLabels": true,
+      "showColLabels": true,
+      "vMin": 0,
+      "vMax": 4,
+      "cellAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "home_command_inspect_usage",
+        "cell": "{{value}}"
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "usage_grid"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "hc-ev-mode",
+     "position": [
+      14,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "style": "pills",
+     "options": [
+      "off",
+      "solar",
+      "cheap",
+      "now"
+     ],
+     "optionLabels": [
+      "Off",
+      "Solar",
+      "Cheap",
+      "Now"
+     ],
+     "defaultValue": "solar",
+     "haptic": "selection",
+     "animation": "smooth",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_ev_mode",
+       "mode": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "ev_mode"
+      }
+     ]
+    },
+    {
+     "type": "slider",
+     "id": "hc-ev-limit",
+     "position": [
+      15,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "EV charge limit",
+     "min": 50,
+     "max": 100,
+     "step": 5,
+     "formatValue": "percent",
+     "defaultValue": 80,
+     "continuous": false,
+     "minIcon": "car.side",
+     "maxIcon": "bolt.car.fill",
+     "visible": {
+      "when": "hc-ev-mode",
+      "operator": "neq",
+      "value": "off"
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_ev_limit",
+       "limit": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_energy"
+       },
+       "valuePath": "ev_limit"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Security",
+   "icon": "shield.lefthalf.filled",
+   "grid": {
+    "columns": 4,
+    "rows": 17
+   },
+   "children": [
+    {
+     "type": "webView",
+     "id": "hc-cam-front",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      5,
+      4
+     ],
+     "label": "Front porch · live",
+     "url": "https://frigate.juniper.home/api/front_porch?h=480",
+     "webInteractive": false,
+     "webScrollEnabled": false,
+     "webRefreshInterval": 2
+    },
+    {
+     "type": "toggle",
+     "id": "hc-arm",
+     "position": [
+      5,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Arm system",
+     "icon": "shield.checkered",
+     "tint": "#FF6B5B",
+     "defaultValue": false,
+     "haptic": "heavy",
+     "animation": "snappy",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_arm_set",
+       "armed": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_security"
+       },
+       "valuePath": "armed"
+      }
+     ]
+    },
+    {
+     "type": "statusLight",
+     "id": "hc-alarm",
+     "position": [
+      5,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Alarm",
+     "style": "badge",
+     "statusColors": {
+      "disarmed": "#7A8BB0",
+      "armed": "#7BE0A6",
+      "entry delay": "#FFD166",
+      "triggered": "#FF6B5B"
+     },
+     "defaultValue": "disarmed",
+     "pulse": true,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_security"
+       },
+       "valuePath": "alarm"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "hc-doors",
+     "label": null,
+     "hideBackground": true,
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 1
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "hc-d-front",
+       "position": [
+        0,
+        0
+       ],
+       "label": "Front",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "closed": "#7BE0A6",
+        "open": "#FF8A4C",
+        "ajar": "#FFD166",
+        "offline": "#5B6B8C"
+       },
+       "defaultValue": "closed",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_security"
+         },
+         "valuePath": "doors.front"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-d-back",
+       "position": [
+        0,
+        1
+       ],
+       "label": "Back",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "closed": "#7BE0A6",
+        "open": "#FF8A4C",
+        "ajar": "#FFD166",
+        "offline": "#5B6B8C"
+       },
+       "defaultValue": "closed",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_security"
+         },
+         "valuePath": "doors.back"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-d-patio",
+       "position": [
+        0,
+        2
+       ],
+       "label": "Patio",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "closed": "#7BE0A6",
+        "open": "#FF8A4C",
+        "ajar": "#FFD166",
+        "offline": "#5B6B8C"
+       },
+       "defaultValue": "ajar",
+       "pulse": true,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_security"
+         },
+         "valuePath": "doors.patio"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "hc-d-side",
+       "position": [
+        0,
+        3
+       ],
+       "label": "Side gate",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "closed": "#7BE0A6",
+        "open": "#FF8A4C",
+        "ajar": "#FFD166",
+        "offline": "#5B6B8C"
+       },
+       "defaultValue": "closed",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "home_command_security"
+         },
+         "valuePath": "doors.side_gate"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "hc-response",
+     "label": "Armed · response",
+     "position": [
+      7,
+      0
+     ],
+     "span": [
+      3,
+      4
+     ],
+     "visible": {
+      "when": "hc-arm",
+      "operator": "eq",
+      "value": true
+     },
+     "pulse": {
+      "event": "broadcast",
+      "color": "#FF6B5B",
+      "direction": "outward",
+      "filter": {
+       "msg_type": "home_command_intrusion"
+      }
+     },
+     "grid": {
+      "columns": 4,
+      "rows": 2
+     },
+     "children": [
+      {
+       "type": "button",
+       "id": "hc-siren",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Sound siren",
+       "icon": "speaker.wave.3.fill",
+       "style": "filled",
+       "tint": "#FF6B5B",
+       "haptic": "error",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_siren",
+         "on": true
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "hc-flood-all",
+       "position": [
+        0,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "All lights on",
+       "icon": "lightbulb.max.fill",
+       "style": "tinted",
+       "tint": "#FFD166",
+       "haptic": "medium",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_scene_run",
+         "scene": "panic_lights"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "hc-false-alarm",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "False alarm · stand down",
+       "icon": "hand.raised.fill",
+       "style": "ghost",
+       "tint": "#E8EEFF",
+       "haptic": "success",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "home_command_arm_set",
+         "armed": false,
+         "reason": "false_alarm"
+        }
+       }
+      }
+     ]
+    },
+    {
+     "type": "logConsole",
+     "id": "hc-events",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Event log",
+     "maxLines": 300,
+     "showTimestamps": true,
+     "fontSize": 11,
+     "autoScroll": true,
+     "logColors": {
+      "alert": "#FF6B5B",
+      "warn": "#FFD166",
+      "info": "#8FA9FF",
+      "debug": "#7A8BB0"
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_log"
+       },
+       "valuePath": "line"
+      }
+     ]
+    },
+    {
+     "type": "joystick",
+     "id": "hc-ptz",
+     "position": [
+      14,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Driveway PTZ",
+     "tint": "#FF8A4C",
+     "style": "analog",
+     "deadzone": 0.12,
+     "sendRate": 0.15,
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_ptz",
+       "camera": "driveway",
+       "pan": "{{x}}",
+       "tilt": "{{y}}"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "hc-snapshot",
+     "position": [
+      14,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Snapshot",
+     "icon": "camera.shutter.button.fill",
+     "style": "tinted",
+     "haptic": "light",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_snapshot",
+       "camera": "driveway"
+      }
+     }
+    },
+    {
+     "type": "toggle",
+     "id": "hc-floodlight",
+     "position": [
+      15,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Floodlight",
+     "icon": "light.beacon.max.fill",
+     "tint": "#FFD166",
+     "defaultValue": false,
+     "haptic": "medium",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "home_command_device_set",
+       "device": "driveway_flood",
+       "on": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "home_command_security"
+       },
+       "valuePath": "floodlight"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Family",
+   "icon": "bubble.left.and.bubble.right.fill",
+   "grid": {
+    "columns": 1,
+    "rows": 1,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "chat",
+     "id": "hc-family-chat",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      1
+     ],
+     "label": "Juniper Ln · family",
+     "config": {
+      "showTypingIndicators": true,
+      "showReadReceipts": true,
+      "allowReactions": true,
+      "allowReplies": true,
+      "allowImages": true,
+      "allowClear": true,
+      "historyCount": 50,
+      "tint": "#FF8A4C",
+      "systemMessageEvents": [
+       "home_command_arrival",
+       "home_command_departure"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1293 @@
+{
+  "name": "Air Quality",
+  "version": 1,
+  "headerTitle": "SLC AIR WATCH · WASATCH FRONT",
+  "accentColor": "#FF9F43",
+  "description": "A city air-quality desk for the Salt Lake Valley: per-district AQI gauges and a 24-hour forecast pulled straight from the Open-Meteo air-quality API, a pollutant radar, district heatmap, monitor map, and personal alert thresholds.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#FF9F43",
+    "accentGradient": [
+      "#3DDC84",
+      "#F5D547",
+      "#FF9F43",
+      "#FF5A5F"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 18,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 0.5,
+    "pageBackgroundGradient": [
+      "#0B0F1A",
+      "#141A2B",
+      "#231C2A",
+      "#2B1E1A"
+    ],
+    "surfacePrimary": "#E6ECFF14",
+    "surfaceSecondary": "#E6ECFF0C",
+    "surfaceTertiary": "#E6ECFF07",
+    "foregroundColor": "#F2F4FA",
+    "secondaryColor": "#B9C3D6",
+    "tertiaryColor": "#7B869C",
+    "borderColor": "#E6ECFF2A",
+    "tabBarTint": "#FF9F43",
+    "toggle": {
+      "trackActiveColor": "#FF9F43",
+      "knobColor": "#F2F4FA"
+    },
+    "slider": {
+      "trackActiveColor": "#FF9F43",
+      "thumbColor": "#F2F4FA"
+    },
+    "segmented": {
+      "trackColor": "#E6ECFF14",
+      "selectedColor": "#FF9F43",
+      "textColor": "#B9C3D6",
+      "selectedTextColor": "#0B0F1A"
+    }
+  },
+  "sources": {
+    "openmeteo": {
+      "type": "http",
+      "baseURL": "https://air-quality-api.open-meteo.com",
+      "interval": 600
+    }
+  },
+  "tabs": [
+    {
+      "title": "City",
+      "icon": "aqi.medium",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "aq-advisory",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Health Advisory",
+          "style": "badge",
+          "size": "small",
+          "pulse": true,
+          "defaultValue": "moderate",
+          "statusColors": {
+            "good": "#3DDC84",
+            "moderate": "#F5D547",
+            "sensitive": "#FF9F43",
+            "unhealthy": "#FF5A5F",
+            "hazardous": "#A55EEA"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_advisory"
+              },
+              "valuePath": "level"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "aq-updated",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Last reading",
+          "icon": "clock.arrow.circlepath",
+          "style": "mono",
+          "text": "07:40 MDT · EPA AirNow",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_advisory"
+              },
+              "valuePath": "updated_text"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "aq-city",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Salt Lake City · US AQI",
+          "icon": "aqi.medium",
+          "min": 0,
+          "max": 300,
+          "gaugeStyle": "full",
+          "segments": [
+            {
+              "limit": 50,
+              "color": "#3DDC84"
+            },
+            {
+              "limit": 100,
+              "color": "#F5D547"
+            },
+            {
+              "limit": 150,
+              "color": "#FF9F43"
+            },
+            {
+              "limit": 200,
+              "color": "#FF5A5F"
+            },
+            {
+              "limit": 300,
+              "color": "#A55EEA"
+            },
+            {
+              "limit": 500,
+              "color": "#7D1F3C"
+            }
+          ],
+          "colorBlend": 0.4,
+          "defaultValue": 78,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "current.us_aqi"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "aq-haze",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "systemName": "sun.haze.fill",
+          "label": "Valley inversion",
+          "tint": "#F5D547",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#B9C3D6",
+              "#F5D547"
+            ],
+            "effect": "breathe",
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "air_quality_alert"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_advisory"
+              },
+              "valuePath": "inversion"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "aq-dominant",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Dominant pollutant",
+          "icon": "smoke.fill",
+          "style": "headline",
+          "text": "PM2.5",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_advisory"
+              },
+              "valuePath": "dominant"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "grp-districts",
+          "label": "Districts",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 4
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "air_quality_districts"
+            },
+            "color": "#F5D547",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "gauge",
+              "id": "aqd-downtown",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Downtown",
+              "min": 0,
+              "max": 300,
+              "gaugeStyle": "half",
+              "segments": [
+                {
+                  "limit": 50,
+                  "color": "#3DDC84"
+                },
+                {
+                  "limit": 100,
+                  "color": "#F5D547"
+                },
+                {
+                  "limit": 150,
+                  "color": "#FF9F43"
+                },
+                {
+                  "limit": 200,
+                  "color": "#FF5A5F"
+                },
+                {
+                  "limit": 300,
+                  "color": "#A55EEA"
+                },
+                {
+                  "limit": 500,
+                  "color": "#7D1F3C"
+                }
+              ],
+              "colorBlend": 0.35,
+              "defaultValue": 82,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "openmeteo",
+                  "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+                  "valuePath": "current.us_aqi"
+                },
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "air_quality_districts"
+                  },
+                  "valuePath": "districts.downtown.aqi"
+                }
+              ]
+            },
+            {
+              "type": "gauge",
+              "id": "aqd-rosepark",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Rose Park",
+              "min": 0,
+              "max": 300,
+              "gaugeStyle": "half",
+              "segments": [
+                {
+                  "limit": 50,
+                  "color": "#3DDC84"
+                },
+                {
+                  "limit": 100,
+                  "color": "#F5D547"
+                },
+                {
+                  "limit": 150,
+                  "color": "#FF9F43"
+                },
+                {
+                  "limit": 200,
+                  "color": "#FF5A5F"
+                },
+                {
+                  "limit": 300,
+                  "color": "#A55EEA"
+                },
+                {
+                  "limit": 500,
+                  "color": "#7D1F3C"
+                }
+              ],
+              "colorBlend": 0.35,
+              "defaultValue": 104,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "openmeteo",
+                  "path": "/v1/air-quality?latitude=40.793&longitude=-111.931&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+                  "valuePath": "current.us_aqi"
+                },
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "air_quality_districts"
+                  },
+                  "valuePath": "districts.rosepark.aqi"
+                }
+              ]
+            },
+            {
+              "type": "gauge",
+              "id": "aqd-sugarhouse",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Sugar House",
+              "min": 0,
+              "max": 300,
+              "gaugeStyle": "half",
+              "segments": [
+                {
+                  "limit": 50,
+                  "color": "#3DDC84"
+                },
+                {
+                  "limit": 100,
+                  "color": "#F5D547"
+                },
+                {
+                  "limit": 150,
+                  "color": "#FF9F43"
+                },
+                {
+                  "limit": 200,
+                  "color": "#FF5A5F"
+                },
+                {
+                  "limit": 300,
+                  "color": "#A55EEA"
+                },
+                {
+                  "limit": 500,
+                  "color": "#7D1F3C"
+                }
+              ],
+              "colorBlend": 0.35,
+              "defaultValue": 61,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "openmeteo",
+                  "path": "/v1/air-quality?latitude=40.7236&longitude=-111.8577&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+                  "valuePath": "current.us_aqi"
+                },
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "air_quality_districts"
+                  },
+                  "valuePath": "districts.sugarhouse.aqi"
+                }
+              ]
+            },
+            {
+              "type": "gauge",
+              "id": "aqd-magna",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Magna",
+              "min": 0,
+              "max": 300,
+              "gaugeStyle": "half",
+              "segments": [
+                {
+                  "limit": 50,
+                  "color": "#3DDC84"
+                },
+                {
+                  "limit": 100,
+                  "color": "#F5D547"
+                },
+                {
+                  "limit": 150,
+                  "color": "#FF9F43"
+                },
+                {
+                  "limit": 200,
+                  "color": "#FF5A5F"
+                },
+                {
+                  "limit": 300,
+                  "color": "#A55EEA"
+                },
+                {
+                  "limit": 500,
+                  "color": "#7D1F3C"
+                }
+              ],
+              "colorBlend": 0.35,
+              "defaultValue": 117,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "openmeteo",
+                  "path": "/v1/air-quality?latitude=40.7091&longitude=-112.1016&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+                  "valuePath": "current.us_aqi"
+                },
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "air_quality_districts"
+                  },
+                  "valuePath": "districts.magna.aqi"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "aq-trend",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "City AQI · last 6 h",
+          "tint": "#F5D547",
+          "sparklineFill": true,
+          "sparklinePoints": 36,
+          "defaultValue": 78,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_tick"
+              },
+              "valuePath": "city_aqi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pollutants",
+      "icon": "circle.hexagongrid.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "pol-district",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "pills",
+          "tint": "#FF9F43",
+          "options": [
+            "downtown",
+            "rosepark",
+            "sugarhouse",
+            "magna"
+          ],
+          "optionLabels": [
+            "DT",
+            "Rose",
+            "Sugar",
+            "Magna"
+          ],
+          "defaultValue": "downtown",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "air_quality_focus_district",
+              "district": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "radar",
+          "id": "pol-radar",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Pollutant profile · % of EPA standard",
+          "tint": "#FF9F43",
+          "formatValue": "suffix:%",
+          "radarConfig": {
+            "rings": 5,
+            "maxValue": 150,
+            "curved": true,
+            "fillOpacity": 0.3,
+            "showLegend": true,
+            "showValues": false
+          },
+          "defaultValue": "{\"axes\": [\"PM2.5\", \"PM10\", \"O\\u2083\", \"NO\\u2082\", \"SO\\u2082\", \"CO\"], \"max\": 150, \"series\": [{\"name\": \"Now\", \"color\": \"#FF9F43\", \"values\": [112, 58, 74, 41, 9, 22]}, {\"name\": \"30-day avg\", \"color\": \"#6C8EF5\", \"values\": [64, 47, 52, 38, 7, 18]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_profile"
+              },
+              "valuePath": "radar"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "pol-pm25",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "PM2.5 µg/m³",
+          "icon": "aqi.low",
+          "min": 0,
+          "max": 55,
+          "tint": "#FF9F43",
+          "defaultValue": 27.4,
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "current.pm2_5"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "pol-pm10",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "PM10",
+          "icon": "circle.dotted",
+          "style": "headline",
+          "text": "38.1",
+          "formatValue": "suffix: µg/m³",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "current.pm10"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "pol-o3",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Ozone",
+          "icon": "sun.max.trianglebadge.exclamationmark",
+          "style": "headline",
+          "text": "96.0",
+          "formatValue": "suffix: µg/m³",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "current.ozone"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "pol-no2",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "NO₂",
+          "icon": "car.fill",
+          "style": "headline",
+          "text": "31.7",
+          "formatValue": "suffix: µg/m³",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "current.nitrogen_dioxide"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "pol-heat",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "AQI by district · today",
+          "formatValue": "number",
+          "heatmapConfig": {
+            "colors": [
+              "#3DDC84",
+              "#F5D547",
+              "#FF9F43",
+              "#FF5A5F",
+              "#A55EEA"
+            ],
+            "vMin": 0,
+            "vMax": 200,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 2
+          },
+          "defaultValue": "{\"rows\": [\"Downtown\", \"Rose Park\", \"Sugar Hs\", \"Magna\", \"Holladay\"], \"cols\": [\"00\", \"03\", \"06\", \"09\", \"12\", \"15\", \"18\", \"21\"], \"values\": [[58, 64, 88, 96, 82, 71, 77, 69], [71, 79, 108, 121, 104, 92, 99, 86], [42, 47, 63, 70, 61, 55, 58, 50], [80, 91, 117, 132, 117, 101, 109, 96], [39, 44, 57, 66, 58, 49, 53, 47]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_heatmap"
+              },
+              "valuePath": "grid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Map",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "map-aqi",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Monitor network · Salt Lake Valley",
+          "mapStyle": "standard",
+          "mapZoom": 0.28,
+          "tint": "#F5D547",
+          "defaultValue": "{\"markers\": [{\"coordinate\": [40.7608, -111.891], \"color\": \"#F5D547\", \"size\": 18, \"label\": \"Downtown \\u00b7 82\"}, {\"coordinate\": [40.793, -111.931], \"color\": \"#FF9F43\", \"size\": 20, \"label\": \"Rose Park \\u00b7 104\"}, {\"coordinate\": [40.7236, -111.8577], \"color\": \"#F5D547\", \"size\": 16, \"label\": \"Sugar House \\u00b7 61\"}, {\"coordinate\": [40.7091, -112.1016], \"color\": \"#FF9F43\", \"size\": 22, \"label\": \"Magna \\u00b7 117\", \"ripple\": {\"color\": \"#FF5A5F\", \"period\": 1.6, \"radius\": 52}}, {\"coordinate\": [40.6602, -111.8199], \"color\": \"#3DDC84\", \"size\": 14, \"label\": \"Holladay \\u00b7 44\"}, {\"coordinate\": [40.7899, -111.9791], \"color\": \"#B9C3D6\", \"size\": 10, \"label\": \"SLC Intl monitor\"}], \"paths\": [{\"points\": [[40.7899, -111.9791], [40.776, -111.94], [40.7608, -111.891], [40.742, -111.86]], \"color\": \"#6C8EF5\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_map"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "map-show-stations",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Station table",
+          "icon": "tablecells",
+          "defaultValue": true,
+          "haptic": "light"
+        },
+        {
+          "type": "statusLight",
+          "id": "map-wind",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Wind · dispersal",
+          "style": "badge",
+          "size": "small",
+          "defaultValue": "stagnant",
+          "statusColors": {
+            "clearing": "#3DDC84",
+            "light": "#F5D547",
+            "stagnant": "#FF5A5F"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_weather"
+              },
+              "valuePath": "dispersal"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "map-stations",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Monitoring stations",
+          "listColumns": [
+            {
+              "key": "site",
+              "label": "Site"
+            },
+            {
+              "key": "agency",
+              "label": "Net"
+            },
+            {
+              "key": "aqi",
+              "label": "AQI",
+              "format": "number"
+            },
+            {
+              "key": "pm25",
+              "label": "PM2.5"
+            },
+            {
+              "key": "status",
+              "label": "Status"
+            }
+          ],
+          "defaultValue": "[{\"site\": \"Hawthorne\", \"agency\": \"UDAQ\", \"aqi\": 79, \"pm25\": \"26.8\", \"status\": \"live\"}, {\"site\": \"Rose Park\", \"agency\": \"UDAQ\", \"aqi\": 104, \"pm25\": \"36.9\", \"status\": \"live\"}, {\"site\": \"Magna\", \"agency\": \"UDAQ\", \"aqi\": 117, \"pm25\": \"41.5\", \"status\": \"live\"}, {\"site\": \"Liberty Wells\", \"agency\": \"PurpleAir\", \"aqi\": 66, \"pm25\": \"19.3\", \"status\": \"live\"}, {\"site\": \"Holladay\", \"agency\": \"PurpleAir\", \"aqi\": 44, \"pm25\": \"10.6\", \"status\": \"stale 18m\"}, {\"site\": \"Erda\", \"agency\": \"UDAQ\", \"aqi\": 58, \"pm25\": \"15.2\", \"status\": \"live\"}]",
+          "visible": {
+            "when": "map-show-stations",
+            "operator": "eq",
+            "value": true
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_stations"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "compass",
+          "id": "map-compass",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Point at a district for its report",
+          "defaultValue": 312,
+          "compassConfig": {
+            "tolerance": 14,
+            "dwell": 1.2,
+            "showCardinals": true,
+            "editable": false,
+            "pucks": [
+              {
+                "id": "rosepark",
+                "label": "Rose Park",
+                "icon": "mappin.circle.fill",
+                "tint": "#FF9F43",
+                "bearing": 316,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "air_quality_district_report",
+                    "district": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "sugarhouse",
+                "label": "Sugar House",
+                "icon": "mappin.circle.fill",
+                "tint": "#F5D547",
+                "bearing": 128,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "air_quality_district_report",
+                    "district": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "magna",
+                "label": "Magna",
+                "icon": "mappin.circle.fill",
+                "tint": "#FF5A5F",
+                "bearing": 258,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "air_quality_district_report",
+                    "district": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "holladay",
+                "label": "Holladay",
+                "icon": "mappin.circle.fill",
+                "tint": "#3DDC84",
+                "bearing": 190,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "air_quality_district_report",
+                    "district": "{{value}}"
+                  }
+                }
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "heading"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trends",
+      "icon": "chart.bar.xaxis",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "chart",
+          "id": "tr-week",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "7-day outlook",
+          "tint": "#FF9F43",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "barCornerRadius": 6,
+            "yMin": 0,
+            "scrub": true,
+            "colors": [
+              "#FF9F43",
+              "#6C8EF5"
+            ]
+          },
+          "defaultValue": "{\"categories\": [\"Thu\", \"Fri\", \"Sat\", \"Sun\", \"Mon\", \"Tue\", \"Wed\"], \"series\": [{\"name\": \"Peak AQI\", \"type\": \"bar\", \"color\": \"#FF9F43\", \"values\": [68, 74, 92, 118, 131, 104, 86]}, {\"name\": \"PM2.5 mean\", \"type\": \"line\", \"color\": \"#6C8EF5\", \"values\": [14.2, 16.8, 22.5, 31.9, 38.4, 29.1, 21.7]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "air_quality_week"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "tr-24h",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Next 24 h · Open-Meteo",
+          "tint": "#F5D547",
+          "chartConfig": {
+            "smooth": true,
+            "showGrid": false,
+            "yMin": 0,
+            "lineWidth": 2.5
+          },
+          "defaultValue": "{\"series\": [{\"name\": \"US AQI\", \"type\": \"area\", \"values\": [72, 70, 69, 71, 76, 84, 93, 99, 101, 97, 90, 84, 80, 78, 77, 79, 85, 92, 96, 94, 88, 83, 80, 78]}]}",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/air-quality?latitude=40.7608&longitude=-111.891&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide&hourly=us_aqi&forecast_hours=24&timezone=America%2FDenver",
+              "valuePath": "hourly.us_aqi"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "grp-alerts",
+          "label": "My alerts",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "al-enabled",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Push alerts",
+              "icon": "bell.badge.fill",
+              "defaultValue": true,
+              "haptic": "rigid",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "air_quality_alert_prefs",
+                  "enabled": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "al-sensitive",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Sensitive group",
+              "icon": "lungs.fill",
+              "defaultValue": false,
+              "haptic": "light",
+              "visible": {
+                "when": "al-enabled",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "air_quality_alert_prefs",
+                  "sensitive": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "al-threshold",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Alert above AQI",
+              "min": 50,
+              "max": 200,
+              "step": 5,
+              "defaultValue": 100,
+              "tint": "#FF9F43",
+              "visible": {
+                "when": "al-enabled",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "air_quality_alert_prefs",
+                  "threshold": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "al-when",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "options": [
+                "always",
+                "daytime",
+                "commute"
+              ],
+              "optionLabels": [
+                "Always",
+                "Daytime",
+                "Commute"
+              ],
+              "defaultValue": "daytime",
+              "visible": {
+                "when": "al-enabled",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "air_quality_alert_prefs",
+                  "window": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "tr-report",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Report smoke",
+          "icon": "flame.fill",
+          "style": "filled",
+          "tint": "#FF5A5F",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "air_quality_report",
+              "kind": "smoke"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "tr-refresh",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Refresh all",
+          "icon": "arrow.clockwise",
+          "style": "outlined",
+          "tint": "#F5D547",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "air_quality_refresh",
+              "scope": "all"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

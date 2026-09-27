@@ -1,0 +1,2238 @@
+{
+  "name": "Modular Synth Rig",
+  "headerTitle": "PATCHBAY · 104HP",
+  "version": 1,
+  "accentColor": "#FFB347",
+  "description": "A Eurorack performance surface: a live patch-cable graph, an editable sequencer canvas, an XY joystick on the ladder filter, nested oscillator knob banks, scope traces and a drag-to-bank preset board.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "batchPublishers": true,
+  "publishers": [
+    {
+      "sensor": "motion",
+      "interval": 0.1
+    }
+  ],
+  "state": {
+    "sync": true,
+    "authority": "synth-rig-hub"
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#1A120A",
+        "#0E0A06"
+      ],
+      "light": [
+        "#1A120A",
+        "#0E0A06"
+      ]
+    }
+  },
+  "theme": {
+    "accentColor": "#FFB347",
+    "accentGradient": [
+      "#FFB347",
+      "#FF4D5E",
+      "#A98BFF"
+    ],
+    "fontDesign": "monospaced",
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 6,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "blurEnabled": false,
+    "pageBackgroundGradient": [
+      "#0E0A06",
+      "#17100A",
+      "#1F150C"
+    ],
+    "surfacePrimary": "#2A1D11E6",
+    "surfaceSecondary": "#3A2915CC",
+    "surfaceTertiary": "#4A351C99",
+    "borderColor": "#FFB34740",
+    "foregroundColor": "#F3E9D2",
+    "secondaryColor": "#C8B58F",
+    "tertiaryColor": "#8A7F6A",
+    "tabBarBackground": "#0E0A06F2",
+    "tabBarTint": "#FFB347",
+    "toggle": {
+      "trackActiveColor": "#3FE0C5",
+      "knobColor": "#F3E9D2",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackColor": "#3A2915",
+      "trackActiveColor": "#FFB347",
+      "thumbColor": "#F3E9D2",
+      "trackHeight": 4
+    },
+    "stepper": {
+      "buttonColor": "#3A2915",
+      "iconColor": "#FFB347"
+    },
+    "segmented": {
+      "trackColor": "#1F150C",
+      "selectedColor": "#FFB347",
+      "textColor": "#C8B58F",
+      "selectedTextColor": "#0E0A06"
+    },
+    "progressBar": {
+      "trackColor": "#3A2915",
+      "trackActiveColor": "#3FE0C5"
+    }
+  },
+  "glance": {
+    "title": "Synth Rig",
+    "icon": "waveform.path",
+    "tint": "#FFB347",
+    "hero": "sr-bpm",
+    "slots": [
+      "sr-out-level",
+      "sr-seq-pos",
+      "sr-clock-state"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "run",
+        "kind": "toggle",
+        "label": "Sequencer",
+        "control": "sr-seq-run",
+        "on": {
+          "label": "Running",
+          "icon": "play.fill",
+          "tint": "#3FE0C5"
+        },
+        "off": {
+          "label": "Stopped",
+          "icon": "stop.fill"
+        }
+      },
+      {
+        "id": "tempo-up",
+        "kind": "step",
+        "label": "BPM +5",
+        "control": "sr-seq-tempo",
+        "delta": 5
+      },
+      {
+        "id": "panic",
+        "kind": "button",
+        "label": "Panic",
+        "icon": "exclamationmark.octagon.fill",
+        "control": "sr-panic"
+      }
+    ],
+    "widgets": [
+      {
+        "id": "rig",
+        "title": "Rig",
+        "icon": "waveform.path",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "value",
+                "control": "sr-bpm"
+              },
+              {
+                "tile": "gauge",
+                "control": "sr-out-level"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "sr-scope-vcf",
+                "span": 2
+              }
+            ],
+            [
+              {
+                "tile": "toggle",
+                "control": "sr-seq-run"
+              },
+              {
+                "tile": "button",
+                "control": "sr-panic"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "pulse"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "sr-seq-pos"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "sr-clock-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "value",
+          "control": "sr-bpm"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "sr-out-level"
+              },
+              {
+                "tile": "ring",
+                "control": "sr-seq-pos"
+              }
+            ],
+            [
+              {
+                "tile": "toggle",
+                "control": "sr-seq-run"
+              },
+              {
+                "tile": "step",
+                "control": "sr-seq-tempo",
+                "delta": 5
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Patch",
+      "icon": "point.3.connected.trianglepath.dotted",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "sr-title",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Eurorack 104HP · Case A",
+          "style": "headline",
+          "icon": "waveform.path",
+          "tint": "#FFB347",
+          "align": "center",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_state"
+              },
+              "valuePath": "case_name"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "sr-clock-state",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Clock",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "running",
+          "statusColors": {
+            "running": "#3FE0C5",
+            "stopped": "#8A7F6A",
+            "external": "#A98BFF"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_clock"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sr-bpm",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Tempo",
+          "icon": "metronome.fill",
+          "style": "large-mono",
+          "text": "118.0",
+          "formatValue": "decimal:1",
+          "tint": "#FFB347",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_clock"
+              },
+              "valuePath": "bpm"
+            }
+          ]
+        },
+        {
+          "type": "graph",
+          "id": "sr-patch",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Patch Cables",
+          "defaultValue": "{\"nodes\":[{\"id\":\"vco1\",\"label\":\"VCO I\",\"group\":\"osc\"},{\"id\":\"vco2\",\"label\":\"VCO II\",\"group\":\"osc\"},{\"id\":\"noise\",\"label\":\"Noise\",\"group\":\"osc\"},{\"id\":\"mixer\",\"label\":\"Mixer\",\"group\":\"util\"},{\"id\":\"vcf\",\"label\":\"Ladder VCF\",\"group\":\"filter\"},{\"id\":\"vca\",\"label\":\"VCA\",\"group\":\"util\"},{\"id\":\"env1\",\"label\":\"ADSR\",\"group\":\"mod\"},{\"id\":\"lfo1\",\"label\":\"LFO\",\"group\":\"mod\"},{\"id\":\"seq\",\"label\":\"Sequencer\",\"group\":\"seq\"},{\"id\":\"clock\",\"label\":\"Clock\",\"group\":\"seq\"},{\"id\":\"delay\",\"label\":\"Tape Delay\",\"group\":\"fx\"},{\"id\":\"out\",\"label\":\"Output\",\"group\":\"io\"}],\"edges\":[{\"from\":\"clock\",\"to\":\"seq\"},{\"from\":\"seq\",\"to\":\"vco1\"},{\"from\":\"seq\",\"to\":\"vco2\"},{\"from\":\"seq\",\"to\":\"env1\"},{\"from\":\"vco1\",\"to\":\"mixer\"},{\"from\":\"vco2\",\"to\":\"mixer\"},{\"from\":\"noise\",\"to\":\"mixer\"},{\"from\":\"mixer\",\"to\":\"vcf\"},{\"from\":\"lfo1\",\"to\":\"vcf\",\"color\":\"#A98BFF\"},{\"from\":\"env1\",\"to\":\"vcf\",\"color\":\"#3FE0C5\"},{\"from\":\"env1\",\"to\":\"vca\",\"color\":\"#3FE0C5\"},{\"from\":\"vcf\",\"to\":\"vca\"},{\"from\":\"vca\",\"to\":\"delay\"},{\"from\":\"delay\",\"to\":\"out\"}]}",
+          "graphConfig": {
+            "nodeSize": 9,
+            "nodeBorderWidth": 1.5,
+            "nodeBorderColor": "#F3E9D2",
+            "edgeColor": "#F3E9D2",
+            "edgeOpacity": 0.45,
+            "edgeWidth": 1.6,
+            "edgeCurved": true,
+            "labelColor": "#D9CBAE",
+            "labelSize": 9,
+            "repulsionForce": 620,
+            "centerForce": 0.004,
+            "attractionForce": 0.004,
+            "damping": 0.85,
+            "backgroundColor": "#120D08",
+            "glowEnabled": true,
+            "glowRadius": 7,
+            "glowColor": "#FFB347",
+            "groupColors": {
+              "osc": "#FFB347",
+              "filter": "#FF4D5E",
+              "mod": "#3FE0C5",
+              "util": "#D9CBAE",
+              "seq": "#A98BFF",
+              "fx": "#7FB3FF",
+              "io": "#FFFFFF"
+            },
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "synth_rig_select_module",
+                "module": "{{value}}"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_patch"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "sr-patch-view",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "audio",
+            "cv",
+            "all"
+          ],
+          "optionLabels": [
+            "Audio",
+            "CV",
+            "All"
+          ],
+          "defaultValue": "all",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_patch_view",
+              "view": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_patch"
+              },
+              "valuePath": "view"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sr-unpatch",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pull Cables",
+          "icon": "cable.connector.slash",
+          "tint": "#FF4D5E",
+          "haptic": "heavy",
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_patch_clear",
+              "confirm": true
+            }
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_patch_undo"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Voice",
+      "icon": "slider.horizontal.3",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "joystick",
+          "id": "sr-filter-xy",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "VCF Cutoff × Res",
+          "tint": "#FF4D5E",
+          "style": "analog",
+          "deadzone": 0.05,
+          "sticky": true,
+          "sendRate": 0.05,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_filter_xy",
+              "stick": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "sr-cutoff",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cutoff",
+          "icon": "dial.medium",
+          "style": "large-mono",
+          "text": "2.40 kHz",
+          "tint": "#FF4D5E",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_params"
+              },
+              "valuePath": "vcf.cutoff_label"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "sr-reso",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Resonance",
+          "icon": "waveform.badge.plus",
+          "style": "large-mono",
+          "text": "0.62",
+          "formatValue": "decimal:2",
+          "tint": "#FFB347",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_params"
+              },
+              "valuePath": "vcf.resonance"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sr-cutoff-trace",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Cutoff sweep",
+          "tint": "#FF4D5E",
+          "sparklinePoints": 80,
+          "sparklineFill": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "vcf_cutoff_hz"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sr-osc-bank",
+          "label": "Oscillator Bank",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 4
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "sr-vco1",
+              "label": "VCO I · Plaits",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                4,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "id": "sr-vco1-oct",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Octave",
+                  "min": -3,
+                  "max": 3,
+                  "defaultValue": 0,
+                  "formatValue": "decimal",
+                  "continuous": true,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco1.octave",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco1.octave"
+                    }
+                  ],
+                  "step": 1
+                },
+                {
+                  "type": "slider",
+                  "id": "sr-vco1-fine",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Fine ¢",
+                  "min": -50,
+                  "max": 50,
+                  "defaultValue": -7,
+                  "formatValue": "decimal",
+                  "continuous": true,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco1.fine",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco1.fine"
+                    }
+                  ],
+                  "step": 1
+                },
+                {
+                  "type": "segmentedControl",
+                  "id": "sr-vco1-wave",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "options": [
+                    "sin",
+                    "tri",
+                    "saw",
+                    "sqr"
+                  ],
+                  "optionLabels": [
+                    "Sin",
+                    "Tri",
+                    "Saw",
+                    "Sqr"
+                  ],
+                  "defaultValue": "saw",
+                  "theme": {
+                    "selectedColor": "#FFB347"
+                  },
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco1.wave",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco1.wave"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "sr-vco2",
+              "label": "VCO II · Mangrove",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                4,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "id": "sr-vco2-oct",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Octave",
+                  "min": -3,
+                  "max": 3,
+                  "defaultValue": -1,
+                  "formatValue": "decimal",
+                  "continuous": true,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco2.octave",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco2.octave"
+                    }
+                  ],
+                  "step": 1
+                },
+                {
+                  "type": "slider",
+                  "id": "sr-vco2-fine",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Fine ¢",
+                  "min": -50,
+                  "max": 50,
+                  "defaultValue": 5,
+                  "formatValue": "decimal",
+                  "continuous": true,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco2.fine",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco2.fine"
+                    }
+                  ],
+                  "step": 1
+                },
+                {
+                  "type": "segmentedControl",
+                  "id": "sr-vco2-wave",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "options": [
+                    "sin",
+                    "tri",
+                    "saw",
+                    "sqr"
+                  ],
+                  "optionLabels": [
+                    "Sin",
+                    "Tri",
+                    "Saw",
+                    "Sqr"
+                  ],
+                  "defaultValue": "sqr",
+                  "theme": {
+                    "selectedColor": "#A98BFF"
+                  },
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_set_param",
+                      "param": "vco2.wave",
+                      "value": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_params"
+                      },
+                      "valuePath": "vco2.wave"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sr-env",
+          "label": "Envelope · Maths Ch1",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "sr-att",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                2,
+                1
+              ],
+              "label": "Attack",
+              "style": "radial",
+              "min": 0,
+              "max": 2000,
+              "defaultValue": 12,
+              "formatValue": "none",
+              "hideLabel": false,
+              "arcAngle": 270,
+              "arcThickness": 7,
+              "tint": "#3FE0C5",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_set_param",
+                  "param": "env1.attack_ms",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "synth_rig_params"
+                  },
+                  "valuePath": "env1.attack_ms"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "sr-dec",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                2,
+                1
+              ],
+              "label": "Decay",
+              "style": "radial",
+              "min": 0,
+              "max": 4000,
+              "defaultValue": 340,
+              "formatValue": "none",
+              "hideLabel": false,
+              "arcAngle": 270,
+              "arcThickness": 7,
+              "tint": "#3FE0C5",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_set_param",
+                  "param": "env1.decay_ms",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "synth_rig_params"
+                  },
+                  "valuePath": "env1.decay_ms"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "sr-sus",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                2,
+                1
+              ],
+              "label": "Sustain",
+              "style": "radial",
+              "min": 0,
+              "max": 100,
+              "defaultValue": 55,
+              "formatValue": "none",
+              "hideLabel": false,
+              "arcAngle": 270,
+              "arcThickness": 7,
+              "tint": "#3FE0C5",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_set_param",
+                  "param": "env1.sustain",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "synth_rig_params"
+                  },
+                  "valuePath": "env1.sustain"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "sr-rel",
+              "position": [
+                0,
+                3
+              ],
+              "span": [
+                2,
+                1
+              ],
+              "label": "Release",
+              "style": "radial",
+              "min": 0,
+              "max": 6000,
+              "defaultValue": 820,
+              "formatValue": "none",
+              "hideLabel": false,
+              "arcAngle": 270,
+              "arcThickness": 7,
+              "tint": "#3FE0C5",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_set_param",
+                  "param": "env1.release_ms",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "synth_rig_params"
+                  },
+                  "valuePath": "env1.release_ms"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "sr-tilt",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Tilt → Cutoff",
+          "icon": "gyroscope",
+          "defaultValue": false,
+          "tint": "#3FE0C5",
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_tilt_mod",
+              "enabled": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "sr-tilt-live",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Tilt pitch",
+          "icon": "iphone.gen3.radiowaves.left.and.right",
+          "style": "mono",
+          "text": "0.0°",
+          "formatValue": "decimal:1",
+          "tint": "#3FE0C5",
+          "visible": {
+            "when": "sr-tilt",
+            "operator": "eq",
+            "value": true
+          },
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "motion.pitch"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sequencer",
+      "icon": "square.grid.4x3.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 19
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "sr-seq-run",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Run",
+          "style": "button",
+          "onIcon": "play.fill",
+          "offIcon": "stop.fill",
+          "defaultValue": true,
+          "tint": "#3FE0C5",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_run",
+              "running": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "running"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "sr-seq-tempo",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "BPM",
+          "min": 40,
+          "max": 240,
+          "step": 1,
+          "defaultValue": 118,
+          "repeatOnHold": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_tempo",
+              "bpm": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_clock"
+              },
+              "valuePath": "bpm"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sr-seq-reset",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Reset",
+          "icon": "backward.end.fill",
+          "style": "tinted",
+          "tint": "#A98BFF",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_reset"
+            }
+          }
+        },
+        {
+          "type": "progressRing",
+          "id": "sr-seq-pos",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Step",
+          "min": 0,
+          "max": 16,
+          "defaultValue": 7,
+          "icon": "circle.grid.3x3.fill",
+          "tint": "#FFB347",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "step"
+            }
+          ]
+        },
+        {
+          "type": "canvas",
+          "id": "sr-seq-canvas",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            10,
+            4
+          ],
+          "label": "René Canvas · drag cards to re-arrange",
+          "canvasConfig": {
+            "aspect": 0.85,
+            "editable": true,
+            "showGrid": true,
+            "snap": 0.02,
+            "maxZoom": 2,
+            "items": [
+              {
+                "id": "cv-note",
+                "x": 0.04,
+                "y": 0.04,
+                "w": 0.44,
+                "h": 0.14,
+                "control": {
+                  "type": "label",
+                  "id": "sr-cv-note",
+                  "label": "Now playing",
+                  "icon": "music.note",
+                  "style": "large-mono",
+                  "text": "D3",
+                  "tint": "#FFB347",
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "note"
+                    }
+                  ]
+                },
+                "locked": true
+              },
+              {
+                "id": "cv-ratchet",
+                "x": 0.52,
+                "y": 0.04,
+                "w": 0.44,
+                "h": 0.14,
+                "control": {
+                  "type": "stepper",
+                  "id": "sr-cv-ratchet",
+                  "label": "Ratchet",
+                  "min": 1,
+                  "max": 8,
+                  "step": 1,
+                  "defaultValue": 2,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_seq_ratchet",
+                      "count": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "ratchet"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cv-prob",
+                "x": 0.04,
+                "y": 0.22,
+                "w": 0.44,
+                "h": 0.34,
+                "control": {
+                  "type": "slider",
+                  "id": "sr-cv-prob",
+                  "label": "Probability",
+                  "style": "radial",
+                  "min": 0,
+                  "max": 100,
+                  "defaultValue": 82,
+                  "formatValue": "none",
+                  "arcAngle": 270,
+                  "arcThickness": 8,
+                  "tint": "#A98BFF",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_seq_probability",
+                      "pct": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "probability"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cv-gate",
+                "x": 0.52,
+                "y": 0.22,
+                "w": 0.44,
+                "h": 0.34,
+                "control": {
+                  "type": "gauge",
+                  "id": "sr-cv-gate",
+                  "label": "Gate length",
+                  "min": 0,
+                  "max": 100,
+                  "defaultValue": 64,
+                  "gaugeStyle": "half",
+                  "segments": [
+                    {
+                      "limit": 40,
+                      "color": "#3FE0C5"
+                    },
+                    {
+                      "limit": 80,
+                      "color": "#FFB347"
+                    },
+                    {
+                      "limit": 100,
+                      "color": "#FF4D5E"
+                    }
+                  ],
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "gate_pct"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cv-scale",
+                "x": 0.04,
+                "y": 0.6,
+                "w": 0.92,
+                "h": 0.12,
+                "control": {
+                  "type": "segmentedControl",
+                  "id": "sr-cv-scale",
+                  "options": [
+                    "min",
+                    "dor",
+                    "phr",
+                    "maj"
+                  ],
+                  "optionLabels": [
+                    "Minor",
+                    "Dorian",
+                    "Phryg",
+                    "Major"
+                  ],
+                  "defaultValue": "dor",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "synth_rig_seq_scale",
+                      "scale": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "scale"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "cv-cv",
+                "x": 0.04,
+                "y": 0.76,
+                "w": 0.92,
+                "h": 0.2,
+                "control": {
+                  "type": "sparkline",
+                  "id": "sr-cv-trace",
+                  "label": "Pitch CV (V)",
+                  "tint": "#A98BFF",
+                  "sparklinePoints": 32,
+                  "sparklineFill": true,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "synth_rig_seq"
+                      },
+                      "valuePath": "cv_volts"
+                    }
+                  ]
+                }
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_canvas_place",
+                  "card": "{{item}}",
+                  "x": "{{x}}",
+                  "y": "{{y}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_canvas_layout"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "canvas"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "sr-swing",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Swing",
+          "min": 50,
+          "max": 75,
+          "step": 1,
+          "defaultValue": 56,
+          "formatValue": "percent",
+          "tint": "#FFB347",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_swing",
+              "swing": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "swing"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "sr-seq-len",
+          "position": [
+            13,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Length",
+          "min": 1,
+          "max": 64,
+          "step": 1,
+          "defaultValue": 16,
+          "wraps": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_length",
+              "steps": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "length"
+            }
+          ]
+        },
+        {
+          "type": "picker",
+          "id": "sr-seq-dir",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Direction",
+          "options": [
+            "fwd",
+            "rev",
+            "pend",
+            "rand"
+          ],
+          "optionLabels": [
+            "Forward",
+            "Reverse",
+            "Pendulum",
+            "Random"
+          ],
+          "defaultValue": "pend",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_seq_direction",
+              "direction": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_seq"
+              },
+              "valuePath": "direction"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "sr-midi",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "MIDI In · Keystep",
+          "style": "badge",
+          "defaultValue": "active",
+          "statusColors": {
+            "active": "#3FE0C5",
+            "idle": "#8A7F6A",
+            "error": "#FF4D5E"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_state"
+              },
+              "valuePath": "midi"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sr-panic",
+          "position": [
+            15,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Panic",
+          "icon": "exclamationmark.octagon.fill",
+          "tint": "#FF4D5E",
+          "haptic": "error",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_panic"
+            }
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "sr-midi-log",
+          "position": [
+            16,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "MIDI Monitor",
+          "maxLines": 120,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "note": "#3FE0C5",
+            "cc": "#FFB347",
+            "clock": "#8A7F6A",
+            "error": "#FF4D5E"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_midi_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Scope",
+      "icon": "waveform",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "sparkline",
+          "id": "sr-scope-vco",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "VCO I out",
+          "tint": "#FFB347",
+          "sparklinePoints": 120,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "vco1"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sr-scope-vcf",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "VCF out",
+          "tint": "#FF4D5E",
+          "sparklinePoints": 120,
+          "sparklineFill": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "vcf"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sr-scope-env",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Envelope",
+          "tint": "#3FE0C5",
+          "sparklinePoints": 60,
+          "sparklineFill": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "env1"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sr-out-level",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Output dBFS",
+          "min": -48,
+          "max": 6,
+          "defaultValue": -9,
+          "gaugeStyle": "half",
+          "animation": "smooth",
+          "segments": [
+            {
+              "limit": -12,
+              "color": "#3FE0C5"
+            },
+            {
+              "limit": 0,
+              "color": "#FFB347"
+            },
+            {
+              "limit": 6,
+              "color": "#FF4D5E"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "out_dbfs"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "sr-psu",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "+12V rail load",
+          "icon": "bolt.fill",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 47,
+          "tint": "#FFB347",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_state"
+              },
+              "valuePath": "psu_pct"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "sr-scope-src",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "vco1",
+            "vcf",
+            "vca",
+            "out"
+          ],
+          "optionLabels": [
+            "VCO",
+            "VCF",
+            "VCA",
+            "Out"
+          ],
+          "defaultValue": "vcf",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_scope_source",
+              "tap": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_scope"
+              },
+              "valuePath": "source"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Presets",
+      "icon": "square.stack.3d.up.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 3,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "sr-presets",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            10,
+            4
+          ],
+          "label": "Preset Banks",
+          "controlHeight": 560,
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Library",
+            "columns": 3,
+            "items": [
+              {
+                "id": "P01",
+                "label": "Acid Rain",
+                "icon": "drop.fill",
+                "tint": "#FFB347",
+                "zone": "bank-a"
+              },
+              {
+                "id": "P02",
+                "label": "Glass Harp",
+                "icon": "sparkles",
+                "tint": "#FFB347",
+                "zone": "bank-a"
+              },
+              {
+                "id": "P03",
+                "label": "Low Moss",
+                "icon": "leaf.fill",
+                "tint": "#FFB347",
+                "zone": "bank-a"
+              },
+              {
+                "id": "P04",
+                "label": "Tape Choir",
+                "icon": "waveform.path.ecg",
+                "tint": "#A98BFF",
+                "zone": "bank-b"
+              },
+              {
+                "id": "P05",
+                "label": "Iron Bell",
+                "icon": "bell.fill",
+                "tint": "#A98BFF",
+                "zone": "bank-b"
+              },
+              {
+                "id": "P06",
+                "label": "Night Bus",
+                "icon": "bus.fill",
+                "tint": "#F3E9D2"
+              },
+              {
+                "id": "P07",
+                "label": "Sub Tide",
+                "icon": "water.waves",
+                "tint": "#F3E9D2"
+              },
+              {
+                "id": "P08",
+                "label": "Brass Fog",
+                "icon": "cloud.fog.fill",
+                "tint": "#F3E9D2"
+              },
+              {
+                "id": "P09",
+                "label": "Dust Loop",
+                "icon": "hurricane",
+                "tint": "#F3E9D2"
+              },
+              {
+                "id": "P10",
+                "label": "Init",
+                "icon": "circle.dashed",
+                "tint": "#3FE0C5",
+                "zone": "live",
+                "locked": true
+              }
+            ],
+            "zones": [
+              {
+                "id": "bank-a",
+                "label": "Bank A",
+                "tint": "#FFB347",
+                "capacity": 8
+              },
+              {
+                "id": "bank-b",
+                "label": "Bank B",
+                "tint": "#A98BFF",
+                "capacity": 8
+              },
+              {
+                "id": "live",
+                "label": "Live slot",
+                "tint": "#3FE0C5",
+                "capacity": 1,
+                "locked": false
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_preset_move",
+                  "preset": "{{item}}",
+                  "src": "{{from}}",
+                  "dst": "{{to}}",
+                  "index": "{{index}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_preset_banks"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "synth_rig_presets"
+              },
+              "valuePath": "arrangement"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sr-macros",
+          "label": "Macro Knobs · pushed by rig",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2,
+            "mode": "flow"
+          },
+          "dynamic": "synth_rig_macros",
+          "children": [
+            {
+              "type": "slider",
+              "id": "sr-macro-1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Morph",
+              "min": 0,
+              "max": 100,
+              "defaultValue": 30,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_macro",
+                  "macro": "morph",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "sr-macro-2",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Space",
+              "min": 0,
+              "max": 100,
+              "defaultValue": 62,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "synth_rig_macro",
+                  "macro": "space",
+                  "value": "{{value}}"
+                }
+              }
+            }
+          ],
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "synth_rig_macros"
+            },
+            "color": "#3FE0C5",
+            "direction": "inward"
+          }
+        },
+        {
+          "type": "button",
+          "id": "sr-save",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Save Snapshot",
+          "icon": "square.and.arrow.down.fill",
+          "tint": "#FFB347",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "synth_rig_preset_save"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

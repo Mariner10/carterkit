@@ -1,0 +1,113 @@
+{
+  "name": "Value Map Demo",
+  "headerTitle": "Value Maps",
+  "version": 1,
+  "accentColor": "#0A84FF",
+  "tabs": [
+    {
+      "title": "Weather",
+      "icon": "cloud.sun.fill",
+      "grid": { "columns": 2, "rows": 8 },
+      "children": [
+        {
+          "type": "image", "id": "wx-icon", "position": [0, 0], "span": [3, 1],
+          "systemName": "cloud", "hideBackground": true,
+          "iconMap": {
+            "0": "sun.max.fill", "1": "sun.max.fill", "2": "cloud.sun.fill", "3": "cloud.fill",
+            "45": "cloud.fog.fill", "48": "cloud.fog.fill",
+            "51": "cloud.drizzle.fill", "53": "cloud.drizzle.fill", "55": "cloud.drizzle.fill",
+            "61": "cloud.rain.fill", "63": "cloud.rain.fill", "65": "cloud.heavyrain.fill",
+            "71": "cloud.snow.fill", "73": "cloud.snow.fill", "75": "snowflake",
+            "80": "cloud.heavyrain.fill", "81": "cloud.heavyrain.fill", "82": "cloud.heavyrain.fill",
+            "95": "cloud.bolt.rain.fill", "96": "cloud.bolt.rain.fill", "99": "cloud.bolt.rain.fill",
+            "default": "questionmark.circle"
+          },
+          "colorMap": {
+            "0": "#FFD60A", "1": "#FFD60A", "2": "#FFD60A", "3": "#98989D",
+            "61": "#0A84FF", "63": "#0A84FF", "65": "#0A84FF",
+            "80": "#0A84FF", "81": "#0A84FF", "82": "#0A84FF",
+            "95": "#FF9F0A", "96": "#FF9F0A", "99": "#FF9F0A"
+          },
+          "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code,temperature_2m,wind_speed_10m,is_day", "interval": 900, "valuePath": "current.weather_code" }]
+        },
+        {
+          "type": "label", "id": "wx-text", "position": [0, 1], "span": [1, 1],
+          "text": "…", "style": "headline",
+          "valueMap": {
+            "0": "Clear", "1": "Mainly clear", "2": "Partly cloudy", "3": "Overcast",
+            "45": "Fog", "48": "Rime fog",
+            "51": "Light drizzle", "53": "Drizzle", "55": "Heavy drizzle",
+            "61": "Light rain", "63": "Rain", "65": "Heavy rain",
+            "71": "Light snow", "73": "Snow", "75": "Heavy snow",
+            "80": "Showers", "81": "Showers", "82": "Violent showers",
+            "95": "Thunderstorm", "96": "Thunderstorm", "99": "Thunderstorm",
+            "default": "—"
+          },
+          "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code,temperature_2m,wind_speed_10m,is_day", "interval": 900, "valuePath": "current.weather_code" }]
+        },
+        {
+          "type": "label", "id": "wx-temp", "position": [1, 1], "span": [1, 1],
+          "text": "—", "style": "title", "icon": "thermometer.medium",
+          "formatValue": "suffix:°C",
+          "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code,temperature_2m,wind_speed_10m,is_day", "interval": 900, "valuePath": "current.temperature_2m" }]
+        },
+        {
+          "type": "label", "id": "wx-wind", "position": [2, 1], "span": [1, 1],
+          "text": "—", "icon": "wind", "tint": "#98989D",
+          "formatValue": "suffix: km/h",
+          "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code,temperature_2m,wind_speed_10m,is_day", "interval": 900, "valuePath": "current.wind_speed_10m" }]
+        },
+        {
+          "type": "label", "id": "wx-daylight", "position": [3, 0], "span": [1, 2],
+          "text": "—", "align": "center",
+          "valueMap": { "1": "Daylight — Boston, MA", "0": "Night — Boston, MA" },
+          "iconMap": { "1": "sun.horizon.fill", "0": "moon.stars.fill" },
+          "colorMap": { "1": "#FFD60A", "0": "#5E5CE6" },
+          "sync": [{ "method": "http", "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=weather_code,temperature_2m,wind_speed_10m,is_day", "interval": 900, "valuePath": "current.is_day" }]
+        },
+        {
+          "type": "label", "id": "wx-note", "position": [4, 0], "span": [1, 2],
+          "text": "Live Open-Meteo poll — WMO codes mapped to words, symbols, and colour.",
+          "style": "caption", "align": "center", "tint": "#8E8E93"
+        }
+      ]
+    },
+    {
+      "title": "States",
+      "icon": "square.grid.2x2.fill",
+      "grid": { "columns": 2, "rows": 8 },
+      "children": [
+        {
+          "type": "image", "id": "state-pump", "position": [0, 0], "span": [2, 1],
+          "systemName": "questionmark.circle", "defaultValue": true,
+          "iconMap": { "true": "bolt.fill", "false": "bolt.slash" },
+          "colorMap": { "true": "#30D158", "false": "#8E8E93" }
+        },
+        {
+          "type": "label", "id": "state-pump-text", "position": [0, 1], "span": [1, 1],
+          "text": "—", "style": "headline", "defaultValue": true,
+          "valueMap": { "true": "Running", "false": "Stopped" },
+          "colorMap": { "true": "#30D158", "false": "#8E8E93" }
+        },
+        {
+          "type": "label", "id": "state-alarm", "position": [1, 1], "span": [1, 1],
+          "text": "—", "defaultValue": 2,
+          "valueMap": { "0": "OK", "1": "Warning", "2": "Critical", "default": "Unknown" },
+          "iconMap": { "0": "checkmark.circle.fill", "1": "exclamationmark.triangle.fill", "2": "exclamationmark.octagon.fill", "default": "questionmark.circle" },
+          "colorMap": { "0": "#30D158", "1": "#FF9F0A", "2": "#FF453A" }
+        },
+        {
+          "type": "label", "id": "state-unmapped", "position": [2, 0], "span": [1, 2],
+          "text": "—", "align": "center", "defaultValue": "MAINTENANCE",
+          "valueMap": { "online": "Online", "offline": "Offline" },
+          "icon": "wrench.and.screwdriver.fill"
+        },
+        {
+          "type": "label", "id": "state-note", "position": [3, 0], "span": [1, 2],
+          "text": "Above: an unmapped value with no \"default\" falls through to the raw value and the control's own icon.",
+          "style": "caption", "align": "center", "tint": "#8E8E93"
+        }
+      ]
+    }
+  ]
+}

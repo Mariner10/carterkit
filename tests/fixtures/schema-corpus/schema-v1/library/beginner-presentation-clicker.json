@@ -1,0 +1,105 @@
+{
+  "name": "Presentation Clicker",
+  "headerTitle": "Clicker",
+  "id": "presentation-clicker",
+  "version": 1,
+  "accentColor": "#5E5CE6",
+  "description": "A pocket slide clicker with giant Previous and Next buttons, a live slide counter, and a blackout switch. Shows how big buttons and one toggle send commands while a single label follows the deck.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Deck",
+      "icon": "rectangle.on.rectangle",
+      "grid": { "columns": 2, "rows": 9, "rowHeight": 56 },
+      "children": [
+        {
+          "type": "label",
+          "id": "slide-number",
+          "position": [0, 0],
+          "span": [2, 2],
+          "icon": "rectangle.stack",
+          "style": "title",
+          "align": "center",
+          "text": "Slide 7 of 24",
+          "sync": [{
+            "method": "meshsocket",
+            "type": "listen",
+            "event": "broadcast",
+            "filter": { "msg_type": "presentation_clicker_state" },
+            "valuePath": "slide_text"
+          }]
+        },
+        {
+          "type": "button",
+          "id": "slide-prev",
+          "position": [2, 0],
+          "span": [3, 1],
+          "label": "Previous",
+          "icon": "chevron.left",
+          "style": "tinted",
+          "size": "large",
+          "tint": "#8E8E93",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "presentation_clicker_command", "command": "previous" }
+          }
+        },
+        {
+          "type": "button",
+          "id": "slide-next",
+          "position": [2, 1],
+          "span": [3, 1],
+          "label": "Next",
+          "icon": "chevron.right",
+          "style": "filled",
+          "size": "large",
+          "tint": "#5E5CE6",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "presentation_clicker_command", "command": "next" }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "blackout",
+          "position": [5, 0],
+          "span": [1, 2],
+          "label": "Blackout Screen",
+          "style": "button",
+          "onIcon": "moon.fill",
+          "offIcon": "sun.max.fill",
+          "tint": "#FF453A",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "presentation_clicker_blackout", "enabled": "{{value}}" }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "about-divider",
+          "position": [6, 0],
+          "span": [1, 2],
+          "label": "About this layout",
+          "tint": "#8E8E93"
+        },
+        {
+          "type": "label",
+          "id": "about",
+          "position": [7, 0],
+          "span": [2, 2],
+          "style": "caption",
+          "text": "Previous and Next send a presentation_clicker_command. Blackout sends its true/false state through the {{value}} token. The deck server broadcasts presentation_clicker_state, and the big label shows its slide_text field."
+        }
+      ]
+    }
+  ]
+}

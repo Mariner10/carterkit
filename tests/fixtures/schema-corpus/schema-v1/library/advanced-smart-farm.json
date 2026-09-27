@@ -1,0 +1,1406 @@
+{
+  "name": "Smart Farm",
+  "version": 1,
+  "headerTitle": "MEADOWLARK FARM · 640 AC",
+  "accentColor": "#9BE564",
+  "description": "A row-crop operations board for a 640-acre corn and soybean farm: live field map, a soil-moisture probe heatmap, nested irrigation zone valves, HTTP weather pipes, and a tractor auto-steer compass.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#9BE564",
+    "accentGradient": [
+      "#9BE564",
+      "#F2C14E",
+      "#E0823D"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 16,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 0.5,
+    "pageBackgroundGradient": [
+      "#0A120A",
+      "#132214",
+      "#1E2A14",
+      "#2A2410"
+    ],
+    "surfacePrimary": "#C8E6A014",
+    "surfaceSecondary": "#C8E6A00C",
+    "surfaceTertiary": "#C8E6A007",
+    "foregroundColor": "#F3F6E8",
+    "secondaryColor": "#B5C49A",
+    "tertiaryColor": "#7A8765",
+    "borderColor": "#C8E6A030",
+    "tabBarTint": "#9BE564",
+    "toggle": {
+      "trackActiveColor": "#4FB0FF",
+      "knobColor": "#F3F6E8"
+    },
+    "slider": {
+      "trackActiveColor": "#4FB0FF",
+      "thumbColor": "#F3F6E8"
+    },
+    "segmented": {
+      "trackColor": "#C8E6A014",
+      "selectedColor": "#9BE564",
+      "textColor": "#B5C49A",
+      "selectedTextColor": "#0A120A"
+    }
+  },
+  "sources": {
+    "openmeteo": {
+      "type": "http",
+      "baseURL": "https://api.open-meteo.com",
+      "interval": 300
+    },
+    "farmstation": {
+      "type": "http",
+      "baseURL": "https://station.meadowlark.farm",
+      "interval": 30
+    }
+  },
+  "tabs": [
+    {
+      "title": "Fields",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "st-pumphouse",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pump House",
+          "style": "badge",
+          "size": "small",
+          "pulse": true,
+          "defaultValue": "running",
+          "statusColors": {
+            "running": "#9BE564",
+            "idle": "#B5C49A",
+            "fault": "#FF5A4F"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_health"
+              },
+              "valuePath": "pump_house"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "st-rtk",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "RTK Base",
+          "style": "badge",
+          "size": "small",
+          "defaultValue": "fixed",
+          "statusColors": {
+            "fixed": "#9BE564",
+            "float": "#F2C14E",
+            "lost": "#FF5A4F"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_health"
+              },
+              "valuePath": "rtk"
+            }
+          ]
+        },
+        {
+          "type": "map",
+          "id": "field-map",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Home Section · Story County",
+          "mapStyle": "hybrid",
+          "mapZoom": 0.02,
+          "tint": "#9BE564",
+          "mapConfig": {
+            "recenter": "initial"
+          },
+          "defaultValue": "{\"markers\": [{\"coordinate\": [42.0356, -93.6268], \"color\": \"#F2C14E\", \"size\": 16, \"label\": \"Pump House\"}, {\"coordinate\": [42.0431, -93.6352], \"color\": \"#4FB0FF\", \"size\": 10, \"label\": \"Probe N1\"}, {\"coordinate\": [42.0428, -93.63], \"color\": \"#4FB0FF\", \"size\": 10, \"label\": \"Probe N2\"}, {\"coordinate\": [42.0345, -93.635], \"color\": \"#E0823D\", \"size\": 12, \"label\": \"Probe S1 \\u00b7 dry\"}, {\"coordinate\": [42.0338, -93.6298], \"color\": \"#4FB0FF\", \"size\": 10, \"label\": \"Probe S2\"}, {\"coordinate\": [42.0402, -93.6327], \"color\": \"#9BE564\", \"size\": 20, \"label\": \"JD 8R 370\", \"ripple\": {\"color\": \"#9BE564\", \"period\": 1.6, \"radius\": 48}}], \"paths\": [{\"points\": [[42.0462, -93.6395], [42.0462, -93.6255], [42.0398, -93.6255], [42.0398, -93.6395], [42.0462, -93.6395]], \"color\": \"#9BE564\"}, {\"points\": [[42.0382, -93.6395], [42.0382, -93.6255], [42.0318, -93.6255], [42.0318, -93.6395], [42.0382, -93.6395]], \"color\": \"#F2C14E\"}, {\"points\": [[42.0356, -93.6268], [42.0402, -93.6268], [42.043, -93.6268]], \"color\": \"#4FB0FF\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_field_map"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "tank-level",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Nurse Tank",
+          "icon": "drop.fill",
+          "min": 0,
+          "max": 100,
+          "tint": "#4FB0FF",
+          "defaultValue": 72,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tank"
+              },
+              "valuePath": "level_pct"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "wx-symbol",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "systemName": "cloud.sun.rain.fill",
+          "label": "Showers after 4 PM",
+          "tint": "#F2C14E",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#B5C49A",
+              "#F2C14E"
+            ],
+            "effect": "rain",
+            "particleColor": "#4FB0FF",
+            "particleIntensity": 0.55,
+            "particleAngle": -12,
+            "activeWhen": "truthy",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "smart_farm_rain_start"
+                },
+                "effect": "bounce"
+              }
+            ]
+          }
+        },
+        {
+          "type": "label",
+          "id": "wx-temp",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Air · Open-Meteo",
+          "icon": "thermometer.medium",
+          "style": "headline",
+          "text": "71.4",
+          "formatValue": "suffix:°F",
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/forecast?latitude=42.04&longitude=-93.63&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&hourly=precipitation_probability&forecast_hours=24&temperature_unit=fahrenheit&wind_speed_unit=mph",
+              "valuePath": "current.temperature_2m"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "wx-wind",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Wind · Farm Station",
+          "icon": "wind",
+          "style": "mono",
+          "text": "9.8 mph WSW",
+          "sync": [
+            {
+              "method": "http",
+              "source": "farmstation",
+              "path": "/api/weather",
+              "interval": 30,
+              "valuePath": "wind_text"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "wx-rain-prob",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Rain chance · next 24 h",
+          "tint": "#4FB0FF",
+          "sparklineFill": true,
+          "sparklinePoints": 24,
+          "sync": [
+            {
+              "method": "http",
+              "source": "openmeteo",
+              "path": "/v1/forecast?latitude=42.04&longitude=-93.63&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&hourly=precipitation_probability&forecast_hours=24&temperature_unit=fahrenheit&wind_speed_unit=mph",
+              "valuePath": "hourly.precipitation_probability"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Soil",
+      "icon": "square.grid.3x3.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "heatmap",
+          "id": "soil-heat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Volumetric moisture · 30 cm probes",
+          "formatValue": "suffix:%",
+          "defaultValue": "{\"rows\": [\"N1-A\", \"N1-B\", \"N2-A\", \"N2-B\", \"S1-A\", \"S1-B\", \"S2-A\"], \"cols\": [\"R1\", \"R2\", \"R3\", \"R4\", \"R5\", \"R6\", \"R7\", \"R8\"], \"values\": [[31, 33, 34, 32, 30, 29, 31, 33], [29, 31, 32, 33, 31, 28, 27, 30], [35, 36, 38, 37, 36, 34, 33, 35], [34, 35, 37, 39, 38, 36, 34, 33], [18, 17, 16, 19, 21, 22, 20, 18], [20, 19, 17, 16, 18, 21, 23, 22], [27, 28, 30, 31, 29, 28, 27, 26]]}",
+          "heatmapConfig": {
+            "colors": [
+              "#8B4A1C",
+              "#D9A441",
+              "#9BE564",
+              "#2E86C1"
+            ],
+            "vMin": 10,
+            "vMax": 45,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 3
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_soil_grid"
+              },
+              "valuePath": "grid"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "soil-avg",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Field Avg VWC",
+          "icon": "humidity.fill",
+          "min": 0,
+          "max": 50,
+          "step": 0.1,
+          "formatValue": "suffix:%",
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "colorBlend": 0.3,
+          "defaultValue": 29.4,
+          "segments": [
+            {
+              "limit": 18,
+              "color": "#E0823D"
+            },
+            {
+              "limit": 36,
+              "color": "#9BE564"
+            },
+            {
+              "limit": 50,
+              "color": "#2E86C1"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_soil_summary"
+              },
+              "valuePath": "avg_vwc"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "soil-temp",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Soil Temp",
+          "icon": "thermometer.low",
+          "style": "headline",
+          "text": "61.2",
+          "formatValue": "suffix:°F",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_soil_summary"
+              },
+              "valuePath": "temp_f"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "soil-ec",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Bulk EC",
+          "icon": "bolt.horizontal",
+          "style": "headline",
+          "text": "0.84 dS/m",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_soil_summary"
+              },
+              "valuePath": "ec_text"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "soil-depth",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "10",
+            "30",
+            "60"
+          ],
+          "optionLabels": [
+            "10cm",
+            "30cm",
+            "60cm"
+          ],
+          "defaultValue": "30",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_soil_depth",
+              "depth_cm": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "chart",
+          "id": "soil-trend",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "7-day moisture vs rain",
+          "defaultValue": "{\"categories\": [\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\", \"Sun\"], \"series\": [{\"name\": \"North\", \"type\": \"line\", \"color\": \"#4FB0FF\", \"values\": [34, 32, 30, 36, 35, 33, 33]}, {\"name\": \"South\", \"type\": \"line\", \"color\": \"#E0823D\", \"values\": [27, 24, 22, 21, 26, 23, 21]}, {\"name\": \"Rain mm\", \"type\": \"bar\", \"color\": \"#9BE56466\", \"values\": [0, 0, 0, 11, 2, 0, 0]}]}",
+          "chartConfig": {
+            "smooth": true,
+            "showLegend": true,
+            "yMin": 0,
+            "yMax": 45
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_soil_trend"
+              },
+              "valuePath": "dataset"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Irrigation",
+      "icon": "drop.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "irr-master",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "System Armed",
+          "icon": "power",
+          "defaultValue": true,
+          "haptic": "heavy",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_irrigation"
+              },
+              "valuePath": "armed"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_irrigation_arm",
+              "armed": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "irr-mode",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "auto",
+            "manual",
+            "eco"
+          ],
+          "optionLabels": [
+            "Auto",
+            "Hand",
+            "Eco"
+          ],
+          "defaultValue": "auto",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_irrigation"
+              },
+              "valuePath": "mode"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_irrigation_mode",
+              "mode": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "blk-north",
+          "label": "North Block · Corn",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "visible": {
+            "when": "irr-master",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "grp-n1",
+              "label": "Zone N1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 2
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "id": "zone-n1-on",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Valve open",
+                  "icon": "drop.fill",
+                  "defaultValue": true,
+                  "haptic": "rigid",
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.n1.open"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_set",
+                      "zone": "N1",
+                      "open": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "slider",
+                  "id": "zone-n1-min",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Run minutes",
+                  "min": 5,
+                  "max": 120,
+                  "step": 5,
+                  "defaultValue": 45,
+                  "minIcon": "timer",
+                  "continuous": false,
+                  "visible": {
+                    "when": "zone-n1-on",
+                    "operator": "eq",
+                    "value": true
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.n1.minutes"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_runtime",
+                      "zone": "N1",
+                      "minutes": "{{value}}"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "grp-n2",
+              "label": "Zone N2",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 2
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "id": "zone-n2-on",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Valve open",
+                  "icon": "drop.fill",
+                  "defaultValue": false,
+                  "haptic": "rigid",
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.n2.open"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_set",
+                      "zone": "N2",
+                      "open": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "slider",
+                  "id": "zone-n2-min",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Run minutes",
+                  "min": 5,
+                  "max": 120,
+                  "step": 5,
+                  "defaultValue": 30,
+                  "minIcon": "timer",
+                  "continuous": false,
+                  "visible": {
+                    "when": "zone-n2-on",
+                    "operator": "eq",
+                    "value": true
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.n2.minutes"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_runtime",
+                      "zone": "N2",
+                      "minutes": "{{value}}"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "blk-south",
+          "label": "South Block · Soybeans",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "visible": {
+            "when": "irr-master",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "grp-s1",
+              "label": "Zone S1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 2
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "id": "zone-s1-on",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Valve open",
+                  "icon": "drop.fill",
+                  "defaultValue": true,
+                  "haptic": "rigid",
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.s1.open"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_set",
+                      "zone": "S1",
+                      "open": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "slider",
+                  "id": "zone-s1-min",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Run minutes",
+                  "min": 5,
+                  "max": 120,
+                  "step": 5,
+                  "defaultValue": 60,
+                  "minIcon": "timer",
+                  "continuous": false,
+                  "visible": {
+                    "when": "zone-s1-on",
+                    "operator": "eq",
+                    "value": true
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.s1.minutes"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_runtime",
+                      "zone": "S1",
+                      "minutes": "{{value}}"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "grp-s2",
+              "label": "Zone S2",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 2
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "id": "zone-s2-on",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Valve open",
+                  "icon": "drop.fill",
+                  "defaultValue": true,
+                  "haptic": "rigid",
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.s2.open"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_set",
+                      "zone": "S2",
+                      "open": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "slider",
+                  "id": "zone-s2-min",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Run minutes",
+                  "min": 5,
+                  "max": 120,
+                  "step": 5,
+                  "defaultValue": 40,
+                  "minIcon": "timer",
+                  "continuous": false,
+                  "visible": {
+                    "when": "zone-s2-on",
+                    "operator": "eq",
+                    "value": true
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "smart_farm_zone_state"
+                      },
+                      "valuePath": "zones.s2.minutes"
+                    }
+                  ],
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "smart_farm_zone_runtime",
+                      "zone": "S2",
+                      "minutes": "{{value}}"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "irr-run",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Run Cycle",
+          "icon": "play.fill",
+          "style": "filled",
+          "tint": "#4FB0FF",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_irrigation_cycle",
+              "command": "start"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "irr-stop",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Stop All",
+          "icon": "stop.fill",
+          "style": "outlined",
+          "tint": "#FF5A4F",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_irrigation_cycle",
+              "command": "stop_all"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "irr-next",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Next scheduled",
+          "icon": "calendar.badge.clock",
+          "style": "mono",
+          "text": "Tue 04:30 · S1 → S2 · 1.8 ac-in",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_irrigation"
+              },
+              "valuePath": "next_text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tractor",
+      "icon": "location.north.circle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "compass",
+          "id": "tractor-compass",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "JD 8R 370 · Heading",
+          "defaultValue": 14,
+          "compassConfig": {
+            "tolerance": 6,
+            "dwell": 1.5,
+            "editable": true,
+            "cardinalColor": "#B5C49A",
+            "pucks": [
+              {
+                "id": "row-a",
+                "label": "Pass A",
+                "icon": "arrow.up",
+                "tint": "#9BE564",
+                "bearing": 12,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "smart_farm_tractor_align",
+                    "line": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "row-b",
+                "label": "Pass B",
+                "icon": "arrow.down",
+                "tint": "#F2C14E",
+                "bearing": 192,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "smart_farm_tractor_align",
+                    "line": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "shed",
+                "label": "Machine Shed",
+                "icon": "house.fill",
+                "tint": "#E0823D",
+                "bearing": 268,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "smart_farm_tractor_align",
+                    "line": "{{value}}"
+                  }
+                }
+              }
+            ],
+            "events": {
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "smart_farm_tractor_pucks",
+                  "points": "{{points}}"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tractor"
+              },
+              "valuePath": "heading_deg"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "tractor-speed",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Ground Speed",
+          "icon": "speedometer",
+          "min": 0,
+          "max": 12,
+          "step": 0.1,
+          "formatValue": "suffix: mph",
+          "defaultValue": 5.8,
+          "tint": "#9BE564",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tractor"
+              },
+              "valuePath": "speed_mph"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "tractor-fuel",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Diesel · DEF",
+          "icon": "fuelpump.fill",
+          "style": "headline",
+          "text": "68% · 81%",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tractor"
+              },
+              "valuePath": "fuel_text"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "tractor-steer",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "AutoTrac",
+          "style": "badge",
+          "size": "small",
+          "defaultValue": "engaged",
+          "pulse": true,
+          "statusColors": {
+            "engaged": "#9BE564",
+            "standby": "#F2C14E",
+            "off": "#B5C49A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tractor"
+              },
+              "valuePath": "autotrac"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "tractor-autosteer",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Auto-steer",
+          "icon": "steeringwheel",
+          "defaultValue": true,
+          "haptic": "rigid",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "smart_farm_tractor"
+              },
+              "valuePath": "autosteer"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_tractor_autosteer",
+              "engaged": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "tractor-pause",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Pause Implement",
+          "icon": "pause.circle.fill",
+          "style": "tinted",
+          "tint": "#E0823D",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "smart_farm_tractor_implement",
+              "command": "pause"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

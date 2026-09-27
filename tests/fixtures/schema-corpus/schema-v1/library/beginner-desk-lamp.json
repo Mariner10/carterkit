@@ -1,0 +1,136 @@
+{
+  "name": "Desk Lamp",
+  "headerTitle": "Desk Lamp",
+  "id": "desk-lamp",
+  "version": 1,
+  "description": "A one-screen starter for a smart desk lamp: power, brightness, and color temperature. Each control sends one simple broadcast, and a status light shows what the lamp reports back.",
+  "difficulty": "beginner",
+  "accentColor": "#FFB340",
+  "tabs": [
+    {
+      "title": "Lamp",
+      "icon": "lamp.desk.fill",
+      "grid": { "columns": 4, "rows": 6, "rowHeight": 64 },
+      "children": [
+        {
+          "type": "label",
+          "id": "about",
+          "position": [0, 0],
+          "span": [1, 4],
+          "icon": "graduationcap.fill",
+          "text": "About: every input sends one broadcast; presets send a fixed one. The status light listens for the lamp's reply.",
+          "style": "caption"
+        },
+        {
+          "type": "toggle",
+          "id": "power",
+          "position": [1, 0],
+          "span": [1, 2],
+          "label": "Power",
+          "icon": "lightbulb.fill",
+          "defaultValue": true,
+          "tint": "#FFB340",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "desk_lamp_power", "on": "{{value}}" }
+          }
+        },
+        {
+          "type": "statusLight",
+          "id": "lamp-status",
+          "position": [1, 2],
+          "span": [1, 2],
+          "label": "Lamp reports",
+          "style": "badge",
+          "defaultValue": "on",
+          "statusColors": { "on": "#FFB340", "off": "#8E8E93", "offline": "#FF453A" },
+          "sync": [{
+            "method": "meshsocket",
+            "type": "listen",
+            "event": "broadcast",
+            "filter": { "msg_type": "desk_lamp_state" },
+            "valuePath": "status"
+          }]
+        },
+        {
+          "type": "slider",
+          "id": "brightness",
+          "position": [2, 0],
+          "span": [1, 4],
+          "label": "Brightness",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "defaultValue": 70,
+          "minIcon": "sun.min",
+          "maxIcon": "sun.max.fill",
+          "tint": "#FFB340",
+          "continuous": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "desk_lamp_brightness", "level": "{{value}}" }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "color-temp",
+          "position": [3, 0],
+          "span": [1, 4],
+          "options": ["warm", "neutral", "cool"],
+          "optionLabels": ["Warm", "Neutral", "Cool"],
+          "optionIcons": ["flame.fill", "circle.lefthalf.filled", "snowflake"],
+          "defaultValue": "warm",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "desk_lamp_color_temp", "tone": "{{value}}" }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "presets-divider",
+          "position": [4, 0],
+          "span": [1, 4],
+          "label": "Presets"
+        },
+        {
+          "type": "button",
+          "id": "preset-reading",
+          "position": [5, 0],
+          "span": [1, 2],
+          "label": "Reading",
+          "icon": "book.fill",
+          "style": "tinted",
+          "tint": "#64D2FF",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "desk_lamp_preset", "preset": "reading" }
+          }
+        },
+        {
+          "type": "button",
+          "id": "preset-night",
+          "position": [5, 2],
+          "span": [1, 2],
+          "label": "Night Light",
+          "icon": "moon.stars.fill",
+          "style": "tinted",
+          "tint": "#BF5AF2",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "desk_lamp_preset", "preset": "night" }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,671 @@
+{
+  "name": "Backyard Weather Station",
+  "headerTitle": "Backyard Wx",
+  "version": 1,
+  "accentColor": "#4FB3E8",
+  "description": "A backyard weather station dashboard: live temperature, wind and rain readouts with a pressure trend, a 7-day history chart and station records, plus alert thresholds and a station event log.",
+  "difficulty": "intermediate",
+  "theme": {
+    "accentColor": "#4FB3E8",
+    "accentGradient": [
+      "#4FB3E8",
+      "#2E6FD8"
+    ],
+    "cornerRadius": 14,
+    "tabBarTint": "#4FB3E8",
+    "surfacePrimary": "#9FD8FF14",
+    "surfaceSecondary": "#9FD8FF0A",
+    "borderColor": "#9FD8FF2E",
+    "toggle": {
+      "trackActiveColor": "#4FB3E8"
+    },
+    "slider": {
+      "trackActiveColor": "#4FB3E8"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Now",
+      "icon": "cloud.sun.fill",
+      "grid": {
+        "columns": 2,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "ws-temp",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            1
+          ],
+          "label": "Outdoor Temp",
+          "icon": "thermometer.medium",
+          "min": -10,
+          "max": 110,
+          "gaugeStyle": "half",
+          "defaultValue": 67.4,
+          "formatValue": "suffix: °",
+          "segments": [
+            {
+              "limit": 32,
+              "color": "#6FA8FF"
+            },
+            {
+              "limit": 80,
+              "color": "#34C759"
+            },
+            {
+              "limit": 110,
+              "color": "#FF6B3D"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_current"
+              },
+              "valuePath": "temp"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "ws-wind",
+          "position": [
+            0,
+            1
+          ],
+          "span": [
+            3,
+            1
+          ],
+          "label": "Wind",
+          "icon": "wind",
+          "min": 0,
+          "max": 60,
+          "gaugeStyle": "half",
+          "defaultValue": 8.2,
+          "formatValue": "suffix: mph",
+          "segments": [
+            {
+              "limit": 15,
+              "color": "#34C759"
+            },
+            {
+              "limit": 30,
+              "color": "#FFB347"
+            },
+            {
+              "limit": 60,
+              "color": "#FF3B30"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_current"
+              },
+              "valuePath": "wind_speed"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ws-gust",
+          "position": [
+            3,
+            0
+          ],
+          "label": "Gust · Direction",
+          "icon": "arrow.up.right.circle",
+          "defaultValue": "14 mph · WNW",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_current"
+              },
+              "valuePath": "gust_display"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ws-humidity",
+          "position": [
+            3,
+            1
+          ],
+          "label": "Humidity",
+          "icon": "humidity.fill",
+          "defaultValue": 58,
+          "formatValue": "suffix: %",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_current"
+              },
+              "valuePath": "humidity"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ws-rain-today",
+          "position": [
+            4,
+            0
+          ],
+          "label": "Rain today",
+          "icon": "cloud.rain.fill",
+          "defaultValue": "0.12 in",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_rain"
+              },
+              "valuePath": "today_display"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "ws-link",
+          "position": [
+            4,
+            1
+          ],
+          "label": "Sensor array",
+          "style": "badge",
+          "size": "default",
+          "pulse": true,
+          "statusColors": {
+            "online": "#34C759",
+            "weak": "#FFB347",
+            "offline": "#FF3B30"
+          },
+          "defaultValue": "online",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_health"
+              },
+              "valuePath": "array_link"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "ws-pressure",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Pressure · 30.02 inHg falling",
+          "tint": "#4FB3E8",
+          "sparklineFill": true,
+          "sparklinePoints": 48,
+          "defaultValue": "[30.14,30.13,30.13,30.12,30.11,30.11,30.10,30.09,30.08,30.08,30.07,30.06,30.06,30.05,30.04,30.04,30.03,30.02]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_pressure"
+              },
+              "valuePath": "inhg"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "ws-units",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Units",
+          "options": [
+            "imperial",
+            "metric"
+          ],
+          "optionLabels": [
+            "°F · mph · in",
+            "°C · km/h · mm"
+          ],
+          "defaultValue": "imperial",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "weather_station_set_units",
+              "system": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_settings"
+              },
+              "valuePath": "units"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "History",
+      "icon": "chart.bar.xaxis",
+      "grid": {
+        "columns": 2,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "chart",
+          "id": "ws-week-chart",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Last 7 days",
+          "tint": "#4FB3E8",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "barCornerRadius": 4,
+            "scrub": true
+          },
+          "defaultValue": "{\"categories\": [\"Thu\", \"Fri\", \"Sat\", \"Sun\", \"Mon\", \"Tue\", \"Wed\"], \"series\": [{\"name\": \"High °F\", \"type\": \"line\", \"color\": \"#FF9F43\", \"values\": [71, 74, 68, 62, 65, 70, 73]}, {\"name\": \"Low °F\", \"type\": \"line\", \"color\": \"#4FB3E8\", \"values\": [52, 55, 54, 48, 46, 50, 53]}, {\"name\": \"Rain (in ×10)\", \"type\": \"bar\", \"color\": \"#7ED6DF\", \"values\": [0, 0, 3, 9, 2, 0, 1]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_history"
+              },
+              "valuePath": "week"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ws-week-rain",
+          "position": [
+            4,
+            0
+          ],
+          "label": "7-day rain",
+          "icon": "drop.fill",
+          "defaultValue": "1.50 in",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_history"
+              },
+              "valuePath": "rain_total_display"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ws-week-avg",
+          "position": [
+            4,
+            1
+          ],
+          "label": "Avg high",
+          "icon": "thermometer.sun",
+          "defaultValue": "69.0 °F",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_history"
+              },
+              "valuePath": "avg_high_display"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "ws-records",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Station records · since 2023",
+          "listColumns": [
+            {
+              "key": "record",
+              "label": "Record"
+            },
+            {
+              "key": "value",
+              "label": "Value"
+            },
+            {
+              "key": "date",
+              "label": "Date"
+            }
+          ],
+          "defaultValue": "[{\"record\": \"Hottest\", \"value\": \"98.6 °F\", \"date\": \"Jul 14\"}, {\"record\": \"Coldest\", \"value\": \"11.2 °F\", \"date\": \"Jan 29\"}, {\"record\": \"Peak gust\", \"value\": \"47 mph\", \"date\": \"Mar 03\"}, {\"record\": \"Wettest day\", \"value\": \"2.41 in\", \"date\": \"Apr 18\"}, {\"record\": \"Lowest pressure\", \"value\": \"29.21 inHg\", \"date\": \"Mar 03\"}, {\"record\": \"Longest dry spell\", \"value\": \"23 days\", \"date\": \"Aug 21\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_records"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Station",
+      "icon": "antenna.radiowaves.left.and.right",
+      "grid": {
+        "columns": 2,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "ws-alerts",
+          "label": "Alerts",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "ws-frost-alert",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Frost alert",
+              "icon": "snowflake",
+              "defaultValue": true,
+              "tint": "#4FB3E8",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "weather_station_set_alert",
+                  "alert": "frost",
+                  "enabled": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "weather_station_alert_state",
+                    "alert": "frost"
+                  },
+                  "valuePath": "enabled"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "ws-wind-alert",
+              "position": [
+                0,
+                1
+              ],
+              "label": "High wind",
+              "icon": "tornado",
+              "defaultValue": false,
+              "tint": "#4FB3E8",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "weather_station_set_alert",
+                  "alert": "high_wind",
+                  "enabled": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "weather_station_alert_state",
+                    "alert": "high_wind"
+                  },
+                  "valuePath": "enabled"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "ws-frost-threshold",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Frost threshold (°F)",
+              "min": 28,
+              "max": 40,
+              "step": 1,
+              "defaultValue": 34,
+              "tint": "#4FB3E8",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "weather_station_set_threshold",
+                  "alert": "frost",
+                  "value": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "weather_station_alert_state",
+                    "alert": "frost"
+                  },
+                  "valuePath": "threshold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "picker",
+          "id": "ws-upload",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Upload interval",
+          "icon": "icloud.and.arrow.up",
+          "options": [
+            "60",
+            "300",
+            "900"
+          ],
+          "optionLabels": [
+            "Every minute",
+            "Every 5 min",
+            "Every 15 min"
+          ],
+          "defaultValue": "300",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "weather_station_set_upload_interval",
+              "seconds": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_settings"
+              },
+              "valuePath": "upload_interval"
+            }
+          ]
+        },
+        {
+          "type": "datePicker",
+          "id": "ws-rain-reset",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Rain season starts",
+          "icon": "calendar",
+          "datePickerMode": "date",
+          "datePickerStyle": "compact",
+          "defaultValue": "2026-10-01T00:00:00Z",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "weather_station_set_rain_season_start",
+              "date": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_settings"
+              },
+              "valuePath": "rain_season_start"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "ws-log",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Station log",
+          "maxLines": 200,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "logColors": {
+            "error": "#FF3B30",
+            "warn": "#FFB347",
+            "info": "#34C759",
+            "debug": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "weather_station_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

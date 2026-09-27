@@ -1,0 +1,654 @@
+{
+  "accentColor": "#667eea",
+  "appearance": {
+    "colorScheme": "dark",
+    "showHeader": true,
+    "statusBarStyle": "light"
+  },
+  "connectivity": {
+    "lab-energy": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_energy"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "sankey"
+        }
+      ]
+    },
+    "lab-eq": {
+      "action": {
+        "event": "broadcast_request",
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "payload": {
+          "bands": "{{value}}",
+          "msg_type": "lab_eq"
+        }
+      }
+    },
+    "lab-histogram": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_histo"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "samples"
+        }
+      ]
+    },
+    "lab-latency": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_latency"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "regions"
+        }
+      ]
+    },
+    "lab-mesh": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_mesh"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "chord"
+        }
+      ]
+    },
+    "lab-poll": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_poll"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "results"
+        }
+      ]
+    },
+    "lab-power": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_power"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "split"
+        }
+      ]
+    },
+    "lab-sprint": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_sprint"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "gantt"
+        }
+      ]
+    },
+    "lab-telemetry": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_telemetry"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "chart"
+        }
+      ]
+    },
+    "lab-temps": {
+      "sync": [
+        {
+          "event": "broadcast",
+          "filter": {
+            "msg_type": "lab_temps"
+          },
+          "method": "meshsocket",
+          "type": "listen",
+          "valuePath": "grid"
+        }
+      ]
+    }
+  },
+  "headerTitle": "Chart Lab",
+  "name": "Chart Lab",
+  "placements": {
+    "lab-cash": {
+      "position": [
+        2,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-energy": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        3,
+        4
+      ]
+    },
+    "lab-eq": {
+      "position": [
+        3,
+        2
+      ],
+      "span": [
+        3,
+        2
+      ]
+    },
+    "lab-histogram": {
+      "position": [
+        4,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-latency": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-leds": {
+      "position": [
+        2,
+        0
+      ],
+      "span": [
+        4,
+        4
+      ]
+    },
+    "lab-mesh": {
+      "position": [
+        3,
+        0
+      ],
+      "span": [
+        3,
+        4
+      ]
+    },
+    "lab-poll": {
+      "position": [
+        3,
+        0
+      ],
+      "span": [
+        3,
+        4
+      ]
+    },
+    "lab-power": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        3,
+        2
+      ]
+    },
+    "lab-scenes": {
+      "position": [
+        3,
+        0
+      ],
+      "span": [
+        3,
+        2
+      ]
+    },
+    "lab-sprint": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-storage": {
+      "position": [
+        4,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-telemetry": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        3,
+        4
+      ]
+    },
+    "lab-temps": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-violin": {
+      "position": [
+        2,
+        0
+      ],
+      "span": [
+        2,
+        4
+      ]
+    },
+    "lab-wheel": {
+      "position": [
+        0,
+        2
+      ],
+      "span": [
+        3,
+        2
+      ]
+    }
+  },
+  "schemaVersion": 2,
+  "styles": {
+    "lab-histogram": {
+      "tint": "#4D96FF"
+    },
+    "lab-scenes": {
+      "icon": "sparkles"
+    },
+    "lab-violin": {
+      "tint": "#BF5AF2"
+    },
+    "lab-wheel": {
+      "icon": "dice"
+    }
+  },
+  "tabs": [
+    {
+      "children": [
+        {
+          "chartConfig": {
+            "maxPoints": 40,
+            "showLegend": true,
+            "smooth": true
+          },
+          "defaultValue": "{\"categories\":[\"t-5\",\"t-4\",\"t-3\",\"t-2\",\"t-1\",\"now\"],\"series\":[{\"name\":\"CPU\",\"type\":\"area\",\"color\":\"#667eea\",\"values\":[42,51,38,66,47,58]},{\"name\":\"GPU\",\"type\":\"line\",\"color\":\"#FF9500\",\"values\":[21,24,33,30,41,35]}]}",
+          "formatValue": "percent",
+          "id": "lab-telemetry",
+          "label": "CPU / GPU / Net",
+          "type": "chart"
+        },
+        {
+          "chartConfig": {
+            "barCornerRadius": 6,
+            "datumAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "choice": "{{value}}",
+                "msg_type": "lab_vote"
+              }
+            },
+            "showGrid": false,
+            "showValues": true
+          },
+          "defaultValue": "{\"categories\":[\"Pizza\",\"Sushi\",\"Tacos\",\"Ramen\"],\"series\":[{\"color\":\"#34C759\",\"values\":[3,5,2,4]}]}",
+          "id": "lab-poll",
+          "label": "Tap a bar to vote",
+          "type": "chart"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "chart.bar.xaxis",
+      "title": "Charts"
+    },
+    {
+      "children": [
+        {
+          "defaultValue": "{\"slices\":[{\"label\":\"Heat\",\"value\":41,\"color\":\"#FF6B6B\"},{\"label\":\"Compute\",\"value\":33,\"color\":\"#667eea\"},{\"label\":\"Idle\",\"value\":26,\"color\":\"#34C759\"}]}",
+          "id": "lab-power",
+          "label": "Power split",
+          "pieConfig": {
+            "centerText": "{{total}}W",
+            "percent": true,
+            "showLegend": true
+          },
+          "pieStyle": "donut",
+          "type": "pieChart"
+        },
+        {
+          "defaultValue": "{\"slices\":[{\"label\":\"Ava\",\"value\":1},{\"label\":\"Ben\",\"value\":1},{\"label\":\"Cass\",\"value\":2},{\"label\":\"Drew\",\"value\":1},{\"label\":\"Eli\",\"value\":1}]}",
+          "id": "lab-wheel",
+          "label": "Spin for on-call",
+          "pieConfig": {
+            "sliceAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_pick",
+                "person": "{{value}}"
+              }
+            },
+            "spinDuration": 4
+          },
+          "pieStyle": "wheel",
+          "type": "pieChart"
+        },
+        {
+          "defaultValue": "{\"slices\":[{\"label\":\"Movie\",\"icon\":\"tv\"},{\"label\":\"Focus\",\"icon\":\"moon\"},{\"label\":\"Party\",\"icon\":\"music.note\"},{\"label\":\"Off\",\"icon\":\"power\"}]}",
+          "id": "lab-scenes",
+          "label": "Scene menu",
+          "pieConfig": {
+            "sliceAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_scene",
+                "name": "{{value}}"
+              }
+            }
+          },
+          "pieStyle": "menu",
+          "type": "pieChart"
+        },
+        {
+          "defaultValue": "{\"axes\":[\"60\",\"250\",\"1k\",\"4k\",\"12k\"],\"max\":10,\"series\":[{\"color\":\"#BF5AF2\",\"values\":[5,6,5,4,6]}]}",
+          "id": "lab-eq",
+          "label": "EQ tuner (drag)",
+          "radarConfig": {
+            "editable": true,
+            "rings": 5,
+            "showValues": false,
+            "step": 1
+          },
+          "type": "radar"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "chart.pie.fill",
+      "title": "Radial"
+    },
+    {
+      "children": [
+        {
+          "defaultValue": "{\"rows\":[\"A\",\"B\",\"C\"],\"cols\":[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\"],\"values\":[[24,31,45,62,58,44,30,25],[28,39,55,78,71,52,36,27],[22,27,38,51,47,39,28,23]]}",
+          "formatValue": "suffix:\u00b0C",
+          "heatmapConfig": {
+            "colors": [
+              "#1B2845",
+              "#667eea",
+              "#FF9500",
+              "#FF6B6B"
+            ],
+            "showScale": true,
+            "vMax": 90,
+            "vMin": 20
+          },
+          "id": "lab-temps",
+          "label": "Rack temps",
+          "type": "heatmap"
+        },
+        {
+          "defaultValue": "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]",
+          "heatmapConfig": {
+            "cellAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_led",
+                "pixel": "{{value}}"
+              }
+            },
+            "cellGap": 3,
+            "cellShape": "circle",
+            "colors": [
+              "#1A1A1A",
+              "#FF3B30",
+              "#34C759",
+              "#007AFF",
+              "#FFCC00"
+            ],
+            "discrete": true,
+            "editable": true
+          },
+          "id": "lab-leds",
+          "label": "LED panel (tap / drag to paint)",
+          "type": "heatmap"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "square.grid.3x3.fill",
+      "title": "Grids"
+    },
+    {
+      "children": [
+        {
+          "boxPlotConfig": {
+            "boxAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_region",
+                "stats": "{{value}}"
+              }
+            },
+            "scrub": true
+          },
+          "defaultValue": "{\"categories\":[\"us-e\",\"eu-w\",\"ap-s\"],\"samples\":[[42,51,38,66,47,130,44,49,53],[61,72,58,66,70,64,69,75,63],[88,95,91,180,86,90,84,93,89]]}",
+          "id": "lab-latency",
+          "label": "Latency by region (tap a box)",
+          "type": "boxPlot"
+        },
+        {
+          "boxPlotConfig": {
+            "scrub": true,
+            "showMean": true
+          },
+          "boxStyle": "violin",
+          "defaultValue": "{\"categories\":[\"A\",\"B\"],\"samples\":[[5,6,6,6.5,7,7,7,7.5,8,9],[4,5,7,9,9.5,10,10.5,11,11,12]]}",
+          "id": "lab-violin",
+          "label": "Sensor spread",
+          "type": "boxPlot"
+        },
+        {
+          "chartConfig": {
+            "bins": 9,
+            "showGrid": false,
+            "showValues": true
+          },
+          "defaultValue": "{\"series\":[{\"type\":\"histogram\",\"values\":[42,44,45,45,46,47,47,48,48,48,49,50,50,51,52,53,55,58,62,71]}]}",
+          "id": "lab-histogram",
+          "label": "Response time histogram",
+          "type": "chart"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "waveform.path.ecg",
+      "title": "Stats"
+    },
+    {
+      "children": [
+        {
+          "defaultValue": "{\"nodes\":[{\"name\":\"Solar\",\"color\":\"#FFD93D\"},{\"name\":\"Battery\",\"color\":\"#34C759\"},{\"name\":\"House\",\"color\":\"#667eea\"},{\"name\":\"Grid\",\"color\":\"#FF9500\"}],\"links\":[{\"source\":\"Solar\",\"target\":\"Battery\",\"value\":3.2},{\"source\":\"Solar\",\"target\":\"House\",\"value\":1.8},{\"source\":\"Battery\",\"target\":\"House\",\"value\":2.1},{\"source\":\"Solar\",\"target\":\"Grid\",\"value\":0.9}]}",
+          "id": "lab-energy",
+          "label": "Energy flow (kW)",
+          "sankeyConfig": {
+            "nodeAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_node",
+                "node": "{{value}}"
+              }
+            },
+            "scrub": true,
+            "showValues": true
+          },
+          "type": "sankey"
+        },
+        {
+          "chordConfig": {
+            "arcAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_service",
+                "service": "{{value}}"
+              }
+            },
+            "scrub": true
+          },
+          "defaultValue": "{\"labels\":[\"API\",\"Web\",\"DB\",\"Cache\"],\"matrix\":[[0,5,3,2],[5,0,1,0],[3,1,0,4],[2,0,4,0]]}",
+          "id": "lab-mesh",
+          "label": "Service calls (tap an arc)",
+          "type": "chord"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "arrow.triangle.branch",
+      "title": "Flow"
+    },
+    {
+      "children": [
+        {
+          "defaultValue": "{\"tasks\":[{\"name\":\"Design\",\"start\":\"2026-06-29\",\"end\":\"2026-07-03\",\"progress\":1.0},{\"name\":\"Build\",\"start\":\"2026-07-02\",\"end\":\"2026-07-10\",\"progress\":0.45,\"color\":\"#FF9500\"},{\"name\":\"Verify\",\"start\":\"2026-07-09\",\"end\":\"2026-07-13\",\"progress\":0.1,\"color\":\"#34C759\"},{\"name\":\"Ship\",\"start\":\"2026-07-15\",\"milestone\":true,\"color\":\"#FF6B6B\"}]}",
+          "ganttConfig": {
+            "editable": true,
+            "taskAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "msg_type": "lab_task",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "id": "lab-sprint",
+          "label": "Sprint (drag a bar)",
+          "type": "gantt"
+        },
+        {
+          "chartConfig": {
+            "showGrid": false,
+            "showValues": true
+          },
+          "defaultValue": "{\"categories\":[\"Start\",\"Sales\",\"Refunds\",\"Costs\",\"Net\"],\"series\":[{\"type\":\"waterfall\",\"values\":[1200,480,-160,-390,0],\"totals\":[0,4]}]}",
+          "formatValue": "prefix:$",
+          "id": "lab-cash",
+          "label": "Cash flow",
+          "type": "chart"
+        },
+        {
+          "defaultValue": "{\"items\":[{\"label\":\"Media\",\"color\":\"#667eea\",\"children\":[{\"label\":\"Video\",\"value\":41.5},{\"label\":\"Photos\",\"value\":12.2},{\"label\":\"Music\",\"value\":6.3}]},{\"label\":\"Apps\",\"value\":23.0,\"color\":\"#34C759\"},{\"label\":\"System\",\"value\":14.8,\"color\":\"#FF9500\"},{\"label\":\"Other\",\"value\":6.4,\"color\":\"#BF5AF2\"}]}",
+          "formatValue": "suffix: GB",
+          "id": "lab-storage",
+          "label": "Storage (tap to drill)",
+          "treemapConfig": {
+            "itemAction": {
+              "event": "broadcast",
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "payload": {
+                "item": "{{value}}",
+                "msg_type": "lab_bucket"
+              }
+            },
+            "scrub": true,
+            "showValues": true
+          },
+          "type": "treemap"
+        }
+      ],
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "icon": "chart.bar.doc.horizontal",
+      "title": "Plan"
+    }
+  ],
+  "theme": {
+    "accentColor": "#667eea",
+    "accentGradient": [
+      "#667eea",
+      "#764ba2"
+    ],
+    "cornerRadius": 13,
+    "fontDesign": "rounded"
+  },
+  "version": 1
+}

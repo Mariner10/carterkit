@@ -1,0 +1,105 @@
+{
+  "accentColor": "#667eea",
+  "headerTitle": "My first layout",
+  "id": "first-layout",
+  "name": "My first layout",
+  "placements": {
+    "lamp": {
+      "position": [
+        0,
+        0
+      ],
+      "span": [
+        1,
+        1
+      ]
+    },
+    "lamp-state": {
+      "position": [
+        0,
+        1
+      ],
+      "span": [
+        1,
+        1
+      ]
+    },
+    "note": {
+      "position": [
+        5,
+        0
+      ],
+      "span": [
+        1,
+        2
+      ]
+    },
+    "temperature": {
+      "position": [
+        1,
+        0
+      ],
+      "span": [
+        4,
+        2
+      ]
+    }
+  },
+  "schemaVersion": 2,
+  "styles": {
+    "lamp": {
+      "icon": "lightbulb.fill",
+      "tint": "#FFD60A"
+    },
+    "temperature": {
+      "tint": "#FF9F0A"
+    }
+  },
+  "tabs": [
+    {
+      "children": [
+        {
+          "defaultValue": false,
+          "id": "lamp",
+          "label": "Lamp",
+          "type": "toggle"
+        },
+        {
+          "defaultValue": "off",
+          "id": "lamp-state",
+          "label": "Lamp",
+          "statusColors": {
+            "off": "#8E8E93",
+            "on": "#FFD60A"
+          },
+          "style": "badge",
+          "type": "statusLight"
+        },
+        {
+          "defaultValue": 21,
+          "formatValue": "suffix:\u00b0C",
+          "gaugeStyle": "full",
+          "id": "temperature",
+          "label": "Temperature",
+          "max": 30,
+          "min": 10,
+          "type": "gauge"
+        },
+        {
+          "align": "center",
+          "id": "note",
+          "text": "Flip the lamp. Watch the light answer.",
+          "type": "label"
+        }
+      ],
+      "grid": {
+        "columns": 2,
+        "rowHeight": 64,
+        "rows": 6
+      },
+      "icon": "house.fill",
+      "title": "Home"
+    }
+  ],
+  "version": 1
+}

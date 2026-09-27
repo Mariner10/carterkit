@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 3,
+  "name": "Greenhouse (newer app)",
+  "version": 4,
+  "id": "L_schema_v3",
+  "futureGrammar": { "layers": ["base", "overlay"] },
+  "keepAwake": false,
+  "tabs": [
+    {
+      "id": "t_plants",
+      "title": "Plants",
+      "icon": "leaf",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        { "type": "gauge", "id": "c_soil", "name": "Soil moisture", "label": "Soil", "min": 0, "max": 100, "value": 42 },
+        { "type": "button", "id": "c_water", "label": "Water now", "position": [2, 0], "span": [1, 4] }
+      ]
+    }
+  ],
+  "placements": {
+    "c_soil": { "position": [0, 0], "span": [2, 4], "futurePlacementKey": "keep" }
+  },
+  "styles": {
+    "c_soil": { "tint": "#34C759" }
+  }
+}

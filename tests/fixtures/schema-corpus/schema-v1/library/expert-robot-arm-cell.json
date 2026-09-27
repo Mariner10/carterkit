@@ -1,0 +1,1786 @@
+{
+  "name": "Robot Arm Work Cell",
+  "headerTitle": "CELL 3 · UR-10e",
+  "version": 1,
+  "id": "robot-arm-cell",
+  "accentColor": "#FFC400",
+  "description": "A teach pendant for a six-axis machine-tending cell: analog jog sticks behind a servo gate, nested joint sliders, a drag-to-reseat path-teach canvas, cycle gantt analytics and a latched e-stop.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "cell3-controller",
+    "acks": true,
+    "ackTimeoutMs": 1500
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#16181B",
+        "#1E2126"
+      ],
+      "light": "#F3F1EA"
+    }
+  },
+  "theme": {
+    "accentColor": "#FFC400",
+    "accentGradient": [
+      "#FFC400",
+      "#FF7A1A"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 4,
+    "controlPadding": 8,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontSize": 14,
+    "valueFontWeight": "bold",
+    "tabBarTint": "#FFC400",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0E0F11",
+        "#17191C",
+        "#1F2226"
+      ],
+      "surfacePrimary": "#FFFFFF0D",
+      "surfaceSecondary": "#FFFFFF08",
+      "surfaceTertiary": "#FFFFFF05",
+      "borderColor": "#FFC40033",
+      "foregroundColor": "#F2EFE6",
+      "secondaryColor": "#A9A597",
+      "tertiaryColor": "#6D6A61",
+      "tabBarBackground": "#121315"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F3F1EA",
+        "#E6E2D6"
+      ],
+      "surfacePrimary": "#FFFFFFE6",
+      "borderColor": "#1A1A1A26",
+      "foregroundColor": "#16181B",
+      "secondaryColor": "#4E4B43"
+    },
+    "toggle": {
+      "trackActiveColor": "#FFC400",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#FFC400",
+      "thumbColor": "#F2EFE6",
+      "trackHeight": 4
+    },
+    "segmented": {
+      "selectedColor": "#FFC400",
+      "selectedTextColor": "#16181B"
+    },
+    "stepper": {
+      "buttonColor": "#FFC40026",
+      "iconColor": "#FFC400"
+    }
+  },
+  "glance": {
+    "title": "Cell 3",
+    "icon": "gearshape.2.fill",
+    "tint": "#FFC400",
+    "hero": "rac-batch",
+    "slots": [
+      "rac-oee",
+      "rac-estop-state",
+      "rac-cell-state"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "estop",
+        "kind": "button",
+        "label": "E-Stop Cell 3",
+        "icon": "exclamationmark.octagon.fill",
+        "control": "rac-estop"
+      },
+      {
+        "id": "servo",
+        "kind": "toggle",
+        "label": "Servo Power",
+        "control": "rac-servo",
+        "on": {
+          "label": "Servos On",
+          "icon": "bolt.fill",
+          "tint": "#FFC400"
+        },
+        "off": {
+          "label": "Servos Off",
+          "icon": "bolt.slash"
+        }
+      }
+    ],
+    "widgets": [
+      {
+        "id": "cell",
+        "title": "Cell 3",
+        "icon": "gearshape.2.fill",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "rac-batch"
+              },
+              {
+                "tile": "gauge",
+                "control": "rac-oee"
+              }
+            ],
+            [
+              {
+                "tile": "light",
+                "control": "rac-estop-state"
+              },
+              {
+                "tile": "button",
+                "control": "rac-estop"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "rac-batch"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "rac-estop-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "light",
+          "control": "rac-cell-state"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "value",
+                "control": "rac-batch"
+              },
+              {
+                "tile": "gauge",
+                "control": "rac-oee"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "rac-estop"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Jog",
+      "icon": "dpad.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "rac-cell-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cell",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "statusColors": {
+            "running": "#4CD964",
+            "idle": "#3DDBD9",
+            "teach": "#FFC400",
+            "faulted": "#FF2D2D",
+            "estop": "#FF2D2D"
+          },
+          "defaultValue": "teach",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_status"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "rac-estop-state",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Safety Chain",
+          "style": "badge",
+          "size": "large",
+          "statusColors": {
+            "clear": "#4CD964",
+            "muted": "#FFC400",
+            "tripped": "#FF2D2D"
+          },
+          "defaultValue": "clear",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_status"
+              },
+              "valuePath": "estop"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "rac-servo",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Servo Power",
+          "icon": "bolt.fill",
+          "haptic": "rigid",
+          "animation": "snappy",
+          "defaultValue": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_servo",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_status"
+              },
+              "valuePath": "servo"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "rac-frame",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Frame",
+          "options": [
+            "world",
+            "tool",
+            "user"
+          ],
+          "optionLabels": [
+            "World",
+            "Tool",
+            "User"
+          ],
+          "defaultValue": "world",
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_frame",
+              "frame": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_status"
+              },
+              "valuePath": "frame"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "rac-pendant",
+          "label": "Jog Pendant · hold to move",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "visible": {
+            "when": "rac-servo",
+            "operator": "eq",
+            "value": true
+          },
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "joystick",
+              "id": "rac-jog-xy",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "label": "X / Y",
+              "tint": "#FFC400",
+              "style": "analog",
+              "deadzone": 0.12,
+              "sendRate": 0.08,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_jog_xy",
+                  "stick": "{{value}}",
+                  "frame": "world"
+                }
+              }
+            },
+            {
+              "type": "joystick",
+              "id": "rac-jog-zr",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "label": "Z / Rz",
+              "tint": "#3DDBD9",
+              "style": "dpad",
+              "deadzone": 0.2,
+              "sendRate": 0.15,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_jog_zr",
+                  "stick": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "rac-speed",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Jog Speed",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "formatValue": "percent",
+          "defaultValue": 25,
+          "minIcon": "tortoise.fill",
+          "maxIcon": "hare.fill",
+          "tint": "#FFC400",
+          "animation": "smooth",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_jog_speed",
+              "pct": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_status"
+              },
+              "valuePath": "jog_speed_pct"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "rac-jog-mode",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Motion",
+          "options": [
+            "cont",
+            "step"
+          ],
+          "optionLabels": [
+            "Cont",
+            "Step"
+          ],
+          "defaultValue": "step",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_jog_mode",
+              "mode": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "rac-increment",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Step mm",
+          "min": 0.1,
+          "max": 10,
+          "step": 0.1,
+          "defaultValue": 1.0,
+          "repeatOnHold": true,
+          "haptic": "light",
+          "visible": {
+            "when": "rac-jog-mode",
+            "operator": "eq",
+            "value": "step"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_jog_increment",
+              "mm": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "rac-estop",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "EMERGENCY STOP",
+          "icon": "exclamationmark.octagon.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#FF2D2D",
+          "haptic": "error",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_estop",
+              "source": "pendant"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "rac-reset",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Reset & Re-arm",
+          "icon": "arrow.counterclockwise.circle.fill",
+          "style": "tinted",
+          "tint": "#FFC400",
+          "haptic": "warning",
+          "visible": {
+            "when": "rac-estop-state",
+            "operator": "eq",
+            "value": "tripped"
+          },
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_estop_reset"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "rac-home",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Home All",
+          "icon": "house.fill",
+          "style": "outlined",
+          "tint": "#3DDBD9",
+          "haptic": "medium",
+          "visible": {
+            "when": "rac-estop-state",
+            "operator": "neq",
+            "value": "tripped"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_home"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Joints",
+      "icon": "slider.horizontal.3",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "rac-jointspace",
+          "label": "Joint Space · degrees",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            9,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 8
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "rac-arm-axes",
+              "label": "Major Axes J1–J3",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                4,
+                4
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "id": "rac-j1",
+                  "label": "J1 Base",
+                  "min": -170,
+                  "max": 170,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": 42.5,
+                  "tint": "#FFC400",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j1",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j1"
+                    }
+                  ],
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "id": "rac-j2",
+                  "label": "J2 Shoulder",
+                  "min": -90,
+                  "max": 135,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": -18.0,
+                  "tint": "#FFC400",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j2",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j2"
+                    }
+                  ],
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "id": "rac-j3",
+                  "label": "J3 Elbow",
+                  "min": -80,
+                  "max": 160,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": 64.5,
+                  "tint": "#FFC400",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j3",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j3"
+                    }
+                  ],
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "rac-wrist-axes",
+              "label": "Wrist J4–J6",
+              "position": [
+                4,
+                0
+              ],
+              "span": [
+                4,
+                4
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "id": "rac-j4",
+                  "label": "J4 Wrist Roll",
+                  "min": -190,
+                  "max": 190,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": 0.0,
+                  "tint": "#3DDBD9",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j4",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j4"
+                    }
+                  ],
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "id": "rac-j5",
+                  "label": "J5 Wrist Pitch",
+                  "min": -120,
+                  "max": 120,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": -46.0,
+                  "tint": "#3DDBD9",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j5",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j5"
+                    }
+                  ],
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "id": "rac-j6",
+                  "label": "J6 Flange",
+                  "min": -360,
+                  "max": 360,
+                  "step": 0.5,
+                  "formatValue": "decimal",
+                  "defaultValue": 90.0,
+                  "tint": "#3DDBD9",
+                  "animation": "smooth",
+                  "continuous": false,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_joint_set",
+                      "joint": "j6",
+                      "deg": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "robot_arm_cell_joints"
+                      },
+                      "valuePath": "j6"
+                    }
+                  ],
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "rac-effector",
+          "label": "End Effector · RG6",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "rac-grip-width",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Grip Width mm",
+              "min": 0,
+              "max": 160,
+              "step": 1,
+              "defaultValue": 72,
+              "tint": "#FF7A1A",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_gripper_set",
+                  "width_mm": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "robot_arm_cell_gripper"
+                  },
+                  "valuePath": "width_mm"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "rac-vacuum",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Vacuum",
+              "icon": "wind",
+              "defaultValue": false,
+              "animation": "bouncy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_vacuum",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "robot_arm_cell_gripper"
+                  },
+                  "valuePath": "vacuum"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "rac-grip-force",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Force N",
+              "min": 20,
+              "max": 120,
+              "step": 5,
+              "defaultValue": 40,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_gripper_set",
+                  "force_n": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "robot_arm_cell_gripper"
+                  },
+                  "valuePath": "force_n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "rac-torque",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "J2 Torque",
+          "icon": "gauge.with.dots.needle.67percent",
+          "min": 0,
+          "max": 150,
+          "formatValue": "suffix: Nm",
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 95,
+              "color": "#3DDBD9"
+            },
+            {
+              "limit": 125,
+              "color": "#FFC400"
+            },
+            {
+              "limit": 150,
+              "color": "#FF2D2D"
+            }
+          ],
+          "colorBlend": 0.25,
+          "defaultValue": 68.4,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_joints"
+              },
+              "valuePath": "torque_j2_nm"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "rac-payload",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Payload",
+          "icon": "shippingbox.fill",
+          "min": 0,
+          "max": 10,
+          "formatValue": "suffix: kg",
+          "tint": "#FF7A1A",
+          "defaultValue": 3.2,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_joints"
+              },
+              "valuePath": "payload_kg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Teach",
+      "icon": "point.topleft.down.to.point.bottomright.curvepath.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "rac-interp",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Move",
+          "options": [
+            "J",
+            "L",
+            "C"
+          ],
+          "optionLabels": [
+            "Joint",
+            "Lin",
+            "Arc"
+          ],
+          "defaultValue": "L",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_interp",
+              "move": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "rac-record",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Record",
+          "icon": "record.circle",
+          "style": "filled",
+          "tint": "#FF7A1A",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_teach_record",
+              "move": "L"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "rac-run-path",
+          "position": [
+            0,
+            3
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Dry Run",
+          "icon": "play.fill",
+          "style": "outlined",
+          "tint": "#4CD964",
+          "haptic": "medium",
+          "visible": {
+            "when": "rac-estop-state",
+            "operator": "eq",
+            "value": "clear"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "robot_arm_cell_path_run",
+              "program": "PICK_VF2",
+              "speed_pct": 25
+            }
+          }
+        },
+        {
+          "type": "canvas",
+          "id": "rac-path-board",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            10,
+            4
+          ],
+          "label": "Path Teach · top view, drag to re-seat",
+          "canvasConfig": {
+            "aspect": 1.1,
+            "editable": true,
+            "showGrid": true,
+            "snap": 0.02,
+            "maxZoom": 3,
+            "items": [
+              {
+                "id": "fixture",
+                "x": 0.04,
+                "y": 0.04,
+                "w": 0.4,
+                "h": 0.12,
+                "locked": true,
+                "control": {
+                  "type": "label",
+                  "id": "rac-fixture-a",
+                  "label": "Fixture A",
+                  "text": "Infeed tray · 4×3",
+                  "icon": "tray.full.fill",
+                  "style": "caption",
+                  "tint": "#3DDBD9"
+                }
+              },
+              {
+                "id": "fixture-b",
+                "x": 0.56,
+                "y": 0.84,
+                "w": 0.4,
+                "h": 0.12,
+                "locked": true,
+                "control": {
+                  "type": "label",
+                  "id": "rac-fixture-b",
+                  "label": "Fixture B",
+                  "text": "CNC vise · Haas VF-2",
+                  "icon": "cube.transparent.fill",
+                  "style": "caption",
+                  "tint": "#3DDBD9"
+                }
+              },
+              {
+                "id": "wp1",
+                "x": 0.08,
+                "y": 0.22,
+                "w": 0.22,
+                "h": 0.11,
+                "control": {
+                  "type": "button",
+                  "id": "rac-wp1",
+                  "label": "P1 Approach",
+                  "icon": "1.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FFC400",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_goto",
+                      "waypoint": "P1",
+                      "pose": "[412,-180,260,180,0,90]"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "wp2",
+                "x": 0.3,
+                "y": 0.4,
+                "w": 0.22,
+                "h": 0.11,
+                "control": {
+                  "type": "button",
+                  "id": "rac-wp2",
+                  "label": "P2 Pick",
+                  "icon": "2.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FFC400",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_goto",
+                      "waypoint": "P2",
+                      "pose": "[412,-180,142,180,0,90]"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "wp3",
+                "x": 0.52,
+                "y": 0.3,
+                "w": 0.22,
+                "h": 0.11,
+                "control": {
+                  "type": "button",
+                  "id": "rac-wp3",
+                  "label": "P3 Lift",
+                  "icon": "3.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FFC400",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_goto",
+                      "waypoint": "P3",
+                      "pose": "[380,40,320,180,0,45]"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "wp4",
+                "x": 0.7,
+                "y": 0.55,
+                "w": 0.22,
+                "h": 0.11,
+                "control": {
+                  "type": "button",
+                  "id": "rac-wp4",
+                  "label": "P4 Clear",
+                  "icon": "4.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FF7A1A",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_goto",
+                      "waypoint": "P4",
+                      "pose": "[240,310,300,180,-15,0]"
+                    }
+                  }
+                }
+              },
+              {
+                "id": "wp5",
+                "x": 0.62,
+                "y": 0.7,
+                "w": 0.22,
+                "h": 0.11,
+                "control": {
+                  "type": "button",
+                  "id": "rac-wp5",
+                  "label": "P5 Place",
+                  "icon": "5.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FF7A1A",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "robot_arm_cell_goto",
+                      "waypoint": "P5",
+                      "pose": "[210,355,188,180,-15,0]"
+                    }
+                  }
+                }
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_waypoint_move",
+                  "card": "{{item}}",
+                  "x": "{{x}}",
+                  "y": "{{y}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "robot_arm_cell_path_layout"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_path"
+              },
+              "valuePath": "board"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "rac-path-table",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Program PICK_VF2",
+          "listColumns": [
+            {
+              "key": "pt",
+              "label": "Pt"
+            },
+            {
+              "key": "move",
+              "label": "Mv"
+            },
+            {
+              "key": "xyz",
+              "label": "X / Y / Z mm"
+            },
+            {
+              "key": "speed",
+              "label": "Speed"
+            },
+            {
+              "key": "blend",
+              "label": "Zone"
+            }
+          ],
+          "defaultValue": "[{\"pt\":\"P1\",\"move\":\"J\",\"xyz\":\"412 / -180 / 260\",\"speed\":\"80%\",\"blend\":\"z50\"},{\"pt\":\"P2\",\"move\":\"L\",\"xyz\":\"412 / -180 / 142\",\"speed\":\"150 mm/s\",\"blend\":\"fine\"},{\"pt\":\"P3\",\"move\":\"L\",\"xyz\":\"380 / 40 / 320\",\"speed\":\"400 mm/s\",\"blend\":\"z20\"},{\"pt\":\"P4\",\"move\":\"C\",\"xyz\":\"240 / 310 / 300\",\"speed\":\"400 mm/s\",\"blend\":\"z20\"},{\"pt\":\"P5\",\"move\":\"L\",\"xyz\":\"210 / 355 / 188\",\"speed\":\"120 mm/s\",\"blend\":\"fine\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_path"
+              },
+              "valuePath": "waypoints"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cycle",
+      "icon": "chart.bar.doc.horizontal",
+      "grid": {
+        "columns": 4,
+        "rows": 18
+      },
+      "children": [
+        {
+          "type": "progressRing",
+          "id": "rac-batch",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Batch 1147",
+          "icon": "square.stack.3d.up.fill",
+          "min": 0,
+          "max": 120,
+          "tint": "#FFC400",
+          "defaultValue": 47,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_cycle"
+              },
+              "valuePath": "parts_done"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "rac-oee",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "OEE",
+          "icon": "chart.line.uptrend.xyaxis",
+          "min": 0,
+          "max": 100,
+          "formatValue": "suffix:%",
+          "gaugeStyle": "full",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#FF2D2D"
+            },
+            {
+              "limit": 80,
+              "color": "#FFC400"
+            },
+            {
+              "limit": 100,
+              "color": "#4CD964"
+            }
+          ],
+          "defaultValue": 83.6,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_cycle"
+              },
+              "valuePath": "oee_pct"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "rac-cycle-gantt",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Cycle 48 · seconds",
+          "tint": "#FFC400",
+          "ganttConfig": {
+            "showToday": false,
+            "showProgress": true,
+            "rowHeight": 24,
+            "barCornerRadius": 2,
+            "scrub": true,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "robot_arm_cell_cycle_step_inspect",
+                "step": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\":[{\"name\":\"Infeed pick\",\"start\":0,\"end\":3.2,\"progress\":1.0,\"color\":\"#FFC400\"},{\"name\":\"Transfer\",\"start\":3.2,\"end\":6.0,\"progress\":1.0,\"color\":\"#FFC400\"},{\"name\":\"Vise clamp\",\"start\":6.0,\"end\":7.4,\"progress\":1.0,\"color\":\"#3DDBD9\"},{\"name\":\"Door close\",\"start\":7.4,\"end\":8.6,\"progress\":0.6,\"color\":\"#3DDBD9\"},{\"name\":\"Spindle run\",\"start\":8.6,\"end\":38.0,\"progress\":0.0,\"color\":\"#FF7A1A\"},{\"name\":\"Unload\",\"start\":38.0,\"end\":42.5,\"progress\":0.0,\"color\":\"#FFC400\"},{\"name\":\"Outfeed\",\"start\":42.5,\"end\":45.8,\"progress\":0.0,\"color\":\"#FFC400\"},{\"name\":\"Cycle done\",\"start\":45.8,\"milestone\":true,\"color\":\"#4CD964\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_cycle"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "rac-cycle-times",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Last 8 cycles",
+          "tint": "#FFC400",
+          "chartConfig": {
+            "showGrid": true,
+            "showValues": false,
+            "yMin": 40,
+            "yMax": 55,
+            "barCornerRadius": 2
+          },
+          "defaultValue": "{\"categories\":[\"C41\",\"C42\",\"C43\",\"C44\",\"C45\",\"C46\",\"C47\",\"C48\"],\"series\":[{\"name\":\"Cycle s\",\"type\":\"bar\",\"color\":\"#FFC400\",\"values\":[46.2,45.9,47.8,45.6,52.3,46.0,45.7,46.1]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_cycle"
+              },
+              "valuePath": "history"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "rac-motor-temp",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "J2 Motor °C",
+          "tint": "#FF7A1A",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": 58.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_joints"
+              },
+              "valuePath": "temp_j2_c"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "rac-events",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Controller Events",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "controlHeight": 210,
+          "logColors": {
+            "error": "#FF2D2D",
+            "warn": "#FFC400",
+            "info": "#3DDBD9",
+            "debug": "#7A8088"
+          },
+          "defaultValue": "[{\"level\":\"info\",\"message\":\"14:02:11 PICK_VF2 loaded \\u00b7 5 points \\u00b7 rev 7\"},{\"level\":\"info\",\"message\":\"14:02:40 Cycle 45 start\"},{\"level\":\"warn\",\"message\":\"14:03:31 Cycle 45 +6.4 s \\u00b7 vise clamp retry\"},{\"level\":\"info\",\"message\":\"14:06:02 Door interlock OK \\u00b7 spindle 8200 rpm\"},{\"level\":\"debug\",\"message\":\"14:07:15 J2 torque peak 91.3 Nm\"},{\"level\":\"info\",\"message\":\"14:08:48 Cycle 48 start\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "robot_arm_cell_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Crew",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "rac-crew-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Cell 3 · Shift B",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": true,
+            "historyCount": 150,
+            "tint": "#FFC400"
+          }
+        }
+      ]
+    }
+  ]
+}

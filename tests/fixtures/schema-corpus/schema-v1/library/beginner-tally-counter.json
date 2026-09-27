@@ -1,0 +1,185 @@
+{
+  "name": "Tally Counter",
+  "headerTitle": "Tally Counter",
+  "id": "tally-counter",
+  "version": 1,
+  "accentColor": "#30D158",
+  "description": "A one-screen headcount clicker: a big synced number, +1 / -1 / reset buttons, and a stepper that sets how much each tap counts.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Count",
+      "icon": "number.circle.fill",
+      "grid": {
+        "columns": 3,
+        "rows": 6
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "about",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            3
+          ],
+          "text": "Buttons send tally_counter_cmd; your server replies with tally_counter_state to set the number.",
+          "icon": "lightbulb",
+          "style": "caption",
+          "tint": "#AEAEB2"
+        },
+        {
+          "type": "label",
+          "id": "count-display",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            2,
+            3
+          ],
+          "text": "128",
+          "style": "title",
+          "align": "center",
+          "icon": "person.2.fill",
+          "tint": "#30D158",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "tally_counter_state"
+              },
+              "valuePath": "count"
+            }
+          ],
+          "formatValue": "decimal"
+        },
+        {
+          "type": "button",
+          "id": "btn-minus",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "-1",
+          "icon": "minus",
+          "style": "outlined",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "tally_counter_cmd",
+              "cmd": "decrement"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "btn-plus",
+          "position": [
+            3,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "+1",
+          "icon": "plus",
+          "style": "filled",
+          "tint": "#30D158",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "tally_counter_cmd",
+              "cmd": "increment"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "btn-reset",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Reset",
+          "icon": "arrow.counterclockwise",
+          "style": "tinted",
+          "tint": "#FF453A",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "tally_counter_cmd",
+              "cmd": "reset"
+            }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "step-divider",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            3
+          ],
+          "label": "Each tap counts",
+          "style": "dashed",
+          "tint": "#8E8E93"
+        },
+        {
+          "type": "stepper",
+          "id": "step-size",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            3
+          ],
+          "label": "Step size",
+          "icon": "arrow.up.arrow.down",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "defaultValue": 1,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "tally_counter_step",
+              "step": "{{value}}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

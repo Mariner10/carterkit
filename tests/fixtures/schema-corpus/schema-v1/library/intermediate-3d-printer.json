@@ -1,0 +1,637 @@
+{
+  "name": "3D Printer",
+  "headerTitle": "PRUSA MK4 · BAY 2",
+  "id": "3d-printer",
+  "version": 1,
+  "accentColor": "#2EC4B6",
+  "description": "A print-farm babysitter for one FDM printer: live nozzle and bed temperatures, job progress and layer count, pause/cancel, filament setup, and a firmware log console.",
+  "difficulty": "intermediate",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#2EC4B6",
+    "accentGradient": [
+      "#2EC4B6",
+      "#9BF6FF"
+    ],
+    "cornerRadius": 14,
+    "tabBarTint": "#2EC4B6",
+    "pageBackgroundGradient": [
+      "#061214",
+      "#0B1E22",
+      "#10292E"
+    ],
+    "surfacePrimary": "#9BF6FF12",
+    "surfaceSecondary": "#9BF6FF0A",
+    "borderColor": "#9BF6FF2B",
+    "foregroundColor": "#EAFBFA",
+    "secondaryColor": "#8FB8B5"
+  },
+  "tabs": [
+    {
+      "title": "Print",
+      "icon": "cube.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "p3d-job-name",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "headline",
+          "icon": "doc.text",
+          "text": "benchy_hull_0.2mm_PETG.gcode",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_job"
+              },
+              "valuePath": "file"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "p3d-job-progress",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "min": 0,
+          "max": 100,
+          "progressStyle": "ring",
+          "tint": "#2EC4B6",
+          "label": "Job",
+          "icon": "printer.fill",
+          "defaultValue": 62,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_job"
+              },
+              "valuePath": "percent"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "p3d-status-group",
+          "label": "Status",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "p3d-layer",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "style": "mono",
+              "icon": "square.stack.3d.up",
+              "text": "Layer 148 / 240",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "3d_printer_job"
+                  },
+                  "valuePath": "layer_text"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "p3d-eta",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "style": "mono",
+              "icon": "clock",
+              "text": "ETA 1h 42m",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "3d_printer_job"
+                  },
+                  "valuePath": "eta_text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "p3d-nozzle-temp",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Nozzle",
+          "icon": "flame.fill",
+          "min": 0,
+          "max": 300,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix:°C",
+          "colorBlend": 0.3,
+          "segments": [
+            {
+              "limit": 170,
+              "color": "#3A7CA5"
+            },
+            {
+              "limit": 250,
+              "color": "#2EC4B6"
+            },
+            {
+              "limit": 280,
+              "color": "#FFB703"
+            },
+            {
+              "limit": 300,
+              "color": "#FB5607"
+            }
+          ],
+          "defaultValue": 238,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_temps"
+              },
+              "valuePath": "nozzle_c"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "p3d-bed-temp",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Bed",
+          "icon": "square.3.layers.3d.bottom.filled",
+          "min": 0,
+          "max": 120,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix:°C",
+          "colorBlend": 0.3,
+          "segments": [
+            {
+              "limit": 50,
+              "color": "#3A7CA5"
+            },
+            {
+              "limit": 90,
+              "color": "#2EC4B6"
+            },
+            {
+              "limit": 110,
+              "color": "#FFB703"
+            },
+            {
+              "limit": 120,
+              "color": "#FB5607"
+            }
+          ],
+          "defaultValue": 85,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_temps"
+              },
+              "valuePath": "bed_c"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "p3d-nozzle-trend",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Nozzle · last 5 min",
+          "tint": "#2EC4B6",
+          "sparklinePoints": 120,
+          "sparklineFill": true,
+          "defaultValue": 238,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_temps"
+              },
+              "valuePath": "nozzle_c"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "p3d-pause",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pause",
+          "icon": "pause.fill",
+          "style": "tinted",
+          "tint": "#FFB703",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "3d_printer_command",
+              "command": "pause",
+              "job": "benchy_hull_0.2mm_PETG.gcode"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "p3d-cancel",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cancel",
+          "icon": "xmark.octagon.fill",
+          "style": "tinted",
+          "tint": "#FB5607",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "3d_printer_command",
+              "command": "cancel",
+              "job": "benchy_hull_0.2mm_PETG.gcode"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Material",
+      "icon": "paintpalette.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "p3d-filament-group",
+          "label": "Filament",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "colorPicker",
+              "id": "p3d-filament-color",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Spool color",
+              "defaultValue": "#E63946",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "3d_printer_filament",
+                  "field": "color",
+                  "hex": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "picker",
+              "id": "p3d-material",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Material",
+              "pickerStyle": "menu",
+              "options": [
+                "pla",
+                "petg",
+                "abs",
+                "tpu",
+                "asa"
+              ],
+              "optionLabels": [
+                "PLA",
+                "PETG",
+                "ABS",
+                "TPU 95A",
+                "ASA"
+              ],
+              "defaultValue": "petg",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "3d_printer_filament",
+                  "field": "material",
+                  "material": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "p3d-nozzle-target",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Nozzle target",
+              "icon": "flame",
+              "min": 180,
+              "max": 290,
+              "step": 5,
+              "repeatOnHold": true,
+              "formatValue": "suffix:°C",
+              "defaultValue": 240,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "3d_printer_setpoint",
+                  "heater": "nozzle",
+                  "target_c": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "p3d-bed-target",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Bed target",
+              "icon": "square.3.layers.3d.bottom.filled",
+              "min": 0,
+              "max": 110,
+              "step": 5,
+              "repeatOnHold": true,
+              "formatValue": "suffix:°C",
+              "defaultValue": 85,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "3d_printer_setpoint",
+                  "heater": "bed",
+                  "target_c": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "p3d-runout",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Runout sensor",
+          "style": "badge",
+          "statusColors": {
+            "loaded": "#2EC4B6",
+            "low": "#FFB703",
+            "empty": "#FB5607"
+          },
+          "defaultValue": "loaded",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_filament_state"
+              },
+              "valuePath": "runout"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "p3d-spool-left",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "style": "mono",
+          "icon": "circle.dashed",
+          "text": "312 g left",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_filament_state"
+              },
+              "valuePath": "remaining_text"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "p3d-fan",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Part cooling fan",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "formatValue": "percent",
+          "minIcon": "fan",
+          "maxIcon": "fan.fill",
+          "defaultValue": 40,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "3d_printer_setpoint",
+              "heater": "part_fan",
+              "percent": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Console",
+      "icon": "terminal.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "logConsole",
+          "id": "p3d-log",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            8,
+            4
+          ],
+          "label": "Firmware log",
+          "maxLines": 500,
+          "fontSize": 11,
+          "showTimestamps": true,
+          "autoScroll": true,
+          "controlHeight": 470,
+          "logColors": {
+            "error": "#FB5607",
+            "warn": "#FFB703",
+            "info": "#2EC4B6",
+            "debug": "#5C7A78"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "3d_printer_log"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

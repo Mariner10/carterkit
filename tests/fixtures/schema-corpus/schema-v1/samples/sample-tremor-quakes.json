@@ -1,0 +1,598 @@
+{
+  "name": "Tremor",
+  "headerTitle": "Tremor",
+  "version": 1,
+  "accentColor": "#FF453A",
+  "appearance": {
+    "colorScheme": "dark"
+  },
+  "theme": {
+    "accentColor": "#FF453A",
+    "accentGradient": [
+      "#FF453A",
+      "#FF9F0A"
+    ],
+    "pageBackgroundGradient": [
+      "#120607",
+      "#241109"
+    ],
+    "cornerRadius": 20,
+    "fontDesign": "rounded",
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#FF453A"
+  },
+  "tabs": [
+    {
+      "title": "Globe",
+      "icon": "globe.americas.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "quake-map-day",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Every quake \u00b7 past 24 h",
+          "mapStyle": "globe",
+          "mapZoom": 30,
+          "tint": "#FF9F0A",
+          "mapConfig": {
+            "markerSizeProperty": "mag",
+            "markerSizeDomain": [
+              0,
+              7
+            ],
+            "markerSizeRange": [
+              7,
+              30
+            ],
+            "markerLabelProperty": "place",
+            "rippleProperty": "mag",
+            "rippleThreshold": 4.0,
+            "ripple": {
+              "color": "#FF453A",
+              "period": 1.8,
+              "radius": 60
+            },
+            "maxMarkers": 400
+          },
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+              "interval": 300
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "day-mag",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "min": 0,
+          "max": 8,
+          "gaugeStyle": "full",
+          "step": 0.1,
+          "label": "Latest M",
+          "segments": [
+            {
+              "limit": 2.5,
+              "color": "#30D158"
+            },
+            {
+              "limit": 4.5,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 6,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 8,
+              "color": "#FF453A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+              "interval": 300,
+              "valuePath": "features.0.properties.mag"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "day-count",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "\u2014",
+          "icon": "waveform.path.ecg",
+          "style": "headline",
+          "tint": "#FF9F0A",
+          "formatValue": "suffix: events",
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+              "interval": 300,
+              "valuePath": "metadata.count"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "day-where",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "text": "waiting for the feed\u2026",
+          "style": "caption",
+          "tint": "#AEB4BE",
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+              "interval": 300,
+              "valuePath": "features.0.properties.place"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "day-list",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "EVERY EVENT \u00b7 PAST 24 H",
+          "tint": "#FF9F0A",
+          "listColumns": [
+            {
+              "key": "properties.mag",
+              "label": "MAG",
+              "format": "decimal:1"
+            },
+            {
+              "key": "properties.place",
+              "label": "PLACE"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson",
+              "interval": 300,
+              "valuePath": "features"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "day-credit",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Data: USGS Earthquake Hazards Program (public feed)",
+          "style": "caption",
+          "align": "center",
+          "tint": "#8E8E93"
+        }
+      ]
+    },
+    {
+      "title": "M4.5+",
+      "icon": "waveform.path.ecg",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "quake-map-wk",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "M4.5+ \u00b7 past 7 days",
+          "mapStyle": "hybrid",
+          "mapZoom": 30,
+          "tint": "#FF9F0A",
+          "mapConfig": {
+            "markerSizeProperty": "mag",
+            "markerSizeDomain": [
+              4,
+              8
+            ],
+            "markerSizeRange": [
+              7,
+              30
+            ],
+            "markerLabelProperty": "place",
+            "rippleProperty": "mag",
+            "rippleThreshold": 6.0,
+            "ripple": {
+              "color": "#FF453A",
+              "period": 1.8,
+              "radius": 60
+            },
+            "maxMarkers": 400
+          },
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+              "interval": 600
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "wk-mag",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "min": 0,
+          "max": 8,
+          "gaugeStyle": "full",
+          "step": 0.1,
+          "label": "Latest M",
+          "segments": [
+            {
+              "limit": 2.5,
+              "color": "#30D158"
+            },
+            {
+              "limit": 4.5,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 6,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 8,
+              "color": "#FF453A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+              "interval": 600,
+              "valuePath": "features.0.properties.mag"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "wk-count",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "\u2014",
+          "icon": "waveform.path.ecg",
+          "style": "headline",
+          "tint": "#FF9F0A",
+          "formatValue": "suffix: worldwide",
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+              "interval": 600,
+              "valuePath": "metadata.count"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "wk-where",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "text": "waiting for the feed\u2026",
+          "style": "caption",
+          "tint": "#AEB4BE",
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+              "interval": 600,
+              "valuePath": "features.0.properties.place"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "wk-list",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "M4.5+ \u00b7 PAST 7 DAYS",
+          "tint": "#FF9F0A",
+          "listColumns": [
+            {
+              "key": "properties.mag",
+              "label": "MAG",
+              "format": "decimal:1"
+            },
+            {
+              "key": "properties.place",
+              "label": "PLACE"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson",
+              "interval": 600,
+              "valuePath": "features"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "wk-credit",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Data: USGS Earthquake Hazards Program (public feed)",
+          "style": "caption",
+          "align": "center",
+          "tint": "#8E8E93"
+        }
+      ]
+    },
+    {
+      "title": "West Coast",
+      "icon": "mappin.and.ellipse",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "quake-map-west",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "California & Nevada \u00b7 latest 300",
+          "mapStyle": "hybrid",
+          "mapZoom": 30,
+          "tint": "#FF9F0A",
+          "mapConfig": {
+            "markerSizeProperty": "mag",
+            "markerSizeDomain": [
+              0,
+              6
+            ],
+            "markerSizeRange": [
+              7,
+              30
+            ],
+            "markerLabelProperty": "place",
+            "rippleProperty": "mag",
+            "rippleThreshold": 4.0,
+            "ripple": {
+              "color": "#FF453A",
+              "period": 1.8,
+              "radius": 60
+            },
+            "maxMarkers": 400
+          },
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=32&maxlatitude=42&minlongitude=-125&maxlongitude=-114&minmagnitude=1&limit=300",
+              "interval": 300
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "west-mag",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "min": 0,
+          "max": 8,
+          "gaugeStyle": "full",
+          "step": 0.1,
+          "label": "Latest M",
+          "segments": [
+            {
+              "limit": 2.5,
+              "color": "#30D158"
+            },
+            {
+              "limit": 4.5,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 6,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 8,
+              "color": "#FF453A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=32&maxlatitude=42&minlongitude=-125&maxlongitude=-114&minmagnitude=1&limit=300",
+              "interval": 300,
+              "valuePath": "features.0.properties.mag"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "west-count",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "latest 300",
+          "icon": "waveform.path.ecg",
+          "style": "headline",
+          "tint": "#FF9F0A",
+          "formatValue": "suffix: nearby"
+        },
+        {
+          "type": "label",
+          "id": "west-where",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "text": "waiting for the feed\u2026",
+          "style": "caption",
+          "tint": "#AEB4BE",
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=32&maxlatitude=42&minlongitude=-125&maxlongitude=-114&minmagnitude=1&limit=300",
+              "interval": 300,
+              "valuePath": "features.0.properties.place"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "west-list",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "CALIFORNIA & NEVADA",
+          "tint": "#FF9F0A",
+          "listColumns": [
+            {
+              "key": "properties.mag",
+              "label": "MAG",
+              "format": "decimal:1"
+            },
+            {
+              "key": "properties.place",
+              "label": "PLACE"
+            }
+          ],
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=32&maxlatitude=42&minlongitude=-125&maxlongitude=-114&minmagnitude=1&limit=300",
+              "interval": 300,
+              "valuePath": "features"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "west-credit",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Data: USGS Earthquake Hazards Program (public feed)",
+          "style": "caption",
+          "align": "center",
+          "tint": "#8E8E93"
+        }
+      ]
+    }
+  ]
+}

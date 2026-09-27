@@ -1,0 +1,57 @@
+{
+  "name": "My first layout",
+  "headerTitle": "My first layout",
+  "id": "first-layout",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Home",
+      "icon": "house.fill",
+      "grid": { "columns": 2, "rows": 6, "rowHeight": 64 },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "lamp",
+          "position": [0, 0],
+          "span": [1, 1],
+          "label": "Lamp",
+          "icon": "lightbulb.fill",
+          "defaultValue": false,
+          "tint": "#FFD60A"
+        },
+        {
+          "type": "statusLight",
+          "id": "lamp-state",
+          "position": [0, 1],
+          "span": [1, 1],
+          "label": "Lamp",
+          "style": "badge",
+          "defaultValue": "off",
+          "statusColors": { "on": "#FFD60A", "off": "#8E8E93" }
+        },
+        {
+          "type": "gauge",
+          "id": "temperature",
+          "position": [1, 0],
+          "span": [4, 2],
+          "label": "Temperature",
+          "min": 10,
+          "max": 30,
+          "defaultValue": 21,
+          "formatValue": "suffix:°C",
+          "tint": "#FF9F0A",
+          "gaugeStyle": "full"
+        },
+        {
+          "type": "label",
+          "id": "note",
+          "position": [5, 0],
+          "span": [1, 2],
+          "text": "Flip the lamp. Watch the light answer.",
+          "align": "center"
+        }
+      ]
+    }
+  ]
+}

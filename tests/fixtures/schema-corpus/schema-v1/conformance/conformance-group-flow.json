@@ -1,0 +1,62 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "stack",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 4,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "a",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "Hi",
+              "controlHeight": 44
+            },
+            {
+              "type": "label",
+              "id": "b",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "Hi"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

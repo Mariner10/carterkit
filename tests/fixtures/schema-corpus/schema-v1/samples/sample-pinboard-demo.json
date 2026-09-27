@@ -1,0 +1,52 @@
+{
+  "name": "Pinboard Demo",
+  "headerTitle": "Place & Tap",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Floor Plan",
+      "icon": "house.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "pinboard",
+          "id": "home-plan",
+          "position": [0, 0],
+          "span": [10, 4],
+          "controlHeight": 560,
+          "label": "Home Devices",
+          "pinboardConfig": {
+            "background": "house.fill",
+            "surfaceAspect": 1.6,
+            "searchable": false,
+            "paletteLabel": "Unplaced devices",
+            "items": [
+              { "id": "living-lamp", "label": "Living Lamp", "icon": "lamp.table.fill", "tint": "#FF9500", "x": 0.28, "y": 0.4,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
+              { "id": "thermostat", "label": "Thermostat", "icon": "thermometer.medium", "tint": "#FF3B30", "x": 0.72, "y": 0.36,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
+              { "id": "speaker", "label": "Speaker", "icon": "hifispeaker.fill", "tint": "#5AC8FA", "x": 0.5, "y": 0.72,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
+              { "id": "front-door", "label": "Front Door", "icon": "door.left.hand.closed", "tint": "#34C759",
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
+              { "id": "camera", "label": "Camera", "icon": "video.fill", "tint": "#AF52DE",
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } }
+            ],
+            "events": {
+              "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                         "payload": { "target_id": "hub", "type": "place_device",
+                                      "payload": { "device": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
+              "layout": { "method": "meshsocket", "mode": "send", "event": "floorplan_state" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

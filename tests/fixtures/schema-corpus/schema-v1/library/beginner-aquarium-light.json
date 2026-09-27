@@ -1,0 +1,162 @@
+{
+  "name": "Aquarium Light",
+  "headerTitle": "Reef Tank Light",
+  "id": "aquarium-light",
+  "version": 1,
+  "description": "A one-screen starter for a planted or reef tank LED: power, a sunrise/day/moon scene picker, and an intensity slider. Each control sends one broadcast, and a status light shows the fixture's reported mode.",
+  "difficulty": "beginner",
+  "accentColor": "#30B0C7",
+  "tabs": [
+    {
+      "title": "Light",
+      "icon": "fish.fill",
+      "grid": { "columns": 4, "rows": 7, "rowHeight": 64 },
+      "children": [
+        {
+          "type": "label",
+          "id": "about",
+          "position": [0, 0],
+          "span": [1, 4],
+          "icon": "graduationcap.fill",
+          "text": "About: every control here sends one broadcast with its value as {{value}}. Only the Fixture light listens — it colors itself from the tank's reported mode.",
+          "style": "caption"
+        },
+        {
+          "type": "toggle",
+          "id": "power",
+          "position": [1, 0],
+          "span": [1, 2],
+          "label": "LED Power",
+          "icon": "power",
+          "defaultValue": true,
+          "tint": "#30B0C7",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_power", "on": "{{value}}" }
+          }
+        },
+        {
+          "type": "statusLight",
+          "id": "fixture-status",
+          "position": [1, 2],
+          "span": [1, 2],
+          "label": "Fixture",
+          "style": "badge",
+          "size": "large",
+          "defaultValue": "day",
+          "statusColors": {
+            "sunrise": "#FF9F0A",
+            "day": "#30B0C7",
+            "moon": "#5E5CE6",
+            "off": "#8E8E93",
+            "overheat": "#FF453A"
+          },
+          "sync": [{
+            "method": "meshsocket",
+            "type": "listen",
+            "event": "broadcast",
+            "filter": { "msg_type": "aquarium_light_state" },
+            "valuePath": "mode"
+          }]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "scene",
+          "position": [2, 0],
+          "span": [1, 4],
+          "options": ["sunrise", "day", "moon"],
+          "optionLabels": ["Sunrise", "Day", "Moon"],
+          "optionIcons": ["sunrise.fill", "sun.max.fill", "moon.stars.fill"],
+          "defaultValue": "day",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_scene", "scene": "{{value}}" }
+          }
+        },
+        {
+          "type": "slider",
+          "id": "intensity",
+          "position": [3, 0],
+          "span": [1, 4],
+          "label": "Intensity",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "defaultValue": 65,
+          "formatValue": "percent",
+          "minIcon": "light.min",
+          "maxIcon": "light.max",
+          "tint": "#30B0C7",
+          "continuous": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_intensity", "percent": "{{value}}" }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "photoperiod",
+          "position": [4, 0],
+          "span": [1, 4],
+          "label": "Photoperiod (hours)",
+          "icon": "clock.fill",
+          "min": 4,
+          "max": 12,
+          "step": 1,
+          "defaultValue": 8,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_photoperiod", "hours": "{{value}}" }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "quick-divider",
+          "position": [5, 0],
+          "span": [1, 4],
+          "label": "Quick actions"
+        },
+        {
+          "type": "button",
+          "id": "feeding-dim",
+          "position": [6, 0],
+          "span": [1, 2],
+          "label": "Feeding Dim",
+          "icon": "drop.fill",
+          "style": "tinted",
+          "tint": "#64D2FF",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_quick", "command": "feeding_dim" }
+          }
+        },
+        {
+          "type": "button",
+          "id": "lightning",
+          "position": [6, 2],
+          "span": [1, 2],
+          "label": "Storm Flash",
+          "icon": "cloud.bolt.fill",
+          "style": "tinted",
+          "tint": "#BF5AF2",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "aquarium_light_quick", "command": "storm_flash" }
+          }
+        }
+      ]
+    }
+  ]
+}

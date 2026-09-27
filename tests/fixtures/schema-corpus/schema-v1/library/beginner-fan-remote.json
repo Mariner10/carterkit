@@ -1,0 +1,126 @@
+{
+  "name": "Ceiling Fan Remote",
+  "headerTitle": "Bedroom Fan",
+  "id": "fan-remote",
+  "version": 1,
+  "accentColor": "#30B0C7",
+  "description": "A starter remote for a ceiling fan: toggles, a stepper, and a segmented control that each broadcast one simple message. A single status light listens for the fan's reported state.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Fan",
+      "icon": "fan.ceiling.fill",
+      "grid": { "columns": 2, "rows": 6 },
+      "children": [
+        {
+          "type": "label",
+          "id": "fan-about",
+          "position": [0, 0],
+          "span": [2, 2],
+          "style": "caption",
+          "text": "Learn by example: each toggle, stepper, and segment sends one fan_remote_* broadcast, with {{value}} filled in from the control. The All Off button sends a fixed message. The status light is the only control that listens back (a sync on fan_remote_state).",
+          "align": "leading"
+        },
+        {
+          "type": "toggle",
+          "id": "fan-power",
+          "position": [2, 0],
+          "span": [1, 1],
+          "label": "Fan Power",
+          "icon": "power",
+          "defaultValue": true,
+          "tint": "#30B0C7",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "fan_remote_power", "on": "{{value}}" }
+          }
+        },
+        {
+          "type": "statusLight",
+          "id": "fan-state",
+          "position": [2, 1],
+          "span": [1, 1],
+          "label": "Fan Reports",
+          "style": "badge",
+          "defaultValue": "spinning",
+          "statusColors": { "spinning": "#34C759", "stopped": "#8E8E93", "fault": "#FF3B30" },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": { "msg_type": "fan_remote_state" },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "fan-speed",
+          "position": [3, 0],
+          "span": [1, 2],
+          "label": "Speed",
+          "icon": "wind",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "defaultValue": 3,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "fan_remote_speed", "level": "{{value}}" }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "fan-direction",
+          "position": [4, 0],
+          "span": [1, 2],
+          "options": ["forward", "reverse"],
+          "optionLabels": ["Summer", "Winter"],
+          "optionIcons": ["sun.max.fill", "snowflake"],
+          "defaultValue": "forward",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "fan_remote_direction", "direction": "{{value}}" }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "fan-light",
+          "position": [5, 0],
+          "span": [1, 1],
+          "label": "Fan Light",
+          "icon": "lightbulb.fill",
+          "defaultValue": false,
+          "tint": "#FFD60A",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "fan_remote_light", "on": "{{value}}" }
+          }
+        },
+        {
+          "type": "button",
+          "id": "fan-all-off",
+          "position": [5, 1],
+          "span": [1, 1],
+          "label": "All Off",
+          "icon": "moon.zzz.fill",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "fan_remote_all_off" }
+          }
+        }
+      ]
+    }
+  ]
+}

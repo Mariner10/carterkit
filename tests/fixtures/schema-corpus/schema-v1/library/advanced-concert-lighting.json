@@ -1,0 +1,1407 @@
+{
+  "name": "Concert Lighting Rig",
+  "headerTitle": "AURORA · LX",
+  "version": 1,
+  "accentColor": "#FF3DAE",
+  "description": "A touring lighting desk: blackout and grand master with a BPM-synced strobe on Stage, color and intensity per fixture group, a GO-driven cue stack, and an audio-reactive 16-step chase.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#FF3DAE",
+    "accentGradient": [
+      "#FF3DAE",
+      "#7A3DFF",
+      "#3DD9FF"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 18,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#FF3DAE",
+    "pageBackgroundGradient": [
+      "#05030A",
+      "#120622",
+      "#1B0830"
+    ],
+    "surfacePrimary": "#FF3DAE12",
+    "surfaceSecondary": "#7A3DFF0E",
+    "surfaceTertiary": "#3DD9FF0A",
+    "borderColor": "#FF3DAE33",
+    "foregroundColor": "#F7F2FF",
+    "secondaryColor": "#B7A6D6",
+    "tertiaryColor": "#7D6E9A",
+    "toggle": {
+      "trackActiveColor": "#FF3DAE",
+      "knobColor": "#FFFFFF"
+    },
+    "slider": {
+      "trackActiveColor": "#FF3DAE",
+      "thumbColor": "#FFFFFF"
+    },
+    "segmented": {
+      "selectedColor": "#FF3DAE",
+      "selectedTextColor": "#FFFFFF"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Stage",
+      "icon": "light.beacon.max.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "cl-show",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Aurora Tour · Night 14 — Red Rocks",
+          "style": "headline",
+          "icon": "music.mic",
+          "tint": "#FF3DAE",
+          "align": "center",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "show"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "cl-strobe-glyph",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "light.beacon.max.fill",
+          "label": "Strobe",
+          "tint": "#F5F7FF",
+          "defaultValue": true,
+          "haptic": "rigid",
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "variableColor",
+            "effectOptions": [
+              "iterative",
+              "dimInactiveLayers"
+            ],
+            "speed": 2.6,
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "concert_lighting_beat",
+                  "downbeat": true
+                },
+                "effect": "bounce"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "strobe_on"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_strobe_hit",
+              "fixture": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "cl-bpm",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Clock BPM",
+          "icon": "metronome.fill",
+          "style": "large-mono",
+          "tint": "#FF3DAE",
+          "text": "128.0",
+          "formatValue": "decimal:1",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "bpm"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "cl-dmx",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "DMX · 4 universes",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "live",
+          "statusColors": {
+            "live": "#34E0A1",
+            "degraded": "#FFB020",
+            "lost": "#FF3B5C"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "dmx"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "cl-blackout",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Blackout",
+          "style": "button",
+          "onIcon": "lightbulb.slash.fill",
+          "offIcon": "lightbulb.fill",
+          "tint": "#FF3B5C",
+          "defaultValue": false,
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_blackout",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "blackout"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "cl-grandmaster",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Grand master",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 86,
+          "formatValue": "percent",
+          "minIcon": "sun.min",
+          "maxIcon": "sun.max.fill",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_grandmaster",
+              "level": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "grandmaster"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "cl-blackout-banner",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "BLACKOUT ENGAGED — all fixtures at 0%",
+          "style": "headline",
+          "icon": "exclamationmark.octagon.fill",
+          "tint": "#FF3B5C",
+          "align": "center",
+          "visible": {
+            "when": "cl-blackout",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "group",
+          "id": "cl-strobe-grp",
+          "label": "Strobe & FX",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "cl-strobe-rate",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Strobe rate (Hz)",
+              "min": 1,
+              "max": 25,
+              "step": 0.5,
+              "defaultValue": 12,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_strobe_rate",
+                  "hz": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_state"
+                  },
+                  "valuePath": "strobe_hz"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "cl-strobe-arm",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Arm strobe",
+              "icon": "bolt.fill",
+              "defaultValue": true,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_strobe_arm",
+                  "armed": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_state"
+                  },
+                  "valuePath": "strobe_on"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "cl-strobe-pattern",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "sync",
+                "rand",
+                "ramp"
+              ],
+              "optionLabels": [
+                "Sync",
+                "Rand",
+                "Ramp"
+              ],
+              "defaultValue": "sync",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_strobe_pattern",
+                  "pattern": "{{value}}"
+                }
+              }
+            }
+          ],
+          "visible": {
+            "when": "cl-blackout",
+            "operator": "eq",
+            "value": false
+          }
+        },
+        {
+          "type": "button",
+          "id": "cl-tap",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Tap tempo",
+          "icon": "hand.tap.fill",
+          "style": "tinted",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_tap_tempo"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "cl-bpm-sync",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "BPM sync",
+          "icon": "waveform.path",
+          "defaultValue": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_bpm_sync",
+              "enabled": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_state"
+              },
+              "valuePath": "bpm_sync"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Fixtures",
+      "icon": "lightbulb.2.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "cl-wash",
+          "label": "Front Wash · 12 × PAR",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "colorPicker",
+              "id": "cl-wash-color",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Color",
+              "defaultValue": "#FFB36B",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_color",
+                  "group": "wash",
+                  "hex": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "wash.hex"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "cl-wash-dim",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "label": "Intensity",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "defaultValue": 72,
+              "formatValue": "percent",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_dim",
+                  "group": "wash",
+                  "level": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "wash.level"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "cl-wash-preset",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "options": [
+                "warm",
+                "cool",
+                "amber",
+                "uv"
+              ],
+              "optionLabels": [
+                "Warm",
+                "Cool",
+                "Amber",
+                "UV"
+              ],
+              "defaultValue": "warm",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_preset",
+                  "group": "wash",
+                  "preset": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "cl-movers",
+          "label": "Movers · 8 × Beam 7R",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 4
+          },
+          "children": [
+            {
+              "type": "colorPicker",
+              "id": "cl-movers-color",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Color",
+              "defaultValue": "#3D7BFF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_color",
+                  "group": "movers",
+                  "hex": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "movers.hex"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "cl-movers-dim",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "label": "Intensity",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "defaultValue": 90,
+              "formatValue": "percent",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_dim",
+                  "group": "movers",
+                  "level": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "movers.level"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "cl-movers-beam",
+              "label": "Beam",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                3,
+                4
+              ],
+              "grid": {
+                "columns": 4,
+                "rows": 2
+              },
+              "children": [
+                {
+                  "type": "stepper",
+                  "id": "cl-movers-gobo",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    4
+                  ],
+                  "label": "Gobo",
+                  "min": 1,
+                  "max": 14,
+                  "step": 1,
+                  "defaultValue": 6,
+                  "wraps": true,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "concert_lighting_mover_gobo",
+                      "gobo": "{{value}}"
+                    }
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "concert_lighting_fixture"
+                      },
+                      "valuePath": "movers.gobo"
+                    }
+                  ]
+                },
+                {
+                  "type": "slider",
+                  "id": "cl-movers-zoom",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    4
+                  ],
+                  "label": "Zoom (°)",
+                  "min": 2,
+                  "max": 48,
+                  "step": 1,
+                  "defaultValue": 11,
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "concert_lighting_mover_zoom",
+                      "deg": "{{value}}"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "cl-battens",
+          "label": "LED Battens · 16 × pixel",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "colorPicker",
+              "id": "cl-battens-color",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Color",
+              "defaultValue": "#B04DFF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_color",
+                  "group": "battens",
+                  "hex": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "battens.hex"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "cl-battens-dim",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "label": "Intensity",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "defaultValue": 64,
+              "formatValue": "percent",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_fixture_dim",
+                  "group": "battens",
+                  "level": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "battens.level"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "cl-battens-chase",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Pixel chase",
+              "icon": "rectangle.split.3x1.fill",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "concert_lighting_batten_chase",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "concert_lighting_fixture"
+                  },
+                  "valuePath": "battens.chase"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "radar",
+          "id": "cl-balance",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Rig balance · drag to rebalance",
+          "tint": "#FF3DAE",
+          "defaultValue": "{\"axes\": [\"Wash\", \"Movers\", \"Battens\", \"Blinders\", \"Haze\", \"Spots\"], \"max\": 100, \"series\": [{\"name\": \"Look\", \"color\": \"#FF3DAE\", \"values\": [72, 90, 64, 35, 55, 80]}]}",
+          "radarConfig": {
+            "editable": true,
+            "step": 5,
+            "rings": 4,
+            "curved": true,
+            "showLegend": false,
+            "fillOpacity": 0.25
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_balance",
+              "bands": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_fixture"
+              },
+              "valuePath": "balance"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cues",
+      "icon": "list.number",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "cl-cue-live",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Live",
+          "icon": "play.fill",
+          "style": "mono",
+          "tint": "#34E0A1",
+          "text": "Q44 · Drop",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_cue"
+              },
+              "valuePath": "live"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "cl-cuelist",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Cue list · Aurora main",
+          "defaultValue": "[{\"q\": \"41\", \"name\": \"Walk-in haze\", \"fade\": \"8.0\", \"state\": \"done\"}, {\"q\": \"42\", \"name\": \"House to half\", \"fade\": \"5.0\", \"state\": \"done\"}, {\"q\": \"43\", \"name\": \"Intro \\u2014 blue sweep\", \"fade\": \"2.5\", \"state\": \"done\"}, {\"q\": \"44\", \"name\": \"Drop \\u00b7 white strobe\", \"fade\": \"0.0\", \"state\": \"live\"}, {\"q\": \"45\", \"name\": \"Verse \\u00b7 amber wash\", \"fade\": \"3.0\", \"state\": \"next\"}, {\"q\": \"46\", \"name\": \"Chorus \\u00b7 mover fan\", \"fade\": \"1.5\", \"state\": \"\\u2014\"}, {\"q\": \"47\", \"name\": \"Bridge \\u00b7 UV only\", \"fade\": \"4.0\", \"state\": \"\\u2014\"}, {\"q\": \"48\", \"name\": \"Finale \\u00b7 confetti\", \"fade\": \"0.5\", \"state\": \"\\u2014\"}]",
+          "listColumns": [
+            {
+              "key": "q",
+              "label": "Q"
+            },
+            {
+              "key": "name",
+              "label": "Cue"
+            },
+            {
+              "key": "fade",
+              "label": "Fade s"
+            },
+            {
+              "key": "state",
+              "label": "State"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_cue"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "cl-fade",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Fade",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 64,
+          "tint": "#FF3DAE",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_cue"
+              },
+              "valuePath": "fade_pct"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "cl-go",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "GO",
+          "icon": "play.circle.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#34E0A1",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_go"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "cl-back",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Back",
+          "icon": "backward.fill",
+          "style": "outlined",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_back"
+            }
+          }
+        },
+        {
+          "type": "slider",
+          "id": "cl-xfade",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "X-fade (s)",
+          "min": 0,
+          "max": 10,
+          "step": 0.5,
+          "defaultValue": 2.5,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_fade_time",
+              "seconds": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Chase",
+      "icon": "square.grid.4x3.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "heatmap",
+          "id": "cl-seq",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Chase · 16 steps",
+          "defaultValue": "{\"rows\": [\"Wash\", \"Movers\", \"Battens\", \"Blinders\", \"Strobe\"], \"cols\": [\"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\"], \"values\": [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 2], [3, 3, 0, 0, 3, 3, 0, 0, 3, 3, 0, 0, 3, 3, 3, 3], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4], [4, 0, 4, 0, 4, 0, 4, 0, 4, 0, 4, 0, 4, 4, 4, 4]]}",
+          "heatmapConfig": {
+            "discrete": true,
+            "colors": [
+              "#FFFFFF10",
+              "#FFB36B",
+              "#3D7BFF",
+              "#B04DFF",
+              "#F5F7FF"
+            ],
+            "cellShape": "circle",
+            "cellGap": 3,
+            "editable": true,
+            "sendMode": "matrix",
+            "showColLabels": false,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "concert_lighting_chase_pattern",
+                "pattern": "{{value}}"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_chase"
+              },
+              "valuePath": "grid"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "cl-chase-div",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "1/4",
+            "1/2",
+            "1",
+            "2x"
+          ],
+          "defaultValue": "1",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_chase_rate",
+              "division": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_chase"
+              },
+              "valuePath": "division"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "cl-audio-glyph",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "waveform",
+          "label": "Audio in",
+          "tint": "#FF3DAE",
+          "defaultValue": 68,
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "bold",
+            "variableMin": 0,
+            "variableMax": 100,
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "concert_lighting_beat"
+                },
+                "effect": "bounce"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_audio"
+              },
+              "valuePath": "level"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "cl-chase-run",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Run chase",
+          "icon": "play.fill",
+          "defaultValue": true,
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_chase_run",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_chase"
+              },
+              "valuePath": "running"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "cl-audio-gain",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Gain (dB)",
+          "min": -12,
+          "max": 12,
+          "step": 0.5,
+          "defaultValue": 3,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "concert_lighting_audio_gain",
+              "db": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "statusLight",
+          "id": "cl-beat",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Beat detect",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "locked",
+          "statusColors": {
+            "locked": "#34E0A1",
+            "searching": "#FFB020",
+            "silent": "#8A8FA8"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "concert_lighting_audio"
+              },
+              "valuePath": "beat_state"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
