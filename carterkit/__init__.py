@@ -48,6 +48,8 @@ from .connection import Connection
 from .hub import Hub, HubError
 from .notifications import notification_action
 from .surfaces import LayoutSurfaces
+from . import canonical
+from .canonical import canonical_json, content_digest
 
 try:
     from importlib.metadata import PackageNotFoundError, version as _pkg_version
@@ -106,6 +108,7 @@ __all__ = [
     "activity_attributes", "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",
     "mesh_broadcast", "glance_update", "notification_action", "LayoutSurfaces",
+    "canonical", "canonical_json", "content_digest",
     "surfaces_register_token", "surfaces_deregister_token", "surfaces_get_state",
     "surfaces_put_state", "surfaces_publish",
     "glance", "tile", "scene", "widget", "island", "live",
