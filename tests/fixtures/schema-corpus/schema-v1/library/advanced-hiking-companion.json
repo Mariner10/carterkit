@@ -1,0 +1,1101 @@
+{
+  "name": "Hiking Companion",
+  "headerTitle": "Trail Buddy",
+  "version": 1,
+  "accentColor": "#FFB74D",
+  "description": "A hiking companion that turns the phone's GPS, compass and barometer into a live trail dashboard, with a waypoint compass, elevation profile, and an SOS panel that shares your position.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark"
+  },
+  "theme": {
+    "accentColor": "#FFB74D",
+    "accentGradient": [
+      "#FFB74D",
+      "#FF7043"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 16,
+    "cardPadding": 12,
+    "pageBackgroundGradient": [
+      "#0E1A12",
+      "#1B2B1F",
+      "#2A2016"
+    ],
+    "surfacePrimary": "#C5E1A514",
+    "surfaceSecondary": "#C5E1A50A",
+    "surfaceTertiary": "#C5E1A506",
+    "foregroundColor": "#F1F8E9",
+    "secondaryColor": "#C5E1A5B3",
+    "borderColor": "#C5E1A52E",
+    "tabBarTint": "#FFB74D",
+    "toggle": {
+      "trackActiveColor": "#66BB6A",
+      "knobShadow": true
+    },
+    "segmented": {
+      "selectedColor": "#FFB74D",
+      "selectedTextColor": "#1B2B1F"
+    },
+    "stepper": {
+      "buttonColor": "#FFB74D33",
+      "iconColor": "#FFB74D"
+    }
+  },
+  "batchPublishers": true,
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 10
+    },
+    {
+      "sensor": "barometer",
+      "interval": 30
+    },
+    {
+      "sensor": "device",
+      "interval": 120
+    }
+  ],
+  "tabs": [
+    {
+      "title": "Trail",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "hc-trail-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Tuckerman Ravine Trail",
+          "mapStyle": "hybrid",
+          "mapZoom": 0.04,
+          "tint": "#FFB74D",
+          "defaultValue": "{\"markers\": [{\"coordinate\": [44.2573, -71.2531], \"color\": \"#8BC34A\", \"size\": 14, \"label\": \"Pinkham Notch TH\"}, {\"coordinate\": [44.2632, -71.2771], \"color\": \"#4FC3F7\", \"size\": 12, \"label\": \"Hermit Lake\"}, {\"coordinate\": [44.2651, -71.2843], \"color\": \"#FFB74D\", \"size\": 18, \"label\": \"You\", \"ripple\": {\"color\": \"#FFB74D\", \"period\": 1.6, \"radius\": 48}}, {\"coordinate\": [44.2706, -71.3033], \"color\": \"#EF5350\", \"size\": 14, \"label\": \"Summit 1917 m\"}], \"paths\": [{\"points\": [[44.2573, -71.2531], [44.2589, -71.2602], [44.2611, -71.2688], [44.2632, -71.2771], [44.2651, -71.2843]], \"color\": \"#FFB74D\"}, {\"points\": [[44.2651, -71.2843], [44.2668, -71.2902], [44.2684, -71.2958], [44.2697, -71.3001], [44.2706, -71.3033]], \"color\": \"#A5D6A7\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_track"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "hc-progress",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "To Summit",
+          "icon": "flag.checkered",
+          "min": 0,
+          "max": 100,
+          "formatValue": "percent",
+          "tint": "#FFB74D",
+          "defaultValue": 58,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "progress_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-distance",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Distance",
+          "icon": "figure.hiking",
+          "formatValue": "suffix: km",
+          "defaultValue": 3.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "distance_km"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-eta",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Summit ETA",
+          "icon": "clock.fill",
+          "defaultValue": "1h 42m",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "eta"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "hc-gps-fix",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "GPS Fix",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "3d",
+          "statusColors": {
+            "3d": "#66BB6A",
+            "2d": "#FFCA28",
+            "searching": "#FF9800",
+            "none": "#EF5350"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "gps_fix"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "hc-pace",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Speed (km/h)",
+          "sparklinePoints": 60,
+          "sparklineFill": true,
+          "tint": "#AED581",
+          "defaultValue": 2.8,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "location"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Navigate",
+      "icon": "location.north.line.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "compass",
+          "id": "hc-compass",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            7,
+            4
+          ],
+          "label": "Point to Waypoint",
+          "defaultValue": 312,
+          "compassConfig": {
+            "tolerance": 12,
+            "dwell": 1.5,
+            "showCardinals": true,
+            "cardinalColor": "#C5E1A5",
+            "editable": true,
+            "pucks": [
+              {
+                "id": "summit",
+                "label": "Summit",
+                "icon": "mountain.2.fill",
+                "tint": "#EF5350",
+                "bearing": 292,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "hiking_companion_bearing",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "hermit-lake",
+                "label": "Hermit Lake",
+                "icon": "drop.fill",
+                "tint": "#4FC3F7",
+                "bearing": 248,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "hiking_companion_bearing",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "trailhead",
+                "label": "Trailhead",
+                "icon": "car.fill",
+                "tint": "#8BC34A",
+                "bearing": 101,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "hiking_companion_bearing",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "lions-head",
+                "label": "Lion Head",
+                "icon": "binoculars.fill",
+                "tint": "#FFB74D",
+                "bearing": 330,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "hiking_companion_bearing",
+                    "target": "{{value}}"
+                  }
+                }
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "heading"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-cardinal",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Facing",
+          "icon": "safari.fill",
+          "defaultValue": "NW",
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "heading.cardinal"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-true-heading",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "True Heading",
+          "formatValue": "suffix:°",
+          "defaultValue": 312,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "heading.trueHeading"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "hc-pressure",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Barometer",
+          "icon": "barometer",
+          "min": 75,
+          "max": 105,
+          "gaugeStyle": "half",
+          "formatValue": "suffix: kPa",
+          "segments": [
+            {
+              "limit": 85,
+              "color": "#EF5350"
+            },
+            {
+              "limit": 95,
+              "color": "#FFCA28"
+            },
+            {
+              "limit": 105,
+              "color": "#66BB6A"
+            }
+          ],
+          "colorBlend": 0.4,
+          "defaultValue": 81.6,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "barometer"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "hc-motion",
+          "label": "Footing",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "hc-pitch",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Slope",
+              "formatValue": "suffix:°",
+              "defaultValue": 14,
+              "sync": [
+                {
+                  "method": "sensor",
+                  "sensor": "motion.pitch"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "hc-roll",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Tilt",
+              "formatValue": "suffix:°",
+              "defaultValue": -3,
+              "sync": [
+                {
+                  "method": "sensor",
+                  "sensor": "motion.roll"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "hc-accel",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Jolt",
+              "icon": "waveform.path",
+              "formatValue": "suffix: g",
+              "defaultValue": 0.04,
+              "sync": [
+                {
+                  "method": "sensor",
+                  "sensor": "motion.accel"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Elevation",
+      "icon": "chart.xyaxis.line",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "chart",
+          "id": "hc-elev-chart",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Elevation Profile (m by km)",
+          "formatValue": "suffix: m",
+          "chartConfig": {
+            "smooth": true,
+            "showLegend": true,
+            "scrub": true,
+            "yMin": 500,
+            "yMax": 2000,
+            "lineWidth": 2.5,
+            "maxPoints": 120
+          },
+          "defaultValue": "{\"categories\": [\"0\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\"], \"series\": [{\"name\": \"Planned\", \"type\": \"area\", \"color\": \"#A5D6A7\", \"values\": [619, 780, 955, 1170, 1390, 1580, 1760, 1917]}, {\"name\": \"Walked\", \"type\": \"line\", \"color\": \"#FFB74D\", \"values\": [619, 774, 948, 1162, 1231]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_profile"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "hc-weather",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Summit Weather",
+          "systemName": "cloud.drizzle.fill",
+          "tint": "#90CAF9",
+          "defaultValue": true,
+          "iconMap": {
+            "true": "cloud.drizzle.fill",
+            "false": "sun.max.fill"
+          },
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "effect": "rain",
+            "particleColor": "#4FC3F7",
+            "particleAngle": -20,
+            "particleIntensity": 0.55,
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "hiking_companion_storm_alert"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_weather"
+              },
+              "valuePath": "raining"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-ascent",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Ascent",
+          "icon": "arrow.up.right",
+          "formatValue": "suffix: m",
+          "defaultValue": 612,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "ascent_m"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-altitude",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "GPS Altitude",
+          "icon": "mountain.2",
+          "formatValue": "suffix: m",
+          "defaultValue": 1231,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "location.altitude"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-summit-wind",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Summit Wind",
+          "icon": "wind",
+          "formatValue": "suffix: km/h",
+          "defaultValue": 48,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_weather"
+              },
+              "valuePath": "wind_kmh"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "hc-baro-alt",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Relative Climb (barometer, m)",
+          "sparklinePoints": 90,
+          "sparklineFill": true,
+          "tint": "#90CAF9",
+          "defaultValue": 112,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "barometer.altitude"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "hc-waypoints",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Waypoints",
+          "listColumns": [
+            {
+              "key": "name",
+              "label": "Waypoint"
+            },
+            {
+              "key": "elev",
+              "label": "Elev m",
+              "format": "decimal:0"
+            },
+            {
+              "key": "dist",
+              "label": "km",
+              "format": "decimal:1"
+            },
+            {
+              "key": "eta",
+              "label": "ETA"
+            }
+          ],
+          "defaultValue": [
+            {
+              "name": "Pinkham Notch TH",
+              "elev": 619,
+              "dist": 0.0,
+              "eta": "done"
+            },
+            {
+              "name": "Crystal Cascade",
+              "elev": 780,
+              "dist": 0.8,
+              "eta": "done"
+            },
+            {
+              "name": "Hermit Lake Shelters",
+              "elev": 1170,
+              "dist": 3.0,
+              "eta": "done"
+            },
+            {
+              "name": "Bowl Floor",
+              "elev": 1390,
+              "dist": 4.0,
+              "eta": "0:25"
+            },
+            {
+              "name": "Headwall Top",
+              "elev": 1580,
+              "dist": 5.0,
+              "eta": "1:05"
+            },
+            {
+              "name": "Mt. Washington Summit",
+              "elev": 1917,
+              "dist": 6.8,
+              "eta": "1:42"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_waypoints"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Safety",
+      "icon": "sos",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "button",
+          "id": "hc-sos",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "SOS",
+          "icon": "sos.circle.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#E53935",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_sos",
+              "trail": "Tuckerman Ravine",
+              "note": "Hiker requests help"
+            }
+          },
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_sos_cancel",
+              "reason": "false alarm"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "hc-share",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Share Location",
+          "icon": "location.fill",
+          "haptic": "success",
+          "defaultValue": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_share",
+              "enabled": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "sharing"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "hc-beacon",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Beacon",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "standby",
+          "statusColors": {
+            "standby": "#66BB6A",
+            "sending": "#FFCA28",
+            "sos": "#E53935",
+            "offline": "#9E9E9E"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "beacon"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "hc-battery",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Phone Battery",
+          "icon": "battery.75percent",
+          "formatValue": "percent",
+          "defaultValue": 71,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "device.battery"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "hc-checkin-every",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Check-in",
+          "options": [
+            "15m",
+            "30m",
+            "1h",
+            "2h"
+          ],
+          "defaultValue": "30m",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_checkin_interval",
+              "interval": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "hc-live-share",
+          "label": "Live Share",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "visible": {
+            "when": "hc-share",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "hc-share-with",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Sharing with",
+              "icon": "person.2.fill",
+              "defaultValue": "Maya, AMC Pinkham Desk",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hiking_companion_state"
+                  },
+                  "valuePath": "share_with"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "hc-ping-min",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Ping every",
+              "min": 1,
+              "max": 60,
+              "step": 1,
+              "formatValue": "suffix: min",
+              "defaultValue": 10,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hiking_companion_ping_interval",
+                  "minutes": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "hc-ok",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "I'm OK",
+          "icon": "checkmark.seal.fill",
+          "style": "tinted",
+          "tint": "#66BB6A",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_checkin",
+              "status": "ok"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "hc-turnback",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Turning Back",
+          "icon": "arrow.uturn.backward",
+          "style": "tinted",
+          "tint": "#FFA726",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hiking_companion_checkin",
+              "status": "turning_back"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "hc-last-checkin",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Last check-in",
+          "icon": "clock.arrow.circlepath",
+          "defaultValue": "11:48 at Hermit Lake",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hiking_companion_state"
+              },
+              "valuePath": "last_checkin"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,692 @@
+{
+  "name": "DJ Deck Lite",
+  "headerTitle": "DECK LITE",
+  "version": 1,
+  "accentColor": "#FF2D95",
+  "description": "A two-deck DJ controller: transport, tempo and a crossfader on the Decks tab, three-band EQ with output meters on the Mixer tab, and a live set log.",
+  "difficulty": "intermediate",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#FF2D95",
+    "accentGradient": [
+      "#FF2D95",
+      "#00D1FF"
+    ],
+    "cornerRadius": 14,
+    "borderWidth": 0.5,
+    "tabBarTint": "#FF2D95",
+    "pageBackgroundGradient": [
+      "#07060D",
+      "#120A1F",
+      "#1A0B24"
+    ],
+    "surfacePrimary": "#C9A7FF14",
+    "surfaceSecondary": "#C9A7FF0A",
+    "borderColor": "#C9A7FF2E",
+    "foregroundColor": "#F4EEFF",
+    "secondaryColor": "#A99BC4",
+    "slider": {
+      "thumbColor": "#FFFFFF"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Decks",
+      "icon": "opticaldisc.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "bpm-a",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Deck A BPM",
+          "icon": "metronome.fill",
+          "style": "large-mono",
+          "tint": "#FF2D95",
+          "text": "124.5",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_deck_state"
+              },
+              "valuePath": "deck_a.bpm"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "bpm-b",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Deck B BPM",
+          "icon": "metronome.fill",
+          "style": "large-mono",
+          "tint": "#00D1FF",
+          "text": "126.0",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_deck_state"
+              },
+              "valuePath": "deck_b.bpm"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "deck-a",
+          "label": "Deck A \u00b7 Midnight Drive",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "deck-a-play",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Play",
+              "icon": "playpause.fill",
+              "style": "filled",
+              "tint": "#FF2D95",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_transport",
+                  "deck": "A",
+                  "command": "play_pause"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "deck-a-cue",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Cue",
+              "icon": "smallcircle.filled.circle",
+              "style": "outlined",
+              "tint": "#FF2D95",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_transport",
+                  "deck": "A",
+                  "command": "cue"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "deck-a-tempo",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Tempo %",
+              "min": -8,
+              "max": 8,
+              "step": 0.1,
+              "defaultValue": 0.4,
+              "tint": "#FF2D95",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_tempo",
+                  "deck": "A",
+                  "pitch_pct": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "deck-b",
+          "label": "Deck B \u00b7 Neon Tide",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "deck-b-play",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Play",
+              "icon": "playpause.fill",
+              "style": "filled",
+              "tint": "#00D1FF",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_transport",
+                  "deck": "B",
+                  "command": "play_pause"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "deck-b-cue",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Cue",
+              "icon": "smallcircle.filled.circle",
+              "style": "outlined",
+              "tint": "#00D1FF",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_transport",
+                  "deck": "B",
+                  "command": "cue"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "deck-b-tempo",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Tempo %",
+              "min": -8,
+              "max": 8,
+              "step": 0.1,
+              "defaultValue": -1.2,
+              "tint": "#00D1FF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_tempo",
+                  "deck": "B",
+                  "pitch_pct": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "crossfader",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Crossfader",
+          "min": -1,
+          "max": 1,
+          "step": 0.01,
+          "defaultValue": 0,
+          "minIcon": "a.circle.fill",
+          "maxIcon": "b.circle.fill",
+          "formatValue": "none",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "dj_deck_lite_crossfader",
+              "position": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "sparkline",
+          "id": "master-level",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Master Level dB",
+          "sparklinePoints": 80,
+          "sparklineFill": true,
+          "tint": "#FF2D95",
+          "defaultValue": -6.2,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_meters"
+              },
+              "valuePath": "master_db"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Mixer",
+      "icon": "slider.vertical.3",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "eq-a",
+          "label": "EQ \u00b7 Deck A",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "grid": {
+            "columns": 1,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "stepper",
+              "id": "eq-a-high",
+              "position": [
+                0,
+                0
+              ],
+              "label": "High dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": 0,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "A",
+                  "band": "high",
+                  "gain_db": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "eq-a-mid",
+              "position": [
+                1,
+                0
+              ],
+              "label": "Mid dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": -2,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "A",
+                  "band": "mid",
+                  "gain_db": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "eq-a-low",
+              "position": [
+                2,
+                0
+              ],
+              "label": "Low dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": 3,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "A",
+                  "band": "low",
+                  "gain_db": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "eq-b",
+          "label": "EQ \u00b7 Deck B",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "grid": {
+            "columns": 1,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "stepper",
+              "id": "eq-b-high",
+              "position": [
+                0,
+                0
+              ],
+              "label": "High dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": 0,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "B",
+                  "band": "high",
+                  "gain_db": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "eq-b-mid",
+              "position": [
+                1,
+                0
+              ],
+              "label": "Mid dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": -2,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "B",
+                  "band": "mid",
+                  "gain_db": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "eq-b-low",
+              "position": [
+                2,
+                0
+              ],
+              "label": "Low dB",
+              "min": -26,
+              "max": 6,
+              "step": 1,
+              "defaultValue": 3,
+              "repeatOnHold": true,
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "dj_deck_lite_eq",
+                  "deck": "B",
+                  "band": "low",
+                  "gain_db": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "master-out",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Master Out",
+          "icon": "speaker.wave.3.fill",
+          "min": -24,
+          "max": 6,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix: dB",
+          "defaultValue": -4,
+          "segments": [
+            {
+              "limit": -6,
+              "color": "#34C759"
+            },
+            {
+              "limit": 0,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 6,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_meters"
+              },
+              "valuePath": "master_db"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "booth-out",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Booth",
+          "icon": "hifispeaker.2.fill",
+          "min": -24,
+          "max": 6,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix: dB",
+          "defaultValue": -9,
+          "tint": "#00D1FF",
+          "segments": [
+            {
+              "limit": -6,
+              "color": "#34C759"
+            },
+            {
+              "limit": 0,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 6,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_meters"
+              },
+              "valuePath": "booth_db"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Set Log",
+      "icon": "list.bullet.rectangle",
+      "grid": {
+        "columns": 4,
+        "rows": 6
+      },
+      "children": [
+        {
+          "type": "logConsole",
+          "id": "set-log",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Set Log",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "controlHeight": 330,
+          "logColors": {
+            "error": "#FF3B30",
+            "warn": "#FFD60A",
+            "info": "#00D1FF",
+            "debug": "#8E8E93"
+          },
+          "defaultValue": [
+            "[info] Deck A loaded: Midnight Drive (124.5 BPM, 8A)",
+            "[info] Deck B loaded: Neon Tide (126.0 BPM, 9A)",
+            "[warn] Master peaking at -0.8 dB",
+            "[info] Crossfade A -> B complete"
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "dj_deck_lite_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

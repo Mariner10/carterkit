@@ -1,0 +1,733 @@
+{
+  "name": "Stream Deck",
+  "headerTitle": "PIXELVESPER · LIVE",
+  "description": "Streamer control deck: switch OBS scenes, flip mic and cam, watch viewers and stream health, run chat and fire test alerts from your phone.",
+  "difficulty": "intermediate",
+  "version": 1,
+  "accentColor": "#9B7BFF",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#9B7BFF",
+    "cornerRadius": 14,
+    "tabBarTint": "#9B7BFF",
+    "pageBackgroundGradient": [
+      "#0B0914",
+      "#170F2A"
+    ],
+    "surfacePrimary": "#FFFFFF10",
+    "surfaceSecondary": "#FFFFFF08",
+    "borderColor": "#9B7BFF33",
+    "foregroundColor": "#F2EEFF",
+    "secondaryColor": "#B4A8D6",
+    "toggle": {
+      "trackActiveColor": "#34C759"
+    },
+    "slider": {
+      "trackActiveColor": "#9B7BFF"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Live",
+      "icon": "dot.radiowaves.left.and.right",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "sd-onair",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Broadcast · twitch.tv/pixelvesper",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "statusColors": {
+            "live": "#FF3B5C",
+            "starting": "#FFB347",
+            "offline": "#8E8E93"
+          },
+          "defaultValue": "live",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "stream_deck_status"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sd-grp-scenes",
+          "label": "Scenes · OBS",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "sd-scene-0",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Starting Soon",
+              "icon": "clock.fill",
+              "style": "tinted",
+              "tint": "#9B7BFF",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "Starting Soon",
+                  "source": "deck"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-scene-1",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Just Chatting",
+              "icon": "person.wave.2.fill",
+              "style": "tinted",
+              "tint": "#5AC8FA",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "Just Chatting",
+                  "source": "deck"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-scene-2",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Gameplay",
+              "icon": "gamecontroller.fill",
+              "style": "filled",
+              "tint": "#34C759",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "Gameplay",
+                  "source": "deck"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-scene-3",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Gameplay + Cam",
+              "icon": "rectangle.inset.bottomright.filled",
+              "style": "tinted",
+              "tint": "#2ECC9A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "Gameplay + Cam",
+                  "source": "deck"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-scene-4",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "BRB",
+              "icon": "cup.and.saucer.fill",
+              "style": "tinted",
+              "tint": "#FFB347",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "BRB",
+                  "source": "deck"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-scene-5",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Ending",
+              "icon": "moon.stars.fill",
+              "style": "tinted",
+              "tint": "#FF5A8A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_scene",
+                  "scene": "Ending",
+                  "source": "deck"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "sd-grp-sources",
+          "label": "Sources",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "sd-mic",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Mic · Shure SM7B",
+              "icon": "mic.fill",
+              "tint": "#34C759",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_source",
+                  "source": "mic",
+                  "enabled": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "sd-cam",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Cam · Sony ZV-E10",
+              "icon": "video.fill",
+              "tint": "#34C759",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_source",
+                  "source": "cam",
+                  "enabled": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "sd-desktop-vol",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Game audio",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "formatValue": "percent",
+              "minIcon": "speaker.fill",
+              "maxIcon": "speaker.wave.3.fill",
+              "tint": "#9B7BFF",
+              "defaultValue": 62,
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_mixer",
+                  "channel": "desktop",
+                  "level": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sd-viewers",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Viewers",
+          "tint": "#9B7BFF",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            412,
+            430,
+            455,
+            471,
+            468,
+            502,
+            538,
+            561,
+            549,
+            587,
+            612,
+            640,
+            633,
+            671,
+            698,
+            724
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "stream_deck_stats"
+              },
+              "valuePath": "viewers"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sd-bitrate",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Bitrate · kbps",
+          "min": 0,
+          "max": 8000,
+          "gaugeStyle": "half",
+          "icon": "antenna.radiowaves.left.and.right",
+          "segments": [
+            {
+              "limit": 2500,
+              "color": "#FF3B5C"
+            },
+            {
+              "limit": 4500,
+              "color": "#FFB347"
+            },
+            {
+              "limit": 8000,
+              "color": "#34C759"
+            }
+          ],
+          "defaultValue": 6120,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "stream_deck_stats"
+              },
+              "valuePath": "bitrate_kbps"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sd-dropped",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Dropped frames · %",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "icon": "film.stack",
+          "segments": [
+            {
+              "limit": 1,
+              "color": "#34C759"
+            },
+            {
+              "limit": 4,
+              "color": "#FFB347"
+            },
+            {
+              "limit": 10,
+              "color": "#FF3B5C"
+            }
+          ],
+          "defaultValue": 0.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "stream_deck_stats"
+              },
+              "valuePath": "dropped_pct"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chat",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "logConsole",
+          "id": "sd-chatlog",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Chat",
+          "maxLines": 400,
+          "showTimestamps": true,
+          "fontSize": 12,
+          "autoScroll": true,
+          "controlHeight": 360,
+          "logColors": {
+            "info": "#E6E0FF",
+            "warn": "#FFB347",
+            "error": "#FF3B5C",
+            "debug": "#8E8E93"
+          },
+          "defaultValue": "[{\"level\": \"info\", \"message\": \"nightowl_42: that clutch was insane\"}, {\"level\": \"info\", \"message\": \"mossy_dev: gg, first time catching you live\"}, {\"level\": \"warn\", \"message\": \"AutoMod held a message from spamlord99\"}, {\"level\": \"info\", \"message\": \"kiwi_bytes: what keyboard is that?\"}, {\"level\": \"debug\", \"message\": \"!uptime -> 2h 14m\"}, {\"level\": \"info\", \"message\": \"lunar_tide subscribed (Tier 1, 7 months)\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "stream_deck_chat"
+              },
+              "valuePath": "line"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "sd-chat-send",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Say in chat",
+          "placeholder": "Message as pixelvesper",
+          "icon": "bubble.left.fill",
+          "clearOnSubmit": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "stream_deck_chat_send",
+              "text": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "picker",
+          "id": "sd-chat-mode",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Chat mode",
+          "pickerStyle": "menu",
+          "tint": "#9B7BFF",
+          "options": [
+            "Everyone",
+            "Followers only",
+            "Subscribers only",
+            "Emote only",
+            "Slow mode 30s"
+          ],
+          "defaultValue": "Everyone",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "stream_deck_chat_mode",
+              "mode": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Alerts",
+      "icon": "bell.badge.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 3
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "sd-grp-alerts",
+          "label": "Test alerts",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "sd-alert-follow",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Follow",
+              "icon": "heart.fill",
+              "style": "tinted",
+              "tint": "#FF5A8A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_alert_test",
+                  "kind": "follow",
+                  "label": "Follow"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-alert-sub",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Subscription",
+              "icon": "star.fill",
+              "style": "tinted",
+              "tint": "#9B7BFF",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_alert_test",
+                  "kind": "sub",
+                  "label": "Subscription"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-alert-bits",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Bits · 500",
+              "icon": "diamond.fill",
+              "style": "tinted",
+              "tint": "#5AC8FA",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_alert_test",
+                  "kind": "bits",
+                  "label": "Bits · 500"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "sd-alert-raid",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Raid · 120",
+              "icon": "person.3.fill",
+              "style": "tinted",
+              "tint": "#FFB347",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "stream_deck_alert_test",
+                  "kind": "raid",
+                  "label": "Raid · 120"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

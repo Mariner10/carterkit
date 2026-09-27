@@ -1,0 +1,647 @@
+{
+  "name": "Baby Monitor",
+  "headerTitle": "Nursery · Juniper",
+  "id": "baby-monitor",
+  "version": 1,
+  "accentColor": "#8E8CE0",
+  "description": "A calm two-tab nursery monitor: room temperature, humidity and a live noise trace beside lullaby, volume and nightlight controls, plus a week of sleep history. Readouts listen for baby_monitor_* broadcasts; every input sends one carrying {{value}}.",
+  "difficulty": "intermediate",
+  "keepAwake": true,
+  "theme": {
+    "accentColor": "#8E8CE0",
+    "cornerRadius": 18,
+    "fontDesign": "rounded",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0C0E1C",
+        "#161A30"
+      ],
+      "surfacePrimary": "#E6E8FF14",
+      "surfaceSecondary": "#E6E8FF0A",
+      "foregroundColor": "#EEF0FF",
+      "borderColor": "#C8CCFF1F"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F3F1FB",
+        "#E4E6F7"
+      ],
+      "surfacePrimary": "#FFFFFFE6",
+      "surfaceSecondary": "#F7F6FD",
+      "foregroundColor": "#1D1B33",
+      "borderColor": "#1D1B3314"
+    },
+    "slider": {
+      "trackActiveColor": "#8E8CE0",
+      "thumbColor": "#FFFFFF"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Nursery",
+      "icon": "moon.stars.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "baby-monitor-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Baby",
+          "style": "badge",
+          "defaultValue": "asleep",
+          "statusColors": {
+            "asleep": "#34C759",
+            "stirring": "#FF9F0A",
+            "awake": "#FF453A",
+            "away": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_status"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "baby-monitor-camera",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Camera",
+          "style": "badge",
+          "defaultValue": "online",
+          "statusColors": {
+            "online": "#34C759",
+            "weak": "#FF9F0A",
+            "offline": "#FF453A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_status"
+              },
+              "valuePath": "camera"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "baby-monitor-temp",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Room °C",
+          "icon": "thermometer.medium",
+          "min": 16,
+          "max": 26,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "defaultValue": 20.4,
+          "segments": [
+            {
+              "limit": 18,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 22,
+              "color": "#34C759"
+            },
+            {
+              "limit": 26,
+              "color": "#FF9F0A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_climate"
+              },
+              "valuePath": "temp_c"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "baby-monitor-humidity",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Humidity",
+          "icon": "humidity.fill",
+          "formatValue": "suffix:%",
+          "defaultValue": 47,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_climate"
+              },
+              "valuePath": "humidity_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "baby-monitor-noise-now",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Noise",
+          "icon": "waveform",
+          "formatValue": "suffix: dB",
+          "defaultValue": 31,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_audio"
+              },
+              "valuePath": "db"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "baby-monitor-asleep-for",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Asleep For",
+          "icon": "bed.double.fill",
+          "formatValue": "duration",
+          "defaultValue": 8520,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_status"
+              },
+              "valuePath": "asleep_s"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "baby-monitor-noise-trace",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Noise Level (dB)",
+          "tint": "#8E8CE0",
+          "sparklineFill": true,
+          "sparklinePoints": 180,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_audio"
+              },
+              "valuePath": "db"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "baby-monitor-soothe",
+          "label": "Soothe",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "picker",
+              "id": "baby-monitor-lullaby",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Lullaby",
+              "options": [
+                "twinkle",
+                "brahms",
+                "ocean",
+                "rain",
+                "heartbeat",
+                "white_noise"
+              ],
+              "optionLabels": [
+                "Twinkle Twinkle",
+                "Brahms' Lullaby",
+                "Ocean Waves",
+                "Soft Rain",
+                "Heartbeat",
+                "White Noise"
+              ],
+              "optionIcons": [
+                "star.fill",
+                "music.note",
+                "water.waves",
+                "cloud.rain.fill",
+                "heart.fill",
+                "wind"
+              ],
+              "defaultValue": "ocean",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_lullaby",
+                  "track": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "baby-monitor-volume",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Volume",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "defaultValue": 35,
+              "formatValue": "percent",
+              "minIcon": "speaker.fill",
+              "maxIcon": "speaker.wave.3.fill",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_volume",
+                  "level": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "baby-monitor-play",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Playing",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_playing",
+                  "playing": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "baby_monitor_player"
+                  },
+                  "valuePath": "playing"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "baby-monitor-sleep-timer",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Timer min",
+              "icon": "timer",
+              "min": 0,
+              "max": 120,
+              "step": 15,
+              "defaultValue": 45,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_timer",
+                  "minutes": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "baby-monitor-nightlight",
+          "label": "Nightlight",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "colorPicker",
+              "id": "baby-monitor-light-color",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Glow",
+              "defaultValue": "#F4B860",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_light_color",
+                  "hex": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "baby-monitor-light-level",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "label": "Brightness",
+              "min": 0,
+              "max": 100,
+              "step": 5,
+              "defaultValue": 15,
+              "formatValue": "percent",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "baby_monitor_set_light_level",
+                  "level": "{{value}}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sleep Log",
+      "icon": "list.bullet.clipboard",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "datePicker",
+          "id": "baby-monitor-wake-alarm",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Gentle Wake",
+          "datePickerMode": "time",
+          "datePickerStyle": "compact",
+          "defaultValue": "2026-09-25T06:30:00",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "baby_monitor_set_wake",
+              "time": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "chart",
+          "id": "baby-monitor-sleep-chart",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Nightly Sleep",
+          "tint": "#8E8CE0",
+          "chartConfig": {
+            "showLegend": true,
+            "barCornerRadius": 4
+          },
+          "defaultValue": {
+            "categories": [
+              "Wed",
+              "Thu",
+              "Fri",
+              "Sat",
+              "Sun",
+              "Mon",
+              "Tue"
+            ],
+            "series": [
+              {
+                "name": "Hours",
+                "type": "bar",
+                "color": "#8E8CE0",
+                "values": [
+                  9.7,
+                  8.6,
+                  9.8,
+                  9.1,
+                  10.4,
+                  8.9,
+                  9.6
+                ]
+              },
+              {
+                "name": "Wakes",
+                "type": "line",
+                "color": "#FF9F0A",
+                "values": [
+                  2,
+                  4,
+                  1,
+                  2,
+                  1,
+                  3,
+                  2
+                ]
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_sleep_history"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "baby-monitor-sleep-log",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Last 7 Nights",
+          "listColumns": [
+            {
+              "key": "night",
+              "label": "Night"
+            },
+            {
+              "key": "down",
+              "label": "Down"
+            },
+            {
+              "key": "up",
+              "label": "Up"
+            },
+            {
+              "key": "hours",
+              "label": "Hrs",
+              "format": "decimal:1"
+            },
+            {
+              "key": "wakes",
+              "label": "Wakes",
+              "format": "number"
+            }
+          ],
+          "defaultValue": "[{\"night\":\"Tue 23\",\"down\":\"19:42\",\"up\":\"06:18\",\"hours\":9.6,\"wakes\":2},{\"night\":\"Mon 22\",\"down\":\"19:55\",\"up\":\"05:47\",\"hours\":8.9,\"wakes\":3},{\"night\":\"Sun 21\",\"down\":\"19:30\",\"up\":\"06:40\",\"hours\":10.4,\"wakes\":1},{\"night\":\"Sat 20\",\"down\":\"20:12\",\"up\":\"06:05\",\"hours\":9.1,\"wakes\":2},{\"night\":\"Fri 19\",\"down\":\"19:48\",\"up\":\"06:22\",\"hours\":9.8,\"wakes\":1},{\"night\":\"Thu 18\",\"down\":\"19:37\",\"up\":\"05:30\",\"hours\":8.6,\"wakes\":4},{\"night\":\"Wed 17\",\"down\":\"19:45\",\"up\":\"06:10\",\"hours\":9.7,\"wakes\":2}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "baby_monitor_sleep_log"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

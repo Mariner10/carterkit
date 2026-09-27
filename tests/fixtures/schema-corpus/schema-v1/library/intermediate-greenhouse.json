@@ -1,0 +1,709 @@
+{
+  "name": "Greenhouse",
+  "version": 1,
+  "headerTitle": "GREENHOUSE · BAY 2",
+  "accentColor": "#7BD88F",
+  "description": "Climate control for a hobby greenhouse bay: live temperature, humidity and CO2 dials, vent and mister switches, a misting schedule, and a 24-hour climate history.",
+  "difficulty": "intermediate",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#7BD88F",
+    "cornerRadius": 14,
+    "fontDesign": "rounded",
+    "tabBarTint": "#7BD88F",
+    "pageBackgroundGradient": [
+      "#07130C",
+      "#0D2216",
+      "#12301D"
+    ],
+    "surfacePrimary": "#A8F0C014",
+    "surfaceSecondary": "#A8F0C00A",
+    "borderColor": "#A8F0C02E",
+    "foregroundColor": "#EFFFF4",
+    "secondaryColor": "#9CC7AA",
+    "toggle": {
+      "trackActiveColor": "#7BD88F"
+    },
+    "slider": {
+      "trackActiveColor": "#7BD88F"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Climate",
+      "icon": "leaf.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "gh-temp",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Air Temp",
+          "icon": "thermometer.medium",
+          "min": 5,
+          "max": 40,
+          "step": 0.1,
+          "formatValue": "suffix:°C",
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "colorBlend": 0.3,
+          "segments": [
+            {
+              "limit": 12,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 29,
+              "color": "#7BD88F"
+            },
+            {
+              "limit": 34,
+              "color": "#FFB340"
+            },
+            {
+              "limit": 40,
+              "color": "#FF5A4F"
+            }
+          ],
+          "defaultValue": 24.6,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_climate"
+              },
+              "valuePath": "temp_c"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "gh-humidity",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Humidity",
+          "icon": "humidity.fill",
+          "min": 0,
+          "max": 100,
+          "formatValue": "suffix:%",
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "colorBlend": 0.3,
+          "segments": [
+            {
+              "limit": 45,
+              "color": "#FFB340"
+            },
+            {
+              "limit": 85,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 100,
+              "color": "#8E7CFF"
+            }
+          ],
+          "defaultValue": 68,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_climate"
+              },
+              "valuePath": "humidity_pct"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "gh-co2",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "CO₂",
+          "icon": "aqi.medium",
+          "min": 300,
+          "max": 1600,
+          "formatValue": "suffix: ppm",
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 600,
+              "color": "#9CC7AA"
+            },
+            {
+              "limit": 1200,
+              "color": "#7BD88F"
+            },
+            {
+              "limit": 1600,
+              "color": "#FFB340"
+            }
+          ],
+          "defaultValue": 842,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_climate"
+              },
+              "valuePath": "co2_ppm"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "gh-actuators",
+          "label": "Actuators",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "gh-vent",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Roof Vent",
+              "icon": "wind",
+              "tint": "#7BD88F",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_vent_set",
+                  "open": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "greenhouse_actuators"
+                  },
+                  "valuePath": "vent_open"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "gh-mister",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Mister",
+              "icon": "drop.fill",
+              "tint": "#5AC8FA",
+              "defaultValue": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_mister_set",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "greenhouse_actuators"
+                  },
+                  "valuePath": "mister_on"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "gh-soil",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Soil Moisture · Bed A",
+          "tint": "#C8A46E",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            41,
+            40,
+            40,
+            39,
+            38,
+            38,
+            37,
+            52,
+            55,
+            54,
+            53,
+            52,
+            51,
+            50,
+            49
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_soil"
+              },
+              "valuePath": "moisture_pct"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "gh-controller",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Controller",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": {
+            "online": "#7BD88F",
+            "degraded": "#FFB340",
+            "offline": "#FF5A4F"
+          },
+          "defaultValue": "online",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_status"
+              },
+              "valuePath": "controller"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "gh-mode",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "auto",
+            "manual"
+          ],
+          "optionLabels": [
+            "Auto",
+            "Manual"
+          ],
+          "style": "pills",
+          "tint": "#7BD88F",
+          "defaultValue": "auto",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "greenhouse_mode_set",
+              "mode": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_status"
+              },
+              "valuePath": "mode"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Schedule",
+      "icon": "calendar.badge.clock",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "gh-mist-schedule",
+          "label": "Misting Schedule",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "datePicker",
+              "id": "gh-mist-start",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "First Cycle",
+              "datePickerMode": "time",
+              "datePickerStyle": "compact",
+              "tint": "#5AC8FA",
+              "defaultValue": "2026-09-24T06:30:00Z",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_schedule_set",
+                  "field": "mist_start",
+                  "time": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "datePicker",
+              "id": "gh-mist-end",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Last Cycle",
+              "datePickerMode": "time",
+              "datePickerStyle": "compact",
+              "tint": "#5AC8FA",
+              "defaultValue": "2026-09-24T18:45:00Z",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_schedule_set",
+                  "field": "mist_end",
+                  "time": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "gh-mist-duration",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Burst Length (s)",
+              "min": 5,
+              "max": 120,
+              "step": 5,
+              "defaultValue": 30,
+              "tint": "#5AC8FA",
+              "minIcon": "drop",
+              "maxIcon": "drop.fill",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_schedule_set",
+                  "field": "mist_seconds",
+                  "seconds": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "picker",
+              "id": "gh-mist-zone",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Zone",
+              "pickerStyle": "menu",
+              "tint": "#5AC8FA",
+              "options": [
+                "all",
+                "propagation",
+                "tomatoes",
+                "herbs",
+                "orchids"
+              ],
+              "optionLabels": [
+                "All Benches",
+                "Propagation Bench",
+                "Tomato Row",
+                "Herb Shelf",
+                "Orchid Corner"
+              ],
+              "defaultValue": "propagation",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "greenhouse_schedule_set",
+                  "field": "mist_zone",
+                  "zone": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "gh-vent-threshold",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Auto-Vent Above (°C)",
+          "min": 18,
+          "max": 35,
+          "step": 0.5,
+          "defaultValue": 27.5,
+          "minIcon": "thermometer.low",
+          "maxIcon": "thermometer.high",
+          "continuous": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "greenhouse_vent_threshold_set",
+              "temp_c": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "datePicker",
+          "id": "gh-lights-off",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Grow Lights Off",
+          "datePickerMode": "time",
+          "datePickerStyle": "compact",
+          "tint": "#FFB340",
+          "defaultValue": "2026-09-24T21:00:00Z",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "greenhouse_lights_schedule_set",
+              "off_time": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "colorPicker",
+          "id": "gh-light-color",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Grow Light Spectrum",
+          "defaultValue": "#C86BFA",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "greenhouse_light_color_set",
+              "hex": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "History",
+      "icon": "chart.xyaxis.line",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "chart",
+          "id": "gh-24h",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Last 24 Hours",
+          "tint": "#7BD88F",
+          "formatValue": "decimal",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "scrub": true,
+            "showGrid": false,
+            "lineWidth": 2.5,
+            "maxPoints": 96
+          },
+          "defaultValue": "{\"categories\": [\"00\", \"02\", \"04\", \"06\", \"08\", \"10\", \"12\", \"14\", \"16\", \"18\", \"20\", \"22\"], \"series\": [{\"name\": \"Temp °C\", \"type\": \"line\", \"color\": \"#7BD88F\", \"values\": [17.8, 17.1, 16.6, 16.9, 19.4, 23.2, 26.8, 28.1, 27.4, 24.6, 21.3, 19.2]}, {\"name\": \"Humidity %\", \"type\": \"area\", \"color\": \"#5AC8FA\", \"values\": [82, 85, 87, 86, 78, 66, 58, 55, 57, 63, 71, 77]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_history"
+              },
+              "valuePath": "series"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "gh-events",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Event Log",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "controlHeight": 220,
+          "tint": "#7BD88F",
+          "logColors": {
+            "info": "#9CC7AA",
+            "ok": "#7BD88F",
+            "warn": "#FFB340",
+            "error": "#FF5A4F"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "greenhouse_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

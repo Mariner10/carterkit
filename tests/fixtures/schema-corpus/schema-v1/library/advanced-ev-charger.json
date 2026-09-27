@@ -1,0 +1,1587 @@
+{
+  "name": "Amperline Charge Network",
+  "headerTitle": "AMPERLINE · BAY",
+  "version": 1,
+  "accentColor": "#3CF0A0",
+  "description": "Operator console for a 7-site Bay Area DC fast-charging network: live charger map, hourly occupancy heatmap, flip-to-manage station cards, session revenue distribution and tariff controls.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#3CF0A0",
+    "accentGradient": [
+      "#3CF0A0",
+      "#19C3FF"
+    ],
+    "fontDesign": "rounded",
+    "cornerRadius": 16,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 0.5,
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "tabBarTint": "#3CF0A0",
+    "pageBackgroundGradient": [
+      "#050D14",
+      "#0A1C2A",
+      "#0D2A2E"
+    ],
+    "surfacePrimary": "#3CF0A012",
+    "surfaceSecondary": "#19C3FF0C",
+    "surfaceTertiary": "#19C3FF06",
+    "foregroundColor": "#EAF7F2",
+    "secondaryColor": "#9DB8C4",
+    "tertiaryColor": "#5F7A86",
+    "borderColor": "#3CF0A02E",
+    "toggle": {
+      "trackActiveColor": "#FF5470",
+      "knobColor": "#EAF7F2",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#3CF0A0",
+      "thumbColor": "#EAF7F2"
+    },
+    "segmented": {
+      "trackColor": "#3CF0A014",
+      "selectedColor": "#3CF0A0",
+      "textColor": "#9DB8C4",
+      "selectedTextColor": "#050D14"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Network",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "net-health",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "hideBackground": true,
+          "grid": {
+            "columns": 2,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "net-ocpp",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "OCPP backend",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#3CF0A0",
+                "busy": "#FFC247",
+                "degraded": "#FFC247",
+                "down": "#FF5470",
+                "idle": "#6F8EA3"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_health"
+                  },
+                  "valuePath": "ocpp"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "net-grid",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "PG&E grid",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "busy",
+              "statusColors": {
+                "ok": "#3CF0A0",
+                "busy": "#FFC247",
+                "degraded": "#FFC247",
+                "down": "#FF5470",
+                "idle": "#6F8EA3"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_health"
+                  },
+                  "valuePath": "grid"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "map",
+          "id": "net-map",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Chargers · SF Bay",
+          "mapStyle": "standard",
+          "mapZoom": 0.5,
+          "tint": "#3CF0A0",
+          "mapConfig": {
+            "recenter": "initial"
+          },
+          "defaultValue": "{\"markers\":[{\"coordinate\":[37.7706,-122.3915],\"color\":\"#FFC247\",\"size\":18,\"label\":\"Mission Bay Hub \\u00b7 7/8\"},{\"coordinate\":[37.7596,-122.388],\"color\":\"#3CF0A0\",\"size\":14,\"label\":\"Dogpatch Yard \\u00b7 3/6\"},{\"coordinate\":[37.7946,-122.2767],\"color\":\"#FFC247\",\"size\":16,\"label\":\"Jack London Sq \\u00b7 9/10\"},{\"coordinate\":[37.834,-122.293],\"color\":\"#3CF0A0\",\"size\":13,\"label\":\"Emeryville Powell \\u00b7 2/4\"},{\"coordinate\":[37.5375,-122.2995],\"color\":\"#3CF0A0\",\"size\":15,\"label\":\"Hillsdale Mall \\u00b7 5/8\"},{\"coordinate\":[37.4467,-122.16],\"color\":\"#FFC247\",\"size\":14,\"label\":\"Palo Alto Univ Ave \\u00b7 4/4\"},{\"coordinate\":[37.5024,-121.9396],\"color\":\"#FF5470\",\"size\":18,\"label\":\"Warm Springs \\u00b7 0/6\",\"ripple\":{\"color\":\"#FF5470\",\"period\":1.3,\"radius\":52}}],\"paths\":[{\"points\":[[37.7706,-122.3915],[37.73,-122.395],[37.62,-122.39],[37.5375,-122.2995],[37.4467,-122.16]],\"color\":\"#19C3FF99\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_sites"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "net-util",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Network utilization",
+          "icon": "bolt.car.fill",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "full",
+          "defaultValue": 71,
+          "segments": [
+            {
+              "limit": 50,
+              "color": "#19C3FF"
+            },
+            {
+              "limit": 85,
+              "color": "#3CF0A0"
+            },
+            {
+              "limit": 100,
+              "color": "#FFC247"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_kpis"
+              },
+              "valuePath": "utilization_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "net-ports",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "powerplug.fill",
+          "text": "30 / 46 ports busy",
+          "style": "headline",
+          "tint": "#3CF0A0",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_kpis"
+              },
+              "valuePath": "ports_summary"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "net-load",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Fleet draw · MW",
+          "tint": "#19C3FF",
+          "sparklineFill": true,
+          "sparklinePoints": 48,
+          "defaultValue": [
+            1.42,
+            1.48,
+            1.55,
+            1.61,
+            1.58,
+            1.66,
+            1.74,
+            1.81,
+            1.79,
+            1.86,
+            1.93,
+            1.88,
+            1.97,
+            2.04,
+            1.99,
+            2.08
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_kpis"
+              },
+              "valuePath": "load_mw"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "net-occupancy",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Port occupancy by hour · %",
+          "formatValue": "suffix:%",
+          "heatmapConfig": {
+            "colors": [
+              "#0E2433",
+              "#19C3FF",
+              "#3CF0A0",
+              "#FFC247",
+              "#FF5470"
+            ],
+            "vMin": 0,
+            "vMax": 100,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 2
+          },
+          "defaultValue": "{\"rows\":[\"Mission Bay\",\"Dogpatch\",\"Jack London\",\"Emeryville\",\"Hillsdale\",\"Palo Alto\",\"Warm Spr.\"],\"cols\":[\"6a\",\"8a\",\"10a\",\"12p\",\"2p\",\"4p\",\"6p\",\"8p\",\"10p\"],\"values\":[[22,61,78,85,80,92,97,74,40],[10,35,48,55,52,66,81,58,22],[30,70,88,90,86,95,99,83,51],[8,25,40,44,39,52,63,47,18],[5,18,55,72,77,70,64,41,12],[35,82,96,91,88,94,90,60,25],[0,0,0,0,0,0,0,0,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_occupancy"
+              },
+              "valuePath": "grid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Stations",
+      "icon": "ev.charger.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "flipCard",
+          "id": "st-mb-card",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipTrigger": "tap",
+          "flipAxis": "horizontal",
+          "defaultValue": 0,
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "st-mb-front",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Mission Bay Hub",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "progressRing",
+                  "id": "st-mb-busy",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    1
+                  ],
+                  "label": "Ports busy",
+                  "icon": "ev.charger.fill",
+                  "min": 0,
+                  "max": 100,
+                  "progressStyle": "ring",
+                  "tint": "#FFC247",
+                  "defaultValue": 88,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "mb.busy_pct"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "st-mb-back",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "$0.52/kWh",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "sparkline",
+                  "id": "st-mb-draw",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    1
+                  ],
+                  "label": "Site draw · kW",
+                  "tint": "#19C3FF",
+                  "sparklineFill": true,
+                  "sparklinePoints": 30,
+                  "defaultValue": [
+                    212,
+                    236,
+                    251,
+                    268,
+                    274,
+                    281,
+                    290,
+                    302
+                  ],
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "mb.draw_kw"
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "id": "st-mb-reboot",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    1
+                  ],
+                  "label": "Reboot dispensers",
+                  "icon": "arrow.clockwise.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#19C3FF",
+                  "haptic": "warning",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "ev_charger_station_reboot",
+                      "station": "mb"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ev_charger_station_face",
+              "station": "mb",
+              "face": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_station"
+              },
+              "valuePath": "mb.face"
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "st-jl-card",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipTrigger": "tap",
+          "flipAxis": "horizontal",
+          "defaultValue": 0,
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "st-jl-front",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Jack London Sq",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "progressRing",
+                  "id": "st-jl-busy",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    1
+                  ],
+                  "label": "Ports busy",
+                  "icon": "ev.charger.fill",
+                  "min": 0,
+                  "max": 100,
+                  "progressStyle": "ring",
+                  "tint": "#FFC247",
+                  "defaultValue": 90,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "jl.busy_pct"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "st-jl-back",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "$0.49/kWh",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "sparkline",
+                  "id": "st-jl-draw",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    1
+                  ],
+                  "label": "Site draw · kW",
+                  "tint": "#19C3FF",
+                  "sparklineFill": true,
+                  "sparklinePoints": 30,
+                  "defaultValue": [
+                    180,
+                    196,
+                    221,
+                    240,
+                    255,
+                    262,
+                    249,
+                    270
+                  ],
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "jl.draw_kw"
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "id": "st-jl-reboot",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    1
+                  ],
+                  "label": "Reboot dispensers",
+                  "icon": "arrow.clockwise.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#19C3FF",
+                  "haptic": "warning",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "ev_charger_station_reboot",
+                      "station": "jl"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ev_charger_station_face",
+              "station": "jl",
+              "face": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_station"
+              },
+              "valuePath": "jl.face"
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "st-hd-card",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipTrigger": "tap",
+          "flipAxis": "horizontal",
+          "defaultValue": 0,
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "st-hd-front",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Hillsdale Mall",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "progressRing",
+                  "id": "st-hd-busy",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    1
+                  ],
+                  "label": "Ports busy",
+                  "icon": "ev.charger.fill",
+                  "min": 0,
+                  "max": 100,
+                  "progressStyle": "ring",
+                  "tint": "#3CF0A0",
+                  "defaultValue": 63,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "hd.busy_pct"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "st-hd-back",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "$0.44/kWh",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "sparkline",
+                  "id": "st-hd-draw",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    1
+                  ],
+                  "label": "Site draw · kW",
+                  "tint": "#19C3FF",
+                  "sparklineFill": true,
+                  "sparklinePoints": 30,
+                  "defaultValue": [
+                    96,
+                    110,
+                    122,
+                    140,
+                    151,
+                    146,
+                    139,
+                    158
+                  ],
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "hd.draw_kw"
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "id": "st-hd-reboot",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    1
+                  ],
+                  "label": "Reboot dispensers",
+                  "icon": "arrow.clockwise.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#19C3FF",
+                  "haptic": "warning",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "ev_charger_station_reboot",
+                      "station": "hd"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ev_charger_station_face",
+              "station": "hd",
+              "face": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_station"
+              },
+              "valuePath": "hd.face"
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "st-ws-card",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipTrigger": "tap",
+          "flipAxis": "horizontal",
+          "defaultValue": 0,
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "st-ws-front",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Warm Springs",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "progressRing",
+                  "id": "st-ws-busy",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    1
+                  ],
+                  "label": "Ports busy",
+                  "icon": "ev.charger.fill",
+                  "min": 0,
+                  "max": 100,
+                  "progressStyle": "ring",
+                  "tint": "#FF5470",
+                  "defaultValue": 0,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "ws.busy_pct"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "st-ws-back",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "$0.47/kWh · FAULT",
+              "grid": {
+                "columns": 1,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "sparkline",
+                  "id": "st-ws-draw",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    1
+                  ],
+                  "label": "Site draw · kW",
+                  "tint": "#19C3FF",
+                  "sparklineFill": true,
+                  "sparklinePoints": 30,
+                  "defaultValue": [
+                    62,
+                    58,
+                    40,
+                    12,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "ev_charger_station"
+                      },
+                      "valuePath": "ws.draw_kw"
+                    }
+                  ]
+                },
+                {
+                  "type": "button",
+                  "id": "st-ws-reboot",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    1
+                  ],
+                  "label": "Reboot dispensers",
+                  "icon": "arrow.clockwise.circle.fill",
+                  "style": "tinted",
+                  "size": "compact",
+                  "tint": "#FF5470",
+                  "haptic": "warning",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "ev_charger_station_reboot",
+                      "station": "ws"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ev_charger_station_face",
+              "station": "ws",
+              "face": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_station"
+              },
+              "valuePath": "ws.face"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Revenue",
+      "icon": "chart.bar.xaxis",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "boxPlot",
+          "id": "rev-sessions",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Revenue per session · $",
+          "formatValue": "decimal:2",
+          "boxStyle": "box",
+          "tint": "#3CF0A0",
+          "boxPlotConfig": {
+            "showMean": true,
+            "scrub": true,
+            "colors": [
+              "#3CF0A0",
+              "#19C3FF",
+              "#8C7BFF",
+              "#FFC247",
+              "#5EE3FF"
+            ],
+            "boxAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "ev_charger_inspect_station",
+                "stats": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"categories\":[\"Mission Bay\",\"Jack London\",\"Hillsdale\",\"Palo Alto\",\"Dogpatch\"],\"samples\":[[9.8,12.4,14.1,15.6,11.2,18.9,13.3,16.7,12.0,31.5,14.8],[8.4,10.9,13.7,12.2,14.9,11.6,16.3,9.9,13.1,12.8,27.2],[6.1,7.8,9.4,8.7,10.2,7.1,11.9,8.3,9.8,6.9],[11.5,14.2,17.8,16.1,19.4,15.3,21.0,13.9,18.2,36.8],[5.2,7.4,8.8,6.6,9.9,7.9,10.4,6.1,8.5,12.7]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_revenue"
+              },
+              "valuePath": "sessions"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "rev-target",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Sept target",
+          "icon": "target",
+          "min": 0,
+          "max": 100,
+          "progressStyle": "ring",
+          "tint": "#3CF0A0",
+          "defaultValue": 74,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_revenue"
+              },
+              "valuePath": "target_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "rev-mtd",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "dollarsign.circle.fill",
+          "text": "$148,210 MTD",
+          "style": "headline",
+          "tint": "#3CF0A0",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_revenue"
+              },
+              "valuePath": "mtd_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "rev-kwh",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "bolt.fill",
+          "text": "312.4 MWh delivered",
+          "style": "default",
+          "tint": "#19C3FF",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_revenue"
+              },
+              "valuePath": "kwh_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "rev-avg",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "clock.fill",
+          "text": "Avg session 38 min · $13.90",
+          "style": "caption",
+          "tint": "#6F8EA3",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_revenue"
+              },
+              "valuePath": "avg_text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pricing",
+      "icon": "dollarsign.circle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "tariff",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Tariff",
+          "grid": {
+            "columns": 4,
+            "rows": 4
+          },
+          "children": [
+            {
+              "type": "segmentedControl",
+              "id": "price-mode",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "options": [
+                "flat",
+                "tou",
+                "dynamic"
+              ],
+              "optionLabels": [
+                "Flat",
+                "TOU",
+                "Dynamic"
+              ],
+              "defaultValue": "tou",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_tariff_mode",
+                  "mode": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "mode"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "price-base",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Base rate $/kWh",
+              "min": 0.25,
+              "max": 0.85,
+              "step": 0.01,
+              "defaultValue": 0.47,
+              "minIcon": "dollarsign",
+              "maxIcon": "dollarsign.circle.fill",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_tariff_base",
+                  "usd_per_kwh": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "base"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "price-peak",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Peak multiplier 4–9p",
+              "min": 1.0,
+              "max": 2.5,
+              "step": 0.05,
+              "defaultValue": 1.35,
+              "tint": "#FFC247",
+              "visible": {
+                "when": "price-mode",
+                "operator": "eq",
+                "value": "tou"
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_tariff_peak",
+                  "multiplier": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "peak_mult"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "price-idle",
+              "position": [
+                3,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Idle fee $/min after grace",
+              "icon": "hourglass",
+              "min": 0,
+              "max": 2,
+              "step": 0.1,
+              "defaultValue": 0.4,
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_tariff_idle",
+                  "usd_per_min": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "idle_fee"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "demand",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Demand response",
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "dr-shed",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Load shedding (PG&E DR event)",
+              "icon": "bolt.trianglebadge.exclamationmark.fill",
+              "defaultValue": false,
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_dr_shed",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "dr_active"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "dr-cap",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Per-site cap kW",
+              "min": 50,
+              "max": 350,
+              "step": 10,
+              "defaultValue": 180,
+              "formatValue": "decimal",
+              "tint": "#FF5470",
+              "visible": {
+                "when": "dr-shed",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "ev_charger_dr_cap",
+                  "kw": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "ev_charger_tariff"
+                  },
+                  "valuePath": "dr_cap_kw"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "price-live",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "systemName": "bolt.car.fill",
+          "label": "Tariff live",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#3CF0A0",
+              "#19C3FF"
+            ],
+            "effect": "breathe",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "activeWhen": "truthy",
+            "speed": 0.8,
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "ev_charger_tariff_published"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "ev_charger_tariff"
+              },
+              "valuePath": "live"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "price-publish",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Publish to all sites",
+          "icon": "paperplane.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#3CF0A0",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ev_charger_tariff_publish",
+              "mode": "all_sites"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

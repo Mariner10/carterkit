@@ -86,6 +86,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `sparklineFill` | bool | `false` | Fill the area under the line with a gradient |
 | `tint` | string | `"#667eea"` | Line and fill color |
 | `label` | string | — | Header label (also shows latest value) |
+| `defaultValue` | number or number[] | — | Seed series drawn before the first sync (`[41, 40, 39]`); trimmed to `sparklinePoints`. See [[control-def#defaultValue per type]] |
 
 ## Data Flow
 

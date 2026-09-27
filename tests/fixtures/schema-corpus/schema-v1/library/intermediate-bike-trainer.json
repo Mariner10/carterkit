@@ -1,0 +1,706 @@
+{
+  "name": "Bike Trainer",
+  "headerTitle": "PAIN CAVE · TRAINER",
+  "description": "Indoor smart-trainer cockpit: live power, cadence and heart-rate dials, ERG/sim resistance control, workout picker and a lap log.",
+  "difficulty": "intermediate",
+  "version": 1,
+  "accentColor": "#FF6B35",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#FF6B35",
+    "accentGradient": [
+      "#FF6B35",
+      "#FFD60A"
+    ],
+    "cornerRadius": 14,
+    "tabBarTint": "#FF6B35",
+    "pageBackgroundGradient": [
+      "#0A0B10",
+      "#14161F"
+    ],
+    "surfacePrimary": "#FFFFFF10",
+    "surfaceSecondary": "#FFFFFF08",
+    "borderColor": "#FF6B3530",
+    "foregroundColor": "#F5F6FA",
+    "secondaryColor": "#A3A8B8"
+  },
+  "tabs": [
+    {
+      "title": "Ride",
+      "icon": "bicycle",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "bt-power",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Power",
+          "icon": "bolt.fill",
+          "min": 0,
+          "max": 600,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix: W",
+          "segments": [
+            {
+              "limit": 150,
+              "color": "#5E8BFF"
+            },
+            {
+              "limit": 250,
+              "color": "#34C759"
+            },
+            {
+              "limit": 350,
+              "color": "#FFD60A"
+            },
+            {
+              "limit": 450,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 600,
+              "color": "#FF375F"
+            }
+          ],
+          "defaultValue": 247,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "power_w"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "bt-cadence",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Cadence",
+          "icon": "arrow.triangle.2.circlepath",
+          "min": 0,
+          "max": 130,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "formatValue": "suffix: rpm",
+          "tint": "#2BD9C8",
+          "defaultValue": 91,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "cadence_rpm"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "bt-hr",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Heart Rate",
+          "icon": "heart.fill",
+          "min": 60,
+          "max": 200,
+          "gaugeStyle": "full",
+          "formatValue": "suffix: bpm",
+          "segments": [
+            {
+              "limit": 114,
+              "color": "#8E8E93"
+            },
+            {
+              "limit": 133,
+              "color": "#5E8BFF"
+            },
+            {
+              "limit": 152,
+              "color": "#34C759"
+            },
+            {
+              "limit": 171,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 200,
+              "color": "#FF375F"
+            }
+          ],
+          "defaultValue": 148,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "heart_bpm"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "bt-resistance-group",
+          "label": "Resistance",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "bt-resistance",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Level",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "formatValue": "percent",
+              "minIcon": "tortoise.fill",
+              "maxIcon": "hare.fill",
+              "tint": "#FF6B35",
+              "continuous": false,
+              "defaultValue": 42,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "bike_trainer_set_resistance",
+                  "level": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "bike_trainer_telemetry"
+                  },
+                  "valuePath": "resistance_pct"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "bt-grade",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Sim Grade %",
+              "icon": "mountain.2.fill",
+              "min": -10,
+              "max": 20,
+              "step": 0.5,
+              "defaultValue": 3.5,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "bike_trainer_set_grade",
+                  "grade": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "bike_trainer_telemetry"
+                  },
+                  "valuePath": "grade_pct"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "bt-power-trend",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Power · last 2 min",
+          "sparklinePoints": 120,
+          "sparklineFill": true,
+          "tint": "#FF6B35",
+          "defaultValue": [
+            212,
+            225,
+            238,
+            244,
+            251,
+            249,
+            262,
+            270,
+            255,
+            241,
+            236,
+            248,
+            259,
+            266,
+            247
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "power_w"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "bt-elapsed",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "timer",
+          "style": "large-mono",
+          "formatValue": "duration",
+          "text": "0h 32m",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "elapsed_s"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "bt-speed",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "speedometer",
+          "style": "large-mono",
+          "align": "trailing",
+          "formatValue": "suffix: km/h",
+          "text": "34.8 km/h",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_telemetry"
+              },
+              "valuePath": "speed_kph"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Workout",
+      "icon": "list.bullet.rectangle",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "picker",
+          "id": "bt-workout",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Workout",
+          "options": [
+            "recovery_spin",
+            "sweet_spot_3x12",
+            "vo2_5x4",
+            "threshold_2x20",
+            "over_unders",
+            "ftp_ramp"
+          ],
+          "optionLabels": [
+            "Recovery Spin · 45m",
+            "Sweet Spot 3×12",
+            "VO2 Max 5×4",
+            "Threshold 2×20",
+            "Over-Unders 4×9",
+            "FTP Ramp Test"
+          ],
+          "optionIcons": [
+            "leaf.fill",
+            "flame",
+            "bolt.heart.fill",
+            "gauge.with.dots.needle.67percent",
+            "waveform.path",
+            "chart.line.uptrend.xyaxis"
+          ],
+          "defaultValue": "sweet_spot_3x12",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "bike_trainer_select_workout",
+              "workout": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_session"
+              },
+              "valuePath": "workout"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "bt-mode",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "pills",
+          "tint": "#FF6B35",
+          "options": [
+            "erg",
+            "level",
+            "sim"
+          ],
+          "optionLabels": [
+            "ERG",
+            "Level",
+            "Sim"
+          ],
+          "optionIcons": [
+            "lock.fill",
+            "slider.horizontal.3",
+            "mountain.2"
+          ],
+          "defaultValue": "erg",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "bike_trainer_set_mode",
+              "mode": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_session"
+              },
+              "valuePath": "mode"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "bt-intervals",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Interval plan · target vs actual W",
+          "tint": "#FF6B35",
+          "chartConfig": {
+            "showLegend": true,
+            "showGrid": false,
+            "yMin": 0,
+            "scrub": true,
+            "colors": [
+              "#5E8BFF",
+              "#FF6B35"
+            ]
+          },
+          "defaultValue": "{\"categories\": [\"WU\", \"SS1\", \"R1\", \"SS2\", \"R2\", \"SS3\", \"CD\"], \"series\": [{\"name\": \"Target\", \"type\": \"bar\", \"values\": [150, 265, 140, 265, 140, 265, 120]}, {\"name\": \"Actual\", \"type\": \"line\", \"values\": [148, 262, 151, 268, 139, 247]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_session"
+              },
+              "valuePath": "plan"
+            }
+          ]
+        },
+        {
+          "type": "pieChart",
+          "id": "bt-zones",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Time in zone",
+          "pieStyle": "donut",
+          "pieConfig": {
+            "centerText": "{{total}} min",
+            "showLegend": true,
+            "percent": true,
+            "showValues": true
+          },
+          "defaultValue": "{\"slices\": [{\"label\": \"Z1\", \"value\": 4, \"color\": \"#8E8E93\"}, {\"label\": \"Z2\", \"value\": 9, \"color\": \"#5E8BFF\"}, {\"label\": \"Z3\", \"value\": 7, \"color\": \"#34C759\"}, {\"label\": \"Z4\", \"value\": 10, \"color\": \"#FFD60A\"}, {\"label\": \"Z5\", \"value\": 2, \"color\": \"#FF375F\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_session"
+              },
+              "valuePath": "zones"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "bt-lap",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Lap",
+          "icon": "flag.checkered",
+          "style": "filled",
+          "tint": "#FF6B35",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "bike_trainer_command",
+              "command": "lap"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "bt-pause",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pause",
+          "icon": "pause.fill",
+          "style": "outlined",
+          "tint": "#FF6B35",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "bike_trainer_command",
+              "command": "pause"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Laps",
+      "icon": "flag.checkered",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "list",
+          "id": "bt-lap-table",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Laps",
+          "listColumns": [
+            {
+              "key": "lap",
+              "label": "#"
+            },
+            {
+              "key": "time",
+              "label": "Time"
+            },
+            {
+              "key": "avg_w",
+              "label": "Avg W",
+              "format": "decimal"
+            },
+            {
+              "key": "np_w",
+              "label": "NP",
+              "format": "decimal"
+            },
+            {
+              "key": "avg_hr",
+              "label": "HR",
+              "format": "decimal"
+            }
+          ],
+          "defaultValue": "[{\"lap\": 1, \"time\": \"10:00\", \"avg_w\": 152, \"np_w\": 158, \"avg_hr\": 118}, {\"lap\": 2, \"time\": \"12:00\", \"avg_w\": 263, \"np_w\": 266, \"avg_hr\": 151}, {\"lap\": 3, \"time\": \"4:00\", \"avg_w\": 146, \"np_w\": 149, \"avg_hr\": 132}, {\"lap\": 4, \"time\": \"12:00\", \"avg_w\": 267, \"np_w\": 271, \"avg_hr\": 158}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_laps"
+              },
+              "valuePath": "laps"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "bt-lap-log",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Ride log",
+          "maxLines": 300,
+          "fontSize": 11,
+          "controlHeight": 220,
+          "logColors": {
+            "lap": "#FF6B35",
+            "info": "#2BD9C8",
+            "warn": "#FFD60A",
+            "error": "#FF375F"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "bike_trainer_log"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
