@@ -64,7 +64,7 @@ would deliver:
 | Control | `defaultValue` |
 |---------|----------------|
 | scalar controls (toggle, slider, stepper, gauge, progressRing, label, picker, …) | a bool, number or string |
-| sparkline | a number, or an **array of numbers** that seeds the series (`[41, 40, 39]`; trimmed to `sparklinePoints`, the last point is the value) |
+| sparkline | a number, or an **array of numbers** that seeds the series (`[41, 40, 39]`; trimmed to `sparklinePoints`; the readout shows the last point) |
 | list | an **array of row objects**, the rows shown until the first sync |
 | logConsole | an **array of lines** (strings or `{text, level}` objects) |
 | chart, pieChart, heatmap, radar, boxPlot, gantt, sankey, treemap, chord, graph, cardList, sortboard, pinboard, canvas, map | the control's dataset, as JSON (`{"series": […]}`) or as that JSON encoded in a string |
