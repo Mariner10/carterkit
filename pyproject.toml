@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carterkit"
-version = "0.13.0"
+version = "0.13.1"
 description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,9 +14,9 @@ authors = [{ name = "Carter Beaudoin" }]
 keywords = ["car-ter", "carter", "iot", "dashboard", "remote", "meshsocket", "layout"]
 dependencies = [
     # Upper bounds: both are security-relevant and their majors have broken us before.
-    # meshsocket 0.2.0 = identify-after-auth closes, identity validation, fail-closed
+    # meshsocket 0.2.0 = identify-after-auth closes, identity validation, fail-closed; 0.3.0 = over-deep frame cap (carter-e4q)
     # server defaults; carterkit 0.12 relies on those.
-    "meshsocket>=0.2.0,<0.3",
+    "meshsocket>=0.2.0,<0.4",
     "cryptography>=42,<50",
 ]
 classifiers = [

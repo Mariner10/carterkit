@@ -3,6 +3,12 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.13.1] — 2026-09-27
+
+### Changed
+- Allow **meshsocket 0.3.x** (`>=0.2.0,<0.4`): 0.3.0 drops over-deep inbound frames before parsing
+  (carter-e4q), so hubs on the new kit get the crash fix; 0.13.0 still pinned `<0.3`.
+
 ## [0.13.0] — 2026-09-27
 
 ### Fixed
