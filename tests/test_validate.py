@@ -327,3 +327,37 @@ def test_embedded_secret_skips_template_placeholders():
     kinds = lambda tok: {f["kind"] for f in validate_layout(lay(tok))}
     assert "embedded_secret" not in kinds("<your-token>")
     assert "embedded_secret" in kinds("abc123realtoken")
+
+
+# carter-avv — sync `staleAfter` and layout `liveness` (sync.md / layout-config.md).
+def _stale_layout(stale=None, liveness=None):
+    sync = {"method": "meshsocket", "event": "broadcast", "valuePath": "v"}
+    if stale is not None:
+        sync["staleAfter"] = stale
+    lay = {"name": "S", "version": 1, "tabs": [{"title": "A", "icon": "house",
+           "grid": {"columns": 2, "rows": 2},
+           "children": [{"type": "label", "id": "a", "position": [0, 0], "sync": [sync]}]}]}
+    if liveness is not None:
+        lay["liveness"] = liveness
+    return lay
+
+
+def _stale_kinds(**kw):
+    from carterkit import validate_layout
+    return [f["kind"] for f in validate_layout(_stale_layout(**kw))]
+
+
+def test_stale_after_and_liveness_are_known_fields():
+    kinds = _stale_kinds(stale=120, liveness={"staleAfter": 60})
+    assert "unknown_field" not in kinds and "bad_stale_after" not in kinds
+    assert "bad_stale_after" not in _stale_kinds(stale=0, liveness={"staleAfter": 86400})
+
+
+def test_stale_after_out_of_range_warns():
+    from carterkit import validate_layout
+    for bad in (-1, "120", True, 90000):
+        found = [f for f in validate_layout(_stale_layout(stale=bad)) if f["kind"] == "bad_stale_after"]
+        assert found and found[0]["severity"] == "warn", bad
+    assert "bad_stale_after" in _stale_kinds(liveness={"staleAfter": 100000})
+    assert "bad_liveness" in _stale_kinds(liveness=5)
+    assert "unknown_field" in _stale_kinds(liveness={"stale": 5})
