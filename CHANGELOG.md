@@ -189,6 +189,9 @@ live in the app and bind controls to them with plain JSON query stages — no se
   value still warns (carter-pby).
 - `requires.features` accepts camelCase control types (`control.progressRing`); the
   feature grammar was lowercase-only (carter-5q1y).
+- ControlDocs frontmatter is valid YAML again (carter-3825) and descriptions are never
+  single-quoted (every loader strips only double quotes); `tests/test_controldocs_yaml.py`
+  guards it. The document-contract Requirements example names real features (carter-f0sd).
 
 ## [0.13.1] — 2026-09-27
 
