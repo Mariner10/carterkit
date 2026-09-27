@@ -1,0 +1,343 @@
+"""Local store (carterkit 0.13): builders, lint, codegen/contract neutrality and the
+fixture-parity run over the app's shared conformance fixtures."""
+from __future__ import annotations
+
+import copy
+import glob
+import json
+import os
+import sys
+from pathlib import Path
+
+import pytest
+
+import carterkit
+from carterkit import Layout, bind, codegen, local, validate
+from carterkit.contract import extract_contract
+
+sys.path.insert(0, str(Path(__file__).parent))
+import local_eval as E  # noqa: E402
+
+CAT = carterkit.controls(include_theme=True)
+FIXTURE = Path(__file__).parent / "fixtures" / "local-store.json"
+_DEFAULT_A4 = (Path(__file__).resolve().parents[2] / "local-store" / "CAR-TERTests"
+               / "Fixtures" / "local-query")
+
+
+def _layout():
+    return json.loads(FIXTURE.read_text())
+
+
+def _errors(layout):
+    return [f for f in validate.validate_layout(layout, CAT) if f["severity"] == "error"]
+
+
+def _details(layout, kind=None):
+    return [f["detail"] for f in validate.validate_layout(layout, CAT)
+            if kind is None or f["kind"] == kind]
+
+
+def _one_control(sync=None, action=None, ctype="label", **src):
+    """A layout with one local source (books: title/pages/finished/tags) and one control."""
+    ch = {"type": ctype, "id": "x", "position": [0, 0]}
+    if sync is not None:
+        ch["sync"] = [sync]
+    if action is not None:
+        ch["action"] = action
+    if ctype == "label":
+        ch["label"] = "x"
+    source = {"type": "local", "namespace": "t",
+              "collections": {"books": {"fields": {"title": "string", "pages": "integer",
+                                                   "finished": "date", "tags": "json",
+                                                   "lent": "bool"}}}}
+    source.update(src)
+    return {"name": "T", "version": 1, "sources": {"db": source},
+            "tabs": [{"title": "Main", "icon": "house.fill", "grid": {"columns": 4, "rows": 4},
+                      "children": [ch]}]}
+
+
+# ── builders (spec §9.2 / §5.1 / §6.1 shapes) ─────────────────────────────────
+
+def test_bind_local_minimal_and_full():
+    assert bind.local("books", aggregate="count") == {
+        "method": "local", "collection": "books", "aggregate": "count"}
+    full = bind.local("books", where={"finished": {"gte": "{{startOfYear}}"}},
+                      group_by={"field": "finished", "bucket": "month"},
+                      aggregate={"op": "sum", "field": "pages"}, order_by="-key",
+                      limit=12, value_path="rows", source="db")
+    assert full == {"method": "local", "collection": "books",
+                    "where": {"finished": {"gte": "{{startOfYear}}"}},
+                    "groupBy": {"field": "finished", "bucket": "month"},
+                    "aggregate": {"op": "sum", "field": "pages"},
+                    "orderBy": "-key", "limit": 12, "valuePath": "rows", "source": "db"}
+
+
+def test_bind_local_op_shapes():
+    assert bind.local_op("insert", "books", set={"title": "{{value}}"}) == {
+        "method": "local", "op": "insert", "collection": "books", "set": {"title": "{{value}}"}}
+    assert bind.local_op("delete", "books", id="{{selected}}") == {
+        "method": "local", "op": "delete", "collection": "books", "id": "{{selected}}"}
+    # select with no id clears the cursor: the key is emitted as null, not dropped.
+    assert bind.local_op("select", "books") == {
+        "method": "local", "op": "select", "collection": "books", "id": None}
+
+
+def test_layout_source_local_shorthand_and_full():
+    ui = Layout("Log", columns=4, rows=4)
+    ui.source_local("db", {"books": {"title": "string", "pages": "integer"},
+                           "notes": {"fields": {"text": "string"}, "shared": True}},
+                    namespace="log", views={"all": {"from": "books"}}, week_starts_on="sunday")
+    src = ui.layout["sources"]["db"]
+    assert src == {"type": "local", "namespace": "log", "weekStartsOn": "sunday",
+                   "collections": {"books": {"fields": {"title": "string", "pages": "integer"}},
+                                   "notes": {"fields": {"text": "string"}, "shared": True}},
+                   "views": {"all": {"from": "books"}}}
+
+
+def test_builder_round_trip_lints_clean():
+    with Layout("Log", columns=4, rows=4) as ui:
+        ui.source_local("db", {"books": {"title": "string", "pages": "integer",
+                                         "finished": "date"}},
+                        namespace="log")
+        with ui.tab("Main", icon="book"):
+            ui.label("n", label="Books", sync=[bind.local("books", aggregate="count")])
+            ui.button("add", label="Add",
+                      action=bind.local_op("insert", "books",
+                                           set={"title": "{{value}}", "finished": "{{today}}"}))
+    assert _errors(ui.layout) == []
+    assert "unused_source" not in {f["kind"] for f in validate.validate_layout(ui.layout, CAT)}
+
+
+# ── whitelists and the fixture layout ────────────────────────────────────────
+
+def test_fixture_layout_lints_clean_and_cli_exit_codes(tmp_path):
+    lay = _layout()
+    assert _errors(lay) == []
+    assert not [f for f in validate.validate_layout(lay, CAT) if f["kind"] == "unused_source"]
+    broken = copy.deepcopy(lay)
+    broken["tabs"][0]["children"][0]["sync"][0]["where"] = {"nope": 1}
+    bad = tmp_path / "broken.json"
+    bad.write_text(json.dumps(broken))
+    from carterkit.cli import main
+    assert main(["validate", str(FIXTURE)]) == 0
+    assert main(["validate", str(bad)]) == 1
+
+
+def test_local_source_type_accepted_and_unknown_type_still_rejected():
+    lay = _one_control(sync=bind.local("books", aggregate="count"))
+    assert "bad_sources" not in {f["kind"] for f in validate.validate_layout(lay, CAT)}
+    lay["sources"]["db"]["type"] = "sqlite"
+    assert any("'local'" in d for d in _details(lay, "bad_sources"))
+
+
+def test_local_binding_without_a_source_is_an_error():
+    lay = _one_control(sync=bind.local("books", aggregate="count"))
+    del lay["sources"]
+    assert any("no local source declared" in d for d in _details(lay, "bad_source"))
+
+
+# ── lint negatives (acceptance list) ──────────────────────────────────────────
+
+@pytest.mark.parametrize("stage, needle", [
+    ({"where": {"genre": "sf"}}, "unknown field 'genre'"),
+    ({"limit": 0}, "limit must be an integer from 1 to 1000"),
+    ({"limit": 1001}, "limit must be an integer from 1 to 1000"),
+    ({"where": {"title": {"like": "x"}}}, "unknown operator 'like'"),
+    ({"where": {"tags": {"eq": 1}}}, "only 'exists' applies"),
+    ({"where": {"pages": {"contains": "4"}}}, "contains needs a string field"),
+    ({"where": {"lent": {"gt": True}}}, "supports eq/ne only"),
+    ({"where": {"title": {"in": list(range(65))}}}, "at most 64 members"),
+    ({"where": {"finished": {"gte": "{{startOfCentury}}"}}}, "unknown token"),
+    ({"aggregate": {"op": "sum", "field": "title"}}, "needs a numeric field"),
+    ({"aggregate": {"op": "count", "field": "title"}}, "count takes no field"),
+    ({"aggregate": {"op": "median", "field": "pages"}}, "unknown op 'median'"),
+    ({"groupBy": {"field": "title", "bucket": "month"}}, "bucket needs a date field"),
+    ({"groupBy": {"field": "title", "width": 5}}, "width needs a numeric field"),
+    ({"groupBy": {"field": "finished", "bucket": "day", "width": 1}}, "bucket and width are exclusive"),
+    ({"groupBy": "title", "orderBy": "pages"}, "orders by 'key' or 'value' only"),
+    ({"groupBy": "title", "aggregate": {"op": "first", "field": "title"}}, "not a group aggregate"),
+    ({"orderBy": "-nope"}, "unknown field 'nope'"),
+])
+def test_stage_lint_errors(stage, needle):
+    lay = _one_control(sync={"method": "local", "collection": "books", **stage})
+    errs = [f["detail"] for f in _errors(lay)]
+    assert any(needle in d for d in errs), errs
+
+
+def test_where_depth_and_leaf_caps():
+    deep = {"title": "a"}
+    for _ in range(9):
+        deep = {"and": [deep]}
+    lay = _one_control(sync={"method": "local", "collection": "books", "where": deep})
+    assert any("nests deeper than 8" in f["detail"] for f in _errors(lay))
+    wide = {"and": [{"title": str(i)} for i in range(33)]}
+    lay = _one_control(sync={"method": "local", "collection": "books", "where": wide})
+    assert any("33 leaves" in f["detail"] for f in _errors(lay))
+
+
+def test_sync_needs_collection_and_warns_on_wire_keys():
+    lay = _one_control(sync={"method": "local", "aggregate": "count", "event": "broadcast"})
+    details = _details(lay, "bad_sync")
+    assert any("needs a 'collection'" in d for d in details)
+    assert any("'event' means nothing" in d for d in details)
+    lay = _one_control(sync=bind.local("ghosts", aggregate="count"))
+    assert _details(lay, "unknown_collection")
+
+
+@pytest.mark.parametrize("source_patch, needle", [
+    ({"namespace": "shared"}, "namespace 'shared' is reserved"),
+    ({"namespace": "-bad"}, "namespace must match"),
+    ({"weekStartsOn": "tuesday"}, "weekStartsOn must be one of"),
+    ({"collections": {"books": {"fields": {"title": "text"}}}}, "unknown type 'text'"),
+    ({"collections": {"books": {"fields": {"id": "string"}}}}, "field 'id' is reserved"),
+    ({"collections": {"books": {"fields": {"createdAt": "date", "title": "string"}}}},
+     "field 'createdAt' is reserved"),
+    ({"collections": {"Books": {"fields": {"title": "string"}}}}, "collection name 'Books' must match"),
+    ({"collections": {"books": {"fields": {"Title": "string"}}}}, "field name 'Title' must match"),
+    ({"collections": {}}, "non-empty 'collections'"),
+    ({"views": {"a": {"from": "b"}, "b": {"from": "a"}}}, "cyclic 'from'"),
+    ({"views": {"a": {"from": "nowhere"}}}, "unknown from 'nowhere'"),
+    ({"views": {"books": {"from": "books"}}}, "collides with a collection"),
+    ({"views": {"v": {"from": "books", "aggregate": "count"}}}, "'aggregate' is not allowed on a view"),
+    ({"views": {"v": {"from": "books", "limit": 1001}}}, "view v: limit must be an integer"),
+    ({"views": {"v": {"from": "books", "where": {"nope": 1}}}}, "view v: where.nope: unknown field"),
+])
+def test_source_lint_errors(source_patch, needle):
+    lay = _one_control(sync=bind.local("books", aggregate="count"), **source_patch)
+    errs = [f["detail"] for f in validate.validate_layout(lay, CAT)
+            if f["kind"] == "bad_sources" and f["severity"] == "error"]
+    assert any(needle in d for d in errs), errs
+
+
+def test_view_nesting_cap():
+    views = {"v0": {"from": "books"}}
+    for i in range(1, 9):
+        views[f"v{i}"] = {"from": f"v{i - 1}"}
+    lay = _one_control(sync=bind.local("v8", aggregate="count"), views=views)
+    assert any("nesting deeper than 8" in d for d in _details(lay, "bad_sources"))
+
+
+def test_second_local_source_needs_namespace_and_no_duplicate_namespaces():
+    lay = _one_control(sync=bind.local("books", aggregate="count", source="db"))
+    del lay["sources"]["db"]["namespace"]
+    lay["sources"]["other"] = {"type": "local", "collections": {"x": {"fields": {"a": "string"}}}}
+    details = _details(lay, "bad_sources")
+    assert sum("second local source needs an explicit 'namespace'" in d for d in details) == 2
+    lay["sources"]["db"]["namespace"] = lay["sources"]["other"]["namespace"] = "same"
+    assert any("already used by source" in d for d in _details(lay, "bad_sources"))
+
+
+@pytest.mark.parametrize("action, needle", [
+    ({"op": "truncate", "collection": "books"}, "op must be one of"),
+    ({"op": "update", "collection": "books", "set": {"title": "x"}}, "update needs an 'id'"),
+    ({"op": "upsert", "collection": "books", "set": {"title": "x"}}, "upsert needs an 'id'"),
+    ({"op": "delete", "collection": "books"}, "delete needs an 'id'"),
+    ({"op": "delete", "collection": "books", "id": "b1", "where": {"lent": True}}, "takes no 'where'"),
+    ({"op": "insert", "collection": "books", "set": {"title": "x", "createdAt": "{{now}}"}},
+     "set.createdAt: reserved field"),
+    ({"op": "insert", "collection": "books", "set": {"genre": "sf"}}, "set.genre: unknown field"),
+    ({"op": "insert", "collection": "books", "set": {"pages": "412"}}, "not a integer"),
+    ({"op": "insert", "collection": "books", "set": {"pages": 1.5}}, "has a fraction"),
+    ({"op": "insert", "collection": "books", "set": {"finished": "2026-02-30"}}, "not a valid date"),
+    ({"op": "insert", "collection": "books"}, "needs a non-empty 'set'"),
+    ({"op": "insert", "collection": "books", "id": "bad id!", "set": {"title": "x"}},
+     "id must be 1–128 chars"),
+    ({"op": "select", "collection": "books"}, "select needs an 'id'"),
+    ({"op": "insert", "collection": "ghosts", "set": {"title": "x"}}, "unknown collection 'ghosts'"),
+])
+def test_op_lint_errors(action, needle):
+    lay = _one_control(action={"method": "local", **action}, ctype="button")
+    errs = [f["detail"] for f in _errors(lay) if f["kind"] == "bad_action"]
+    assert any(needle in d for d in errs), errs
+
+
+def test_insert_into_view_is_error_but_select_on_view_is_fine():
+    lay = _one_control(action=bind.local_op("insert", "v", set={"title": "x"}), ctype="button",
+                       views={"v": {"from": "books"}})
+    assert any("'v' is a view" in d for d in _details(lay, "bad_action"))
+    lay = _one_control(action=bind.local_op("select", "v", id="{{item}}"), ctype="button",
+                       views={"v": {"from": "books"}})
+    assert _details(lay, "bad_action") == []
+
+
+def test_type_mismatch_in_where_is_a_warning_not_an_error():
+    lay = _one_control(sync=bind.local("books", where={"pages": "412"}))
+    found = [f for f in validate.validate_layout(lay, CAT) if f["kind"] == "bad_stage"]
+    assert found and all(f["severity"] == "warn" for f in found)
+
+
+# ── codegen and contract treat local as app-direct ────────────────────────────
+
+def test_codegen_ignores_local_bindings():
+    lay = _layout()
+    c = codegen.analyze_layout(lay)
+    assert c["actions"] == {} and c["emits"] == {} and c["pushes"] == []
+    stub = codegen.generate_service_stub(lay)
+    assert "books" not in stub and "hub.on(" not in stub
+
+
+def test_contract_lists_local_as_app_direct():
+    c = extract_contract(_layout())
+    assert c["triggers"] == [] and c["feeds"] == []
+    kinds = {(d["direction"], d["transport"]) for d in c["appDirect"]}
+    assert kinds == {("in", "local"), ("out", "local")}
+    addresses = {d["address"] for d in c["appDirect"]}
+    assert "books" in addresses and "insert books" in addresses
+
+
+# ── fixture parity over the app's conformance fixtures ────────────────────────
+
+def _fixture_files():
+    root = Path(os.environ.get("CARTER_LOCAL_FIXTURES") or _DEFAULT_A4)
+    return sorted(glob.glob(str(root / "*.json")))
+
+
+@pytest.mark.parametrize("path", _fixture_files() or [None])
+def test_fixture_parity(path):
+    if path is None:
+        pytest.skip("no local-query fixtures (set CARTER_LOCAL_FIXTURES)")
+    fx = json.loads(Path(path).read_text())
+    store = E.Store(fx)
+    fields_of = lambda c: local.fields_for(store.schema, c)  # noqa: E731
+    failures = []
+    for st in fx["stages"]:
+        tag = f"{Path(path).name}.{st['name']}"
+        exp = st["expected"]
+        # 1) the static lint must agree with the fixture's verdict
+        fields = fields_of(st["collection"])
+        lint_errors = [m for sev, m in local.lint_stage(st["stage"], fields or {})
+                       if sev == "error"] if fields else []
+        if exp.get("error") == "unknown-collection":
+            if fields is not None:
+                failures.append(f"{tag}: lint resolved an unknown collection")
+        elif exp.get("error") == "invalid-stage":
+            if not lint_errors:
+                failures.append(f"{tag}: lint accepted an invalid stage")
+        elif lint_errors:
+            failures.append(f"{tag}: lint rejected a valid stage: {lint_errors}")
+        # 2) the pure evaluator must reproduce the expected result
+        try:
+            res = store.query(st["collection"], st["stage"])
+        except E.InvalidStage as e:
+            if exp.get("error") != "invalid-stage":
+                failures.append(f"{tag}: evaluator raised {e}")
+            continue
+        except E.UnknownCollection:
+            if exp.get("error") != "unknown-collection":
+                failures.append(f"{tag}: evaluator: unknown collection")
+            continue
+        if "error" in exp:
+            failures.append(f"{tag}: expected {exp['error']}, got a result")
+            continue
+        failures.extend(f"{tag}: {d}" for d in E.compare(res, exp))
+    # 3) rejected writes the lint can see statically (type/reserved/id shape)
+    for coll, writes in (fx.get("rejected") or {}).items():
+        for w in writes:
+            op = {"method": "local", "op": "insert", "collection": coll, "set": w.get("fields") or {}}
+            if "id" in w:
+                op["id"] = w["id"]
+                if w["id"] in {r["id"] for r in store.rows.get(coll, [])}:
+                    continue            # a duplicate id is a runtime fact, not lintable
+            if op["set"] and not any(sev == "error" for sev, _ in local.lint_op(op, store.schema)):
+                failures.append(f"{Path(path).name}: lint accepted rejected write {w}")
+    assert failures == [], "\n".join(failures)

@@ -153,6 +153,50 @@ def http_request(path: str | None = None, *, url: str | None = None,
     return a
 
 
+def local(collection: str, *, where: dict | None = None, group_by=None, aggregate=None,
+          order_by=None, limit: int | None = None, value_path: str | None = None,
+          source: str | None = None) -> dict:
+    """A `sync` entry that reads the on-device local store (see local-store.md).
+    `collection` names a declared collection or view; the other keywords are the query
+    stage — `where` (JSON operator object), `group_by` (field name or
+    ``{"field", "bucket"|"width"}``), `aggregate` (``"count"`` or ``{"op", "field"}``),
+    `order_by` (``"title"`` / ``"-finished"`` or a list), `limit` (1..1000). Leave
+    `value_path` empty for the store's default (`value` / whole payload / `rows`);
+    `source` names the store when the layout declares several."""
+    s: dict = {"method": "local", "collection": collection}
+    if where is not None:
+        s["where"] = where
+    if group_by is not None:
+        s["groupBy"] = group_by
+    if aggregate is not None:
+        s["aggregate"] = aggregate
+    if order_by is not None:
+        s["orderBy"] = order_by
+    if limit is not None:
+        s["limit"] = limit
+    if value_path:
+        s["valuePath"] = value_path
+    if source is not None:
+        s["source"] = source
+    return s
+
+
+def local_op(op: str, collection: str, *, id: str | None = None, set: dict | None = None,
+             source: str | None = None) -> dict:
+    """An `action` that writes the local store: `op` is insert / update / upsert /
+    delete / select; `id` a literal or token (``"{{selected}}"``); `set` maps declared
+    fields to values (``"{{value}}"`` rides the control value). `select` with ``id=None``
+    clears the cursor. No wire, no server — the app commits it itself."""
+    a: dict = {"method": "local", "op": op, "collection": collection}
+    if id is not None or op == "select":
+        a["id"] = id
+    if set is not None:
+        a["set"] = set
+    if source is not None:
+        a["source"] = source
+    return a
+
+
 def connection(url: str | None, *, channel: str = "home", name: str = "CAR-TER",
                role: str = "controller", token: str | None = None,
                hub: str | None = None, mode: str | None = None,

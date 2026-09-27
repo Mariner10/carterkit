@@ -3,6 +3,45 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.14.0] — unreleased
+
+The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that
+live in the app and bind controls to them with plain JSON query stages — no server, no SQL.
+
+### Added
+- **`Layout.source_local(name, collections, *, namespace=None, views=None,
+  week_starts_on=None)`** declares a `sources.<name>.type == "local"` store. `collections`
+  takes the full `{"fields": {...}, "shared": bool, "mirror": bool}` form or the
+  `{field: type}` shorthand (types `string number integer bool date json`).
+- **`bind.local(collection, *, where, group_by, aggregate, order_by, limit, value_path,
+  source)`** builds a `method: "local"` sync (a query stage over a collection or view);
+  **`bind.local_op(op, collection, *, id, set, source)`** builds a `method: "local"` action
+  (`insert` / `update` / `upsert` / `delete` / `select`; `select` with `id=None` clears the
+  cursor).
+- **`carterkit.local`** — the pure lint the validator runs (`lint_source`, `lint_stage`,
+  `lint_op`, `fields_for`) plus the caps and enums, for other tools to reuse.
+- **Validator:** `local` joins the source-type, addressed-method and binding-walker
+  whitelists. A local source is checked for names, types, reserved fields (`id`,
+  `createdAt`, `updatedAt`, `_hlc`), the reserved `shared` namespace, the namespace regex,
+  32 collections / 64 fields, view `from` chains (unknown, cycles, depth 8), and a second
+  local source without an explicit namespace. Every sync stage is linted against the
+  declared fields: `where` operators, depth 8 / 32 leaves / 64 `in` members, json-only-
+  `exists`, `contains` on strings, bool `eq`/`ne` only, token spelling; `aggregate` ops and
+  field types; `groupBy` bucket/width forms; grouped `orderBy` on `key`/`value` only;
+  `limit` 1…1000. Actions: op, id where required, no reserved or undeclared `set` fields,
+  reject-never-coerce literal types, no delete-by-`where`, writes target collections only.
+  New finding kinds `bad_stage` and `unknown_collection`.
+- **codegen / contract** treat local bindings as app-direct: no stub handler, no feed,
+  listed under `appDirect` with `collection` / `op collection` as the address.
+- **Tests:** `tests/test_local.py` (builders, lint, codegen/contract) and a pure-Python
+  stage evaluator (`tests/local_eval.py`) that runs the app's shared conformance fixtures
+  (`CAR-TERTests/Fixtures/local-query`, override with `CARTER_LOCAL_FIXTURES`; skipped when
+  absent) — every stage must lint and evaluate to the fixture's verdict.
+
+### Changed
+- ControlDocs re-vendored from the app's `feature/local-store` branch: new `local-store.md`;
+  `sources.md`, `sync.md`, `actions.md`, `index.md` carry the `local` method and fields.
+
 ## [0.13.1] — 2026-09-27
 
 ### Changed
@@ -41,6 +80,7 @@ All notable changes to **carterkit** are documented here. This project follows
   `<dir>/.<credential>.cmd-seen.json` beside `credential_path`, or at the new
   `cmd_dedupe_path=` (also on `Hub`). Token-only hubs without either are memory-only;
   an unreadable or unwritable file logs once and falls back to memory-only.
+
 
 ## [0.12.0] — 2026-09-23
 

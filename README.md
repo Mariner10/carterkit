@@ -125,6 +125,27 @@ the sync/action dicts; the validator checks a `source:` names a declared source 
 mqtt/http bindings carry a topic/path. These are marked **app-direct** in the contract, so a
 generated `bridge.py` never tries to serve them.
 
+The phone can also own the data outright: a **local store** (`local-store.md`) is typed
+collections that live in the app and survive the layout, queried with plain JSON stages —
+no server, no SQL:
+
+```python
+ui.source_local("db", {"books": {"title": "string", "pages": "integer", "finished": "date"}},
+                namespace="reading-log",
+                views={"thisYear": {"from": "books", "where": {"finished": {"gte": "{{startOfYear}}"}}}})
+with ui.tab("Shelf", icon="books.vertical"):
+    ui.label("n", label="Books", sync=[bind.local("books", aggregate="count")])
+    ui.chart("m", label="Per month",
+             sync=[bind.local("thisYear", group_by={"field": "finished", "bucket": "month"})])
+    ui.button("add", label="Add", action=bind.local_op("insert", "books",
+              set={"title": "{{value}}", "finished": "{{today}}"}))
+```
+
+`bind.local` / `bind.local_op` build the sync/action; the validator checks every stage
+against the declared fields (unknown field, bad operator or op, `limit` outside 1…1000,
+reserved `set` keys, view cycles, the `shared` namespace) so the phone never sees a stage
+it would refuse.
+
 Author the rest of the app's surface from Python too:
 
 ```python

@@ -419,6 +419,31 @@ class Layout:
         self._buf.layout.setdefault("sources", {})[name] = src
         return self
 
+    def source_local(self, name: str, collections: dict, *, namespace: str = None,
+                     views: dict = None, week_starts_on: str = None) -> "Layout":
+        """Declare an on-device local store (see local-store.md). `collections` maps a
+        name to either the full ``{"fields": {...}, "shared": bool, "mirror": bool}``
+        declaration or the shorthand ``{field: type}`` (types: string number integer
+        bool date json). Controls read it with ``bind.local("books", aggregate="count")``
+        and write it with ``bind.local_op("insert", "books", set={...})``. Records live in
+        the app — no server, no broker, and they survive the layout."""
+        src: dict = {"type": "local"}
+        if namespace is not None:
+            src["namespace"] = namespace
+        if week_starts_on is not None:
+            src["weekStartsOn"] = week_starts_on
+        colls: dict = {}
+        for cname, cdef in (collections or {}).items():
+            if isinstance(cdef, dict) and "fields" in cdef:
+                colls[cname] = dict(cdef)
+            else:
+                colls[cname] = {"fields": dict(cdef or {})}
+        src["collections"] = colls
+        if views is not None:
+            src["views"] = views
+        self._buf.layout.setdefault("sources", {})[name] = src
+        return self
+
     # ─── publishers (stream this device's sensors over the connection) ──────────
     def publisher(self, sensor: str, *, interval: float = None) -> "Layout":
         """Stream a device [[sensors]] pipeline over the layout's connection, so a hub
