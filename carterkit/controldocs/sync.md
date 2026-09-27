@@ -6,7 +6,7 @@ category: system
 fields:
   - name: method
     type: string
-    description: Transport method (meshsocket, mqtt, http, sensor)
+    description: Transport method (meshsocket, mqtt, http, sensor, local)
   - name: type
     type: string
     description: Sync direction (listen)
@@ -21,7 +21,7 @@ fields:
     description: Dot-notation path to extract value
   - name: source
     type: string
-    description: Named entry in the layout's sources (mqtt/http)
+    description: Named entry in the layout's sources (mqtt/http/local)
   - name: topic
     type: string
     description: MQTT topic filter to subscribe (mqtt; supports +/#)
@@ -37,12 +37,34 @@ fields:
     step: 1
     type: number
     description: Poll interval in seconds (http)
+  - name: collection
+    type: string
+    description: Collection or view name in the local source (local, required)
+  - name: where
+    type: object
+    description: Row filter — field → operator object, or and/or combinators (local)
+  - name: groupBy
+    type: object
+    description: Bucket rows — a field name, {field, bucket} for dates or {field, width} for numbers (local)
+  - name: aggregate
+    type: object
+    description: Collapse rows to one value — "count" or {op, field} with sum/avg/min/max/distinct/first/last (local)
+  - name: orderBy
+    type: string
+    description: Sort key(s); "-field" for descending (local)
+  - name: limit
+    min: 1
+    max: 1000
+    step: 1
+    type: number
+    description: Maximum rows or groups delivered, 1–1000 (local)
 ---
 
 How controls receive live state — the **standardized connection block**. The
 same vocabulary (`filter`, `valuePath`, value semantics) applies no matter the
 transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
-`mqtt`/`http` (see [[sources]]), or `sensor` (this device's own hardware).
+`mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware), or
+`local` (the on-device [[local-store]]).
 
 ## Definition
 
@@ -61,6 +83,7 @@ Equivalent bindings on other transports:
 ```json
 { "method": "mqtt", "topic": "server/telemetry", "valuePath": "cpu" }
 { "method": "http", "path": "/api/status", "interval": 5, "valuePath": "cpu" }
+{ "method": "local", "collection": "readings", "aggregate": { "op": "avg", "field": "cpu" } }
 ```
 
 ## Flow
@@ -83,6 +106,27 @@ With `method: "sensor"` a sync entry binds this device's own hardware instead of
 the mesh — `{ "method": "sensor", "sensor": "heading" }` feeds the control the
 compass with no server at all. See [[sensors]] for the catalog and
 [[publishers]] to stream readings to other devices.
+
+## Local store
+
+With `method: "local"` a sync entry reads the layout's on-device [[local-store]]
+instead of a wire. `collection` names a collection or view; the optional stage
+fields `where`, `groupBy`, `aggregate`, `orderBy` and `limit` are plain JSON (no
+SQL, no code) and decide the payload shape: an `aggregate` alone delivers
+`{"value": n}`, a `groupBy` delivers `categories` + `series` for a [[chart]], and
+a bare row query delivers `{"rows": [...], "count", "total", "first"}` for a
+[[list]]. The store sets a matching default `valuePath`, so the minimal form
+works everywhere. `event`, `topic`, `url`, `path`, `interval` and `sensor` are
+ignored for `local`.
+
+```json
+{ "method": "local", "collection": "books", "where": { "finished": { "gte": "{{startOfYear}}" } },
+  "aggregate": "count" }
+```
+
+The control re-delivers whenever a write touches the collection, when the day or
+time zone changes (if the query used a token), and when the collection's
+selection cursor moves (if it used `{{selected}}`).
 
 ## The layout `state` block (join, snapshots, ack'd commands)
 

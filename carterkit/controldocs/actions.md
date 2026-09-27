@@ -6,7 +6,7 @@ category: system
 fields:
   - name: method
     type: string
-    description: Transport method (meshsocket, mqtt, http)
+    description: Transport method (meshsocket, mqtt, http, local)
   - name: mode
     type: string
     description: Send mode (request, broadcast) — meshsocket only
@@ -18,7 +18,7 @@ fields:
     description: Data to send (supports {{value}} substitution)
   - name: source
     type: string
-    description: Named entry in the layout's sources (mqtt/http)
+    description: Named entry in the layout's sources (mqtt/http/local)
   - name: topic
     type: string
     description: MQTT topic to publish to
@@ -38,6 +38,19 @@ fields:
   - name: headers
     type: object
     description: Extra HTTP headers for this action
+  - name: op
+    type: enum
+    values: [insert, update, upsert, delete, select]
+    description: Local-store operation (local)
+  - name: collection
+    type: string
+    description: Collection the op targets (local)
+  - name: id
+    type: string
+    description: Record id for update/upsert/delete/select; tokens such as {{selected}} allowed (local)
+  - name: set
+    type: object
+    description: Declared field → value for insert/update/upsert; supports {{value}} and the store tokens (local)
 ---
 
 How controls send commands — the outbound half of the **standardized connection
@@ -61,6 +74,8 @@ The same command over other transports (see [[sources]]):
 { "method": "mqtt", "topic": "power/set", "payload": "{{value}}" }
 { "method": "http", "path": "/api/power", "httpMethod": "POST",
   "payload": { "state": "{{value}}" } }
+{ "method": "local", "op": "insert", "collection": "events",
+  "set": { "kind": "power", "state": "{{value}}", "at": "{{now}}" } }
 ```
 
 ## Modes (meshsocket)
@@ -85,8 +100,29 @@ A string that is *exactly* `"{{value}}"` keeps the value's native type (numbers
 stay numbers, bools stay bools). Over MQTT, a string payload publishes as raw
 bytes (`ON`, not `"ON"`); objects publish as JSON.
 
+## Local store
+
+With `method: "local"` an action writes the layout's on-device [[local-store]]
+instead of sending anything. `op` is one of `insert`, `update`, `upsert`,
+`delete` or `select`; `collection` names the target; `id` picks the row for
+update/upsert/delete/select (`"{{selected}}"` uses the collection's selection
+cursor) and `set` maps declared fields to values for insert/update/upsert.
+`payload` is not used. Tokens are substituted into `set` and `id` first —
+`{{value}}` and the control's own tokens plus `{{now}}`, `{{today}}`,
+`{{startOfWeek}}`, `{{startOfMonth}}`, `{{startOfYear}}` and `{{selected}}` —
+and an exact-token string keeps its native type, so `"pages": "{{value}}"` from a
+[[stepper]] stores a number. Values are validated against the declared types
+(reject, never coerce); a failure is a console line and a red `Local` pipe, never
+an alert. Delete is by `id` only.
+
+```json
+{ "method": "local", "op": "update", "collection": "books", "id": "{{selected}}",
+  "set": { "rating": "{{value}}" } }
+```
+
 ## Related
 
 - [[control-def]] — every control can have an action
 - [[sources]] — MQTT/HTTP source declaration
+- [[local-store]] — the on-device store `local` actions write
 - [[long-press]] — alternate action on long press
