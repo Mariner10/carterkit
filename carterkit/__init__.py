@@ -53,6 +53,8 @@ from .localdata import LocalDataError, LocalChangeEvent, parse_local_event
 from .surfaces import LayoutSurfaces
 from . import canonical
 from .canonical import canonical_json, content_digest
+from . import patch
+from .patch import PatchError
 
 try:
     from importlib.metadata import PackageNotFoundError, version as _pkg_version
@@ -115,6 +117,7 @@ __all__ = [
     "live_activity_register", "live_activity_deregister", "live_activity_push",
     "mesh_broadcast", "glance_update", "notification_action", "LayoutSurfaces",
     "canonical", "canonical_json", "content_digest",
+    "patch", "PatchError",
     "surfaces_register_token", "surfaces_deregister_token", "surfaces_get_state",
     "surfaces_put_state", "surfaces_publish",
     "glance", "tile", "scene", "widget", "island", "live",

@@ -10,6 +10,17 @@ live in the app and bind controls to them with plain JSON query stages — no se
 
 ### Added
 
+- **`carterkit.patch` — layout patch ops (carter-n4x.10, K11).** A pure, stdlib port of
+  the app's `LayoutOp` applier: `apply(layout, ops_or_batch, *, base=None)` →
+  `PatchResult(document, minted, inverse)` — id-addressed (nested groups, pages,
+  long-press groups, canvas items; first holder wins), atomic (`PatchError` with the op
+  index), `value: null` removes, `base` checked against `content_digest`, sectioned
+  documents keep facets in their sections, `c_`/`g_`/`t_` minting with `$placeholder`
+  refs. `decode_op` accepts the K11/U4 aliases (`set`/`unset`, `child`, `tab`,
+  `setLayout`, `renameTab`). `diff(old, new)` emits canonical ops (verified to apply
+  back to `new`) or None when the change must be a full push. `layout_hash` =
+  `canonical.content_digest`. The app's golden set is snapshotted in
+  `tests/fixtures/layout-ops/`.
 - **`carterkit.canonical` — the one canonical JSON (carter-m7s.9).** RFC 8785 (JCS) serialization
   (`canonical_json` / `canonical_bytes`) and the layout `content_digest(layout)` →
   `"sha256:<hex>"` over the credential-stripped document minus `provenance`,
