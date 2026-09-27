@@ -5,6 +5,12 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [0.13.0] — 2026-09-27
 
+### Fixed
+- **Timer floors match the app's sanitizer** (carter-ml2 / carter-n1u parity): carousel
+  `autoAdvance: 0` and web `webRefreshInterval: 0` mean "off" and are no longer `bad_timer`
+  errors; joystick `sendRate` floors at 0.02 s (documented 0.05/0.1 pass) and sensor
+  `publishers[].interval` at 0.05 s. Other timers keep the 0.25 s floor.
+
 ### Changed
 - **`validate_layout` now matches the device decoder** on the shared conformance fixtures
   (`CAR-TER/CAR-TERTests/Fixtures/layout-conformance`, run by `tests/test_conformance.py`).

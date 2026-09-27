@@ -60,7 +60,21 @@ POSITION_RANGE = (0, 256)
 SPAN_RANGE = (1, 64)
 MAX_DATA_IMAGE_URL = 524_288
 MIN_TIMER = 0.25
+# Mirrors the app's LayoutSanitizer (carter-ml2 / carter-n1u): joystick `sendRate` is an
+# event throttle (documented 0.05/0.1), sensor `publishers[].interval` has its own floor,
+# and carousel `autoAdvance` / web `webRefreshInterval` 0 means "off".
+MIN_SEND_RATE = 0.02
+MIN_PUBLISHER_INTERVAL = 0.05
 _TIMER_KEYS = {"interval", "webRefreshInterval", "autoAdvance", "sendRate"}
+_OFF_TIMER_KEYS = {"autoAdvance", "webRefreshInterval"}
+
+
+def _timer_floor(key: str, path: str) -> float:
+    if key == "sendRate":
+        return MIN_SEND_RATE
+    if key == "interval" and ".publishers[" in path:
+        return MIN_PUBLISHER_INTERVAL
+    return MIN_TIMER
 #: URL schemes a layout may point the phone at. `http` is allowed but warned.
 SAFE_URL_SCHEMES = {"https", "mqtt", "mqtts", "ws", "wss"}
 _WARN_URL_SCHEMES = {"http"}
@@ -423,9 +437,14 @@ def _check_object_bounds(node: dict, path: str, findings: list) -> None:
     if ".theme" not in path and not path.endswith("theme"):
         for k in _TIMER_KEYS & node.keys():
             v = node[k]
-            if _is_num(v) and v == v and v < MIN_TIMER:
+            if not (_is_num(v) and v == v):
+                continue
+            if k in _OFF_TIMER_KEYS and v == 0:
+                continue  # documented 0 = off (carousel autoAdvance, web webRefreshInterval)
+            floor = _timer_floor(k, path)
+            if v < floor:
                 findings.append(_f("error", "bad_timer", f"{path}.{k}",
-                                   f"timer {v}s is below the {MIN_TIMER}s floor; a push is "
+                                   f"timer {v}s is below the {floor}s floor; a push is "
                                    f"refused and a disk load raises it"))
     lo, hi = node.get("minLines"), node.get("maxLines")
     if _is_num(lo) and _is_num(hi) and lo > hi:
