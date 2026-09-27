@@ -651,6 +651,12 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
             _validate_child(sub, catalog, spot, findings, seen_ids, sources, depth + 1, counter)
         return
 
+    # Containers (carousel/flipCard/accordion panels, longPressGroup, canvas items) nest
+    # like groups on the device — one limit everywhere (carter-7np).
+    if _hosted_too_deep(ch, depth):
+        findings.append(_f("error", "too_deep", spot,
+                           f"groups/containers nest deeper than {MAX_DEPTH} levels — the app refuses this"))
+
     if not ctype:
         return
     entry = catalog.get(ctype)
@@ -680,6 +686,42 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                                    f"{ctype}.{k} = '{v}' is not one of {fd['values']} — "
                                    f"the app will fall back to the default"))
     _validate_bindings(ch, ctype, spot, findings, sources)
+
+
+def _hosted(node, depth):
+    """(child, depth) pairs `node` (sitting in a children array at `depth`) hosts, counted
+    like the app's LayoutSanitizer: each container is ONE level — a group's or a panel's
+    `children` (the `panels` array itself is only a hop), a longPressGroup's `children`
+    and `canvasConfig.items` — matching the renderer's one `depth + 1` per spawn."""
+    out = []
+    if node.get("type") == "group":
+        subs = node.get("children")
+        return [(c, depth + 1) for c in subs] if isinstance(subs, list) else []
+    panels = node.get("panels")
+    if isinstance(panels, list):
+        for p in panels:
+            if isinstance(p, dict) and isinstance(p.get("children"), list):
+                out += [(c, depth + 1) for c in p["children"]]
+    lpg = node.get("longPressGroup")
+    if isinstance(lpg, dict) and isinstance(lpg.get("children"), list):
+        out += [(c, depth + 1) for c in lpg["children"]]
+    cc = node.get("canvasConfig")
+    if isinstance(cc, dict) and isinstance(cc.get("items"), list):
+        out += [(it["control"], depth + 1) for it in cc["items"]
+                if isinstance(it, dict) and isinstance(it.get("control"), dict)]
+    return out
+
+
+def _hosted_too_deep(node, depth):
+    """True when anything a container hosts has more than MAX_DEPTH enclosing levels
+    (`depth - 1`, as in `_validate_child`). Stops at the limit, so a hostile chain costs
+    at most MAX_DEPTH + 1 frames."""
+    for sub, d in _hosted(node, depth):
+        if not isinstance(sub, dict):
+            continue
+        if d - 1 > MAX_DEPTH or _hosted_too_deep(sub, d):
+            return True
+    return False
 
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a
