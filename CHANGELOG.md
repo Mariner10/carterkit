@@ -101,6 +101,14 @@ live in the app and bind controls to them with plain JSON query stages — no se
 - ControlDocs re-vendored from the app's `feature/local-store` branch: new `local-store.md`;
   `sources.md`, `sync.md`, `actions.md`, `index.md` carry the `local` method and fields.
 
+<!-- from carter-5sn.1 -->
+### Added
+
+- `device_support_findings(layout, features)` (carter-5sn.1): a `warn` finding
+  (`needs_newer_app`) for every control type the paired phone's app doesn't report in its
+  `features`, saying whether the phone shows the control's `fallback` or an "Update CAR-TER"
+  placeholder tile. Never an error and never auto-wraps a fallback (decision carter-4fb).
+
 ## [0.13.1] — 2026-09-27
 
 ### Changed

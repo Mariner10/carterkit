@@ -28,7 +28,7 @@ from . import catalog, grid, codegen, infer, theming, tune, dynamic, contract
 from .contract import extract_contract
 from .sections import to_inline, to_sectioned, is_sectioned
 from .buffer import LayoutBuffer, BufferError
-from .validate import validate_layout as _validate_layout, format_findings
+from .validate import validate_layout as _validate_layout, format_findings, device_support_findings
 from .client import (CarterClient, notify_http, CarterNotifyError,
                      device_refresh_http, CarterDeviceRevoked, CommandDedupe)
 from . import ambient
@@ -118,7 +118,7 @@ __all__ = [
     "cc_toggle", "cc_button", "cc_cycle", "cc_step", "cc_set",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
-    "lint_dynamic_traffic", "format_findings", "controldocs_dir",
+    "lint_dynamic_traffic", "format_findings", "device_support_findings", "controldocs_dir",
     "build", "control", "bind", "Layout", "Fragment", "Control", "Condition", "CompoundCondition",
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
