@@ -26,6 +26,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on interaction |
 | `sync` | [[sync\|SyncDefinition]][] | — | Live state listeners |
 | `visible` | [[visibility\|VisibilityCondition]] | — | Show/hide condition |
+| `enabled` | [[visibility\|VisibilityCondition]] | — | Enable/disable condition: false dims the control and ignores touches |
 | `haptic` | string | varies by type | Haptic feedback profile. See [[haptics]] |
 | `animation` | string or object | varies by type | Animation override. See [[animations]] |
 | `longPressAction` | [[actions\|ActionDefinition]] | — | Action fired on long-press |
@@ -100,6 +101,6 @@ Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfa
 - [[appearance]] — App shell appearance (color scheme, header, background)
 - [[actions]] — How `action` and `longPressAction` work
 - [[sync]] — How `sync` delivers live values
-- [[visibility]] — How `visible` works
+- [[visibility]] — How `visible` and `enabled` work
 - [[haptics]] — Haptic profile names
 - [[animations]] — Animation profile names and overrides

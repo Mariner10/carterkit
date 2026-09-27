@@ -23,12 +23,13 @@ from urllib.parse import urlsplit
 
 from . import grid as gridmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
+from .conditions import check_condition
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
 SHARED_FIELDS = {
     "type", "id", "position", "span", "label", "defaultValue", "icon", "tint",
-    "hideLabel", "hideBackground", "action", "sync", "visible", "haptic",
+    "hideLabel", "hideBackground", "action", "sync", "visible", "enabled", "haptic",
     "animation", "longPressGroup", "longPressAction", "theme", "config",
     # Shared display/range/format properties the app decodes on ControlDefinition
     # (not per-control config) — any control may carry them; unused ones are ignored.
@@ -37,7 +38,7 @@ SHARED_FIELDS = {
 }
 GROUP_FIELDS = {
     "type", "id", "position", "span", "label", "grid", "children", "dynamic",
-    "visible", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
+    "visible", "enabled", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
 }
 
 
@@ -528,6 +529,11 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                            f"id '{cid}' already used at {seen_ids[cid]}"))
     elif cid:
         seen_ids[cid] = spot
+
+    # `visible` / `enabled`: the conditions-v2 tree (conditions.py mirrors the device).
+    for ckey in ("visible", "enabled"):
+        if ckey in ch:
+            check_condition(ch[ckey], f"{spot}.{ckey}", findings)
 
     if ctype == "group":
         for k in ch:

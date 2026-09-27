@@ -20,6 +20,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `children` | [[child-definition]][] | yes | Controls and nested groups |
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
+| `enabled` | [[visibility\|VisibilityCondition]] | no | Enable/disable every child; false dims the group and ignores touches |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
 
@@ -98,6 +99,6 @@ A group renders as a glass card whose surface, corner radius, border, and paddin
 - [[control-def]] — controls within groups
 - [[layout-config]] — the top-level structure
 - [[grid-dimensions]] — Grid sizing
-- [[visibility]] — The `visible` field
+- [[visibility]] — The `visible` and `enabled` fields
 - [[dynamic-content]] — Runtime injection
 - [[theming]] — Theme & appearance system

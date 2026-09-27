@@ -43,7 +43,7 @@ from .glance import (tile, scene, widget, island, live,
 from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
-from .layout import Layout, Fragment, Control, Condition
+from .layout import Layout, Fragment, Control, Condition, CompoundCondition
 from .connection import Connection
 from .hub import Hub, HubError
 from .notifications import notification_action
@@ -113,7 +113,7 @@ __all__ = [
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "controldocs_dir",
-    "build", "control", "bind", "Layout", "Fragment", "Control", "Condition",
+    "build", "control", "bind", "Layout", "Fragment", "Control", "Condition", "CompoundCondition",
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
     "contract", "extract_contract",

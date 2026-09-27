@@ -73,6 +73,49 @@ class Condition:
     def __repr__(self) -> str:
         return f"<Condition {self.when} {self.operator} {self.value!r}>"
 
+    # Conditions v2 (carter-c1n.18): combine with `&` (all), `|` (any), `~` (not).
+    def __and__(self, other) -> "Condition":
+        return CompoundCondition("all", [self, other])
+
+    def __or__(self, other) -> "Condition":
+        return CompoundCondition("any", [self, other])
+
+    def __invert__(self) -> "Condition":
+        return CompoundCondition("not", [self])
+
+
+def _cond_dict(c):
+    return c.to_dict() if isinstance(c, Condition) else c
+
+
+class CompoundCondition(Condition):
+    """An ``all``/``any``/``not`` node over conditions (or raw condition dicts).
+    ``(power > 50) & mode.eq("auto")`` → ``{"all": [...]}``; nested same-kind nodes
+    flatten, so ``a & b & c`` is one ``all`` of three."""
+
+    def __init__(self, kind: str, parts: list):
+        self.kind = kind
+        flat: list = []
+        for p in parts:
+            if kind != "not" and isinstance(p, CompoundCondition) and p.kind == kind:
+                flat.extend(p.parts)
+            else:
+                flat.append(p)
+        self.parts = flat
+
+    def to_dict(self) -> dict:
+        if self.kind == "not":
+            return {"not": _cond_dict(self.parts[0])}
+        return {self.kind: [_cond_dict(p) for p in self.parts]}
+
+    def __repr__(self) -> str:
+        return f"<Condition {self.kind} {self.parts!r}>"
+
+
+def ref(kind: str, key: str, operator: str, value) -> dict:
+    """A raw conditions-v2 leaf: ``ref("selected", "plants", "ne", None)``."""
+    return {"ref": {kind: key}, "operator": operator, "value": value}
+
 
 class Control:
     """A handle to a placed control. Use it as a binding target or to patch the
@@ -162,7 +205,7 @@ class _GridScope:
     def _make(self, ctype: str, *, id=None, position=None, span=None,
               listen=None, when=None, event: str = "broadcast",
               send=None, request: bool = False, payload=None, sensor=None,
-              sync=None, action=None, visible=None, pulse=None, **props) -> Control:
+              sync=None, action=None, visible=None, enabled=None, pulse=None, **props) -> Control:
         syncs = list(sync) if sync else []
         if listen is not None:
             for v in ([listen] if isinstance(listen, str) else listen):
@@ -192,6 +235,8 @@ class _GridScope:
                 props["action"] = _bind.command(send, payload=payload)
         if visible is not None:
             props["visible"] = visible.to_dict() if isinstance(visible, Condition) else visible
+        if enabled is not None:
+            props["enabled"] = _cond_dict(enabled)
         if pulse is not None:
             props["pulse"] = pulse
         cid = self._owner._unique_id(id or ctype)
@@ -201,7 +246,7 @@ class _GridScope:
         return Control(self, ctrl)
 
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
-              rows: int = 4, dynamic=None, visible=None, pulse=None,
+              rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
               hide_background=None, mode: str = None, row_height: int = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
@@ -222,6 +267,8 @@ class _GridScope:
             g["dynamic"] = dynamic
         if visible is not None:
             g["visible"] = visible.to_dict() if isinstance(visible, Condition) else visible
+        if enabled is not None:
+            g["enabled"] = _cond_dict(enabled)
         if pulse is not None:
             g["pulse"] = pulse
         if hide_background is not None:
