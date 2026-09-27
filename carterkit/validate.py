@@ -668,7 +668,7 @@ def _collect_source_refs(children, sources, referenced):
             _collect_source_refs(ch.get("children") or [], sources, referenced)
             continue
         bindings = list(ch.get("sync") or [])
-        for akey in ("action", "longPressAction", "datumAction", "snapshotAction", "nodeAction"):
+        for akey in ("action", "longPressAction") + SECONDARY_ACTION_KEYS:
             a = ch.get(akey)
             if isinstance(a, dict):
                 bindings.append(a)
@@ -917,9 +917,8 @@ def _validate_bindings(ch, ctype, spot, findings, sources=None):
             findings.append(_f("error", "bad_action", spot, f"{ctype}.{akey} must be an object"))
             continue
         _validate_action_entry(a, ctype, akey, spot, findings, sources)
-    # Secondary action carriers (charts' datumAction, camera's snapshotAction,
-    # graph's nodeAction) ride the same rules.
-    for akey in ("datumAction", "snapshotAction", "nodeAction"):
+    # Secondary action carriers ride the same rules (SECONDARY_ACTION_KEYS).
+    for akey in SECONDARY_ACTION_KEYS:
         a = ch.get(akey)
         if isinstance(a, dict):
             _validate_action_entry(a, ctype, akey, spot, findings, sources)
@@ -1083,6 +1082,15 @@ def _validate_action_entry(a, ctype, akey, spot, findings, sources):
     _validate_action_wire(a, ctype, akey, spot, findings)
 
 
+#: Per-element action carriers. Each dispatches through the same app path as `action`
+#: (charts' datumAction, camera's snapshotAction, graph's nodeAction, boxPlot's
+#: boxAction, chord's arcAction, heatmap's cellAction, treemap's itemAction, gantt's
+#: taskAction, pieChart's sliceAction), so each gets the same wire lint (carter-akc).
+SECONDARY_ACTION_KEYS = ("datumAction", "snapshotAction", "nodeAction", "boxAction",
+                         "arcAction", "cellAction", "itemAction", "taskAction",
+                         "sliceAction")
+
+
 def _validate_action_wire(a, ctype, akey, spot, findings):
     """The action's `event` goes on the wire as the frame type verbatim, and the
     relay forwards only its own verbs — any other name is silently dropped (the
@@ -1092,11 +1100,17 @@ def _validate_action_wire(a, ctype, akey, spot, findings):
     if ev not in WIRE_VERBS:
         if ev in RELAY_SERVICE_VERBS:
             return  # answered by the relay itself (ping etc.) — legal
+        mt = payload.get("msg_type") if isinstance(payload, dict) else None
+        if mt:
+            # The payload already names the message; send='…' would overwrite msg_type.
+            fix = (f"Set event to 'broadcast_request' — the payload's msg_type "
+                   f"'{mt}' already names the message")
+        else:
+            fix = (f"Use send='{ev}' / bind.command('{ev}') to ride broadcast_request "
+                   f"with msg_type='{ev}'")
         findings.append(_f("error", "dead_action", spot,
                            f"{ctype}.{akey} event '{ev}' is not a relay verb — the relay "
-                           f"silently drops it and the control does nothing. Use "
-                           f"send='{ev}' / bind.command('{ev}') to ride broadcast_request "
-                           f"with msg_type='{ev}'"))
+                           f"silently drops it and the control does nothing. {fix}"))
         return
     if ev == "broadcast_request":
         if a.get("mode") == "request":
