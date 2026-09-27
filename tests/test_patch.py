@@ -7,6 +7,7 @@ from __future__ import annotations
 import copy
 import itertools
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -22,10 +23,6 @@ GOLDENS = sorted(GOLDEN_DIR.glob("*.json"))
 #: Goldens the kit can't reproduce, and why.
 KNOWN_GAPS = {
     "error-decode": "needs the app's LayoutDecoder (post-apply validate); the kit doesn't port it",
-}
-#: Goldens whose inverse doesn't restore the input byte-for-byte (same in Swift).
-INVERSE_GAPS = {
-    "settheme": "undoing setTheme on a theme-less layout leaves theme: {}",
 }
 
 
@@ -62,10 +59,26 @@ def test_golden_apply(path):
         assert g["input"] == before, "a failed batch must not touch the input"
         return
     out = patch.apply(g["input"], g["batch"])
-    assert same(out.document, g["expected"]), canonical.canonical_json(out.document)
+    expected = g["expected"]
+    # `minted: {"#0": "<regex>"}` — a minted id, written `$#0` in `expected`
+    # (the app's LayoutOpsTests substitutes the same way).
+    for key, pattern in (g.get("minted") or {}).items():
+        minted = out.minted[key]
+        assert re.search(pattern, minted), (key, minted)
+        expected = _replacing("$" + key, minted, expected)
+    assert same(out.document, expected), canonical.canonical_json(out.document)
     assert g["input"] == before
-    if g["name"] not in INVERSE_GAPS:
-        assert same(patch.apply(out.document, out.inverse).document, g["input"])
+    assert same(patch.apply(out.document, out.inverse).document, g["input"])
+
+
+def _replacing(target, new, v):
+    if isinstance(v, str) and v == target:
+        return new
+    if isinstance(v, dict):
+        return {k: _replacing(target, new, x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_replacing(target, new, x) for x in v]
+    return v
 
 
 @pytest.mark.parametrize("path", GOLDENS, ids=lambda p: p.stem)
@@ -94,6 +107,8 @@ def assert_diff(old, new, *, expressible=True):
 @pytest.mark.parametrize("path", [p for p in GOLDENS if "expected" in load(p)], ids=lambda p: p.stem)
 def test_golden_diff_round_trip(path):
     g = load(path)
+    for key in g.get("minted") or {}:  # a concrete id where the golden says `$#0`
+        g["expected"] = _replacing("$" + key, "c_d1ff00", g["expected"])
     ops = patch.diff(g["input"], g["expected"])
     if g["name"] == "sectioned-renameid":
         # an id change reads as remove+add; the re-added node's facets would land
@@ -304,9 +319,8 @@ def test_corpus_diff_round_trip(path):
         if ops is None:
             continue
         assert same(patch.apply(doc, ops).document, new), (kind, ops)
-    if not readonly and same(patch.apply(doc, []).document, doc):
-        # (a sectioned `placements.<id>.default` alias re-lifts as top-level
-        # position/span, like the Swift applier, so apply(doc, []) isn't identity there)
+    if not readonly:
+        assert same(patch.apply(doc, []).document, doc)  # an empty batch is the identity
         assert patch.diff(doc, copy.deepcopy(doc)) == []
 
 

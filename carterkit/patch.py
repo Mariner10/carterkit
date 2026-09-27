@@ -44,7 +44,10 @@ Semantics (same as the Swift applier):
   never mutated. A ``base`` that isn't ``content_digest(layout)`` fails the batch.
 - ``value: null`` always means "remove the key".
 - A sectioned (``schemaVersion: 2``) document is folded to the inline form, the ops run,
-  and it is lifted back so every facet stays in the section it lived in.
+  and it is lifted back per facet: to the section (or the ``placements.<id>.default``
+  alias) it came from; inline if it was inline; a facet new to a child joins the child's
+  existing section entry, else inline. ``schemaVersion`` is kept as written, so an empty
+  batch is the identity.
 - ``add``/``duplicate``/``addTab`` mint opaque ids (``c_``/``g_``/``t_`` + 6 hex) when the
   given id is absent, taken or a ``$placeholder``; later ops in the batch may name the
   placeholder. ``PatchResult.minted`` maps placeholder (or ``"#<op index>"``) → id.
@@ -750,13 +753,12 @@ class _NodeOps(_Engine):
         needs_mint = not given or placeholder is not None or bool(subtree & taken)
         if needs_mint:
             pool = taken | subtree
-            if not given:
-                # Documented rule ("mints when control.id is absent"): give the node an id
-                # slot so remint fills it. (The Swift applier currently fails here.)
-                d["id"] = ""
             d = _remint(d, pool, self.mint)
             if given and placeholder is None and given not in taken:
                 d["id"] = given
+            # remint only renews ids that exist; an id-less control gets its first one here.
+            if not _str(d.get("id")):
+                d["id"] = self.mint("g" if type_ == "group" else "c", pool)
             if "name" not in d and (not given or placeholder is not None):
                 live = type_ == "group" and "dynamic" in d
                 d["name"] = _fresh_name("liveGroup" if live else type_, _strings_under("name", self.doc))
@@ -868,22 +870,22 @@ class _Ops(_NodeOps):
             self.undo.append([{"op": "layout", "set": back, "unset": sorted(drop)}] if back or drop else [])
         elif name == "setTheme":
             key, value, scheme = op["key"], copy.deepcopy(op.get("value")), op.get("scheme")
+            old_theme = copy.deepcopy(root["theme"]) if "theme" in root else _MISSING
             theme = dict(root["theme"]) if isinstance(root.get("theme"), dict) else {}
             if scheme is not None:
                 target = dict(theme[scheme]) if isinstance(theme.get(scheme), dict) else {}
             else:
                 target = theme
-            old = copy.deepcopy(target.get(key))
             _put(target, key, value)
             if scheme is not None:
                 theme[scheme] = target
             else:
                 theme = target
             self._set_root("theme", theme)
-            inv = {"op": "setTheme", "key": key, "value": old}
-            if scheme is not None:
-                inv["scheme"] = scheme
-            self.undo.append([inv])
+            # Restore the whole prior theme (or its absence): an exact inverse never leaves
+            # an empty container the input didn't have.
+            self.undo.append([{"op": "layout", "set": {"theme": old_theme}, "unset": []}
+                              if old_theme is not _MISSING else {"op": "layout", "set": {}, "unset": ["theme"]}])
         elif name == "addTab":
             verbatim = "tab" in op
             t = copy.deepcopy(op["tab"]) if verbatim else {
@@ -973,9 +975,15 @@ class _Ops(_NodeOps):
 
 # ── sectioned documents: facets stay where they live ─────────────────────────
 
-def _facet_homes(document: dict) -> dict:
-    """section -> {id -> facets that id keeps in that section of the input}."""
-    homes: dict = {}
+_ALIAS = "default/"   # marks a placement facet kept under placements.<id>.default
+_ALL_FACETS = {f for facets in _sections.SECTIONS.values() for f in facets}
+
+
+def _facet_homes(document: dict) -> tuple:
+    """``(sections, inline)``: section -> {id -> facets its entry held} (a present key =
+    the id has an entry; ``default/position`` marks the ``default`` alias), and
+    id -> the facets written inline on its first-holder child."""
+    secs: dict = {}
     for name, facets in _sections.SECTIONS.items():
         m = document.get(name)
         if not isinstance(m, dict):
@@ -985,16 +993,33 @@ def _facet_homes(document: dict) -> dict:
                 continue
             keys = set(entry) & set(facets)
             if name == "placements" and isinstance(entry.get("default"), dict):
-                keys |= set(entry["default"]) & {"position", "span"}
-            if keys:
-                homes.setdefault(name, {})[cid] = keys
-    return homes
+                keys |= {_ALIAS + k for k in ("position", "span")
+                         if k in entry["default"] and k not in entry}
+            secs.setdefault(name, {})[cid] = keys
+    inline: dict = {}
+
+    def walk(kids, depth):
+        for child in kids:
+            if not isinstance(child, dict):
+                continue
+            cid = child.get("id")
+            if isinstance(cid, str) and cid and cid not in inline:
+                inline[cid] = set(child) & _ALL_FACETS
+            if depth < _MAX_DEPTH and child.get("type") == "group" and isinstance(child.get("children"), list):
+                walk(child["children"], depth + 1)
+
+    for tab in document.get("tabs") or []:
+        if isinstance(tab, dict) and isinstance(tab.get("children"), list):
+            walk(tab["children"], 0)
+    return secs, inline
 
 
-def _relift(doc: dict, homes: dict, original_ids: dict) -> dict:
-    """Model form → the input's sectioned form: a facet an id kept in a section goes
-    back there; everything else (and every new control) stays inline. Entries whose id
-    is gone are dropped."""
+def _relift(doc: dict, homes: tuple, original_ids: dict, schema_version) -> dict:
+    """Model form → the input's shape. Per facet on a child: back to the section (or the
+    ``default`` alias) it came from; else inline if it was inline; else — a facet new to
+    the child — into the child's entry in that section when it has one, inline
+    otherwise. Entries whose id is gone are dropped; ``schemaVersion`` is the input's."""
+    home_secs, home_inline = homes
     secs = {name: {cid: dict(e) for cid, e in doc[name].items() if isinstance(e, dict)}
             for name in _sections.SECTIONS if isinstance(doc.get(name), dict)}
     claimed: set = set()
@@ -1007,10 +1032,22 @@ def _relift(doc: dict, homes: dict, original_ids: dict) -> dict:
             if isinstance(cid, str) and cid and cid not in claimed:
                 claimed.add(cid)
                 original = original_ids.get(cid, cid)
-                for name in _sections.SECTIONS:
-                    for facet in sorted(homes.get(name, {}).get(original, ())):
-                        if facet in child:
-                            secs.setdefault(name, {}).setdefault(cid, {})[facet] = child.pop(facet)
+                for name, facets in _sections.SECTIONS.items():
+                    held = home_secs.get(name, {}).get(original)
+                    if held is None:
+                        continue
+                    for facet in facets:
+                        aliased = _ALIAS + facet in held
+                        lifted = aliased or facet in held or facet not in home_inline.get(original, ())
+                        if not lifted or facet not in child:
+                            continue
+                        entry = secs.setdefault(name, {}).setdefault(cid, {})
+                        if aliased:
+                            alias = dict(entry["default"]) if isinstance(entry.get("default"), dict) else {}
+                            alias[facet] = child.pop(facet)
+                            entry["default"] = alias
+                        else:
+                            entry[facet] = child.pop(facet)
             if depth < _MAX_DEPTH and child.get("type") == "group" and isinstance(child.get("children"), list):
                 lift(child["children"], depth + 1)
 
@@ -1020,9 +1057,7 @@ def _relift(doc: dict, homes: dict, original_ids: dict) -> dict:
     for name in _sections.SECTIONS:
         kept = {cid: e for cid, e in secs.get(name, {}).items() if cid in claimed and e}
         _put(doc, name, kept or None)
-    if _sections.is_sectioned(doc):
-        v = doc.get("schemaVersion")
-        doc["schemaVersion"] = max(_sections.SCHEMA_VERSION, int(v) if _is_int(v) else 1)
+    _put(doc, "schemaVersion", copy.deepcopy(schema_version))
     return doc
 
 
@@ -1047,13 +1082,14 @@ def apply(layout: dict, ops_or_batch, *, base: Optional[str] = None,
     sectioned = _sections.is_sectioned(layout)
     engine = _Ops(_sections.to_inline(layout) if sectioned else copy.deepcopy(layout),
                   mint or _random_id)
-    homes = _facet_homes(layout) if sectioned else {}
+    homes = _facet_homes(layout) if sectioned else ({}, {})
     for i, op in enumerate(batch["ops"]):
         try:
             engine.run(op, i)
         except _Failure as e:
             raise PatchError(e.message, i) from None
-    doc = _relift(engine.doc, homes, engine.original_ids) if sectioned else engine.doc
+    doc = (_relift(engine.doc, homes, engine.original_ids, layout.get("schemaVersion"))
+           if sectioned else engine.doc)
     return PatchResult(document=doc, minted=dict(engine.minted), inverse=engine.inverse)
 
 
