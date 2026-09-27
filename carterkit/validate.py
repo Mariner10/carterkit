@@ -25,6 +25,7 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from . import grid as gridmod
+from . import palette as palettemod
 from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 
@@ -159,6 +160,11 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     sources = _validate_sources_defs(layout, findings)
     _validate_top_level(layout, findings)
     _validate_contract(layout, findings)
+    # Palette tokens (carter-m7s.16): raw colours that equal a token, unknown `$name`
+    # refs, ignored palette entries. Warnings only; run on the document as written so
+    # `styles` refs are reported where they live.
+    for kind, where, detail in palettemod.palette_findings(layout):
+        findings.append(_f("warn", kind, where, detail))
 
     # A sectioned document (schemaVersion 2) is checked as the app sees it: sections
     # folded onto their children. Entries the app would drop are errors here.
