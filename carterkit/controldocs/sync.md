@@ -16,6 +16,15 @@ fields:
   - name: filter
     type: object
     description: Key-value pairs to match incoming messages
+  - name: staleAfter
+    min: 0
+    max: 86400
+    step: 1
+    type: number
+    description: Seconds after the last source arrival before the value counts as stale (opt-in; 0 opts out; overrides the layout's liveness.staleAfter)
+  - name: timestampPath
+    type: string
+    description: Dot path to epoch seconds or ISO-8601 in the frame; age runs from that timestamp instead of receipt time
   - name: valuePath
     type: string
     description: Dot-notation path to extract value
@@ -99,6 +108,62 @@ With `method: "mqtt"` or `"http"` a sync entry binds an external source directly
 — an MQTT broker topic or a polled JSON endpoint — with no MeshSocket server in
 the loop. Same `filter`/`valuePath` semantics, same special receivers. See
 [[sources]] for source declaration, payload rules, and full examples.
+
+## Liveness (staleAfter)
+
+Staleness is **opt-in**. By default a synced value looks live forever, even if
+its server went quiet hours ago. Give a binding `staleAfter` (seconds) and the
+app treats the value as stale once that long has passed without a new arrival:
+
+```json
+{ "method": "meshsocket", "event": "broadcast",
+  "filter": { "msg_type": "telemetry" }, "valuePath": "cpu", "staleAfter": 30 }
+{ "method": "mqtt", "topic": "garage/freezer", "valuePath": "temp",
+  "timestampPath": "ts", "staleAfter": 900 }
+{ "method": "meshsocket", "event": "broadcast", "valuePath": "mode", "staleAfter": 0 }
+```
+
+**Resolution order** for each binding:
+
+1. The sync entry's own `staleAfter`.
+2. Otherwise the layout's `liveness.staleAfter` (see [[layout-config]]).
+3. Otherwise off.
+
+`0` at whichever level applies turns staleness **off** for that binding, which
+suits settings-style controls (pickers, toggles) that change rarely. Values
+above 86400 (one day) are clamped to 86400; negative or non-numeric values are
+ignored, as if the key were absent. A control
+with several sync entries is stale only when **all** of its bindings are stale:
+one live transport is enough.
+
+**What counts as an arrival.** A frame that matches the binding's `event` and
+`filter` and whose `valuePath` extracts, even if the value did not change. The
+same holds for MQTT messages, HTTP poll responses, sensor readings, and the
+authority's control-state snapshot (a mesh arrival).
+
+**Values with no source.** Some writes to a control come from the app itself,
+not from a source: a user gesture, an optimistic or held value released or
+reverted by a command ack (see [ack'd commands](#the-layout-state-block-join-snapshots-ackd-commands)),
+a `defaultValue`, a widget or Shortcuts press, a Studio write, a guide, or the
+demo. These carry no source kind (`sourceKind` is nil). They **neither refresh
+nor reset** the staleness clock: age always runs from the binding's last source
+arrival. So tapping a toggle on a dead hub does not make it look live, and a
+held value awaiting its ack keeps the age of the last real frame. A control that
+has never had a source arrival is *never received*, not stale; it keeps the
+usual no-data look.
+
+**`timestampPath`** is a dot path (not an expression) to epoch seconds or an
+ISO-8601 string inside the frame. When present and parseable, age runs from that
+timestamp instead of from when the phone received the frame; future timestamps
+are clamped to now. Retained MQTT messages need it: the broker replays the last
+value on every subscribe, so receipt time says nothing about freshness.
+
+**Sensor idle heartbeat.** Batched sensor publishers hold back unchanged readings
+for up to 120 s. A `staleAfter` of 120 or less on a `msg_type: "sensor"` binding
+will flicker stale whenever the publishing phone sits still; use more than 120.
+
+Invalid values (negative, or not a number / string) are ignored, and the binding
+behaves as if the key were absent. Older apps ignore both keys.
 
 ## Local hardware
 

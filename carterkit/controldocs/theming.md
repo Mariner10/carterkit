@@ -118,7 +118,7 @@ Name your colours once in `theme.palette`, then write `"$name"` in any colour fi
 - **Never rewritten**: labels, text and other non-colour strings, and the wire blocks (`sync`, `action`, `longPressAction`, `connection`, `sources`, `alerts`, `publishers`, `extensions`). A label of `"$brand"` stays `"$brand"`.
 - **Palette values** are literal colours (the same hex forms as everywhere else). A value that is itself a `$ref`, is not a string, or has a name other than letters, digits, `_` and `-` is ignored with a warning. Up to 64 tokens.
 - **Unknown tokens** (`"$nope"`) never crash and never render black: the field is dropped with a warning ("Repaired on load" in the Layout Hub) and falls back to whatever it would inherit.
-- **Resolution happens at load**. The saved file keeps the `$name` refs, so editors (the designer, carterkit, the MCP) edit tokens, not the hexes behind them. Children pushed at runtime into a `dynamic` group or tab are not resolved against the palette: use literal colours there.
+- **Resolution happens at load**. The saved file keeps the `$name` refs, so editors (the designer, carterkit, the MCP) edit tokens, not the hexes behind them. Children pushed at runtime into a `dynamic` group or tab resolve against the active layout's palette the same way, with the same unknown-token fallback.
 - **Lint**: carterkit's `validate_layout` and the MCP warn when a raw colour equals a palette token and suggest the `$name`.
 
 Starting palettes: the playbook theme packs in `layout-library/playbook/themes/<slug>.theme.json` (24 packs of `{theme, appearance, accentColor}`) are the presets; copy one's `theme` and name its colours.
@@ -131,8 +131,8 @@ What a control finally draws with, from lowest to highest priority. This is the 
 |---|-------|-------|-------|
 | 1 | Built-in defaults | — | Dark glass palette, accent `#667eea` |
 | 2 | Light palette | [[appearance]] `colorScheme` | When the layout renders light: black ink, light page `#F2F2F7`, light tracks. Never overrides a key the theme sets |
-| 3 | Layout theme | `theme` | The base keys above. Per-type sub-themes (`toggle`, `slider`, …) are built here from the **base** `accentColor` unless they set their own colours |
-| 4 | Scheme override | `theme.light` / `theme.dark` | Applied last at the layout level, for the active mode only. Its `accentColor` does **not** re-tint the per-type tracks already built in step 3 |
+| 3 | Layout theme | `theme` | The base keys above. Per-type sub-themes (`toggle`, `slider`, `stepper`, `progressBar`) follow the accent unless they set their own colours |
+| 4 | Scheme override | `theme.light` / `theme.dark` | Applied last at the layout level, for the active mode only. Its `accentColor` also becomes the accent the per-type tracks follow in that mode (a sub-theme's own colours still win) |
 | 5 | Group theme | group `theme` | Applied over 4 for the group's label, card and every child, recursively through nested groups |
 | 6 | Control theme | control `theme` | Applied over 5 for that control. An `accentColor` here also re-points the toggle / slider / stepper / progress tracks that were following the accent |
 | 7 | Control tint | control `tint` | Most controls draw their accent as `tint ?? theme accent`, so `tint` beats even the control's own `theme.accentColor` |

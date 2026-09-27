@@ -49,6 +49,9 @@ fields:
   - name: keepAwake
     type: bool
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
+  - name: liveness
+    type: object
+    description: Layout-wide staleness default for sync bindings, e.g. {"staleAfter": 120} (opt-in; see sync)
   - name: batchPublishers
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
@@ -82,6 +85,7 @@ Top-level JSON structure for a CAR-TER remote.
   "pollGroups": { ... },
   "dynamicTabs": [ ... ],
   "keepAwake": true,
+  "liveness": { "staleAfter": 120 },
   "glance": { "hero": "cpu", "liveActivity": true, "controls": [ ... ], "widgets": [ ... ] }
 }
 ```
@@ -202,11 +206,25 @@ held whenever *either* path says so.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `keepAwake` | bool | `false` | Hold the screen on while this layout is open, unless the user vetoed layout requests |
+| `liveness` | object | none | `{ "staleAfter": seconds }`: layout-wide staleness default for every sync binding; see [Liveness](#liveness) |
 | `batchPublishers` | bool | `false` | Publish sensors as one `sensor_batch` frame per tick of the fastest interval — see [[publishers]] |
 
 Battery note: a held screen drains fast off the charger. Reserve it for layouts
 that really are the display — a car dashboard, a wall panel, a telemetry source —
 not a remote that is glanced at and pocketed.
+
+## Liveness
+
+`"liveness": { "staleAfter": 120 }` sets a layout-wide default for how many
+seconds a synced value may go without a new source arrival before it counts as
+stale. Staleness is **opt-in**: without this block and without a per-binding
+`staleAfter`, values look live forever, as before.
+
+A sync entry's own `staleAfter` overrides this default, and `0` at either level
+opts that binding out. Writes that do not come from a source (user gestures,
+held or reverted command-ack values, defaults, Studio writes) never refresh the
+clock. See [[sync]] for resolution, arrivals, `timestampPath`, and the sensor
+heartbeat caveat. A malformed block is ignored rather than failing the layout.
 
 ## Glance surfaces
 
