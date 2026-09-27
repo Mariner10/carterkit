@@ -176,13 +176,13 @@ frames the push omits fall back to the item's configured spot.
         "control": { "type": "logConsole", "id": "feed-log", "label": "Feed", "maxLines": 40 } },
       { "id": "arm", "x": 0.05, "y": 0.5, "w": 0.42, "h": 0.2, "locked": true,
         "control": { "type": "button", "id": "arm-btn", "label": "Arm",
-                     "action": { "method": "meshsocket", "mode": "send", "event": "arm" } } }
+                     "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "arm" } } } }
     ],
     "events": {
       "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
                  "payload": { "target_id": "hub", "type": "board_place",
                               "payload": { "card": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
-      "layout": { "method": "meshsocket", "mode": "send", "event": "board_state" }
+      "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "board_state" } }
     }
   }
 }

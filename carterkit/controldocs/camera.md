@@ -149,7 +149,7 @@ The control's stored value is the last scanned string, so [[visibility]] conditi
   "action": {
     "method": "meshsocket",
     "mode": "broadcast",
-    "event": "scan-result",
+    "event": "broadcast_request",
     "payload": { "msg_type": "inventory_scan", "code": "{{value}}", "kind": "{{kind}}" }
   }
 }
@@ -168,7 +168,7 @@ The control's stored value is the last scanned string, so [[visibility]] conditi
   "action": {
     "method": "meshsocket",
     "mode": "broadcast",
-    "event": "ocr-result",
+    "event": "broadcast_request",
     "payload": { "msg_type": "serial_read", "text": "{{value}}" }
   }
 }
@@ -185,7 +185,7 @@ The control's stored value is the last scanned string, so [[visibility]] conditi
   "snapshotAction": {
     "method": "meshsocket",
     "mode": "broadcast",
-    "event": "camera-photo",
+    "event": "broadcast_request",
     "payload": { "msg_type": "site_photo", "image_b64": "{{image}}", "w": "{{width}}", "h": "{{height}}" }
   }
 }

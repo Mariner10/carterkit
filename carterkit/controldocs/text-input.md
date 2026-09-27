@@ -184,7 +184,7 @@ Keyboard behaviour, tuned for command entry:
   "placeholder": "Device name",
   "defaultValue": "my-device",
   "icon": "tag",
-  "action": { "method": "meshsocket", "mode": "request", "event": "identify", "payload": { "name": "{{value}}" } }
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "device_name", "name": "{{value}}" } }
 }
 ```
 
@@ -201,7 +201,7 @@ Keyboard behaviour, tuned for command entry:
   "autocorrectToggle": true,
   "autocorrect": false,
   "maxLines": 6,
-  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "command", "text": "{{value}}" } }
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "command", "text": "{{value}}" } }
 }
 ```
 
