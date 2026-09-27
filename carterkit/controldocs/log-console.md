@@ -48,6 +48,9 @@ fields:
     type: color
     default: "#667eea"
     description: Accent color
+  - name: defaultValue
+    type: array
+    description: Seed lines shown before the first sync (strings, or objects with text and level)
 themeFields:
   - name: cornerRadius
     min: 0

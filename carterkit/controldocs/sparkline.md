@@ -23,6 +23,9 @@ fields:
   - name: label
     type: string
     description: Header label (also shows latest value)
+  - name: defaultValue
+    type: array
+    description: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
 themeFields:
   - name: cornerRadius
     min: 0
