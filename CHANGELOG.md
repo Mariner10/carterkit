@@ -3,6 +3,17 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+- **Nesting limit matches the app (carter-m7s.7).** `validate.MAX_DEPTH` is now 8 — the
+  app's single `LayoutLimits.maxNestingDepth`, shared by its sanitizer and renderer —
+  and counts the groups/containers enclosing a control (tab children are 0). Layouts
+  nested 9-16 deep used to lint clean yet rendered "Nested too deeply" on the phone.
+- **Stable tab ids.** `LayoutBuffer.add_tab`, `LayoutBuffer.blank` and `Layout.tab`
+  emit `id` (a slug of the title, unique among tabs) so renaming a tab keeps the app's
+  selection and deep links. The validator reports an empty or duplicate tab `id`.
+
 ## [0.12.0] — unreleased
 
 Security hardening from the 2026-09-22 audit, plus the Ambient Surfaces v2 work that

@@ -616,6 +616,7 @@ class Layout:
         if not self._first_tab_used:
             t = self._buf.tabs[0]
             t["title"], t["icon"] = title, icon
+            t["id"] = self._buf.tab_id_for(title, skip_index=0)
             t["grid"] = grid
             self._tab_index = 0
             self._first_tab_used = True

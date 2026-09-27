@@ -47,7 +47,11 @@ def _f(severity: str, kind: str, where: str, detail: str) -> dict:
 
 #: Hostile-input caps. The app renders nothing like these; past them a layout is
 #: either broken or crafted, and the lint says so instead of working harder.
-MAX_DEPTH = 16
+#: How many groups/containers may enclose a control (a tab's own children are nesting
+#: 0). ONE number with the app: LayoutLimits.maxNestingDepth, which bounds both its
+#: sanitizer and its renderer (carter-m7s.7) — past it the device refuses a pushed
+#: layout and renders "Nested too deeply" for a stored one.
+MAX_DEPTH = 8
 MAX_CONTROLS = 2000
 MAX_STRING = 4096
 #: URL schemes a layout may point the phone at. `http` is allowed but warned.
@@ -113,12 +117,25 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
         return findings
 
     seen_ids: dict[str, str] = {}
+    seen_tab_ids: dict[str, str] = {}
     counter = {"n": 0}
     for ti, tab in enumerate(tabs):
         where = f"tab[{ti}]"
         if not isinstance(tab, dict):
             findings.append(_f("error", "structure", where, "tab must be an object"))
             continue
+        # Optional stable tab id (the app keys selection/deep links on it, else the
+        # title). Same rule as the device: non-empty and unique among tabs.
+        if "id" in tab:
+            tid = tab.get("id")
+            if not isinstance(tid, str) or not tid:
+                findings.append(_f("error", "missing_field", where,
+                                   "tab 'id' must be a non-empty string (or omit it)"))
+            elif tid in seen_tab_ids:
+                findings.append(_f("error", "duplicate_id", where,
+                                   f"tab id '{tid}' already used at {seen_tab_ids[tid]}"))
+            else:
+                seen_tab_ids[tid] = where
         g = tab.get("grid")
         cols, rows = _grid_dims(g, where, findings)
         children = tab.get("children") or []
@@ -461,7 +478,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         counter["n"] += 1
         if counter["n"] > MAX_CONTROLS:
             return                      # counted and reported once at the root
-    if depth > MAX_DEPTH:
+    # `depth` is 1 for a tab's own children, so the child's nesting is depth - 1.
+    if depth - 1 > MAX_DEPTH:
         findings.append(_f("error", "too_deep", where,
                            f"groups nest deeper than {MAX_DEPTH} levels — the app cannot render this"))
         return
