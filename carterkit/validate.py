@@ -41,6 +41,50 @@ GROUP_FIELDS = {
 }
 
 
+#: Measurement units a control `unit` converts (values.md "Units"), and the symbols
+#: that alias them. Mirrors CapabilityUnit in the app. Anything else is shown
+#: literally, which is allowed — but a near-miss of a name is probably a typo.
+UNIT_NAMES = {
+    "degrees", "kilopascals", "hectopascals", "meters", "kilometers", "miles", "feet",
+    "metersPerSecond", "kilometersPerHour", "milesPerHour", "gravity",
+    "celsius", "fahrenheit", "kelvin", "seconds", "minutes", "hours", "percent",
+}
+UNIT_ALIASES = {
+    "°": "degrees", "kPa": "kilopascals", "hPa": "hectopascals",
+    "m": "meters", "km": "kilometers", "mi": "miles", "ft": "feet",
+    "m/s": "metersPerSecond", "km/h": "kilometersPerHour", "kph": "kilometersPerHour",
+    "mph": "milesPerHour", "°C": "celsius", "°F": "fahrenheit", "K": "kelvin",
+    "s": "seconds", "min": "minutes", "h": "hours", "%": "percent",
+}
+
+
+def unit_name(unit: str) -> Optional[str]:
+    """The values.md unit a control `unit` string means, or None for a literal."""
+    if unit in UNIT_NAMES:
+        return unit
+    if unit in UNIT_ALIASES:
+        return UNIT_ALIASES[unit]
+    return next((n for n in UNIT_NAMES if n.lower() == unit.lower()), None)
+
+
+def _unit_findings(ctype: str, value, spot: str, findings: list) -> None:
+    """A known unit or a literal is fine; a near-miss of a unit name warns."""
+    if not isinstance(value, str):
+        findings.append(_f("warn", "bad_unit", spot,
+                           f"{ctype}.unit must be a string, got {value!r}"))
+        return
+    if not value.strip() or unit_name(value.strip()):
+        return
+    import difflib
+    close = difflib.get_close_matches(value.strip().lower(),
+                                      [n.lower() for n in UNIT_NAMES], n=1, cutoff=0.8)
+    if close:
+        name = next(n for n in UNIT_NAMES if n.lower() == close[0])
+        findings.append(_f("warn", "unit_typo", spot,
+                           f"{ctype}.unit = '{value}' is shown literally, with no locale "
+                           f"conversion — did you mean '{name}'?"))
+
+
 def _f(severity: str, kind: str, where: str, detail: str) -> dict:
     return {"severity": severity, "kind": kind, "where": where, "detail": detail}
 
@@ -511,6 +555,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         if k not in allowed:
             findings.append(_f("warn", "unknown_field", spot, f"{ctype}: unknown field '{k}'"))
             continue
+        if k == "unit":
+            _unit_findings(ctype, v, spot, findings)
         fd = fields.get(k)
         if fd and fd.get("type") == "enum" and fd.get("values") and isinstance(v, str):
             # The app never rejects a layout for an unrecognized enum — it renders the
