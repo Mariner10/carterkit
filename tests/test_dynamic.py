@@ -65,3 +65,21 @@ def test_orphan_payload_warns():
     findings = carterkit.lint_dynamic_traffic(lay, observed=[
         {"msg_type": "player_state", "children": []}, orphan])
     assert any(f["kind"] == "orphan_payload" for f in findings)
+
+
+# carter-mmpe — dynamic tab payloads get the same fragment identity lint as decks.
+def test_dynamic_tab_payload_id_collision_is_an_error():
+    from carterkit import Layout
+    from carterkit.dynamic import lint_dynamic_traffic, fragment_id_findings
+    with Layout("T", cols=2, rows=2) as ui:
+        with ui.tab("Main"):
+            ui.label("status", text="x")
+    ui.dynamic_tab("extra")
+    lay = ui.layout
+    tab = {"msg_type": "extra", "title": "Extra", "icon": "star",
+           "grid": {"columns": 2, "rows": 2},
+           "children": [{"type": "label", "id": "status", "position": [0, 0]}]}
+    kinds = [(f["kind"], f["severity"]) for f in lint_dynamic_traffic(lay, [tab])]
+    assert ("duplicate_id", "error") in kinds
+    assert ("orphan_payload", "warn") not in kinds
+    assert fragment_id_findings([{"type": "label", "id": "fresh", "position": [0, 0]}], lay) == []

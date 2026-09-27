@@ -189,7 +189,10 @@ live in the app and bind controls to them with plain JSON query stages — no se
   layout's own id set; `lint_dynamic_traffic` checks decks against it. App 1.3 behaviour:
   the app now DROPS a dynamic deck or tab whose ids are empty, duplicated or collide with
   the layout's own ids, so the kit reports such a deck as a `duplicate_id` error
-  (a `Hub.fill` warning for it is tracked in carter-mmpe).
+  and `Hub.fill` / the new `Hub.push_tab(event, tab)` log a warning (never raise: older
+  apps still accept it) when a deck or dynamic tab has an empty, duplicate or
+  layout-colliding id (`dynamic.fragment_id_findings`, carter-mmpe). `lint_dynamic_traffic`
+  now checks observed dynamic-tab payloads the same way.
 
 ### Fixed
 

@@ -44,6 +44,26 @@ def dynamic_groups(layout: dict) -> list[dict]:
     return out
 
 
+def fragment_id_findings(children, layout: dict, where: str = "deck") -> list[dict]:
+    """Identity problems in a dynamic deck (or a dynamic tab's children) that the app
+    refuses since carter-1o0: a missing/empty id, an id used twice in the fragment, or an
+    id the layout already holds (`validate.identity_ids`, dynamic slot content excluded).
+    Walks groups, container panels and long-press popups like the app's identity pass.
+    `validate`-style `error` findings; [] when the fragment is clean."""
+    if not isinstance(children, list):
+        return []
+    seen = {i: f"layout {w}" for i, w in _validate.identity_ids(layout or {}).items()}
+    findings: list[dict] = []
+    _validate._claim_ids(children, where, findings, seen)
+    return findings
+
+
+def dynamic_tab_events(layout: dict) -> set:
+    """Events registered in the layout's `dynamicTabs`."""
+    return {t.get("event") for t in (layout or {}).get("dynamicTabs") or []
+            if isinstance(t, dict) and isinstance(t.get("event"), str)}
+
+
 def _event_of(msg: dict):
     return msg.get("msg_type") or msg.get("event")
 
@@ -89,9 +109,17 @@ def lint_dynamic_traffic(layout: dict, observed, *, catalog: dict = None) -> lis
             for ch in children:
                 _validate._validate_child(ch, cat, spot, findings, seen_ids)
 
+    # dynamic tabs: the whole broadcast is the tab; the app refuses it on an id clash
+    tab_events = dynamic_tab_events(layout)
+    for ev in sorted(tab_events):
+        for mi, m in enumerate(by_event.get(ev, [])):
+            findings += fragment_id_findings(m.get("children"), layout,
+                                             f"dynamicTab '{ev}' #{mi}")
+
     # mirror: a payload carrying children that no dynamic group consumes (usually a typo)
     for ev, ms in by_event.items():
-        if ev not in listened and any(isinstance(m.get("children"), list) for m in ms):
+        if ev not in listened and ev not in tab_events \
+                and any(isinstance(m.get("children"), list) for m in ms):
             findings.append(_validate._f(
                 "warn", "orphan_payload", f"event:{ev}",
                 f"broadcast '{ev}' carries a 'children' array but no dynamic group listens for it"))

@@ -335,8 +335,34 @@ class Hub:
         else:
             kids = getattr(children, "children", children)
             payload = {"msg_type": event, "children": list(kids)}
+        self._warn_fragment_ids(payload.get("children"), f"deck for group '{g.get('id')}'")
         await self.client.broadcast_frame(payload)
         return payload
+
+    async def push_tab(self, event: str, tab) -> dict:
+        """Inject (or replace) a runtime tab: `event` must be registered with
+        `Layout.dynamic_tab(event)`; `tab` is a tab dict ({title, icon, grid, children})
+        or a handle with `.to_dict()`. Broadcasts the tab with `msg_type=event`."""
+        from .dynamic import dynamic_tab_events
+        if event not in dynamic_tab_events(self.layout or {}):
+            raise HubError(f"'{event}' is not a dynamicTabs event of this layout — "
+                           f"register it with Layout.dynamic_tab('{event}')")
+        body = tab.to_dict() if hasattr(tab, "to_dict") else dict(tab)
+        payload = {**body, "msg_type": event}
+        self._warn_fragment_ids(payload.get("children"), f"dynamic tab '{event}'")
+        await self.client.broadcast_frame(payload)
+        return payload
+
+    def _warn_fragment_ids(self, children, what: str) -> None:
+        """Warn (never raise: older apps still accept it) when a deck or dynamic tab has
+        an empty, duplicate or layout-colliding id — CAR-TER 1.3+ drops the whole
+        fragment, so it would never render there (carter-1o0 / carter-mmpe)."""
+        from .dynamic import fragment_id_findings
+        found = fragment_id_findings(children, self.layout or {}, what)
+        if found:
+            log.warning("%s: CAR-TER 1.3+ drops it (%d id problem%s): %s", what, len(found),
+                        "" if len(found) == 1 else "s",
+                        "; ".join(f"{f['where']}: {f['detail']}" for f in found[:5]))
 
     # ─── drive: controls -> server ───────────────────────────────────────────
     def on(self, target, fn=None):
