@@ -902,3 +902,98 @@ def format_findings(findings: list[dict]) -> str:
     for f in warns:
         lines.append(f"  ⚠ [{f['kind']}] {f['where']} — {f['detail']}")
     return "\n".join(lines)
+
+
+# ─── Device support (carter-5sn.1, decision carter-4fb) ──────────────────────
+#
+# An app that doesn't know a control type draws a quiet "Update CAR-TER" tile in
+# its cell (or the control's `fallback`, when it has one) and lists it in the
+# update banner. That is never an error: the layout still loads. It IS worth a
+# warning, so the author knows the phone's app is older than the layout. The
+# kit never auto-wraps a fallback; the author decides.
+
+def _feature_names(features) -> set:
+    """`name` / `name@N` strings (the app's get-device-info `features`) → names."""
+    out = set()
+    for f in features or ():
+        if isinstance(f, str) and f.strip():
+            out.add(f.strip().split("@", 1)[0])
+    return out
+
+
+def _walk_controls(children, where, out):
+    """(control dict, where) for every placed control: tab/group children, container
+    `panels`, `longPressGroup`, and canvas items. Groups recurse, never yield."""
+    if not isinstance(children, list):
+        return
+    for i, ch in enumerate(children):
+        if not isinstance(ch, dict):
+            continue
+        spot = f"{where}/{ch.get('id') or ch.get('type') or i}"
+        if ch.get("type") == "group":
+            _walk_controls(ch.get("children"), spot, out)
+            continue
+        out.append((ch, spot))
+        for p, panel in enumerate(ch.get("panels") or [] if isinstance(ch.get("panels"), list) else []):
+            if isinstance(panel, dict):
+                _walk_controls(panel.get("children"), f"{spot}/panels[{p}]", out)
+        lpg = ch.get("longPressGroup")
+        if isinstance(lpg, dict):
+            _walk_controls(lpg.get("children"), f"{spot}/longPressGroup", out)
+        canvas = ch.get("canvasConfig")
+        items = canvas.get("items") if isinstance(canvas, dict) else None
+        for item in items if isinstance(items, list) else []:
+            if isinstance(item, dict) and isinstance(item.get("control"), dict):
+                _walk_controls([item["control"]], f"{spot}/canvas", out)
+
+
+#: Fallback hops the app follows before a node counts as unsupported
+#: (LayoutForwardCompat.maxFallbackDepth).
+MAX_FALLBACK_DEPTH = 4
+
+
+def _usable_fallback(node: dict, have: set, in_canvas: bool = False):
+    """The type the app will draw from `node`'s `fallback` chain, or None."""
+    current = node
+    for _ in range(MAX_FALLBACK_DEPTH):
+        nxt = current.get("fallback")
+        if not isinstance(nxt, dict):
+            return None
+        t = nxt.get("type")
+        if t == "group":
+            return None if in_canvas else "group"   # a canvas card hosts one control
+        if isinstance(t, str) and f"control.{t}" in have:
+            return t
+        current = nxt
+    return None
+
+
+def device_support_findings(layout: dict, features) -> list[dict]:
+    """Warn about controls the paired phone's app doesn't know.
+
+    `features` is the device's reported feature list (`control.<type>`, `sync.<m>`, …;
+    `get-device-info` → `features`). None or empty means "unknown" and returns [] —
+    an older app that doesn't report features can't be judged this way (the
+    `since`/target-version lint covers that case). Each unknown type is a `warn`
+    finding of kind `needs_newer_app`: the phone shows its `fallback` if the control
+    has a usable one, else an "Update CAR-TER" placeholder tile in its cell."""
+    have = _feature_names(features)
+    if not have or not isinstance(layout, dict):
+        return []
+    found: list = []
+    for t, tab in enumerate(layout.get("tabs") or [] if isinstance(layout.get("tabs"), list) else []):
+        if isinstance(tab, dict):
+            _walk_controls(tab.get("children"), f"tabs[{t}]", found)
+    findings = []
+    for ch, spot in found:
+        ctype = ch.get("type")
+        if not isinstance(ctype, str) or f"control.{ctype}" in have:
+            continue
+        fb_type = _usable_fallback(ch, have, in_canvas=spot.endswith("/canvas/" + str(ch.get("id") or ctype)))
+        if fb_type:
+            shows = f"shows its fallback ({fb_type}) instead"
+        else:
+            shows = "shows an 'Update CAR-TER' placeholder in its place"
+        findings.append(_f("warn", "needs_newer_app", spot,
+                           f"the phone's CAR-TER app is older than control '{ctype}': it {shows}"))
+    return findings
