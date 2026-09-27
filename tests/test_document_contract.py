@@ -121,6 +121,8 @@ def test_extensions_must_be_an_object_with_reverse_dns_keys():
     assert _kinds(_layout(extensions=["x"]), "bad_extensions")[0]["severity"] == "error"
     warn = _kinds(_layout(extensions={"mytool": {}}), "bad_extensions")
     assert len(warn) == 1 and warn[0]["severity"] == "warn"
+    # `editor` is the app's reserved key, the one non-reverse-DNS name.
+    assert _kinds(_layout(extensions={"editor": {"zoom": 2}}), "bad_extensions") == []
 
 
 # ── inline blobs ─────────────────────────────────────────────────────────────

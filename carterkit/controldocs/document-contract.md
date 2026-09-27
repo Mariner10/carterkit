@@ -70,7 +70,7 @@ at the top level of the layout and on any control or group:
   "name": "Greenhouse",
   "version": 3,
   "extensions": {
-    "net.carterbeaudoin.designer": { "canvasZoom": 1.5 },
+    "editor": { "canvasZoom": 1.5 },
     "com.example.plantdb": { "catalogRef": "ficus-lyrata" }
   },
   "tabs": [{ "title": "Plants", "icon": "leaf", "children": [
@@ -89,8 +89,9 @@ at the top level of the layout and on any control or group:
   load (wire push, import, room join, model output) refuses a larger block; a
   disk load drops it and lists the repair in the Layout Hub. carterkit's
   validator reports it as an error.
-- `extensions.net.carterbeaudoin.editor` is the app's own editor state; it is
-  left out of the document digest (see [Provenance](#provenance-and-reserved-keys)).
+- `extensions.editor` is reserved for the app's own editor state (the one key that
+  is not reverse-DNS); it is left out of the document digest (see
+  [Provenance](#provenance-and-reserved-keys)).
 
 A key the app doesn't model and that is **not** inside `extensions` is a
 *core-key guess*: the app still tolerates it, but carterkit and the MCP warn
@@ -117,7 +118,7 @@ the grammar may give that name a meaning.
 
 **Digest.** A document's digest is SHA-256 over the RFC 8785 (JCS) canonical JSON
 of the credential-stripped document, **minus** `provenance`, `attestations` and
-`extensions.net.carterbeaudoin.editor`, written `sha256:<hex>`. The app and
+`extensions.editor`, written `sha256:<hex>`. The app and
 carterkit share golden fixtures for it.
 
 **Reserved top-level keys** — do not author them; a later grammar defines them:

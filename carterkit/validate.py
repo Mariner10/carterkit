@@ -827,6 +827,8 @@ def _validate_extensions(ext, where: str, findings: list) -> None:
                            f"extensions block is {size} bytes (> {MAX_EXTENSIONS}); the app "
                            f"refuses it on push and drops it from a stored copy"))
     for k in ext:
+        if k == "editor":
+            continue                # the app's own editor state (outside the digest)
         if not isinstance(k, str) or not _REVERSE_DNS.match(k):
             findings.append(_f("warn", "bad_extensions", f"{where}.{k}",
                                f"extension key '{k}' should be a reverse-DNS tool name "
