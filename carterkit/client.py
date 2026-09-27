@@ -26,6 +26,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from collections import OrderedDict
 from urllib.parse import urlsplit
 
 from .notifications import notification_action
@@ -406,13 +407,148 @@ def persist_refresh_secret(path, secret):
         pass
 
 
+#: Command dedupe defaults. The TTL sits above the app's 300 s outbox window so a
+#: queued command drained after a reconnect still hits the seen-set.
+CMD_DEDUPE_MAX = 1024
+CMD_DEDUPE_TTL = 900.0
+
+
+def cmd_dedupe_path_for(credential_path):
+    """`<dir>/.<basename>.cmd-seen.json` beside a credential file, or None."""
+    if not credential_path:
+        return None
+    path = os.path.abspath(os.fspath(credential_path))
+    return os.path.join(os.path.dirname(path), "." + os.path.basename(path) + ".cmd-seen.json")
+
+
+class CommandDedupe:
+    """Seen-set of `_cmd` ids a hub has already run, so relay re-delivery, outbox
+    drains and post-restart replays never run a phone command twice.
+
+    A bounded LRU (`max_entries`, oldest evicted) of `{cmd_id: (ts, ok)}` where `ok`
+    is the outcome that was acked (True/False) or None when acks are off. Entries
+    older than `ttl` seconds are forgotten. `clock` is injectable (wall-clock seconds,
+    so persisted timestamps survive a restart). With a `path`, every `record` rewrites
+    the JSON file atomically at mode 0600; a missing path or any IO error leaves it
+    memory-only (logged once) — never raises into dispatch."""
+
+    _MISSING = object()
+
+    def __init__(self, path=None, *, max_entries=CMD_DEDUPE_MAX, ttl=CMD_DEDUPE_TTL,
+                 clock=time.time):
+        self.path = os.fspath(path) if path else None
+        self.max_entries = max(1, int(max_entries))
+        self.ttl = float(ttl)
+        self._clock = clock
+        self._seen = OrderedDict()
+        self._inflight = set()
+        self._warned = False
+
+    def _expire(self, now):
+        cutoff = now - self.ttl
+        for cmd_id in [k for k, (ts, _ok) in self._seen.items() if ts < cutoff]:
+            del self._seen[cmd_id]
+
+    def lookup(self, cmd_id):
+        """The stored outcome (True/False/None) for a seen id, else `CommandDedupe._MISSING`."""
+        now = self._clock()
+        entry = self._seen.get(cmd_id)
+        if entry is None:
+            return self._MISSING
+        if entry[0] < now - self.ttl:
+            del self._seen[cmd_id]
+            return self._MISSING
+        self._seen.move_to_end(cmd_id)
+        return entry[1]
+
+    def seen(self, cmd_id):
+        return self.lookup(cmd_id) is not self._MISSING
+
+    def begin(self, cmd_id):
+        """Mark `cmd_id` in flight. False when it already is (a concurrent duplicate)."""
+        if cmd_id in self._inflight:
+            return False
+        self._inflight.add(cmd_id)
+        return True
+
+    def end(self, cmd_id):
+        self._inflight.discard(cmd_id)
+
+    def record(self, cmd_id, ok):
+        now = self._clock()
+        self._seen[cmd_id] = (now, ok)
+        self._seen.move_to_end(cmd_id)
+        self._expire(now)
+        while len(self._seen) > self.max_entries:
+            self._seen.popitem(last=False)
+        self.save()
+
+    def _warn(self, what, exc):
+        if not self._warned:
+            self._warned = True
+            log.warning("command dedupe: cannot %s %s (%s); running memory-only",
+                        what, self.path, exc)
+
+    def load(self):
+        """Read the persisted seen-set, dropping expired and malformed entries."""
+        if not self.path:
+            return
+        try:
+            with open(self.path) as f:
+                doc = json.load(f)
+        except FileNotFoundError:
+            return
+        except (OSError, ValueError) as exc:
+            self._warn("read", exc)
+            return
+        entries = doc.get("seen") if isinstance(doc, dict) else None
+        if not isinstance(entries, list):
+            return
+        cutoff = self._clock() - self.ttl
+        rows = []
+        for row in entries:
+            if (isinstance(row, list) and len(row) == 3 and isinstance(row[0], str)
+                    and isinstance(row[1], (int, float)) and row[2] in (True, False, None)
+                    and row[1] >= cutoff):
+                rows.append(row)
+        rows.sort(key=lambda r: r[1])
+        for cmd_id, ts, ok in rows[-self.max_entries:]:
+            self._seen[cmd_id] = (float(ts), ok)
+
+    def save(self):
+        """Atomically rewrite the file at 0600. Errors switch to memory-only."""
+        if not self.path:
+            return
+        doc = {"v": 1, "seen": [[k, ts, ok] for k, (ts, ok) in self._seen.items()]}
+        tmp = None
+        try:
+            directory = os.path.dirname(os.path.abspath(self.path)) or "."
+            fd, tmp = tempfile.mkstemp(prefix=".cmd-seen-", suffix=".json.tmp", dir=directory)
+            with os.fdopen(fd, "w") as f:
+                json.dump(doc, f)
+                f.flush()
+                os.fsync(f.fileno())
+            os.chmod(tmp, 0o600)
+            os.replace(tmp, self.path)
+        except OSError as exc:
+            if tmp is not None:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+            self._warn("write", exc)
+            self.path = None
+
+
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
                  validator_url=None, session_jwt=None, room=False,
                  device_id=None, refresh_token=None, refresh_interval=2400,
                  can_route=False, can_monitor=False, *, strict_e2ee=True,
                  allow_insecure_validator=False, max_inflight=DEFAULT_MAX_INFLIGHT,
-                 rate_per_type=DEFAULT_RATE_PER_TYPE, credential_path=None):
+                 rate_per_type=DEFAULT_RATE_PER_TYPE, credential_path=None,
+                 cmd_dedupe_path=None, cmd_dedupe_ttl=CMD_DEDUPE_TTL,
+                 cmd_dedupe_max=CMD_DEDUPE_MAX, cmd_dedupe_clock=time.time):
         """`strict_e2ee=True` (default) drops every non-envelope frame from a peer while
         an E2EE session exists; `False` passes them through with one warning per
         msg_type (debugging aid only). `allow_insecure_validator` permits an http:// validator on loopback
@@ -420,7 +556,12 @@ class CarterClient:
         a per-msg_type admission rate (frames/s, 0 disables) — excess frames are dropped
         and counted in `dropped`. `credential_path` is the device.json this credential
         came from: when the validator rotates the refresh secret, the file is rewritten
-        (atomically, 0600) so the next start uses the new one."""
+        (atomically, 0600) so the next start uses the new one.
+
+        `_cmd`-stamped command broadcasts are deduplicated (see `CommandDedupe`): the
+        seen-set persists to `cmd_dedupe_path`, by default
+        `<dir>/.<credential>.cmd-seen.json` beside `credential_path`, so a restarted
+        hub never re-runs a replayed command. With neither path it is memory-only."""
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
@@ -476,6 +617,12 @@ class CarterClient:
         self._broadcast_registered = False
         self._join_handler = None
         self._ack_commands = False
+        # `_cmd` seen-set: never run the same phone command twice (relay re-delivery,
+        # outbox drains, replays after a hub restart). Active with or without acks.
+        self._cmd_dedupe = CommandDedupe(
+            cmd_dedupe_path or cmd_dedupe_path_for(credential_path),
+            max_entries=cmd_dedupe_max, ttl=cmd_dedupe_ttl, clock=cmd_dedupe_clock)
+        self._cmd_dedupe.load()
         # Notification action-button plumbing: per-send callbacks keyed by
         # (notifId, actionId), plus an optional catch-all. Fed by the app's flat
         # `notif_action` broadcast when a user taps a button on a push.
@@ -624,19 +771,45 @@ class CarterClient:
         # a hub whose demux matched nothing must stay silent so the app times out and
         # reverts (and so another hub on the channel can be the one that answers).
         # ok:false on a raised exception, which still propagates unchanged.
-        cmd_id = data.get("_cmd") if (self._ack_commands and isinstance(data, dict)) else None
+        #
+        # Dedupe (acks on or off): a `_cmd` already run is never run again — relay
+        # re-delivery, outbox drains and replays after a restart skip the handler and,
+        # with acks on, get the first run's ack re-sent. A duplicate that arrives while
+        # the first run is still awaiting is dropped silently. With acks on only a
+        # handled (True) or raised run is recorded, so an unhandled command stays free
+        # for another hub; with acks off every dispatched `_cmd` is recorded (ok=None).
+        raw_cmd = data.get("_cmd") if isinstance(data, dict) else None
+        ack_id = raw_cmd if self._ack_commands else None
+        dedupe = self._cmd_dedupe if (isinstance(raw_cmd, str) and raw_cmd) else None
+        if dedupe is not None:
+            stored = dedupe.lookup(raw_cmd)
+            if stored is not CommandDedupe._MISSING:
+                if ack_id is not None and stored is not None:
+                    await self.broadcast("command_ack", {
+                        "cmd_id": raw_cmd, "to": data.get("_from"), "ok": stored})
+                return
+            if not dedupe.begin(raw_cmd):
+                return
         try:
-            result = self._broadcast_handler(data)
-            if asyncio.iscoroutine(result):
-                result = await result
-        except Exception:
-            if cmd_id is not None:
+            try:
+                result = self._broadcast_handler(data)
+                if asyncio.iscoroutine(result):
+                    result = await result
+            except Exception:
+                if dedupe is not None:
+                    dedupe.record(raw_cmd, False if self._ack_commands else None)
+                if ack_id is not None:
+                    await self.broadcast("command_ack", {
+                        "cmd_id": ack_id, "to": data.get("_from"), "ok": False})
+                raise
+            if dedupe is not None and (result is True or not self._ack_commands):
+                dedupe.record(raw_cmd, True if self._ack_commands else None)
+            if ack_id is not None and result is True:
                 await self.broadcast("command_ack", {
-                    "cmd_id": cmd_id, "to": data.get("_from"), "ok": False})
-            raise
-        if cmd_id is not None and result is True:
-            await self.broadcast("command_ack", {
-                "cmd_id": cmd_id, "to": data.get("_from"), "ok": True})
+                    "cmd_id": ack_id, "to": data.get("_from"), "ok": True})
+        finally:
+            if dedupe is not None:
+                dedupe.end(raw_cmd)
 
     def on_sync_request(self, handler):
         """Register the deterministic "a replica just joined / came back" signal: the
@@ -656,7 +829,13 @@ class CarterClient:
         only those are acked ok:true; a raised exception acks ok:false; anything
         else gets NO ack, so the app's pending control times out and reverts (and a
         different hub on the channel may be the one that answers). Frames without
-        `_cmd` are untouched, so servers stay compatible with plain layouts."""
+        `_cmd` are untouched, so servers stay compatible with plain layouts.
+
+        Duplicates are deduplicated whether or not acks are on (see `CommandDedupe`):
+        a `_cmd` already handled never re-runs the handler, and its first ack (ok
+        true/false) is re-sent to `_from`, so a re-delivered command settles the
+        phone's pending control the same way. Unhandled commands are not recorded.
+        A concurrent duplicate that arrives while the first run awaits gets no ack."""
         self._ack_commands = True
         self._ensure_broadcast_listener()
 

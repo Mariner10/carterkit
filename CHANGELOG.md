@@ -3,7 +3,46 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.12.0] — unreleased
+## [0.13.1] — 2026-09-27
+
+### Changed
+- Allow **meshsocket 0.3.x** (`>=0.2.0,<0.4`): 0.3.0 drops over-deep inbound frames before parsing
+  (carter-e4q), so hubs on the new kit get the crash fix; 0.13.0 still pinned `<0.3`.
+
+## [0.13.0] — 2026-09-27
+
+### Fixed
+- **Timer floors match the app's sanitizer** (carter-ml2 / carter-n1u parity): carousel
+  `autoAdvance: 0` and web `webRefreshInterval: 0` mean "off" and are no longer `bad_timer`
+  errors; joystick `sendRate` floors at 0.02 s (documented 0.05/0.1 pass) and sensor
+  `publishers[].interval` at 0.05 s. Other timers keep the 0.25 s floor.
+
+### Changed
+- **`validate_layout` now matches the device decoder** on the shared conformance fixtures
+  (`CAR-TER/CAR-TERTests/Fixtures/layout-conformance`, run by `tests/test_conformance.py`).
+  New errors for layouts the phone refuses or cannot decode: a tab missing
+  `title`/`icon`/`grid`/`children`, a tab or group grid missing `columns`/`rows`, a
+  non-integer `version`, more than 24 tabs (`too_many_tabs`), span outside 1..64 or
+  position outside 0..256, a timer under 0.25 s (`bad_timer`), `minLines > maxLines`
+  (`bad_range`), a non-ws/wss `connection.url`, and strings over 4096 UTF-8 bytes
+  (`long_string`, was a warning counted in characters).
+- `grid.rows` may go up to 512, as on the device (it was capped at 64).
+
+### Added
+- **`_cmd` dedupe that survives hub restarts.** `CarterClient` keeps a seen-set of
+  command ids (`CommandDedupe`: LRU of 1024, 900 s TTL, above the app's 300 s outbox
+  window). A duplicate `_cmd` (relay re-delivery, outbox drain, replay after a restart)
+  never re-runs the `on_broadcast` handler; with acks on, the first run's
+  `command_ack {cmd_id, to, ok}` is re-sent to `_from`. A duplicate that arrives while
+  the first run is still awaiting is dropped without an ack. With acks on, only handled
+  (`True`) or raised runs are recorded, so an unhandled command stays free for another
+  hub; with acks off every dispatched `_cmd` is recorded.
+- The seen-set persists as 0600 JSON (atomic replace) at
+  `<dir>/.<credential>.cmd-seen.json` beside `credential_path`, or at the new
+  `cmd_dedupe_path=` (also on `Hub`). Token-only hubs without either are memory-only;
+  an unreadable or unwritable file logs once and falls back to memory-only.
+
+## [0.12.0] — 2026-09-23
 
 Security hardening from the 2026-09-22 audit, plus the Ambient Surfaces v2 work that
 was staged as 0.11.0 and never published (folded in below).

@@ -50,6 +50,31 @@ def _f(severity: str, kind: str, where: str, detail: str) -> dict:
 MAX_DEPTH = 16
 MAX_CONTROLS = 2000
 MAX_STRING = 4096
+# The device's LayoutSanitizer caps (CAR-TER/CAR-TER/Services/LayoutSanitizer.swift). A
+# strict source (wire push, import, join) refuses a layout past any of them, so the kit
+# reports each as an error. Pinned by the shared conformance fixtures (carter-c1n.11).
+MAX_TABS = 24
+MAX_GRID_COLUMNS = 64
+MAX_GRID_ROWS = 512
+POSITION_RANGE = (0, 256)
+SPAN_RANGE = (1, 64)
+MAX_DATA_IMAGE_URL = 524_288
+MIN_TIMER = 0.25
+# Mirrors the app's LayoutSanitizer (carter-ml2 / carter-n1u): joystick `sendRate` is an
+# event throttle (documented 0.05/0.1), sensor `publishers[].interval` has its own floor,
+# and carousel `autoAdvance` / web `webRefreshInterval` 0 means "off".
+MIN_SEND_RATE = 0.02
+MIN_PUBLISHER_INTERVAL = 0.05
+_TIMER_KEYS = {"interval", "webRefreshInterval", "autoAdvance", "sendRate"}
+_OFF_TIMER_KEYS = {"autoAdvance", "webRefreshInterval"}
+
+
+def _timer_floor(key: str, path: str) -> float:
+    if key == "sendRate":
+        return MIN_SEND_RATE
+    if key == "interval" and ".publishers[" in path:
+        return MIN_PUBLISHER_INTERVAL
+    return MIN_TIMER
 #: URL schemes a layout may point the phone at. `http` is allowed but warned.
 SAFE_URL_SCHEMES = {"https", "mqtt", "mqtts", "ws", "wss"}
 _WARN_URL_SCHEMES = {"http"}
@@ -79,12 +104,12 @@ def _grid_dims(g, where, findings) -> tuple[int, int]:
         findings.append(_f("error", "bad_grid", where, f"'grid' must be an object, got {g!r}"))
         return 4, 8
     out = []
-    for key, default in (("columns", 4), ("rows", 8)):
+    for key, default, hi in (("columns", 4, MAX_GRID_COLUMNS), ("rows", 8, MAX_GRID_ROWS)):
         raw = g.get(key, default)
         v = gridmod.as_int(raw)
-        if v is None or v < 1 or v > 64:
+        if v is None or v < 1 or v > hi:
             findings.append(_f("error", "bad_grid", where,
-                               f"grid.{key} must be an integer 1..64, got {raw!r}"))
+                               f"grid.{key} must be an integer 1..{hi}, got {raw!r}"))
             v = default
         out.append(v)
     return out[0], out[1]
@@ -106,6 +131,7 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     # them (an mqtt/http `source:` must name a declared source). See sources.md.
     sources = _validate_sources_defs(layout, findings)
     _validate_top_level(layout, findings)
+    _validate_device_shape(layout, findings)
 
     tabs = layout.get("tabs")
     if not isinstance(tabs, list):
@@ -375,9 +401,12 @@ def _scan_tree(layout: dict, findings: list) -> None:
             findings.append(_f("error", "too_deep", path, "document nests deeper than 64 levels"))
             continue
         if isinstance(node, dict):
+            _check_object_bounds(node, path, findings)
             for k, v in node.items():
                 sub = f"{path}.{k}"
-                if isinstance(v, str) and k in _URL_KEYS and depth > 0 and path != "root.connection":
+                if path == "root.connection" and k in ("url", "baseURL") and isinstance(v, str):
+                    _check_socket_url(v, sub, findings)
+                elif isinstance(v, str) and k in _URL_KEYS and depth > 0 and path != "root.connection":
                     seen_urls += 1
                     if seen_urls <= 500:
                         _check_url(v, sub, findings)
@@ -390,9 +419,48 @@ def _scan_tree(layout: dict, findings: list) -> None:
                 findings.append(_f("error", "non_finite", path,
                                    f"{node!r} is not valid JSON — the app's decoder rejects the whole layout"))
         elif isinstance(node, str):
-            if len(node) > MAX_STRING:
-                findings.append(_f("warn", "long_string", path,
-                                   f"string is {len(node)} chars (> {MAX_STRING}); the app truncates or chokes"))
+            size = len(node.encode("utf-8"))
+            limit = (MAX_DATA_IMAGE_URL if node.startswith("data:image/")
+                     and path.rsplit(".", 1)[-1] in ("url", "baseURL") else MAX_STRING)
+            if size > limit:
+                findings.append(_f("error", "long_string", path,
+                                   f"string is {size} UTF-8 bytes (> {limit}); a push is refused "
+                                   f"and a disk load truncates it"))
+
+
+def _is_num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _check_object_bounds(node: dict, path: str, findings: list) -> None:
+    """Per-object device bounds the renderer would trap or spin on (LayoutSanitizer)."""
+    if ".theme" not in path and not path.endswith("theme"):
+        for k in _TIMER_KEYS & node.keys():
+            v = node[k]
+            if not (_is_num(v) and v == v):
+                continue
+            if k in _OFF_TIMER_KEYS and v == 0:
+                continue  # documented 0 = off (carousel autoAdvance, web webRefreshInterval)
+            floor = _timer_floor(k, path)
+            if v < floor:
+                findings.append(_f("error", "bad_timer", f"{path}.{k}",
+                                   f"timer {v}s is below the {floor}s floor; a push is "
+                                   f"refused and a disk load raises it"))
+    lo, hi = node.get("minLines"), node.get("maxLines")
+    if _is_num(lo) and _is_num(hi) and lo > hi:
+        findings.append(_f("error", "bad_range", path,
+                           f"minLines {lo} > maxLines {hi} (crashes the renderer); a push "
+                           f"is refused and a disk load swaps them"))
+
+
+def _check_socket_url(value: str, path: str, findings: list) -> None:
+    """connection.url: the phone only dials ws:// or wss:// there."""
+    if not value or "{{" in value:
+        return
+    scheme = urlsplit(value).scheme.lower()
+    if scheme and scheme not in ("ws", "wss"):
+        findings.append(_f("error", "bad_url", path,
+                           f"connection URL scheme {scheme!r} is not allowed; use ws or wss"))
 
 
 def _check_url(value: str, path: str, findings: list) -> None:
@@ -752,6 +820,74 @@ def _validate_top_level(layout, findings):
                 findings.append(_f("warn", "bad_publisher", where,
                                    f"sensor '{pub['sensor']}' base '{base}' is not a known "
                                    f"pipeline {sorted(_SENSOR_PIPELINES)}"))
+
+
+def _validate_device_shape(layout, findings):
+    """What the app's Codable model requires and its LayoutSanitizer bounds, beyond the
+    catalog lint: `version` is an integer; at most MAX_TABS tabs; every tab has title,
+    icon, grid and children; every tab/group grid names integer columns and rows; span
+    and position stay inside the device's ranges. A layout missing any of these fails
+    to decode on the phone (or is refused by a strict source), so each is an error.
+    Pinned by the shared conformance fixtures (carter-c1n.11)."""
+    if "version" in layout:
+        v = layout["version"]
+        whole = (isinstance(v, int) and not isinstance(v, bool)) or (
+            isinstance(v, float) and math.isfinite(v) and v.is_integer())
+        non_finite = isinstance(v, float) and not math.isfinite(v)   # reported by _scan_tree
+        if not whole and not non_finite:
+            findings.append(_f("error", "bad_top_level", "root",
+                                   f"'version' must be an integer, got {v!r}"))
+    tabs = layout.get("tabs")
+    if not isinstance(tabs, list):
+        return
+    if len(tabs) > MAX_TABS:
+        findings.append(_f("error", "too_many_tabs", "root",
+                           f"{len(tabs)} tabs; the app keeps at most {MAX_TABS}"))
+
+    def need_grid(node, where):
+        g = node.get("grid")
+        if g is None:
+            findings.append(_f("error", "missing_field", where, "missing 'grid' block"))
+        elif isinstance(g, dict):
+            for key in ("columns", "rows"):
+                if key not in g:
+                    findings.append(_f("error", "missing_field", where, f"grid missing '{key}'"))
+
+    def check_range(ch, key, lo, hi, kind, where):
+        val = ch.get(key)
+        if not isinstance(val, list):
+            return
+        for i, x in enumerate(val):
+            n = gridmod.as_int(x)
+            if n is not None and not lo <= n <= hi:
+                findings.append(_f("error", kind, where,
+                                   f"{key}[{i}] = {n} is outside {lo}..{hi}"))
+
+    stack = []
+    for ti, tab in enumerate(tabs):
+        if not isinstance(tab, dict):
+            continue
+        where = f"tab[{ti}]"
+        for key in ("title", "icon", "children"):
+            if key not in tab:
+                findings.append(_f("error", "missing_field", where, f"tab missing '{key}'"))
+        need_grid(tab, where)
+        if isinstance(tab.get("children"), list):
+            stack.append((tab["children"], where, 1))
+    while stack:
+        children, where, depth = stack.pop()
+        if depth > MAX_DEPTH + 1:
+            continue                      # too_deep is reported by _validate_child
+        for ch in children:
+            if not isinstance(ch, dict):
+                continue
+            spot = f"{where}/{ch.get('id') or ch.get('type') or '?'}"
+            check_range(ch, "span", *SPAN_RANGE, "bad_span", spot)
+            check_range(ch, "position", *POSITION_RANGE, "bad_position", spot)
+            if ch.get("type") == "group":
+                need_grid(ch, spot)
+                if isinstance(ch.get("children"), list):
+                    stack.append((ch["children"], spot, depth + 1))
 
 
 def format_findings(findings: list[dict]) -> str:
