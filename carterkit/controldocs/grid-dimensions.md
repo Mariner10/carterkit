@@ -25,6 +25,9 @@ fields:
     step: 1
     type: number
     description: Points per row-unit in 2-D mode (default 56)
+  - name: reflow
+    type: string
+    description: 'Landscape policy for a tab''s grid: "auto" (default; columns double and children re-pack) or "stretch" (keep the portrait cells, wider)'
 ---
 
 Every tab and every [[group-def|group]] lays its children out on a **grid** of
@@ -95,6 +98,45 @@ an exact point height regardless of the grid.
 
 The CPU ring is a tall 2×2-plus block on the left; Memory and the Uplink light
 stack to its right — placement that the flow renderer can't express.
+
+## Landscape and iPad
+
+A page picks its **presentation** from the size classes:
+
+| Presentation | When | What renders |
+|---|---|---|
+| default | a phone held upright, a narrow iPad tile | each child's `position` / `span` — always exactly as authored |
+| `landscape` | compact height (any iPhone on its side) | the tab re-packs (below), then any `landscape` variant |
+| `regular` | regular width and height (iPad full screen or a wide tile) | the declared cells, then any `regular` variant |
+
+**`reflow: "auto"`** (the default) makes landscape use the extra width for *more
+of the dashboard* instead of stretched slabs: the tab's grid doubles its columns
+(two portrait pages side by side) and every child is re-packed in reading order
+(`row`, then `col`), spans kept, first free cell from the top-left. A child that
+spanned the whole portrait width and has nothing to its right widens to the new
+edge. **`reflow: "stretch"`** keeps the portrait cells, only wider — right for a
+page that is one big map or list.
+
+An author overrides one child per presentation with a variant — inline on the
+child or in the document's `placements` section (see [[document-contract]]):
+
+```json
+"placements": {
+  "map":  { "landscape": { "position": [0, 4], "span": [5, 4] } },
+  "hint": { "landscape": { "hidden": true } },
+  "ring": { "regular":   { "position": [1, 2], "span": [2, 2] } }
+}
+```
+
+- A variant with `position` is placed exactly there (its `span`, else the default
+  span). In landscape auto, its coordinates are in the doubled grid and the other
+  children pack around it.
+- `span` alone keeps the child's packed slot (landscape auto) or its declared
+  position (stretch / `regular`) and changes its size.
+- `hidden: true` leaves the child out of that presentation.
+- Only a tab's own grid re-packs; groups and `mode: "flow"` grids keep their
+  cells (variants on a group's children still apply, flow grids ignore them).
+- The default presentation never reads a variant, so portrait is unchanged.
 
 ## Related
 - [[control-def]] — `position`, `span`, `controlHeight`, `hideValue`, `hideBackground`

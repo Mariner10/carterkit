@@ -211,9 +211,10 @@ top-level sections keyed by control or group id, instead of on the control:
   object, is a lint error; every load repairs it by dropping the entry.
 - **Lossless:** a key inside an entry that isn't one of that section's facets
   stays in the section untouched (it is never copied onto the control).
-- Only the default `position`/`span` renders today; `landscape` / `regular` are
-  decoded and kept for the landscape presentation. The same two keys are also
-  accepted inline on a child.
+- `landscape` renders when the page has compact height (an iPhone on its side),
+  `regular` on an iPad-width page; the default `position`/`span` renders
+  everywhere else. The same two keys are also accepted inline on a child. Rules
+  (reflow, obstacles, `hidden`) are in [[grid-dimensions#Landscape and iPad]].
 - The inline form stays valid forever — carterkit, the MCP and hand-written
   layouts keep writing it. The on-device editor keeps a sectioned file sectioned
   when it saves it, and (behind a flag, off for now) will write every save in the

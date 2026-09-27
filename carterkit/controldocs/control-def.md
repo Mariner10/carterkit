@@ -20,6 +20,8 @@ Every control — regardless of type — shares the same base fields. A control 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `span` | [rowSpan, colSpan] | `[1, 1]` | Grid cells occupied. `colSpan` sets width; in a 2-D grid `rowSpan` sets height (`rowSpan × rowHeight`). Make a control bigger by spanning more cells. See [[grid-dimensions]]. |
+| `landscape` | `{position, span}` or `{hidden: true}` | — | Where this control sits when an iPhone is on its side; ignored in portrait. Also writable in the document's `placements` section. See [[grid-dimensions#Landscape and iPad]] |
+| `regular` | `{position, span}` or `{hidden: true}` | — | Where this control sits on an iPad-width page. See [[grid-dimensions#Landscape and iPad]] |
 | `controlHeight` | number | — | **Override** the grid-derived height with an exact point value. Rarely needed: in a 2-D grid the cell (`rowSpan × rowHeight`) is the height, and in a `flow` grid shaped controls auto-size to their aspect. Use it to pin a height the grid wouldn't otherwise give. See [[grid-dimensions]]. |
 | `name` | string | — | Readable name the editor shows for this control (e.g. `"Water level"`). Never used for identity or on the wire; omit it and the editor shows `label`, then the type |
 | `label` | string | — | Display label for the control |
