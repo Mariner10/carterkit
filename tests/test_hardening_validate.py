@@ -64,3 +64,45 @@ def test_deep_nesting_is_a_finding_not_a_recursion_error():
 def test_absurd_control_count_warns():
     kids = [{"type": "label", "id": f"l{i}", "position": [0, 0], "text": "x"} for i in range(20000)]
     assert "too_many_controls" in _kinds(_layout(kids))
+
+
+def _wrap(inner, kind, n):
+    grid = {"columns": 1, "rows": 1}
+    if kind == "group":
+        return {"type": "group", "id": f"g{n}", "position": [0, 0], "grid": grid, "children": [inner]}
+    if kind in ("carousel", "flipCard", "accordion"):
+        return {"type": kind, "id": f"c{n}", "position": [0, 0],
+                "panels": [{"id": f"p{n}", "position": [0, 0], "grid": grid, "children": [inner]}]}
+    if kind == "longPressGroup":
+        return {"type": "button", "id": f"b{n}", "position": [0, 0],
+                "longPressGroup": {"id": f"l{n}", "position": [0, 0], "grid": grid, "children": [inner]}}
+    return {"type": "canvas", "id": f"v{n}", "position": [0, 0],
+            "canvasConfig": {"items": [{"id": f"i{n}", "control": inner}]}}
+
+
+def _chain(kind, levels):
+    node = {"type": "button", "id": "leaf", "position": [0, 0]}
+    for n in range(levels):
+        node = _wrap(node, kind, n)
+    return _layout([node])
+
+
+def _nests_too_deep(layout):
+    # The nesting-limit finding itself; a 15-deep canvas also trips the separate generic
+    # 64-level JSON cap (4 JSON levels per canvas), which is not what these pin.
+    return any(f["kind"] == "too_deep" and "nest deeper than" in f["detail"]
+               and "document" not in f["detail"] for f in carterkit.validate_layout(layout))
+
+
+# Every container kind costs exactly one level, as in the app's sanitizer and renderer:
+# MAX_DEPTH containers of any kind around a leaf are accepted, one more is refused.
+@pytest.mark.parametrize("kind", ["group", "longPressGroup", "canvas", "carousel", "flipCard", "accordion"])
+def test_every_container_kind_counts_toward_the_app_depth_limit(kind):
+    from carterkit.validate import MAX_DEPTH
+    assert not _nests_too_deep(_chain(kind, MAX_DEPTH))
+    assert _nests_too_deep(_chain(kind, MAX_DEPTH + 1))
+
+
+def test_thirty_deep_canvas_is_too_deep():
+    assert _nests_too_deep(_chain("canvas", 30))            # uncounted before carter-7np
+    assert _nests_too_deep(_chain("canvas", 3000))          # and never a RecursionError

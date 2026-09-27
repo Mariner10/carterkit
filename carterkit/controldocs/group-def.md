@@ -12,7 +12,8 @@ A visual container that clusters controls into a glass card with its own interna
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `type` | `"group"` | yes | Discriminator — must be `"group"` |
-| `id` | string | yes | Unique identifier |
+| `id` | string | yes | Unique identifier (among the layout's controls and groups; see [[layout-config#Identity]]) |
+| `name` | string | no | Readable name the editor shows for this group. Never used for identity |
 | `label` | string | no | Header text shown above the group. Set to `null` for no header |
 | `position` | [row, col] | yes | Grid cell position within parent |
 | `span` | [rows, cols] | no | Grid cells occupied. Default: `[1, 1]` |
@@ -22,6 +23,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
+| `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Example
 

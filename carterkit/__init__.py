@@ -26,6 +26,7 @@ from pathlib import Path
 
 from . import catalog, grid, codegen, infer, theming, tune, dynamic, contract
 from .contract import extract_contract
+from .sections import to_inline, to_sectioned, is_sectioned
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import (CarterClient, notify_http, CarterNotifyError,
@@ -119,5 +120,5 @@ __all__ = [
     "build", "control", "bind", "Layout", "Fragment", "Control", "Condition",
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
-    "contract", "extract_contract",
+    "contract", "extract_contract", "to_inline", "to_sectioned", "is_sectioned",
 ]
