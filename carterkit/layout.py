@@ -177,6 +177,38 @@ class Control:
         return f"<Control {self._d.get('type','?')} {self.id!r}>"
 
 
+def _fallback_spec(fb, label=None, _hops: int = 0) -> dict:
+    """Normalize `fallback=` (layout-config.md "Requires and fallback") into the object
+    the app's decoder swaps in for a control type it doesn't know. Takes a control type
+    name ("slider"), a dict, or a builder spec (`build.slider(id=..., ...)`). Drops
+    id/position/span (the app gives the fallback the original's), copies the original's
+    `label` onto a control fallback that has none, and normalizes a nested `fallback`
+    the same way. Raises on a placed Control, an unknown type or a chain the app would
+    never finish (more than validate.MAX_FALLBACK_DEPTH hops)."""
+    if isinstance(fb, Control):
+        raise TypeError("fallback= takes a control spec, not a placed control: pass a type "
+                        "name, a dict like {'type': 'slider', ...}, or build.slider(id=..., ...)")
+    if isinstance(fb, str):
+        fb = {"type": fb}
+    if not isinstance(fb, dict):
+        raise TypeError(f"fallback= must be a type name or a control dict, not {type(fb).__name__}")
+    if _hops >= _validate.MAX_FALLBACK_DEPTH:
+        raise ValueError(f"a fallback chain may be at most {_validate.MAX_FALLBACK_DEPTH} "
+                         f"hops; the app never reaches the rest")
+    out = {k: v for k, v in fb.items() if k not in ("id", "position", "span")}
+    t = out.get("type")
+    if t != "group":
+        resolved = _controls._resolve_type(t) if isinstance(t, str) else None
+        if resolved is None:
+            raise ValueError(f"fallback type {t!r} is not a known control type")
+        out["type"] = resolved
+        if label is not None and "label" not in out:
+            out["label"] = label
+    if out.get("fallback") is not None:
+        out["fallback"] = _fallback_spec(out["fallback"], out.get("label", label), _hops + 1)
+    return out
+
+
 class _GridScope:
     """A placeable grid (a tab's children, a group's children, or a Fragment).
 
@@ -205,7 +237,8 @@ class _GridScope:
     def _make(self, ctype: str, *, id=None, position=None, span=None,
               listen=None, when=None, event: str = "broadcast",
               send=None, request: bool = False, payload=None, sensor=None,
-              sync=None, action=None, visible=None, enabled=None, pulse=None, **props) -> Control:
+              sync=None, action=None, visible=None, enabled=None, pulse=None,
+              fallback=None, **props) -> Control:
         syncs = list(sync) if sync else []
         if listen is not None:
             for v in ([listen] if isinstance(listen, str) else listen):
@@ -239,6 +272,8 @@ class _GridScope:
             props["enabled"] = _cond_dict(enabled)
         if pulse is not None:
             props["pulse"] = pulse
+        if fallback is not None:
+            props["fallback"] = _fallback_spec(fallback, props.get("label"))
         cid = self._owner._unique_id(id or ctype)
         ctrl = _controls.control(ctype, id=cid, **props)   # validates type + enums
         self._place(ctrl, position, span)
@@ -376,7 +411,13 @@ class TabHandle(_ScopeProxy):
 
 class Layout:
     def __init__(self, name: str = "Layout", *, cols: int = None, rows: int = 6,
-                 columns: int = None, accent: str = "#667eea", id: str = None):
+                 columns: int = None, accent: str = "#667eea", id: str = None,
+                 target_app: str = None):
+        if target_app is not None and not _validate._is_app_version(target_app):
+            raise ValueError(f"target_app must be a dotted version like \"1.2.4\", not {target_app!r}")
+        # Lint-only: the oldest app validate() warns for (a layout's requires.app wins).
+        # Never written into the JSON.
+        self._target_app = target_app
         cols = cols if cols is not None else (columns if columns is not None else 4)
         self._buf = LayoutBuffer.blank(name=name, columns=cols, rows=rows, accent=accent)
         if id is not None:
@@ -727,10 +768,35 @@ class Layout:
         """The underlying LayoutBuffer, for advanced ops (update/move/remove)."""
         return self._buf
 
-    def validate(self) -> list:
-        """Lint against the bundled control catalog."""
+    def requires(self, app: str = None, features=None) -> "Layout":
+        """Declare what this layout needs from the app (layout-config.md "Requires and
+        fallback"): `app` a minimum version ("1.3"), `features` names like
+        "control.symbol" or "name@N". A soft gate — an older app still renders what it
+        can under one update banner. `requires.app` is also the target validate() lints
+        against. With neither argument the block is removed."""
+        if app is not None and not _validate._is_app_version(app):
+            raise ValueError(f"app must be a dotted version like \"1.3\", not {app!r}")
+        feats = [features] if isinstance(features, str) else list(features or [])
+        for f in feats:
+            if not isinstance(f, str) or not _validate._FEATURE.match(f):
+                raise ValueError(f"feature {f!r} should be 'name' or 'name@N' (e.g. 'control.symbol')")
+        req = {}
+        if app is not None:
+            req["app"] = app
+        if feats:
+            req["features"] = feats
+        if req:
+            self._buf.layout["requires"] = req
+        else:
+            self._buf.layout.pop("requires", None)
+        return self
+
+    def validate(self, target_app: str = None) -> list:
+        """Lint against the bundled control catalog. `target_app` overrides the one given
+        to Layout(); the layout's requires.app wins over both."""
         import carterkit
-        return carterkit.validate_layout(self.layout)
+        return carterkit.validate_layout(
+            self.layout, target_app=target_app if target_app is not None else getattr(self, "_target_app", None))
 
     def findings(self) -> str:
         """Human-readable lint report."""
