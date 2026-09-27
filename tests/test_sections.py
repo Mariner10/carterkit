@@ -5,6 +5,7 @@ import copy
 import carterkit
 from carterkit import Layout, to_inline, to_sectioned, is_sectioned
 from carterkit.contract import extract_contract
+from carterkit import sections as kit_sections
 from carterkit.hub import _walk_children
 
 
@@ -100,3 +101,34 @@ def test_builder_to_sectioned():
     assert out["placements"]["cpu"]["span"] == [2, 2]
     assert to_inline(out) == ui.layout
     assert copy.deepcopy(ui.layout) == ui.layout
+
+
+def test_container_insides_are_outside_the_namespace_like_the_app():
+    """carter-m7s.39 parity with the app's SectionedDocumentTests: carousel panels,
+    canvas items and long-press groups keep their insides inline; a section entry
+    naming one of them is dropped. A dynamic group is an ordinary group."""
+    inner = {"type": "button", "id": "c_inpanel", "label": "Go", "position": [0, 0]}
+    layout = {
+        "schemaVersion": 2, "name": "C", "version": 1,
+        "tabs": [{"title": "T", "icon": "house", "grid": {"columns": 4, "rows": 12}, "children": [
+            {"type": "carousel", "id": "c_car", "panels": [
+                {"type": "group", "id": "p_home", "position": [0, 0],
+                 "grid": {"columns": 1, "rows": 1}, "children": [inner]}]},
+            {"type": "canvas", "id": "c_canvas", "canvasConfig": {"items": [
+                {"id": "i1", "control": {"type": "gauge", "id": "c_ingauge"}}]}},
+            {"type": "button", "id": "c_lp", "longPressGroup": {
+                "type": "group", "id": "g_lp", "position": [0, 0], "grid": {"columns": 2, "rows": 1},
+                "children": [{"type": "button", "id": "c_inlp", "position": [0, 0]}]}},
+            {"type": "group", "id": "g_dyn", "dynamic": "feed", "grid": {"columns": 4, "rows": 2},
+             "children": []}]}],
+        "placements": {"c_car": {"position": [0, 0]}, "c_canvas": {"position": [3, 0]},
+                       "c_lp": {"position": [7, 0]}, "g_dyn": {"position": [8, 0]},
+                       "c_inpanel": {"position": [1, 1]}, "c_inlp": {"position": [1, 1]}},
+        "styles": {"c_ingauge": {"tint": "#000000"}, "g_lp": {"tint": "#000000"}},
+    }
+    dropped = {where for where, _ in kit_sections.section_issues(layout)}
+    assert dropped == {"root.placements.c_inpanel", "root.placements.c_inlp",
+                       "root.styles.c_ingauge", "root.styles.g_lp"}
+    folded = to_inline(layout)
+    assert folded["tabs"][0]["children"][3]["position"] == [8, 0]
+    assert folded["tabs"][0]["children"][0]["panels"][0]["children"][0] == inner
