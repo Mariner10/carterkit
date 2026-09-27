@@ -732,6 +732,7 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                                    f"{ctype}.{k} = '{v}' is not one of {fd['values']} — "
                                    f"the app will fall back to the default"))
     _validate_default_value(ch.get("defaultValue"), ctype, spot, findings)
+    _validate_relative_format(ch, ctype, spot, findings)
     _validate_bindings(ch, ctype, spot, findings, sources)
 
 
@@ -805,6 +806,31 @@ def _validate_default_value(dv, ctype, spot, findings):
 
 def _is_number(v):
     return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+#: `formatValue` tokens that read the value as a DATE ("4 days ago", "Today").
+RELATIVE_FORMATS = {"relative", "relative:day"}
+#: Controls whose readout renders a relative date (label; its glance/widget slot
+#: follows the same control). Numeric controls treat the value as a number.
+_RELATIVE_TYPES = {"label"}
+
+
+def _validate_relative_format(ch, ctype, spot, findings):
+    """Lint the time-since formats (`formatValue: "relative"` / `"relative:day"`):
+    a misspelled variant silently falls back to the raw value, and a numeric control
+    (gauge, slider, …) cannot draw a date. `placeholder` only matters with them."""
+    fmt = ch.get("formatValue")
+    if not isinstance(fmt, str) or not fmt.startswith("relative"):
+        return
+    if fmt not in RELATIVE_FORMATS:
+        findings.append(_f("warn", "bad_relative_format", spot,
+                           f"{ctype}.formatValue = '{fmt}' — use 'relative' or 'relative:day'; "
+                           f"the app shows the raw value otherwise"))
+        return
+    if ctype not in _RELATIVE_TYPES:
+        findings.append(_f("warn", "relative_format_type", spot,
+                           f"{ctype}.formatValue = '{fmt}' — relative dates render on a label "
+                           f"(and its widget slot); a {ctype} reads its value as a number"))
 
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a

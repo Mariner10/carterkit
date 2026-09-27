@@ -90,6 +90,8 @@ a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
 | `bps` | `1500000` | `1.50 Mbps` |
 | `duration` | `3725` | `1h 2m` |
 | `time` | `125` | `2:05` |
+| `relative` | `"2026-09-22T08:15:00Z"` / epoch | `4 days ago`, `In 2 hours` (label + widget slots; a date, not a number) |
+| `relative:day` | `"2026-09-25"` | `Yesterday` — whole local calendar days; no date → `placeholder` (`Never`) |
 
 Numeric readouts preserve positive step precision (for example, `step: 0.01` shows `0.12`, and `step: 0.25` shows `0.25`). Precision is capped at 12 decimal places. Non-finite values display `—`; `none` still hides them. Negative time and duration values use one leading minus sign. Times outside the integer range display seconds in scientific notation instead of failing conversion.
 

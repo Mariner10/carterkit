@@ -265,3 +265,20 @@ def test_glance_validation_survives_malformed_json():
                    {"widgets": [{"id": "w", "scene": {"rows": [["tile"]]}}]},
                    {"lockScreen": []}, {"live": {"tier": None}}):
         validate.validate_layout(_glance_layout(glance), CAT)
+
+
+def _one_label(**fields):
+    ctrl = {"type": "label", "id": "fern", "position": [0, 0], **fields}
+    return {"name": "t", "tabs": [{"name": "T", "grid": {"columns": 2, "rows": 2},
+                                   "children": [ctrl]}]}
+
+
+def test_relative_format_lint():
+    from carterkit.validate import validate_layout
+    kinds = lambda lay: {f["kind"] for f in validate_layout(lay, CAT)}
+    ok = kinds(_one_label(formatValue="relative:day", placeholder="Not watered yet"))
+    assert "bad_relative_format" not in ok and "unknown_field" not in ok
+    assert "bad_relative_format" in kinds(_one_label(formatValue="relative:days"))
+    gauge = _one_label(formatValue="relative")
+    gauge["tabs"][0]["children"][0].update({"type": "gauge", "min": 0, "max": 1})
+    assert "relative_format_type" in kinds(gauge)
