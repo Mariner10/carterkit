@@ -18,7 +18,7 @@ fields:
     description: Number of rows the grid is divided into (required)
   - name: mode
     type: string
-    description: '"grid" (2-D, default) or "flow" (legacy row-banded)'
+    description: "'grid' (2-D, default) or 'flow' (legacy row-banded)"
   - name: rowHeight
     min: 12
     max: 200
@@ -27,7 +27,7 @@ fields:
     description: Points per row-unit in 2-D mode (default 56)
   - name: reflow
     type: string
-    description: 'Landscape policy for a tab''s grid: "auto" (default; columns double and children re-pack) or "stretch" (keep the portrait cells, wider)'
+    description: "Landscape policy for a tab's grid: 'auto' (default; columns double and children re-pack) or 'stretch' (keep the portrait cells, wider)"
 ---
 
 Every tab and every [[group-def|group]] lays its children out on a **grid** of

@@ -170,7 +170,9 @@ doc lists it, the field is ignored there.
 
 `requires` says what a document needs from the app. Features are `name@N`
 strings — a capability name plus an optional version, e.g.
-`"requires": { "features": ["local.store@2", "sensors"] }` (`sensors` = `sensors@1`).
+`"requires": { "features": ["control.symbol", "sync.sensor"] }` (`sync.sensor` =
+`sync.sensor@1`). Names are what the app reports in get-device-info `features`:
+`control.<type>`, `sync.<method>`, `action.<method>` and `layout.<key>`.
 An app missing a requirement shows one update banner and still renders what it
 can. `requires` is the author's soft gate; `schemaVersion` is the grammar marker
 and decides whether the app may write the file.

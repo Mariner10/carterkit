@@ -37,7 +37,7 @@ fields:
     description: Easing preset — springy presets overshoot
   - name: filter
     type: object
-    description: 'Optional payload match, e.g. { "device": "thunk-app" }'
+    description: "Optional payload match, e.g. { 'device': 'thunk-app' }"
 ---
 
 A **pulse** is a decorative ring that flashes around a container the moment

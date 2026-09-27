@@ -47,7 +47,7 @@ fields:
   - name: scrub
     type: bool
     default: false
-    description: When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)
+    description: "When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)"
     group: ganttConfig
   - name: showAxis
     type: bool
