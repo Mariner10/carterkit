@@ -138,7 +138,7 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
   "id": "all-off",
   "position": [0, 3],
   "label": "All Off",
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "hue-bridge", "type": "scene", "payload": { "name": "all_off" } } }
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "all_off" } } }
 }
 ```
 
@@ -200,7 +200,7 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
   "label": "Movie",
   "icon": "film",
   "style": "tinted",
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "home-hub", "type": "macro", "payload": { "name": "movie_mode" } } },
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "home-hub", "type": "macro", "payload": { "name": "movie_mode" } } },
   "longPressGroup": {
     "position": [0, 0],
     "span": [2, 2],

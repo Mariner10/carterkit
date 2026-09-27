@@ -167,7 +167,7 @@ Inherits all [[shared-properties]]. Key fields:
   "step": 1,
   "defaultValue": 72,
   "label": "Target °F",
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "ecobee", "type": "set_temp", "payload": { "target": "{{value}}" } } }
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "ecobee", "type": "set_temp", "payload": { "target": "{{value}}" } } }
 }
 ```
 

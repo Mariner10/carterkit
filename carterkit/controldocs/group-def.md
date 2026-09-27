@@ -87,7 +87,7 @@ which payloads trigger it, matching keys the same way a [[sync]] filter does.
   "position": [0, 0],
   "grid": { "columns": 2, "rows": 2 },
   "children": [],
-  "pulse": { "event": "iCloudListen", "direction": "outward", "color": "34C759" }
+  "pulse": { "event": "broadcast", "filter": { "msg_type": "iCloudListen" }, "direction": "outward", "color": "34C759" }
 }
 ```
 

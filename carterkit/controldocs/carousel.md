@@ -133,7 +133,7 @@ All motion lives in the optional `containerAnimation` object:
   "containerAnimation": { "profile": "smooth", "sideScale": 0.78, "sideRotation": 50 },
   "defaultValue": 0,
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "scene" }, "valuePath": "index" }],
-  "action": { "method": "meshsocket", "mode": "request", "event": "route_msg", "payload": { "target_id": "hub", "type": "scene", "payload": { "index": "{{value}}" } } },
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hub", "type": "scene", "payload": { "index": "{{value}}" } } },
   "panels": [
     { "type": "group", "id": "home", "label": "Home", "position": [0,0], "grid": { "columns": 1, "rows": 1 },
       "children": [ { "type": "label", "id": "home-l", "position": [0,0], "text": "Home scene" } ] },

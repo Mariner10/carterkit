@@ -145,14 +145,14 @@ frames the push omits fall back to the item's configured spot.
     "items": [
       { "id": "cpu", "x": 0.05, "y": 0.05, "w": 0.42, "h": 0.3,
         "control": { "type": "gauge", "id": "cpu-gauge", "label": "CPU", "min": 0, "max": 100,
-                     "sync": [{ "method": "meshsocket", "event": "telemetry", "valuePath": "cpu" }] } },
+                     "sync": [{ "method": "meshsocket", "event": "broadcast", "filter": { "msg_type": "telemetry" }, "valuePath": "cpu" }] } },
       { "id": "temp", "x": 0.53, "y": 0.05, "w": 0.42, "h": 0.3,
         "control": { "type": "sparkline", "id": "temp-spark", "label": "Temp",
-                     "sync": [{ "method": "meshsocket", "event": "telemetry", "valuePath": "temp" }] } },
+                     "sync": [{ "method": "meshsocket", "event": "broadcast", "filter": { "msg_type": "telemetry" }, "valuePath": "temp" }] } },
       { "id": "power", "x": 0.05, "y": 0.42, "w": 0.42, "h": 0.18,
         "control": { "type": "toggle", "id": "rig-power", "label": "Rig Power",
-                     "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                                 "payload": { "target_id": "hub", "type": "power", "payload": { "on": "{{value}}" } } } } }
+                     "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                                 "payload": { "target_name": "hub", "type": "power", "payload": { "on": "{{value}}" } } } } }
     ]
   }
 }
@@ -179,8 +179,8 @@ frames the push omits fall back to the item's configured spot.
                      "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "arm" } } } }
     ],
     "events": {
-      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                 "payload": { "target_id": "hub", "type": "board_place",
+      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                 "payload": { "target_name": "hub", "type": "board_place",
                               "payload": { "card": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
       "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "board_state" } }
     }

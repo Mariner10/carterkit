@@ -126,9 +126,11 @@ stays read-only.
     { "key": "status", "label": "Status" },
     { "key": "latency", "label": "Ping", "format": "number" }
   ],
-  "sync": [{ "method": "meshsocket", "type": "listen", "event": "device_list" }]
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "device_list" }, "valuePath": "devices" }]
 }
 ```
+
+The server broadcasts `{"msg_type": "device_list", "devices": [{"name": "…", "status": "…", "latency": 12}, …]}`; `valuePath` picks the row array out of the frame.
 
 ### Nested feed rows (USGS GeoJSON, no server)
 ```json

@@ -130,15 +130,15 @@ let a server seed or rearrange placements; ids not in the catalog are ignored.
     "paletteLabel": "Unplaced devices",
     "items": [
       { "id": "living-lamp", "label": "Living Lamp", "icon": "lamp.table.fill", "tint": "#FF9500", "x": 0.28, "y": 0.4,
-        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                    "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } },
       { "id": "front-door", "label": "Front Door", "icon": "door.left.hand.closed", "tint": "#34C759",
-        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                    "payload": { "target_id": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } }
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "hub", "type": "toggle", "payload": { "device": "{{value}}" } } } }
     ],
     "events": {
-      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
-                 "payload": { "target_id": "hub", "type": "place_device",
+      "place": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                 "payload": { "target_name": "hub", "type": "place_device",
                               "payload": { "device": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
       "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "floorplan_state" } }
     }

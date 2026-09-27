@@ -374,18 +374,25 @@ Each node can define what happens when tapped. Two types:
 "onTap": {
   "type": "action",
   "method": "meshsocket",
-  "mode": "request",
-  "event": "route_msg",
-  "payload": { "target_id": "home-hub", "type": "select_device", "payload": { "device": "{{value}}" } }
+  "mode": "broadcast",
+  "event": "route_msg_noreply",
+  "payload": { "target_name": "home-hub", "type": "select_device", "payload": { "device": "{{value}}" } }
 }
 ```
 
-**Content** — requests markdown content from the server and opens it in a scrollable markdown sheet:
+`route_msg_noreply` resolves the hub by its registered name and delivers a `select_device`
+frame to it. (`route_msg` would need the hub's live relay-assigned `target_id`, not a name.)
+
+**Content** — requests markdown content from the server and opens it in a scrollable markdown sheet.
+`event` is sent verbatim as the frame type and the reply is awaited, so it must be `route_msg`
+(the only relay verb that carries a reply back) aimed at the server's live relay-assigned
+`target_id`; the relay delivers the inner `payload` to that peer as a `get_doc` request.
+A name is not resolved here, so this suits layouts a server generates after it connects:
 ```json
 "onTap": {
   "type": "content",
-  "event": "get_doc",
-  "payload": { "path": "controls/button.md" }
+  "event": "route_msg",
+  "payload": { "target_id": "<relay id>", "type": "get_doc", "payload": { "path": "controls/button.md" } }
 }
 ```
 
