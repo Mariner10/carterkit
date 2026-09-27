@@ -361,3 +361,37 @@ def test_stale_after_out_of_range_warns():
     assert "bad_stale_after" in _stale_kinds(liveness={"staleAfter": 100000})
     assert "bad_liveness" in _stale_kinds(liveness=5)
     assert "unknown_field" in _stale_kinds(liveness={"stale": 5})
+
+
+# carter-akc — every per-element action carrier gets the dead_action lint, and the
+# remedy for a payload that already carries msg_type is event 'broadcast_request'.
+def _action_layout(ctype, akey, action):
+    return {"name": "A", "version": 1, "tabs": [{"title": "A", "icon": "house",
+            "grid": {"columns": 4, "rows": 4},
+            "children": [{"type": ctype, "id": "c", "position": [0, 0], akey: action}]}]}
+
+
+def test_dead_action_covers_every_secondary_carrier():
+    from carterkit import validate_layout
+    from carterkit.validate import SECONDARY_ACTION_KEYS
+    for ctype, akey in (("boxPlot", "boxAction"), ("chord", "arcAction"),
+                        ("heatmap", "cellAction"), ("treemap", "itemAction"),
+                        ("gantt", "taskAction"), ("pieChart", "sliceAction")):
+        assert akey in SECONDARY_ACTION_KEYS
+        lay = _action_layout(ctype, akey, {"event": "set_power"})
+        assert "dead_action" in {f["kind"] for f in validate_layout(lay)}, akey
+        ok = _action_layout(ctype, akey, {"event": "broadcast_request",
+                                          "payload": {"msg_type": "tap"}})
+        assert "dead_action" not in {f["kind"] for f in validate_layout(ok)}, akey
+
+
+def test_dead_action_remedy_keeps_existing_msg_type():
+    from carterkit import validate_layout
+    lay = _action_layout("button", "action", {"event": "broadcast",
+                                              "payload": {"msg_type": "lights"}})
+    dead = [f for f in validate_layout(lay) if f["kind"] == "dead_action"]
+    assert dead and "'broadcast_request'" in dead[0]["detail"]
+    assert "send='broadcast'" not in dead[0]["detail"]
+    bare = _action_layout("button", "action", {"event": "set_power"})
+    dead = [f for f in validate_layout(bare) if f["kind"] == "dead_action"]
+    assert dead and "send='set_power'" in dead[0]["detail"]
