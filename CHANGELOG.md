@@ -19,8 +19,11 @@ live in the app and bind controls to them with plain JSON query stages — no se
   refs. `decode_op` accepts the K11/U4 aliases (`set`/`unset`, `child`, `tab`,
   `setLayout`, `renameTab`). `diff(old, new)` emits canonical ops (verified to apply
   back to `new`) or None when the change must be a full push. `layout_hash` =
-  `canonical.content_digest`. The app's golden set is snapshotted in
-  `tests/fixtures/layout-ops/`.
+  `canonical.content_digest`. Matches the app's committed applier (carter-c1n.8
+  1f34a8be, carter-60fd): 26 of its 27 goldens in `tests/fixtures/layout-ops/` pass
+  (`error-decode` needs the app's decoder). Known gap: `diff()` returns None for a
+  renamed id in a sectioned document (it reads as remove + add), so that edit is a
+  full push.
 - **`carterkit.canonical` — the one canonical JSON (carter-m7s.9).** RFC 8785 (JCS) serialization
   (`canonical_json` / `canonical_bytes`) and the layout `content_digest(layout)` →
   `"sha256:<hex>"` over the credential-stripped document minus `provenance`,
