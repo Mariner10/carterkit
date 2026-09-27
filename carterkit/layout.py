@@ -202,13 +202,15 @@ class _GridScope:
 
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, pulse=None,
-              hide_background=None, mode: str = None, row_height: int = None) -> "GroupHandle":
+              hide_background=None, mode: str = None, row_height: int = None,
+              name: str = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
         broadcast with matching `msg_type` — build that payload with :class:`Fragment`).
         `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
-        2-D row unit in points (default 56)."""
+        2-D row unit in points (default 56). `name` is the readable name the app's
+        editor shows (never identity; controls take `name=` the same way)."""
         gid = self._owner._unique_id(id or "group")
         grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
@@ -216,6 +218,8 @@ class _GridScope:
         if row_height is not None:
             grid["rowHeight"] = row_height
         g: dict = {"type": "group", "id": gid, "grid": grid, "children": []}
+        if name is not None:
+            g["name"] = name
         if label is not None:
             g["label"] = label
         if dynamic is not None:
@@ -616,6 +620,7 @@ class Layout:
         if not self._first_tab_used:
             t = self._buf.tabs[0]
             t["title"], t["icon"] = title, icon
+            t["id"] = self._buf.tab_id_for(title, skip_index=0)
             t["grid"] = grid
             self._tab_index = 0
             self._first_tab_used = True
@@ -661,6 +666,12 @@ class Layout:
 
     def json(self, indent: int = 2) -> str:
         return json.dumps(self.layout, indent=indent)
+
+    def to_sectioned(self) -> dict:
+        """The layout as a sectioned document (schemaVersion 2): placements / styles /
+        connectivity keyed by id. The builder itself keeps writing the inline form."""
+        from .sections import to_sectioned
+        return to_sectioned(self.layout)
 
     def save(self, path: str, indent: int = 2) -> str:
         """Write the layout JSON to `path` (live push to a device is the app/MCP's job —

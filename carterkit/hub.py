@@ -73,6 +73,9 @@ def _walk_children(layout: dict):
     (carousel/flipCard/accordion `panels`), and canvas-hosted controls — the same
     nesting the app's own sync collection walks, so a nested control is as
     pushable/handleable as a top-level one."""
+    from .sections import inline_view
+    layout = inline_view(layout)          # a sectioned (v2) document's facets fold on
+
     def walk(children):
         for ch in children or []:
             if not isinstance(ch, dict):

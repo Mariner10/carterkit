@@ -13,6 +13,7 @@ a group is not yet supported (ids inside groups still count for uniqueness).
 from __future__ import annotations
 
 import copy
+import re
 from typing import Optional
 
 from . import grid as gridmod
@@ -23,6 +24,18 @@ DEFAULT_ROWS = 8
 
 class BufferError(Exception):
     """Raised on an invalid buffer operation (rendered to the user as a tool error)."""
+
+
+def tab_slug(title: str, taken) -> str:
+    """Slug `title` into a tab id not in `taken`: "Living Room" -> "living-room",
+    then "living-room-2"... Deterministic, so regenerating a layout keeps its tab ids."""
+    base = re.sub(r"[^a-z0-9]+", "-", (title or "").lower()).strip("-") or "tab"
+    if base not in taken:
+        return base
+    i = 2
+    while f"{base}-{i}" in taken:
+        i += 1
+    return f"{base}-{i}"
 
 
 class LayoutBuffer:
@@ -40,6 +53,7 @@ class LayoutBuffer:
             "version": 1,
             "accentColor": accent,
             "tabs": [{
+                "id": tab_slug(tab_title, ()),
                 "title": tab_title,
                 "icon": tab_icon,
                 "grid": {"columns": columns, "rows": rows},
@@ -84,6 +98,14 @@ class LayoutBuffer:
         for tab in self.tabs:
             walk(tab.get("children"))
         return ids
+
+    def tab_id_for(self, title: str, skip_index: Optional[int] = None) -> str:
+        """A stable tab id (slug of the title, unique among this layout's tab ids).
+        The app keys selection and deep links on `tab.id`, falling back to the title
+        when absent — an explicit id means renaming the tab later breaks nothing."""
+        taken = {t.get("id") for i, t in enumerate(self.tabs)
+                 if i != skip_index and isinstance(t, dict)}
+        return tab_slug(title, taken)
 
     def unique_id(self, base: str) -> str:
         base = base or "control"
@@ -176,6 +198,7 @@ class LayoutBuffer:
         if row_height is not None:
             grid["rowHeight"] = row_height
         self.tabs.append({
+            "id": self.tab_id_for(title),
             "title": title, "icon": icon,
             "grid": grid, "children": [],
         })
