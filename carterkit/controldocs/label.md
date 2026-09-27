@@ -38,6 +38,9 @@ fields:
   - name: placeholder
     type: string
     description: Shown by a relative-date label with no date yet (default "Never")
+  - name: unit
+    type: string
+    description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally."
   - name: valueMap
     type: object
     description: Incoming value → display text ("default" catches the rest)
@@ -82,6 +85,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `scrollable` | bool | `false` | Fixed-height scrolling terminal/log view (pair with `controlHeight`) |
 | `formatValue` | string | — | Value display format (see formatValue table below) |
 | `placeholder` | string | `"Never"` | With `relative` / `relative:day`: the text shown while there is no date |
+| `unit` | string | — | Measurement unit of a numeric value ([[values#Units]]); shown converted to the device locale (`"celsius"` → °F in the US). A `valueMap` hit or non-numeric text shows as sent. Unknown strings are a literal suffix |
 | `valueMap` | object | — | Incoming value → display text — see [[#Value maps]] |
 | `iconMap` | object | — | Incoming value → SF Symbol name |
 | `colorMap` | object | — | Incoming value → hex tint |

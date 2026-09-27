@@ -282,3 +282,34 @@ def test_relative_format_lint():
     gauge = _one_label(formatValue="relative")
     gauge["tabs"][0]["children"][0].update({"type": "gauge", "min": 0, "max": 1})
     assert "relative_format_type" in kinds(gauge)
+
+
+# carter-eqd — the control `unit` field (values.md "Units").
+def _unit_layout(ctype, unit):
+    return {"name": "U", "version": 1, "tabs": [{"title": "A", "grid": {"columns": 4, "rows": 4},
+            "children": [{"type": ctype, "id": "c", "position": [0, 0], "unit": unit}]}]}
+
+
+def _unit_kinds(ctype, unit):
+    from carterkit import validate_layout
+    return [f["kind"] for f in validate_layout(_unit_layout(ctype, unit))]
+
+
+def test_known_units_and_symbols_are_clean():
+    for ctype in ("gauge", "label", "progressRing"):
+        for unit in ("celsius", "Celsius", "°F", "km/h", "percent"):
+            kinds = _unit_kinds(ctype, unit)
+            assert "unknown_field" not in kinds and "unit_typo" not in kinds, (ctype, unit, kinds)
+
+
+def test_literal_unit_is_allowed():
+    assert "unit_typo" not in _unit_kinds("gauge", "dBFS")
+    assert "unit_typo" not in _unit_kinds("label", "°/s")
+
+
+def test_probable_unit_typo_warns():
+    from carterkit import validate_layout
+    found = [f for f in validate_layout(_unit_layout("gauge", "celcius")) if f["kind"] == "unit_typo"]
+    assert found and found[0]["severity"] == "warn" and "'celsius'" in found[0]["detail"]
+    assert "unit_typo" in _unit_kinds("progressRing", "kilometersperhr")
+    assert "bad_unit" in _unit_kinds("label", 5)

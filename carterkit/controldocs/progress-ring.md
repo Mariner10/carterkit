@@ -38,6 +38,9 @@ fields:
     type: bool
     default: false
     description: Show just the arc — hide the center value
+  - name: unit
+    type: string
+    description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally."
 themeFields:
   - name: cornerRadius
     min: 0
@@ -108,6 +111,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | — | Center text (ring) or header text (bar) |
 | `icon` | string | — | SF Symbol in center (ring only) |
 | `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
+| `unit` | string | — | Measurement unit of the value ([[values#Units]]). With a unit the readout is the value itself, converted to the device locale (`180` `"celsius"` reads 356°F in the US), not the fill percentage. `min`/`max` stay in this unit |
 
 ## Styles
 
