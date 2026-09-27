@@ -18,6 +18,19 @@ live in the app and bind controls to them with plain JSON query stages — no se
   **`bind.local_op(op, collection, *, id, set, source)`** builds a `method: "local"` action
   (`insert` / `update` / `upsert` / `delete` / `select`; `select` with `id=None` clears the
   cursor).
+- **`CarterClient.local_describe / local_query / local_query_all / local_upsert /
+  local_delete`** read and seed the paired phone's local store over the studio socket's
+  routed `local.*` verbs (needs `can_route=True, can_monitor=True`, or an explicit
+  `device_id`). Errors raise **`LocalDataError(code, reason)`**; `consent-pending` polls
+  `local.describe` every second until the owner taps, then re-sends once (70 s wait, then
+  `LocalDataError('denied', 'timeout')`). Upserts page 100 records per call with `ids` in
+  input order; `local_query_all` follows cursors; delete-by-`where` requires
+  `confirm_total`. Pure helpers (request builders, paging, reply shapes, the
+  `studio.event`/`local` change-notice parser `parse_local_event`) live in
+  **`carterkit.localdata`**.
+- **CLI:** `carterkit local describe|query|seed <file>` against a studio relay URL or
+  pairing JSON.
+- **Validator:** `mirror` is flagged anywhere but a collection of a `type: "local"` source.
 - **`carterkit.local`** — the pure lint the validator runs (`lint_source`, `lint_stage`,
   `lint_op`, `fields_for`) plus the caps and enums, for other tools to reuse.
 - **Validator:** `local` joins the source-type, addressed-method and binding-walker

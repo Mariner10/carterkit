@@ -812,6 +812,7 @@ def _validate_sources_defs(layout, findings) -> dict:
                                f"source 'type' must be 'mqtt', 'http' or 'local', got {kind!r}"))
             continue
         out[name] = kind
+        _lint_mirror_placement(sdef, kind, where, findings)
         if kind == "mqtt" and not sdef.get("url"):
             findings.append(_f("error", "bad_sources", where, "mqtt source needs a broker 'url'"))
         # http `baseURL` is optional — syncs may use absolute `url`s instead.
@@ -834,6 +835,25 @@ def _validate_sources_defs(layout, findings) -> dict:
             findings.append(_f("error", "bad_sources", f"sources.{n}",
                                "a second local source needs an explicit 'namespace'"))
     return out
+
+
+def _lint_mirror_placement(sdef, kind, where, findings):
+    """`mirror` (studio change-notice, readback spec §4) is a bool on a collection inside
+    a `type: "local"` source — nowhere else. The bool check on local collections lives in
+    `local.lint_source`; this catches every misplaced `mirror`."""
+    if "mirror" in sdef:
+        findings.append(_f("error", "bad_sources", where,
+                           "'mirror' belongs on a collection (collections.<name>.mirror), "
+                           "not on the source"))
+    if kind == "local":
+        return
+    colls = sdef.get("collections")
+    if isinstance(colls, dict):
+        for cname, cdef in colls.items():
+            if isinstance(cdef, dict) and "mirror" in cdef:
+                findings.append(_f("error", "bad_sources", f"{where}.collections.{cname}",
+                                   f"'mirror' is only valid on a collection of a "
+                                   f"type:'local' source, not a {kind} source"))
 
 
 _ALERT_OPERATORS = {"eq", "neq", "gt", "lt", "gte", "lte"}

@@ -47,6 +47,8 @@ from .layout import Layout, Fragment, Control, Condition
 from .connection import Connection
 from .hub import Hub, HubError
 from .notifications import notification_action
+from . import localdata
+from .localdata import LocalDataError, LocalChangeEvent, parse_local_event
 from .surfaces import LayoutSurfaces
 
 try:
@@ -117,4 +119,5 @@ __all__ = [
     "Connection", "Hub", "HubError",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
     "contract", "extract_contract",
+    "localdata", "LocalDataError", "LocalChangeEvent", "parse_local_event",
 ]
