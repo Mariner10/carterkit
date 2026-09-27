@@ -150,7 +150,7 @@ becomes "5 days ago" tomorrow with no server, poll or data event.
 - Text is localized (e.g. German "Vor 4 Tagen", "Gestern").
 - The label refreshes itself once a minute with its own timer; nothing is written
   back to the control's value. Widget slots bound to the same control show the
-  same text (`relative` slots advance on the system clock).
+  same text, refreshed whenever the widget reloads its timeline.
 
 ## Styles
 
