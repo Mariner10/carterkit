@@ -8,7 +8,8 @@ emits, it flags the failure modes that leave a dynamic group silently empty or b
 
   • the event never arrives (typo / wrong namespace / service not emitting it);
   • a matching broadcast carries no ``children`` array;
-  • injected children won't render — unknown control type, bad enum, id collision,
+  • injected children won't render — unknown control type, bad enum, an id reused
+    within the deck or taken from the layout (the app refuses the deck),
     or placement that overflows/overlaps the group's own grid;
   • a children-bearing broadcast that no dynamic group listens for (likely a typo).
 
@@ -61,6 +62,7 @@ def lint_dynamic_traffic(layout: dict, observed, *, catalog: dict = None) -> lis
             by_event.setdefault(ev, []).append(m)
 
     groups = dynamic_groups(layout)
+    layout_ids = _validate.identity_ids(layout)
     listened = {g["event"] for g in groups}
     findings: list[dict] = []
 
@@ -81,7 +83,9 @@ def lint_dynamic_traffic(layout: dict, observed, *, catalog: dict = None) -> lis
                 continue
             # injected children render in the group's OWN grid
             _validate._grid_findings(children, g["columns"], g["rows"], spot, findings)
-            seen_ids: dict[str, str] = {}
+            # A deck id may not reuse one of the layout's own ids (carter-1o0): the
+            # app refuses the whole deck, so it would never render.
+            seen_ids = {i: f"layout {w}" for i, w in layout_ids.items()}
             for ch in children:
                 _validate._validate_child(ch, cat, spot, findings, seen_ids)
 
