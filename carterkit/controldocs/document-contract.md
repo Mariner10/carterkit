@@ -5,9 +5,13 @@ icon: doc.badge.gearshape
 category: models
 fields:
   - name: schemaVersion
+    min: 1
+    max: 2
     type: number
     description: Grammar version of the document (optional; absent = 1). Bumped only when an older app would misread the file
   - name: version
+    min: 1
+    max: 9999
     type: number
     description: The author's revision label (the Layout Hub's "Revision"); never gates anything
   - name: format

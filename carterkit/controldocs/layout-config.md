@@ -12,6 +12,8 @@ fields:
     type: number
     description: The author's revision label (required; never gates anything — see document-contract)
   - name: schemaVersion
+    min: 1
+    max: 2
     type: number
     description: Grammar version, optional (absent = 1); set by writers, bumped only when an older app would misread the file
   - name: extensions
