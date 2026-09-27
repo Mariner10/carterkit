@@ -274,3 +274,71 @@ def test_layout_glance_rejects_a_malformed_control_entry():
         ui.glance(controls=[{"id": "c", "kind": "slider", "control": "cpu"}])
     with pytest.raises(ValueError, match="must be a dict with an 'id'"):
         ui.glance(widgets=[{"title": "no id"}])
+
+
+# ─── fallback= / requires() / target_app (carter-0gj.27) ─────────────────────
+
+def test_fallback_kwarg_produces_decoder_shape():
+    lay = Layout("FC")
+    lay.gauge(id="g", label="CPU", min=0, max=100,
+              fallback=build.slider(id="ignored", min=0, max=100, position=[3, 3]))
+    ch = lay.layout["tabs"][0]["children"][0]
+    fb = ch["fallback"]
+    assert fb == {"type": "slider", "min": 0, "max": 100, "label": "CPU"}
+    assert "id" not in fb and "position" not in fb and "span" not in fb
+
+
+def test_fallback_kwarg_type_name_chain_and_group():
+    lay = Layout("FC")
+    lay.gauge(id="g", label="CPU", fallback={"type": "sparkline", "fallback": "label"})
+    lay.gauge(id="h", fallback={"type": "group", "children": []})
+    a, b = lay.layout["tabs"][0]["children"]
+    assert a["fallback"] == {"type": "sparkline", "label": "CPU",
+                             "fallback": {"type": "label", "label": "CPU"}}
+    assert b["fallback"] == {"type": "group", "children": []}
+    assert not [f for f in lay.validate() if f["kind"] in ("bad_fallback", "unknown_field")]
+
+
+def test_fallback_kwarg_rejects_bad_specs():
+    lay = Layout("FC")
+    with pytest.raises(ValueError):
+        lay.gauge(id="g", fallback="warpDrive")
+    with pytest.raises(TypeError):
+        lay.gauge(id="h", fallback=42)
+    placed = lay.label(id="l")
+    with pytest.raises(TypeError):
+        lay.gauge(id="i", fallback=placed)
+    deep = "label"
+    for _ in range(5):
+        deep = {"type": "label", "fallback": deep}
+    with pytest.raises(ValueError):
+        lay.gauge(id="j", fallback=deep)
+
+
+def test_requires_builder():
+    lay = Layout("R").requires(app="1.3", features=["control.symbol", "sync.mqtt@2"])
+    assert lay.layout["requires"] == {"app": "1.3", "features": ["control.symbol", "sync.mqtt@2"]}
+    lay.requires(features="layout.fallback")
+    assert lay.layout["requires"] == {"features": ["layout.fallback"]}
+    lay.requires()
+    assert "requires" not in lay.layout
+    with pytest.raises(ValueError):
+        lay.requires(app="v1.3")
+    with pytest.raises(ValueError):
+        lay.requires(features=["Bad Name"])
+    assert not [f for f in Layout("R").requires(app="1.3").validate()
+                if f["kind"] in ("bad_requires", "unknown_field")]
+
+
+def test_target_app_is_lint_only(monkeypatch):
+    import carterkit
+    seen = []
+    monkeypatch.setattr(carterkit, "validate_layout",
+                        lambda layout, catalog_=None, target_app=None: seen.append(target_app) or [])
+    lay = Layout("T", target_app="1.2")
+    lay.validate()
+    lay.validate(target_app="1.3")
+    assert seen == ["1.2", "1.3"]
+    assert "target_app" not in json.dumps(lay.layout)
+    with pytest.raises(ValueError):
+        Layout("T", target_app="latest")

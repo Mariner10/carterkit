@@ -45,6 +45,9 @@ SHARED_FIELDS = {
     "landscape", "regular",
     # Tool data (document-contract.md#Extensions): preserved, never interpreted.
     "extensions",
+    # What an older app shows when it doesn't know this type (layout-config.md
+    # "Requires and fallback"); checked by _fallback_findings.
+    "fallback",
 }
 GROUP_FIELDS = {
     "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
@@ -183,12 +186,25 @@ _WARN_URL_SCHEMES = {"http"}
 _URL_KEYS = {"url", "baseURL", "imageURL", "avatarURL", "src", "href", "validator"}
 
 
-def validate_layout(layout: dict, catalog: dict) -> list[dict]:
+def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = None) -> list[dict]:
     """Validate a full layout against the catalog. `catalog` should be built with
     include_theme=True so per-control theme fields are recognized. Never raises:
-    an unexpected failure is itself reported as an `internal_error` finding."""
+    an unexpected failure is itself reported as an `internal_error` finding.
+
+    `target_app` is the oldest CAR-TER the author wants the layout to work on. The
+    layout's own `requires.app` wins over it; with neither, DEFAULT_TARGET_APP. A
+    control whose catalog `since` is newer than that target, with no usable
+    `fallback`, is a `needs_newer_app` warning (see target_app_findings)."""
     try:
-        return _validate_layout(layout, catalog)
+        findings = _validate_layout(layout, catalog)
+        if isinstance(layout, dict):
+            try:
+                extra = fallback_findings(layout, catalog)
+                extra += target_app_findings(layout, catalog, target_app)
+            except RecursionError:   # hostile nesting: already reported as too_deep above
+                extra = []
+            findings.extend(extra)
+        return findings
     except RecursionError:
         return [_f("error", "too_deep", "root", "layout nests too deeply to validate")]
     except Exception as e:                        # pragma: no cover - last resort
@@ -1333,6 +1349,22 @@ def _validate_contract(layout: dict, findings: list) -> None:
                                        f"{sorted(_PROVENANCE_RELATIONS)}"))
 
     req = layout.get("requires")
+    if req is not None and not isinstance(req, dict):
+        findings.append(_f("warn", "bad_requires", "root.requires",
+                           "'requires' should be an object like "
+                           "{\"app\": \"1.3\", \"features\": [...]}; the app ignores it"))
+    if isinstance(req, dict):
+        for k in req:
+            if k not in ("app", "features"):
+                findings.append(_f("warn", "bad_requires", f"root.requires.{k}",
+                                   f"unknown key '{k}' (requires takes 'app' and 'features')"))
+        if "app" in req and not _is_app_version(req["app"]):
+            findings.append(_f("warn", "bad_requires", "root.requires.app",
+                               f"'app' should be a dotted version string like \"1.3\", "
+                               f"not {req['app']!r}; the app ignores it"))
+        if "features" in req and not isinstance(req["features"], list):
+            findings.append(_f("warn", "bad_requires", "root.requires.features",
+                               "'features' should be an array of 'name' / 'name@N' strings"))
     feats = req.get("features") if isinstance(req, dict) else None
     if isinstance(feats, list):
         for i, feat in enumerate(feats):
@@ -1527,6 +1559,11 @@ def _walk_controls(children, where, out):
                 _walk_controls([item["control"]], f"{spot}/canvas", out)
 
 
+def _in_canvas(ch: dict, spot: str) -> bool:
+    """True for a canvas item's hosted control (as `_walk_controls` names it)."""
+    return spot.endswith("/canvas/" + str(ch.get("id") or ch.get("type")))
+
+
 #: Fallback hops the app follows before a node counts as unsupported
 #: (LayoutForwardCompat.maxFallbackDepth).
 MAX_FALLBACK_DEPTH = 4
@@ -1569,11 +1606,163 @@ def device_support_findings(layout: dict, features) -> list[dict]:
         ctype = ch.get("type")
         if not isinstance(ctype, str) or f"control.{ctype}" in have:
             continue
-        fb_type = _usable_fallback(ch, have, in_canvas=spot.endswith("/canvas/" + str(ch.get("id") or ctype)))
+        fb_type = _usable_fallback(ch, have, in_canvas=_in_canvas(ch, spot))
         if fb_type:
             shows = f"shows its fallback ({fb_type}) instead"
         else:
             shows = "shows an 'Update CAR-TER' placeholder in its place"
         findings.append(_f("warn", "needs_newer_app", spot,
                            f"the phone's CAR-TER app is older than control '{ctype}': it {shows}"))
+    return findings
+
+
+# ─── Target app: `since` + `fallback` (carter-0gj.27, decision carter-4fb) ────
+#
+# Without a paired phone, the kit judges a layout against a target app version:
+# the layout's `requires.app`, else the caller's `target_app`, else the oldest
+# supported app. A control doc's frontmatter `since: "1.3"` says which app first
+# knows it (absent = every supported app). Warn-only: the kit never auto-wraps a
+# fallback (carter-4fb); the author adds one or raises requires.app.
+
+#: The oldest app the kit targets when nothing else says (the 1.2.4 App Store build).
+DEFAULT_TARGET_APP = "1.2.4"
+
+_APP_VERSION = re.compile(r"^[0-9]+(\.[0-9]+)*$")
+
+
+def _is_app_version(v) -> bool:
+    """A dotted numeric version string ("1.3", "1.2.4") — what `requires.app` takes."""
+    return isinstance(v, str) and bool(_APP_VERSION.match(v.strip()))
+
+
+def _version_newer(a: str, b: str) -> bool:
+    """a > b, number by number, missing parts = 0 (the app's compareVersions)."""
+    pa = [int(x) for x in a.strip().split(".")]
+    pb = [int(x) for x in b.strip().split(".")]
+    n = max(len(pa), len(pb))
+    pa += [0] * (n - len(pa))
+    pb += [0] * (n - len(pb))
+    return pa > pb
+
+
+def effective_target_app(layout, target_app: Optional[str] = None) -> tuple[str, str]:
+    """(version, where it came from): `requires.app` if well formed, else
+    `target_app` if well formed, else DEFAULT_TARGET_APP."""
+    req = layout.get("requires") if isinstance(layout, dict) else None
+    app = req.get("app") if isinstance(req, dict) else None
+    if _is_app_version(app):
+        return app.strip(), "requires.app"
+    if _is_app_version(target_app):
+        return target_app.strip(), "target_app"
+    return DEFAULT_TARGET_APP, "the kit's default target"
+
+
+def _since(catalog: dict, ctype) -> Optional[str]:
+    spec = catalog.get(ctype) if isinstance(ctype, str) else None
+    since = spec.get("since") if isinstance(spec, dict) else None
+    return since if _is_app_version(since) else None
+
+
+def _placed_controls(layout: dict) -> list:
+    found: list = []
+    tabs = layout.get("tabs")
+    for t, tab in enumerate(tabs if isinstance(tabs, list) else []):
+        if isinstance(tab, dict):
+            _walk_controls(tab.get("children"), f"tabs[{t}]", found)
+    return found
+
+
+def fallback_findings(layout: dict, catalog: dict) -> list[dict]:
+    """Shape checks for every control's `fallback` chain, as the app reads it
+    (LayoutForwardCompat): each hop an object with a known `type` (a control or a
+    `group`), at most MAX_FALLBACK_DEPTH hops, no `group` in a canvas item, and no
+    `id`/`position`/`span` (the app replaces them with the original's). All `warn`:
+    a bad fallback only costs the older app its substitute, never the load."""
+    findings: list = []
+    if not isinstance(layout, dict):
+        return findings
+    for ch, spot in _placed_controls(layout):
+        if "fallback" not in ch:
+            continue
+        in_canvas = _in_canvas(ch, spot)
+        current, where = ch, f"{spot}.fallback"
+        for hop in range(MAX_FALLBACK_DEPTH + 1):
+            if "fallback" not in current:
+                break
+            fb = current["fallback"]
+            if hop == MAX_FALLBACK_DEPTH:
+                findings.append(_f("warn", "bad_fallback", where,
+                                   f"the app follows at most {MAX_FALLBACK_DEPTH} fallback "
+                                   f"hops; this one is never used"))
+                break
+            if not isinstance(fb, dict):
+                findings.append(_f("warn", "bad_fallback", where,
+                                   "'fallback' must be a control object like "
+                                   "{\"type\": \"slider\", ...}; the app ignores it"))
+                break
+            t = fb.get("type")
+            if not isinstance(t, str) or not t:
+                findings.append(_f("warn", "bad_fallback", where,
+                                   "a fallback needs a 'type'; the app ignores it"))
+                break
+            if t == "group":
+                if in_canvas:
+                    findings.append(_f("warn", "bad_fallback", where,
+                                       "a canvas item hosts one control, so a group "
+                                       "fallback is never used there"))
+            elif t not in catalog:
+                findings.append(_f("warn", "bad_fallback", where,
+                                   f"unknown control type '{t}' — no app draws it, so "
+                                   f"the chain moves on to its own fallback (if any)"))
+            placed = [k for k in ("id", "position", "span") if k in fb]
+            if placed:
+                findings.append(_f("warn", "bad_fallback", where,
+                                   f"{', '.join(repr(k) for k in placed)} on a fallback "
+                                   f"is ignored: it takes the original control's "
+                                   f"id, position and span"))
+            current, where = fb, f"{where}.fallback"
+    return findings
+
+
+def _target_fallback(node: dict, catalog: dict, target: str, in_canvas: bool):
+    """The type the target app draws from `node`'s fallback chain, or None. Mirrors
+    `_usable_fallback`, judging "known" by catalog `since` instead of device features."""
+    current = node
+    for _ in range(MAX_FALLBACK_DEPTH):
+        nxt = current.get("fallback")
+        if not isinstance(nxt, dict):
+            return None
+        t = nxt.get("type")
+        if t == "group":
+            return None if in_canvas else "group"
+        if isinstance(t, str) and t in catalog:
+            since = _since(catalog, t)
+            if since is None or not _version_newer(since, target):
+                return t
+        current = nxt
+    return None
+
+
+def target_app_findings(layout: dict, catalog: dict, target_app: Optional[str] = None) -> list[dict]:
+    """`needs_newer_app` warnings for controls newer than the target app (see
+    effective_target_app) that have no fallback that app can draw. Silent when the
+    catalog carries no `since`, when the target covers it, or with a usable fallback."""
+    if not isinstance(layout, dict) or not isinstance(catalog, dict):
+        return []
+    target, source = effective_target_app(layout, target_app)
+    findings = []
+    for ch, spot in _placed_controls(layout):
+        ctype = ch.get("type")
+        since = _since(catalog, ctype)
+        if since is None or not _version_newer(since, target):
+            continue
+        if _target_fallback(ch, catalog, target, _in_canvas(ch, spot)):
+            continue
+        why = ("its fallback chain has nothing that app can draw"
+               if "fallback" in ch else "it has no 'fallback'")
+        findings.append(_f("warn", "needs_newer_app", spot,
+                           f"control '{ctype}' needs CAR-TER {since}, newer than the "
+                           f"target {target} ({source}), and {why}: that app shows an "
+                           f"'Update CAR-TER' placeholder. Add a fallback, or set "
+                           f"requires.app to \"{since}\" if older apps don't matter"))
     return findings

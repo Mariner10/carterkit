@@ -414,3 +414,128 @@ def test_list_row_tap_action_lints_clean():
     findings = validate_layout(lay)
     assert not [f for f in findings if f["severity"] == "error"], findings
     assert "unknown_field" not in {f["kind"] for f in findings}
+
+
+# ─── requires / fallback / since (carter-0gj.27) ─────────────────────────────
+
+import copy as _copy
+
+#: The real catalog with two controls pretending to be newer than the 1.2.4 default.
+NEWER = _copy.deepcopy(CAT)
+NEWER["symbol"]["since"] = "1.3"
+NEWER["compass"]["since"] = "1.4"
+
+
+def _sym(**kw):
+    return {"type": "symbol", "id": "s", "position": [0, 0], "label": "Fan", **kw}
+
+
+def _needs(findings):
+    return [f for f in findings if f["kind"] == "needs_newer_app"]
+
+
+def _bad(findings, kind):
+    return [f for f in findings if f["kind"] == kind]
+
+
+def test_catalog_exposes_since():
+    doc = catalog.parse_doc('---\ntype: knob\nlabel: Knob\ncategory: controls\n'
+                            'since: "1.3"\n---\nbody', "knob")
+    assert doc["since"] == "1.3"
+    assert catalog._compact(doc)["since"] == "1.3"
+    assert "since" not in CAT["gauge"]          # absent = baseline
+
+
+def test_newer_control_without_fallback_warns():
+    f = validate.validate_layout(_layout([_sym()]), NEWER)
+    [w] = _needs(f)
+    assert w["severity"] == "warn" and "1.3" in w["detail"] and "1.2.4" in w["detail"]
+    assert not [x for x in f if x["severity"] == "error"]
+
+
+def test_newer_control_silent_with_fallback():
+    f = validate.validate_layout(_layout([_sym(fallback={"type": "label", "label": "Fan"})]), NEWER)
+    assert not _needs(f) and not _bad(f, "bad_fallback") and "unknown_field" not in _kinds(f)
+
+
+def test_requires_app_covers_newer_control():
+    lay = _layout([_sym()])
+    lay["requires"] = {"app": "1.3"}
+    assert not _needs(validate.validate_layout(lay, NEWER))
+    lay["requires"] = {"app": "1.2.9"}
+    assert _needs(validate.validate_layout(lay, NEWER))
+
+
+def test_target_app_argument_and_precedence():
+    lay = _layout([_sym()])
+    assert not _needs(validate.validate_layout(lay, NEWER, target_app="1.3.0"))
+    lay["requires"] = {"app": "1.2"}                       # requires.app wins
+    assert _needs(validate.validate_layout(lay, NEWER, target_app="2.0"))
+    assert validate.effective_target_app({}, None) == ("1.2.4", "the kit's default target")
+    assert validate.effective_target_app({"requires": {"app": "x"}}, "1.3")[0] == "1.3"
+
+
+def test_fallback_that_is_also_too_new_warns():
+    assert not _needs(validate.validate_layout(_layout([_sym(fallback={"type": "compass"})]),
+                                               NEWER, target_app="1.4"))
+    [w] = _needs(validate.validate_layout(_layout([{"type": "compass", "id": "c", "position": [0, 0],
+                                                    "fallback": {"type": "symbol"}}]), NEWER))
+    assert "fallback chain" in w["detail"]
+    # a chain reaches a known control on the second hop: silent
+    chained = _sym(fallback={"type": "compass", "fallback": {"type": "label"}})
+    assert not _needs(validate.validate_layout(_layout([chained]), NEWER))
+
+
+def test_newer_control_nested_in_group_and_canvas():
+    grp = {"type": "group", "id": "g", "position": [0, 0], "span": [2, 4],
+           "grid": {"columns": 4, "rows": 2}, "children": [_sym()]}
+    assert len(_needs(validate.validate_layout(_layout([grp]), NEWER))) == 1
+    canvas = {"type": "canvas", "id": "cv", "position": [0, 0], "span": [2, 2],
+              "canvasConfig": {"items": [{"id": "i1", "control": _sym(
+                  fallback={"type": "group", "children": []})}]}}
+    f = validate.validate_layout(_layout([canvas]), NEWER)
+    assert _needs(f), "a group fallback can't stand in for a canvas item"
+    assert any("canvas item" in x["detail"] for x in _bad(f, "bad_fallback"))
+
+
+def test_bad_fallback_shapes_are_reported_not_raised():
+    cases = [
+        ("slider", "control object"),
+        ({"label": "no type"}, "needs a 'type'"),
+        ({"type": "warpDrive"}, "unknown control type"),
+        ({"type": "label", "id": "x", "span": [1, 1]}, "ignored"),
+    ]
+    for fb, needle in cases:
+        f = validate.validate_layout(_layout([_sym(fallback=fb)]), NEWER)
+        assert any(needle in x["detail"] for x in _bad(f, "bad_fallback")), (fb, f)
+        assert all(x["severity"] == "warn" for x in _bad(f, "bad_fallback"))
+
+
+def test_fallback_chain_longer_than_the_app_follows():
+    fb = {"type": "label"}
+    for _ in range(4):
+        fb = {"type": "warpDrive", "fallback": fb}
+    f = validate.validate_layout(_layout([_sym(fallback=fb)]), NEWER)
+    assert any("at most 4" in x["detail"] for x in _bad(f, "bad_fallback"))
+    assert _needs(f)
+
+
+def test_bad_requires_shapes_are_reported_not_raised():
+    for req, where in [("1.3", "root.requires"), ({"app": 1.3}, "root.requires.app"),
+                       ({"app": "v1.3"}, "root.requires.app"),
+                       ({"features": "control.symbol"}, "root.requires.features"),
+                       ({"features": ["Bad Name"]}, "root.requires.features[0]"),
+                       ({"app": "1.3", "min": "1.2"}, "root.requires.min")]:
+        lay = _layout([_sym()])
+        lay["requires"] = req
+        f = validate.validate_layout(lay, NEWER)
+        assert [x for x in _bad(f, "bad_requires") if x["where"] == where], (req, f)
+        assert not [x for x in f if x["severity"] == "error"]
+    ok = _layout([_sym()])
+    ok["requires"] = {"app": "1.3", "features": ["control.symbol", "sync.mqtt@2"]}
+    assert not _bad(validate.validate_layout(ok, NEWER), "bad_requires")
+
+
+def test_bundled_catalog_has_no_newer_controls_yet():
+    # Every control in the vendored docs shipped in 1.2.4 (carter-0gj.27): no `since`.
+    assert not [t for t, spec in CAT.items() if spec.get("since")]

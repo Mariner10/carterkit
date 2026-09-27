@@ -123,6 +123,11 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
                 meta["category"] = value
             elif key == "defaultSpan":
                 meta["defaultSpan"] = _parse_int_array(value)
+            elif key == "since":
+                # First app version that knows this control ("1.3"); absent = every
+                # supported app. Read by validate's target-app lint (layout-config.md
+                # "Requires and fallback").
+                meta["since"] = value.strip("\"'") or None
             elif key == "fields":
                 in_fields = True
                 current_list = meta["fields"]
@@ -236,6 +241,8 @@ def _compact(doc: dict, include_theme: bool = False) -> dict:
     }
     if doc.get("defaultSpan"):
         out["defaultSpan"] = doc["defaultSpan"]
+    if doc.get("since"):
+        out["since"] = doc["since"]
     if doc.get("fields"):
         out["fields"] = doc["fields"]
     if include_theme and doc.get("themeFields"):

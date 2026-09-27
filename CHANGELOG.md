@@ -109,6 +109,24 @@ live in the app and bind controls to them with plain JSON query stages — no se
   `features`, saying whether the phone shows the control's `fallback` or an "Update CAR-TER"
   placeholder tile. Never an error and never auto-wraps a fallback (decision carter-4fb).
 
+<!-- from carter-0gj.27 -->
+### Added
+
+- **`requires` / `fallback` authoring and lint** (carter-0gj.27), matching the app's decoder
+  (carter-5sn.2). Control docs may carry `since: "1.3"` frontmatter; the catalog exposes it.
+  `validate_layout(layout, catalog, target_app=None)` warns `needs_newer_app` for a control
+  newer than the target app (the layout's `requires.app`, else `target_app`, else
+  `DEFAULT_TARGET_APP = "1.2.4"`) that has no fallback that app can draw. Warn-only; the kit
+  never auto-wraps (decision carter-4fb). New `bad_fallback` warnings (not an object, no or
+  unknown `type`, `id`/`position`/`span` set, a `group` in a canvas item, a chain past 4
+  hops) and `bad_requires` warnings (not an object, unknown keys, `app` not a dotted version,
+  `features` not an array). `fallback` is now a shared control field.
+- Builder: `fallback=` on every control (a type name, a dict or a `build.<type>(...)` spec;
+  id/position/span dropped, the original's `label` copied), `Layout.requires(app=, features=)`,
+  and `Layout(target_app=...)` / `Layout.validate(target_app=...)` (lint-only, never written).
+- ControlDocs: `layout-config.md` "Requires and fallback" + `requires` field; `control-def.md`
+  `fallback` field (hand-applied on the kit-ahead copy). No bundled control needs `since` yet.
+
 ## [0.13.1] — 2026-09-27
 
 ### Changed

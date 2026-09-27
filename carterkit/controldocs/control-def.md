@@ -36,6 +36,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `longPressGroup` | [[long-press\|GroupDefinition]] | — | Sub-group popup on long-press |
 | `theme` | object | — | Per-control theme overrides (see below) |
 | `extensions` | object | — | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
+| `fallback` | object | — | The control an older app shows instead when it doesn't know this `type` (a control object, or a `group`; may chain up to 4 hops). It takes this control's `id`, `position` and `span`; ignored by an app that knows the type. See [[layout-config#Requires and fallback]] |
 
 ## Style Fields (shared)
 
@@ -121,6 +122,7 @@ Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfa
 - [[grid-dimensions]] — how `position` / `span` map to size; grid modes
 - [[group-def]] — containers for controls
 - [[layout-config]] — the top-level structure
+- [[layout-config#Requires and fallback]] — `fallback` and `requires` for older apps
 - [[theming]] — Theme system & live theme builder
 - [[appearance]] — App shell appearance (color scheme, header, background)
 - [[actions]] — How `action` and `longPressAction` work
