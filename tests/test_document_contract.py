@@ -92,7 +92,7 @@ def test_unknown_group_and_top_level_keys_suggest_extensions():
 def test_contract_top_level_keys_are_known():
     doc = _layout(schemaVersion=1, format="carter", extensions={"com.example.t": {}},
                   provenance={"parents": [{"id": "X", "relation": "copy"}]},
-                  requires={"features": ["local.store@2", "sensors"]})
+                  requires={"features": ["control.gauge", "layout.fallback"]})
     bad = [f for f in validate.validate_layout(doc, CAT) if f["severity"] != "info"]
     assert bad == []
 

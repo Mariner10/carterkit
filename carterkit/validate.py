@@ -201,6 +201,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
             try:
                 extra = fallback_findings(layout, catalog)
                 extra += target_app_findings(layout, catalog, target_app)
+                extra += requires_feature_findings(layout, catalog)
             except RecursionError:   # hostile nesting: already reported as too_deep above
                 extra = []
             findings.extend(extra)
@@ -655,6 +656,15 @@ def _check_socket_url(value: str, path: str, findings: list) -> None:
                            f"connection URL scheme {scheme!r} is not allowed; use ws or wss"))
 
 
+#: document-contract.md#Assets: reserved, never resolved today (carter-5q1y).
+RESERVED_ASSET_SCHEME = "asset"
+#: Soft budget for one inline data:image URL. The hard cap (maxDataImageBytes) refuses
+#: a push; above this the layout still loads but every sync, share and readback carries
+#: the blob. Read from the contract Limits table when it names one; 64 KB is provisional
+#: until measured (ROADMAP pushback 10: soft tiers come from perf measurement).
+SOFT_DATA_IMAGE = LIMITS.get("softDataImageBytes", 65536)
+
+
 def _check_url(value: str, path: str, findings: list) -> None:
     if not value or "{{" in value:              # templated at runtime; scheme unknown here
         return
@@ -664,6 +674,11 @@ def _check_url(value: str, path: str, findings: list) -> None:
         return                                  # a relative path against a source baseURL
     scheme = urlsplit(value).scheme.lower()
     if scheme in SAFE_URL_SCHEMES:
+        return
+    if scheme == RESERVED_ASSET_SCHEME:
+        findings.append(_f("warn", "reserved_scheme", path,
+                           "asset:// is reserved for a future package asset store — no app "
+                           "resolves it yet (it shows a placeholder); link an https URL"))
         return
     if scheme in _WARN_URL_SCHEMES:
         findings.append(_f("warn", "bad_url", path,
@@ -1248,7 +1263,7 @@ RESERVED_TOP_LEVEL = {"revision", "attestations"}
 #: The newest grammar this kit understands (1 = inline, 2 = sectioned).
 KNOWN_SCHEMA_VERSION = 2
 _REVERSE_DNS = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$", re.IGNORECASE)
-_FEATURE = re.compile(r"^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)*(@[1-9][0-9]*)?$")
+_FEATURE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+)*(@[1-9][0-9]*)?$")
 _PROVENANCE_RELATIONS = {"copy", "package", "remix", "import"}
 _DATA_URL = re.compile(r"^data:[a-z]+/[a-z0-9.+-]+(;[^,]{0,200})?,", re.IGNORECASE)
 _BASE64_RUN = re.compile(r"^[A-Za-z0-9+/_-]+={0,2}$")
@@ -1288,11 +1303,17 @@ def _blob_finding(value: str, key, path: str):
     """An inline binary payload other than a bounded data:image URL in a url field."""
     if _DATA_URL.match(value[:256]):
         if value[:11].lower() == "data:image/" and key in ("url", "baseURL"):
-            if len(value.encode("utf-8")) > MAX_DATA_IMAGE:
+            size = len(value.encode("utf-8"))
+            if size > MAX_DATA_IMAGE:
                 # The device refuses a push past its data:image cap (carter-c1n.11).
                 return _f("error", "inline_blob", path,
                           f"data:image URL is {len(value)} bytes (> {MAX_DATA_IMAGE}); the app "
                           f"refuses or truncates it — host the image and link it by https URL")
+            if size > SOFT_DATA_IMAGE:
+                return _f("warn", "inline_blob", path,
+                          f"data:image URL is {size} bytes (over the {SOFT_DATA_IMAGE}-byte soft "
+                          f"budget) — it loads, but every sync, share and readback carries it; "
+                          f"host the image and link it by https URL")
             return None
         return _f("warn", "inline_blob", path,
                   "inline data: URL — only a data:image URL in a 'url'/'baseURL' field is "
@@ -1371,7 +1392,7 @@ def _validate_contract(layout: dict, findings: list) -> None:
             if not isinstance(feat, str) or not _FEATURE.match(feat):
                 findings.append(_f("warn", "bad_requires", f"root.requires.features[{i}]",
                                    f"feature {feat!r} should be 'name' or 'name@N' "
-                                   f"(e.g. 'local.store@2')"))
+                                   f"(e.g. 'control.gauge' or 'layout.fallback@2')"))
 
 
 def _validate_top_level(layout, findings):
@@ -1524,13 +1545,61 @@ def format_findings(findings: list[dict]) -> str:
 # warning, so the author knows the phone's app is older than the layout. The
 # kit never auto-wraps a fallback; the author decides.
 
+def parse_feature(feature: str) -> tuple:
+    """`name@N` → (name, N), exactly like the app's DeviceCapabilities.parse: a missing,
+    non-numeric or non-positive suffix leaves the whole string as the name at version 1."""
+    t = feature.strip(" ")
+    name, at, ver = t.rpartition("@")
+    if at and ver.isdigit() and int(ver) > 0:
+        return name, int(ver)
+    return t, 1
+
+
+#: Feature names every current app speaks besides `control.<type>` (mirrors the app's
+#: DeviceCapabilities syncMethods / actionMethods / layoutFeatures; all at version 1).
+APP_SYNC_METHODS = ("meshsocket", "mqtt", "http", "sensor")
+APP_ACTION_METHODS = ("meshsocket", "mqtt", "http")
+APP_LAYOUT_FEATURES = ("layout.requires", "layout.fallback")
+
+
+def known_features(catalog: dict) -> dict:
+    """Feature name → highest version any released app speaks, built like the app's
+    DeviceCapabilities.featureVersions from the catalog's control types."""
+    out = {f"control.{t}": 1 for t in (catalog or {}) if isinstance(t, str)}
+    out.update({f"sync.{m}": 1 for m in APP_SYNC_METHODS})
+    out.update({f"action.{m}": 1 for m in APP_ACTION_METHODS})
+    out.update({f: 1 for f in APP_LAYOUT_FEATURES})
+    return out
+
+
+def requires_feature_findings(layout: dict, catalog: dict) -> list[dict]:
+    """`requires.features` entries no app meets yet (carter-5q1y): an unknown name, or a
+    `name@N` above the version apps speak. The layout still loads, but every app shows
+    its update banner — usually a typo or a feature that hasn't shipped."""
+    req = layout.get("requires") if isinstance(layout, dict) else None
+    feats = req.get("features") if isinstance(req, dict) else None
+    if not isinstance(feats, list):
+        return []
+    have = known_features(catalog)
+    out = []
+    for i, feat in enumerate(feats):
+        if not isinstance(feat, str) or not _FEATURE.match(feat):
+            continue                                   # bad_requires already covers it
+        name, ver = parse_feature(feat)
+        if name not in have:
+            why = f"no CAR-TER app speaks '{name}'"
+        elif ver > have[name]:
+            why = f"apps speak '{name}' at version {have[name]}, not {ver}"
+        else:
+            continue
+        out.append(_f("warn", "unknown_feature", f"root.requires.features[{i}]",
+                      f"{why} — every app shows the update banner for this layout"))
+    return out
+
+
 def _feature_names(features) -> set:
     """`name` / `name@N` strings (the app's get-device-info `features`) → names."""
-    out = set()
-    for f in features or ():
-        if isinstance(f, str) and f.strip():
-            out.add(f.strip().split("@", 1)[0])
-    return out
+    return {parse_feature(f)[0] for f in features or () if isinstance(f, str) and f.strip()}
 
 
 def _walk_controls(children, where, out):
