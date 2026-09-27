@@ -193,7 +193,7 @@ Dates and numbers share one axis — don't mix them in one payload.
   "label": "Drag to update",
   "ganttConfig": {
     "editable": true,
-    "taskAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "task_progress", "task": "{{value}}" } }
+    "taskAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "task_progress", "task": "{{value}}" } }
   },
   "defaultValue": "[{\"name\":\"Prep\",\"start\":0,\"end\":3,\"progress\":0.5},{\"name\":\"Run\",\"start\":2,\"end\":8,\"progress\":0.1}]"
 }

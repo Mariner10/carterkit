@@ -189,7 +189,7 @@ Note: `boxStyle: "violin"` needs raw `samples` for the density body; with only
   "span": [3, 4],
   "label": "Latency (ms)",
   "boxPlotConfig": {
-    "boxAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "inspect_region", "stats": "{{value}}" } }
+    "boxAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "inspect_region", "stats": "{{value}}" } }
   },
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "latency_samples" }, "valuePath": "regions" }]
 }

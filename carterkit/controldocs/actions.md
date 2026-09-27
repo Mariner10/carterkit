@@ -9,13 +9,13 @@ fields:
     description: Transport method (meshsocket, mqtt, http)
   - name: mode
     type: string
-    description: Send mode (request, broadcast) — meshsocket only
+    description: Send mode (broadcast = fire and forget, request = await a reply; only route_msg replies) — meshsocket only
   - name: event
     type: string
-    description: Event name to fire (meshsocket)
+    description: MeshSocket frame type, sent verbatim — must be a relay verb (broadcast_request, route_msg, route_msg_noreply); the command name goes in payload.msg_type
   - name: payload
     type: object
-    description: Data to send (supports {{value}} substitution)
+    description: Data to send (supports {{value}} substitution); for broadcast_request include msg_type so servers can demux
   - name: source
     type: string
     description: Named entry in the layout's sources (mqtt/http)
@@ -49,9 +49,36 @@ transports; `method` picks the wire.
 ```json
 "action": {
   "method": "meshsocket",
+  "mode": "broadcast",
+  "event": "broadcast_request",
+  "payload": { "msg_type": "set_power", "state": "{{value}}" }
+}
+```
+
+## `event` vs `msg_type` (meshsocket)
+
+The app sends `event` **verbatim as the MeshSocket frame type**, and the relay
+only dispatches its own verbs — `broadcast_request` (fan-out to every other
+member of the channel), `route_msg` (targeted request/reply) and
+`route_msg_noreply` (targeted fire-and-forget). Any other name (`set_power`,
+`broadcast`, `arm`, …) is silently dropped: nothing errors, no server handler
+ever runs, the control does nothing.
+
+So the *command name* never goes in `event`. Put it in **`payload.msg_type`** —
+the relay re-emits a `broadcast_request` to the channel as a `broadcast` frame,
+and servers demux on `msg_type` (carterkit's `Hub.on("set_power")` and
+`bind.command("set_power")` are the two halves of exactly this shape).
+
+Targeted send, when you hold a live relay-assigned `target_id` (a name is *not*
+resolved here — use `route_msg_noreply` with `target_name` for that):
+
+```json
+"action": {
+  "method": "meshsocket",
   "mode": "request",
-  "event": "set_power",
-  "payload": { "state": "{{value}}" }
+  "event": "route_msg",
+  "payload": { "target_id": "<relay id>", "type": "set_power",
+               "payload": { "state": "{{value}}" } }
 }
 ```
 
@@ -67,8 +94,11 @@ The same command over other transports (see [[sources]]):
 
 | Mode | Behavior |
 |------|----------|
-| `request` | Send + await response |
-| `broadcast` | Fire and forget |
+| `broadcast` | Fire and forget — the mode for `broadcast_request` and `route_msg_noreply` |
+| `request` | Send + await response — only meaningful with `route_msg` (the relay routes the target's reply back); on a `broadcast_request` nothing ever replies, so the tap just waits out the timeout |
+
+Need an answer to a broadcast command? Use the round trip instead: fire the
+command, and [[sync]] the control to the state broadcast the server sends back.
 
 MQTT publishes and HTTP requests are fire-and-forget; failures surface in the
 connection console. Ack'd commands (layout `state.acks`) are a MeshSocket

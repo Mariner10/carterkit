@@ -208,7 +208,7 @@ If `sliceAction` is omitted, taps/landings fall back to the control's own `actio
   "pieStyle": "wheel",
   "pieConfig": {
     "spinDuration": 5,
-    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "oncall_pick", "person": "{{value}}" } }
+    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "oncall_pick", "person": "{{value}}" } }
   },
   "defaultValue": "{\"slices\":[{\"label\":\"Ava\",\"value\":1},{\"label\":\"Ben\",\"value\":1},{\"label\":\"Cass\",\"value\":2},{\"label\":\"Drew\",\"value\":1}]}"
 }
@@ -225,7 +225,7 @@ If `sliceAction` is omitted, taps/landings fall back to the control's own `actio
   "pieStyle": "menu",
   "icon": "sparkles",
   "pieConfig": {
-    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "scene", "name": "{{value}}" } }
+    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "scene", "name": "{{value}}" } }
   },
   "defaultValue": "{\"slices\":[{\"label\":\"Movie\",\"icon\":\"tv\"},{\"label\":\"Focus\",\"icon\":\"moon\"},{\"label\":\"Party\",\"icon\":\"music.note\"},{\"label\":\"Off\",\"icon\":\"power\"}]}"
 }

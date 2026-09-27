@@ -33,7 +33,7 @@ The app sends us **aggregate, de-identified usage counts** — numbers only:
 - the *category* of an error (for example "gateway"), never its text;
 - once a day, iOS's own performance summary for the app — average launch time, time spent hung, peak memory, CPU and network volume — as numbers only, never crash logs or stack traces (separate switch: "Performance summaries").
 
-The app does **not** send a user ID, device ID, advertising ID, push token, account, purchase, IP-derived location, or any content. Each day the app makes up a random token so we can count how many devices were active that day; it is discarded at midnight and cannot be joined across days. Our server keeps a hashed IP address for at most one hour purely to limit abuse, and does not store it with the counts.
+The app does **not** send a user ID, device ID, advertising ID, push token, account, purchase, IP-derived location, or any content. To stop forged statistics, batches are signed with Apple's App Attest using a key the app creates fresh every day and discards with that day's token; our server checks the signature in the moment and keeps neither the key nor its identifier. Each day the app makes up a random token so we can count how many devices were active that day; it is discarded at midnight and cannot be joined across days. Our server keeps a hashed IP address for at most one hour purely to limit abuse, and does not store it with the counts.
 
 **You can turn this off at any time** in Settings → Privacy & Data, which also shows you the exact contents of the last batch the app sent. When it is off the app records and sends nothing.
 

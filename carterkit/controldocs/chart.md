@@ -335,7 +335,7 @@ Forms: `{"CPU": 63.2}` (per-series by name — unknown names create new series),
   "chartConfig": {
     "showValues": true,
     "barCornerRadius": 6,
-    "datumAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast", "payload": { "msg_type": "vote", "choice": "{{value}}" } }
+    "datumAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "vote", "choice": "{{value}}" } }
   },
   "defaultValue": "{\"categories\":[\"Pizza\",\"Sushi\",\"Tacos\"],\"series\":[{\"values\":[3,5,2]}]}",
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "poll_update" }, "valuePath": "results" }]

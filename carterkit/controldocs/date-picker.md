@@ -132,7 +132,7 @@ Inherits all [[shared-properties]]. Key fields:
   "datePickerMode": "time",
   "datePickerStyle": "compact",
   "label": "Wake Up",
-  "action": { "method": "meshsocket", "mode": "request", "event": "set_alarm", "payload": { "time": "{{value}}" } }
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "set_alarm", "time": "{{value}}" } }
 }
 ```
 

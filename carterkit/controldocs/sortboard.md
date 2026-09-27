@@ -161,7 +161,7 @@ disappears.
         "payload": { "target_id": "tracker", "type": "move_ticket",
                      "payload": { "ticket": "{{item}}", "column": "{{to}}", "index": "{{index}}" } }
       },
-      "layout": { "method": "meshsocket", "mode": "send", "event": "board_state" }
+      "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "board_state" } }
     }
   }
 }
@@ -190,7 +190,7 @@ disappears.
       { "id": "table-2", "label": "Table 2", "capacity": 2, "tint": "#FF9500" }
     ],
     "events": {
-      "layout": { "method": "meshsocket", "mode": "send", "event": "seating_state" }
+      "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "seating_state" } }
     }
   }
 }
