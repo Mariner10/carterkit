@@ -759,6 +759,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                            f"id '{cid}' already used at {seen_ids[cid]}"))
     elif cid:
         seen_ids[cid] = spot
+    if ctype != "group":
+        _hosted_ids(ch, spot, findings, seen_ids)
 
     # `visible` / `enabled`: the conditions-v2 tree (conditions.py mirrors the device).
     for ckey in ("visible", "enabled"):
@@ -922,6 +924,76 @@ def _validate_relative_format(ch, ctype, spot, findings):
         findings.append(_f("warn", "relative_format_type", spot,
                            f"{ctype}.formatValue = '{fmt}' — relative dates render on a label "
                            f"(and its widget slot); a {ctype} reads its value as a number"))
+
+
+def _hosted_ids(ch, spot, findings, seen_ids):
+    """A container's `panels[].children` and a `longPressGroup`'s `children` share the
+    layout's id namespace (carter-1o0: they key values and sync like grid children;
+    the app refuses a duplicate on the wire and renames it on disk). Identity only:
+    the panel/popup objects' own ids stay local, like canvas item ids."""
+    hosts = []
+    panels = ch.get("panels")
+    if isinstance(panels, list):
+        hosts += [(p.get("children"), f"{spot}/panels[{i}]")
+                  for i, p in enumerate(panels) if isinstance(p, dict)]
+    popup = ch.get("longPressGroup")
+    if isinstance(popup, dict):
+        hosts.append((popup.get("children"), f"{spot}/longPressGroup"))
+    for kids, where in hosts:
+        if isinstance(kids, list):
+            _claim_ids(kids, where, findings, seen_ids)
+
+
+def _claim_ids(children, where, findings, seen_ids):
+    """Document-order id claims for hosted children (groups and nested hosts included)."""
+    for sub in children:
+        if not isinstance(sub, dict):
+            continue
+        sid, stype = sub.get("id"), sub.get("type")
+        sspot = f"{where}/{sid or stype or '?'}"
+        if not sid:
+            findings.append(_f("error", "missing_field", sspot, "control missing 'id'"))
+        elif sid in seen_ids:
+            findings.append(_f("error", "duplicate_id", sspot,
+                               f"id '{sid}' already used at {seen_ids[sid]}"))
+        else:
+            seen_ids[sid] = sspot
+        if stype == "group":
+            if isinstance(sub.get("children"), list):
+                _claim_ids(sub["children"], sspot, findings, seen_ids)
+        else:
+            _hosted_ids(sub, sspot, findings, seen_ids)
+
+
+def identity_ids(layout: dict) -> dict[str, str]:
+    """The layout's own ids (id -> where), the namespace a dynamic deck may not reuse:
+    tab children through groups, container panels and long-press popups, minus the
+    content of `dynamic` groups (a deck replaces it; the group's own id counts)."""
+    out: dict[str, str] = {}
+
+    def walk(children, where):
+        for ch in children or []:
+            if not isinstance(ch, dict):
+                continue
+            cid = ch.get("id")
+            spot = f"{where}/{cid or ch.get('type') or '?'}"
+            if cid and cid not in out:
+                out[cid] = spot
+            if ch.get("type") == "group":
+                if not ch.get("dynamic") and isinstance(ch.get("children"), list):
+                    walk(ch["children"], spot)
+                continue
+            for i, p in enumerate(ch.get("panels") or []):
+                if isinstance(p, dict) and isinstance(p.get("children"), list):
+                    walk(p["children"], f"{spot}/panels[{i}]")
+            popup = ch.get("longPressGroup")
+            if isinstance(popup, dict) and isinstance(popup.get("children"), list):
+                walk(popup["children"], f"{spot}/longPressGroup")
+
+    for ti, tab in enumerate((layout or {}).get("tabs") or []):
+        if isinstance(tab, dict) and isinstance(tab.get("children"), list):
+            walk(tab["children"], f"tab[{ti}]")
+    return out
 
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a
