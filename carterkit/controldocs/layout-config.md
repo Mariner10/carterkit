@@ -141,6 +141,26 @@ Fonts set at the theme level propagate to all controls. Per-control overrides ar
 
 For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-themes** (`toggle`, `slider`, `stepper`, `segmented`, `progressBar`), and a live theme builder, see [[theming]].
 
+## Identity
+
+Every control and group has an `id`, unique among all of the layout's controls
+and groups (a tab's `children` and, recursively, group `children`). The id is the
+stable key for stored values, `sync` targeting, visibility references and edits —
+never parse it and never show it to people. Tabs may carry an optional `id` too;
+without one the tab's `title` is its id, so give a tab an `id` before renaming it.
+
+- **Hand-written and carterkit ids** stay readable slugs (`"pump-speed"`). They
+  remain valid forever and the app never rewrites them.
+- **App-created ids** (the on-device editor's add / insert / duplicate / group /
+  page) are opaque: `c_` + 6 lowercase hex for controls (`c_7f3a9e`), `g_` for
+  groups and pages, `t_` for tabs. Duplicating a group re-mints every id inside it.
+- **`name`** (optional, controls and groups) is the readable label the editor
+  shows — `name`, else `label`, else the type. It is not identity: names may
+  repeat and renaming never moves stored data.
+- A duplicate or empty id is repaired on disk loads (a later duplicate becomes
+  `id~2`, an empty one `type-N`) and listed in the Layout Hub; strict loads
+  (wire, import, join) and carterkit's validator refuse it.
+
 ## Keep awake
 
 A dashboard mounted in a car or on a desk is useless once iOS dims and locks it.

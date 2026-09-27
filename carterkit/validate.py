@@ -27,7 +27,7 @@ from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
 SHARED_FIELDS = {
-    "type", "id", "position", "span", "label", "defaultValue", "icon", "tint",
+    "type", "id", "name", "position", "span", "label", "defaultValue", "icon", "tint",
     "hideLabel", "hideBackground", "action", "sync", "visible", "haptic",
     "animation", "longPressGroup", "longPressAction", "theme", "config",
     # Shared display/range/format properties the app decodes on ControlDefinition
@@ -36,7 +36,7 @@ SHARED_FIELDS = {
     "min", "max", "step", "formatValue", "controlHeight", "hideValue", "pulse",
 }
 GROUP_FIELDS = {
-    "type", "id", "position", "span", "label", "grid", "children", "dynamic",
+    "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
 }
 

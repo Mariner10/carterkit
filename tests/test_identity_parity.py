@@ -91,3 +91,20 @@ def test_builders_emit_stable_unique_tab_ids():
     ids = [t["id"] for t in ui.layout["tabs"]]
     assert ids == ["garden", "garden-2"]
     assert not _kinds(ui.layout) & {"duplicate_id", "missing_field"}
+
+
+def test_name_is_a_known_field_on_controls_and_groups():
+    # App-minted opaque ids + a readable `name` (Carter 2026-09-26): the kit accepts the
+    # editor's output without unknown-field warnings, and slug ids stay valid.
+    named = dict(_label("c_7f3a9e"), name="Water level")
+    group = dict(_group("g_0a1b2c", _label("pump-speed")), name="Pump")
+    findings = validate.validate_layout(_doc([named, group]), CAT)
+    assert not [f for f in findings if f["kind"] in ("unknown_field", "duplicate_id")]
+
+    ui = Layout("Plants")
+    ui.tab("Garden")
+    with ui.group("Pump", name="Pump box"):
+        ui.label("Level", name="Water level")
+    g = ui.layout["tabs"][0]["children"][0]
+    assert g["name"] == "Pump box" and g["children"][0]["name"] == "Water level"
+    assert "name" not in ui.layout["tabs"][0]  # absent unless asked for

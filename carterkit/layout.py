@@ -202,13 +202,15 @@ class _GridScope:
 
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, pulse=None,
-              hide_background=None, mode: str = None, row_height: int = None) -> "GroupHandle":
+              hide_background=None, mode: str = None, row_height: int = None,
+              name: str = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
         broadcast with matching `msg_type` — build that payload with :class:`Fragment`).
         `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
-        2-D row unit in points (default 56)."""
+        2-D row unit in points (default 56). `name` is the readable name the app's
+        editor shows (never identity; controls take `name=` the same way)."""
         gid = self._owner._unique_id(id or "group")
         grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
@@ -216,6 +218,8 @@ class _GridScope:
         if row_height is not None:
             grid["rowHeight"] = row_height
         g: dict = {"type": "group", "id": gid, "grid": grid, "children": []}
+        if name is not None:
+            g["name"] = name
         if label is not None:
             g["label"] = label
         if dynamic is not None:

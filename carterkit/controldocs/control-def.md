@@ -12,7 +12,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | Field | Type | Description |
 |-------|------|-------------|
 | `type` | string | Control type. One of: `button`, `toggle`, `slider`, `stepper`, `segmentedControl`, `picker`, `datePicker`, `textInput`, `colorPicker`, `label`, `image`, `gauge`, `sparkline`, `progressRing`, `map`, `graph`, `chart`, `pieChart`, `heatmap`, `radar`, `boxPlot`, `gantt`, `sankey`, `treemap`, `chord`, `chat`, `list`, `statusLight`, `logConsole`, `divider`, `spacer`, `webView`, `joystick`, `qrCode`, `camera` |
-| `id` | string | Unique identifier. Used for value storage, sync targeting, and visibility references |
+| `id` | string | Unique identifier. Used for value storage, sync targeting, and visibility references. Any non-empty string unique among the layout's controls and groups; see [[layout-config#Identity]] |
 | `position` | [row, col] | Zero-indexed grid cell placement |
 
 ## Optional Fields
@@ -21,6 +21,7 @@ Every control — regardless of type — shares the same base fields. A control 
 |-------|------|---------|-------------|
 | `span` | [rowSpan, colSpan] | `[1, 1]` | Grid cells occupied. `colSpan` sets width; in a 2-D grid `rowSpan` sets height (`rowSpan × rowHeight`). Make a control bigger by spanning more cells. See [[grid-dimensions]]. |
 | `controlHeight` | number | — | **Override** the grid-derived height with an exact point value. Rarely needed: in a 2-D grid the cell (`rowSpan × rowHeight`) is the height, and in a `flow` grid shaped controls auto-size to their aspect. Use it to pin a height the grid wouldn't otherwise give. See [[grid-dimensions]]. |
+| `name` | string | — | Readable name the editor shows for this control (e.g. `"Water level"`). Never used for identity or on the wire; omit it and the editor shows `label`, then the type |
 | `label` | string | — | Display label for the control |
 | `defaultValue` | bool/number/string | — | Initial value before sync |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on interaction |
