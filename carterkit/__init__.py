@@ -29,7 +29,7 @@ from .contract import extract_contract
 from .buffer import LayoutBuffer, BufferError
 from .validate import validate_layout as _validate_layout, format_findings
 from .client import (CarterClient, notify_http, CarterNotifyError,
-                     device_refresh_http, CarterDeviceRevoked)
+                     device_refresh_http, CarterDeviceRevoked, CommandDedupe)
 from . import ambient
 from .ambient import (CarterAmbientError, apple_date, slot, content_state,
                       activity_attributes, canonical_layout_id,
@@ -101,7 +101,7 @@ def lint_dynamic_traffic(layout: dict, observed, catalog_: dict = None) -> list:
 __all__ = [
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
-    "device_refresh_http", "CarterDeviceRevoked",
+    "device_refresh_http", "CarterDeviceRevoked", "CommandDedupe",
     "ambient", "CarterAmbientError", "apple_date", "slot", "content_state",
     "activity_attributes", "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",

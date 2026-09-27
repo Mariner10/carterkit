@@ -3,7 +3,23 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.12.0] — unreleased
+## [0.12.1] — unreleased
+
+### Added
+- **`_cmd` dedupe that survives hub restarts.** `CarterClient` keeps a seen-set of
+  command ids (`CommandDedupe`: LRU of 1024, 900 s TTL, above the app's 300 s outbox
+  window). A duplicate `_cmd` (relay re-delivery, outbox drain, replay after a restart)
+  never re-runs the `on_broadcast` handler; with acks on, the first run's
+  `command_ack {cmd_id, to, ok}` is re-sent to `_from`. A duplicate that arrives while
+  the first run is still awaiting is dropped without an ack. With acks on, only handled
+  (`True`) or raised runs are recorded, so an unhandled command stays free for another
+  hub; with acks off every dispatched `_cmd` is recorded.
+- The seen-set persists as 0600 JSON (atomic replace) at
+  `<dir>/.<credential>.cmd-seen.json` beside `credential_path`, or at the new
+  `cmd_dedupe_path=` (also on `Hub`). Token-only hubs without either are memory-only;
+  an unreadable or unwritable file logs once and falls back to memory-only.
+
+## [0.12.0] — 2026-09-23
 
 Security hardening from the 2026-09-22 audit, plus the Ambient Surfaces v2 work that
 was staged as 0.11.0 and never published (folded in below).
