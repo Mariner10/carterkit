@@ -23,6 +23,9 @@ fields:
     type: bool
     default: false
     description: Remove glass card background
+  - name: defaultValue
+    type: object[]
+    description: Seed rows shown before the first sync (the same row objects a sync delivers)
 themeFields:
   - name: cornerRadius
     min: 0
