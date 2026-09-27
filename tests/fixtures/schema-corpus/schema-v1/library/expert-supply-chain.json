@@ -1,0 +1,1872 @@
+{
+  "name": "Meridian Supply Tower",
+  "headerTitle": "MERIDIAN · TOWER",
+  "version": 1,
+  "accentColor": "#FF6B2C",
+  "description": "A global supply-chain control tower: supplier hand-off chord, material-flow sankey, lane map with port queues, in-transit gantt and supplier risk matrix, with live FX and port weather pulled straight from HTTP pipes and a server-injected exception feed.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#06121F",
+        "#0B2135"
+      ],
+      "light": "#E8EEF3F2"
+    }
+  },
+  "theme": {
+    "accentColor": "#FF6B2C",
+    "accentGradient": [
+      "#FF6B2C",
+      "#F4B942"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 6,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontWeight": "bold",
+    "tabBarTint": "#FF6B2C",
+    "segmented": {
+      "selectedColor": "#FF6B2C",
+      "selectedTextColor": "#06121F"
+    },
+    "toggle": {
+      "trackActiveColor": "#F4B942",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#F4B942",
+      "thumbColor": "#FFFFFF"
+    },
+    "dark": {
+      "pageBackgroundGradient": [
+        "#06121F",
+        "#0B2135",
+        "#0F2A3A"
+      ],
+      "surfacePrimary": "#2EC4B60F",
+      "surfaceSecondary": "#2EC4B608",
+      "borderColor": "#2EC4B633",
+      "foregroundColor": "#EAF2F8",
+      "secondaryColor": "#9FB3C4",
+      "tertiaryColor": "#5F7788",
+      "tabBarBackground": "#06121FF2"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F2F5F8",
+        "#DDE6EE"
+      ],
+      "surfacePrimary": "#FFFFFFE6",
+      "borderColor": "#0B213522",
+      "foregroundColor": "#0B2135",
+      "secondaryColor": "#3F5A6E"
+    }
+  },
+  "connection": {
+    "url": "wss://relay.carterbeaudoin.net",
+    "identity": {
+      "name": "tower-phone",
+      "channel": "supply-chain",
+      "role": "controller",
+      "can_broadcast": true,
+      "can_route": true
+    }
+  },
+  "state": {
+    "sync": true,
+    "authority": "MeridianTower",
+    "acks": true,
+    "ackTimeoutMs": 2500
+  },
+  "sources": {
+    "fx": {
+      "type": "http",
+      "baseURL": "https://open.er-api.com",
+      "interval": 900
+    },
+    "weather": {
+      "type": "http",
+      "baseURL": "https://api.open-meteo.com",
+      "interval": 600
+    },
+    "marine": {
+      "type": "http",
+      "baseURL": "https://marine-api.open-meteo.com",
+      "interval": 900
+    }
+  },
+  "batchPublishers": true,
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 30
+    },
+    {
+      "sensor": "device",
+      "interval": 120
+    }
+  ],
+  "glance": {
+    "title": "Meridian Tower",
+    "icon": "shippingbox.fill",
+    "tint": "#FF6B2C",
+    "hero": "tw-otif",
+    "slots": [
+      "tw-fill",
+      "tw-st-tower",
+      "tw-freight"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "cc-escalate",
+        "kind": "button",
+        "label": "Escalate",
+        "icon": "exclamationmark.bubble.fill",
+        "control": "tw-escalate"
+      },
+      {
+        "id": "cc-region",
+        "kind": "cycle",
+        "label": "Region",
+        "control": "tw-region",
+        "states": [
+          {
+            "value": "global",
+            "label": "Global",
+            "icon": "globe"
+          },
+          {
+            "value": "apac",
+            "label": "APAC",
+            "icon": "globe.asia.australia.fill",
+            "tint": "#F4B942"
+          },
+          {
+            "value": "emea",
+            "label": "EMEA",
+            "icon": "globe.europe.africa.fill",
+            "tint": "#2EC4B6"
+          },
+          {
+            "value": "amer",
+            "label": "AMER",
+            "icon": "globe.americas.fill",
+            "tint": "#8C7CFF"
+          }
+        ]
+      }
+    ],
+    "widgets": [
+      {
+        "id": "tower",
+        "title": "Tower KPIs",
+        "icon": "shippingbox.fill",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "tw-otif"
+              },
+              {
+                "tile": "ring",
+                "control": "tw-fill"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "tw-freight",
+                "span": 2
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "value",
+        "control": "tw-otif"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "tw-st-tower"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "light",
+          "control": "tw-st-apac"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "tw-otif"
+              },
+              {
+                "tile": "ring",
+                "control": "tw-fill"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "tw-escalate"
+              },
+              {
+                "tile": "open",
+                "tab": "Exceptions",
+                "label": "Exceptions"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Tower",
+      "icon": "globe.europe.africa.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "tw-headline",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "headline",
+          "icon": "dot.radiowaves.left.and.right",
+          "tint": "#FF6B2C",
+          "text": "Wave 38 · 1,284 lanes live · 3 critical",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "headline"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "tw-otif",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "OTIF",
+          "icon": "checkmark.seal.fill",
+          "min": 70,
+          "max": 100,
+          "formatValue": "percent",
+          "arcAngle": 260,
+          "arcRotation": 140,
+          "tint": "#2EC4B6",
+          "segments": [
+            {
+              "limit": 85,
+              "color": "#FF4D5E"
+            },
+            {
+              "limit": 93,
+              "color": "#F4B942"
+            },
+            {
+              "limit": 100,
+              "color": "#2EC4B6"
+            }
+          ],
+          "colorBlend": 0.35,
+          "animation": "bouncy",
+          "defaultValue": 91.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "otif"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "tw-fill",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Fill rate",
+          "icon": "shippingbox.fill",
+          "min": 0,
+          "max": 100,
+          "tint": "#FF6B2C",
+          "animation": "smooth",
+          "defaultValue": 96.2,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "fill_rate"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "tw-st-apac",
+          "position": [
+            4,
+            0
+          ],
+          "label": "APAC",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": true,
+          "defaultValue": "watch",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "status.apac"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "tw-st-emea",
+          "position": [
+            4,
+            1
+          ],
+          "label": "EMEA",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "clear",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "status.emea"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "tw-st-amer",
+          "position": [
+            4,
+            2
+          ],
+          "label": "AMER",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "clear",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "status.amer"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "tw-st-tower",
+          "position": [
+            4,
+            3
+          ],
+          "label": "Tower",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "clear",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "status.tower"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "tw-freight",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Spot FEU $ · Asia→N.EU",
+          "tint": "#F4B942",
+          "sparklinePoints": 40,
+          "sparklineFill": true,
+          "defaultValue": 3412,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "freight_index"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "tw-fx",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "USD→CNY (live FX)",
+          "tint": "#C9D6E2",
+          "sparklinePoints": 30,
+          "sparklineFill": false,
+          "defaultValue": 7.12,
+          "sync": [
+            {
+              "method": "http",
+              "source": "fx",
+              "path": "/v6/latest/USD",
+              "interval": 900,
+              "valuePath": "rates.CNY"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "tw-region",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "pills",
+          "options": [
+            "global",
+            "apac",
+            "emea",
+            "amer"
+          ],
+          "optionLabels": [
+            "Global",
+            "APAC",
+            "EMEA",
+            "AMER"
+          ],
+          "defaultValue": "global",
+          "tint": "#FF6B2C",
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_region",
+              "region": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "region"
+            }
+          ]
+        },
+        {
+          "type": "chord",
+          "id": "tw-suppliers",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Supplier hand-offs · kTEU/qtr",
+          "tint": "#FF6B2C",
+          "formatValue": "decimal:0",
+          "animation": "smooth",
+          "haptic": "selection",
+          "chordConfig": {
+            "pad": 3,
+            "ribbonOpacity": 0.45,
+            "scrub": true,
+            "arcAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "supply_chain_focus_supplier",
+                "supplier": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"labels\":[\"Shenzhen Fab\",\"Busan Cells\",\"Penang Assy\",\"Monterrey\",\"Rotterdam DC\",\"Memphis DC\"],\"colors\":[\"#FF6B2C\",\"#2EC4B6\",\"#F4B942\",\"#8C7CFF\",\"#4FA3FF\",\"#3DDC97\"],\"matrix\":[[0,18,26,4,9,6],[3,0,21,7,5,2],[2,4,0,11,24,19],[0,1,3,0,2,17],[0,0,1,0,0,5],[0,0,0,2,3,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_network"
+              },
+              "valuePath": "chord"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "tw-refresh",
+          "position": [
+            12,
+            0
+          ],
+          "label": "Resync",
+          "icon": "arrow.triangle.2.circlepath",
+          "style": "tinted",
+          "tint": "#2EC4B6",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_refresh",
+              "scope": "all"
+            }
+          },
+          "span": [
+            1,
+            2
+          ]
+        },
+        {
+          "type": "button",
+          "id": "tw-escalate",
+          "position": [
+            12,
+            2
+          ],
+          "label": "Escalate",
+          "icon": "exclamationmark.bubble.fill",
+          "style": "filled",
+          "tint": "#FF4D5E",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_escalate",
+              "region": "{{value}}"
+            }
+          },
+          "span": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Flows",
+      "icon": "arrow.triangle.branch",
+      "grid": {
+        "columns": 4,
+        "rows": 16
+      },
+      "children": [
+        {
+          "type": "picker",
+          "id": "fl-commodity",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Commodity",
+          "pickerStyle": "menu",
+          "options": [
+            "semis",
+            "cells",
+            "resin",
+            "steel"
+          ],
+          "optionLabels": [
+            "Semiconductors",
+            "Li-ion cells",
+            "PC resin",
+            "Steel coil"
+          ],
+          "defaultValue": "semis",
+          "tint": "#FF6B2C",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_commodity",
+              "commodity": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "fl-unit",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "teu",
+            "usd"
+          ],
+          "optionLabels": [
+            "TEU",
+            "$M"
+          ],
+          "defaultValue": "teu",
+          "tint": "#2EC4B6",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_unit",
+              "unit": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "sankey",
+          "id": "fl-sankey",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Material flow · kTEU",
+          "tint": "#FF6B2C",
+          "formatValue": "decimal:0",
+          "animation": "gentle",
+          "sankeyConfig": {
+            "showValues": true,
+            "nodeWidth": 8,
+            "linkOpacity": 0.38,
+            "scrub": true,
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "supply_chain_inspect_node",
+                "node": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"nodes\":[{\"name\":\"Wafers\",\"color\":\"#FF6B2C\"},{\"name\":\"Cathode\",\"color\":\"#2EC4B6\"},{\"name\":\"Resin\",\"color\":\"#F4B942\"},{\"name\":\"Penang Assy\"},{\"name\":\"Monterrey\"},{\"name\":\"Rotterdam DC\"},{\"name\":\"Memphis DC\"},{\"name\":\"EU Retail\"},{\"name\":\"NA Retail\"}],\"links\":[{\"source\":\"Wafers\",\"target\":\"Penang Assy\",\"value\":42},{\"source\":\"Cathode\",\"target\":\"Penang Assy\",\"value\":28},{\"source\":\"Cathode\",\"target\":\"Monterrey\",\"value\":17},{\"source\":\"Resin\",\"target\":\"Monterrey\",\"value\":22},{\"source\":\"Penang Assy\",\"target\":\"Rotterdam DC\",\"value\":38},{\"source\":\"Penang Assy\",\"target\":\"Memphis DC\",\"value\":32},{\"source\":\"Monterrey\",\"target\":\"Memphis DC\",\"value\":36},{\"source\":\"Rotterdam DC\",\"target\":\"EU Retail\",\"value\":35},{\"source\":\"Memphis DC\",\"target\":\"NA Retail\",\"value\":64}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_flow"
+              },
+              "valuePath": "sankey"
+            }
+          ]
+        },
+        {
+          "type": "treemap",
+          "id": "fl-inventory",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Inventory on hand · $M",
+          "tint": "#2EC4B6",
+          "formatValue": "decimal:1",
+          "treemapConfig": {
+            "drillDown": true,
+            "showValues": true,
+            "cellGap": 2,
+            "itemAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "supply_chain_inspect_stock",
+                "item": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"items\":[{\"label\":\"Rotterdam\",\"color\":\"#4FA3FF\",\"children\":[{\"label\":\"Modules\",\"value\":18.4},{\"label\":\"Packs\",\"value\":9.1},{\"label\":\"Spares\",\"value\":3.2}]},{\"label\":\"Memphis\",\"color\":\"#3DDC97\",\"children\":[{\"label\":\"Modules\",\"value\":24.7},{\"label\":\"Housings\",\"value\":11.3},{\"label\":\"Spares\",\"value\":4.0}]},{\"label\":\"Penang\",\"color\":\"#F4B942\",\"children\":[{\"label\":\"WIP\",\"value\":14.9},{\"label\":\"Die bank\",\"value\":8.6}]},{\"label\":\"Monterrey\",\"color\":\"#8C7CFF\",\"children\":[{\"label\":\"WIP\",\"value\":7.8},{\"label\":\"Resin\",\"value\":5.5}]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_flow"
+              },
+              "valuePath": "inventory"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "fl-leadtime",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Lead time · days",
+          "tint": "#FF6B2C",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "scrub": true,
+            "showGrid": false,
+            "lineWidth": 2,
+            "maxPoints": 12
+          },
+          "defaultValue": "{\"categories\":[\"W31\",\"W32\",\"W33\",\"W34\",\"W35\",\"W36\",\"W37\",\"W38\"],\"series\":[{\"name\":\"Quoted\",\"type\":\"line\",\"color\":\"#C9D6E2\",\"values\":[21,21,22,22,23,23,24,24]},{\"name\":\"Actual\",\"type\":\"area\",\"color\":\"#FF6B2C\",\"values\":[22,24,23,27,29,26,31,28]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_flow"
+              },
+              "valuePath": "leadtime"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "fl-mitigate",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Mitigation",
+          "icon": "shield.lefthalf.filled",
+          "defaultValue": false,
+          "tint": "#F4B942",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_mitigation_mode",
+              "enabled": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "fl-safety",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Safety stock",
+          "min": 3,
+          "max": 45,
+          "step": 1,
+          "formatValue": "suffix: d",
+          "defaultValue": 14,
+          "repeatOnHold": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_safety_stock",
+              "days": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "fl-playbook",
+          "label": "Mitigation playbook",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "visible": {
+            "when": "fl-mitigate",
+            "operator": "eq",
+            "value": true
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "supply_chain_playbook_ack"
+            },
+            "color": "#F4B942",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "fl-dual",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Dual-source",
+              "icon": "arrow.triangle.swap",
+              "style": "tinted",
+              "tint": "#2EC4B6",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_playbook",
+                  "play": "dual_source"
+                }
+              },
+              "span": [
+                1,
+                2
+              ]
+            },
+            {
+              "type": "button",
+              "id": "fl-air",
+              "position": [
+                0,
+                2
+              ],
+              "label": "Air bridge",
+              "icon": "airplane.departure",
+              "style": "tinted",
+              "tint": "#FF6B2C",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_playbook",
+                  "play": "air_bridge"
+                }
+              },
+              "span": [
+                1,
+                2
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "fl-buffer",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Buffer uplift",
+              "min": 0,
+              "max": 50,
+              "step": 5,
+              "formatValue": "percent",
+              "defaultValue": 15,
+              "tint": "#F4B942",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_buffer_uplift",
+                  "pct": "{{value}}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ports",
+      "icon": "ferry.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "pt-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Lanes & port queues",
+          "mapStyle": "globe",
+          "mapInteractive": true,
+          "tint": "#2EC4B6",
+          "mapConfig": {
+            "recenter": "initial"
+          },
+          "defaultValue": "{\"markers\":[{\"coordinate\":[30.63,122.07],\"label\":\"Shanghai \\u00b7 41 wait\",\"color\":\"#FF4D5E\",\"size\":20,\"ripple\":{\"color\":\"#FF4D5E\",\"period\":1.6,\"radius\":48}},{\"coordinate\":[1.26,103.84],\"label\":\"Singapore\",\"color\":\"#F4B942\",\"size\":16},{\"coordinate\":[35.1,129.04],\"label\":\"Busan\",\"color\":\"#2EC4B6\",\"size\":12},{\"coordinate\":[51.95,4.14],\"label\":\"Rotterdam\",\"color\":\"#2EC4B6\",\"size\":16},{\"coordinate\":[33.74,-118.26],\"label\":\"LA/LB \\u00b7 19 wait\",\"color\":\"#FF4D5E\",\"size\":18,\"ripple\":{\"color\":\"#FF4D5E\",\"period\":1.6,\"radius\":48}},{\"coordinate\":[29.73,-95.27],\"label\":\"Houston\",\"color\":\"#3DDC97\",\"size\":12},{\"coordinate\":[19.05,-104.31],\"label\":\"Manzanillo\",\"color\":\"#F4B942\",\"size\":12},{\"coordinate\":[31.25,32.31],\"label\":\"Suez\",\"color\":\"#F4B942\",\"size\":10}],\"paths\":[{\"points\":[[30.63,122.07],[22.2,114.2],[1.26,103.84],[6.0,80.0],[12.6,43.4],[31.25,32.31],[36.0,14.0],[36.1,-5.6],[51.95,4.14]],\"color\":\"#FF6B2C\"},{\"points\":[[35.1,129.04],[40.0,170.0],[45.0,-150.0],[33.74,-118.26]],\"color\":\"#2EC4B6\"},{\"points\":[[19.05,-104.31],[33.74,-118.26]],\"color\":\"#F4B942\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_ports"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "pt-wave",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Maasvlakte swell · m",
+          "tint": "#4FA3FF",
+          "sparklinePoints": 24,
+          "sparklineFill": true,
+          "defaultValue": 1.4,
+          "sync": [
+            {
+              "method": "http",
+              "source": "marine",
+              "path": "/v1/marine?latitude=51.95&longitude=3.95&current=wave_height",
+              "interval": 900,
+              "valuePath": "current.wave_height"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "pt-wind",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Singapore Strait wind · km/h",
+          "tint": "#F4B942",
+          "sparklinePoints": 24,
+          "sparklineFill": true,
+          "defaultValue": 14,
+          "sync": [
+            {
+              "method": "http",
+              "source": "weather",
+              "path": "/v1/forecast?latitude=1.26&longitude=103.84&current=wind_speed_10m",
+              "interval": 600,
+              "valuePath": "current.wind_speed_10m"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "pt-congestion",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Port congestion",
+          "tint": "#C9D6E2",
+          "listColumns": [
+            {
+              "key": "port",
+              "label": "Port"
+            },
+            {
+              "key": "waiting",
+              "label": "Wait",
+              "format": "number"
+            },
+            {
+              "key": "dwell",
+              "label": "Dwell"
+            },
+            {
+              "key": "berth",
+              "label": "Berth"
+            },
+            {
+              "key": "status",
+              "label": "State"
+            }
+          ],
+          "defaultValue": "[{\"port\":\"Shanghai\",\"waiting\":41,\"dwell\":\"5.8 d\",\"berth\":\"92%\",\"status\":\"disrupted\"},{\"port\":\"LA / Long Beach\",\"waiting\":19,\"dwell\":\"4.1 d\",\"berth\":\"88%\",\"status\":\"watch\"},{\"port\":\"Singapore\",\"waiting\":12,\"dwell\":\"2.6 d\",\"berth\":\"81%\",\"status\":\"watch\"},{\"port\":\"Rotterdam\",\"waiting\":6,\"dwell\":\"2.2 d\",\"berth\":\"74%\",\"status\":\"clear\"},{\"port\":\"Busan\",\"waiting\":4,\"dwell\":\"1.9 d\",\"berth\":\"70%\",\"status\":\"clear\"},{\"port\":\"Manzanillo\",\"waiting\":9,\"dwell\":\"3.4 d\",\"berth\":\"85%\",\"status\":\"watch\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_ports"
+              },
+              "valuePath": "congestion"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "pt-suez",
+          "position": [
+            12,
+            0
+          ],
+          "label": "Suez",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "watch",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_chokepoints"
+              },
+              "valuePath": "suez"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "pt-panama",
+          "position": [
+            12,
+            1
+          ],
+          "label": "Panama",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "watch",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_chokepoints"
+              },
+              "valuePath": "panama"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "pt-malacca",
+          "position": [
+            12,
+            2
+          ],
+          "label": "Malacca",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": false,
+          "defaultValue": "clear",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_chokepoints"
+              },
+              "valuePath": "malacca"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "pt-hormuz",
+          "position": [
+            12,
+            3
+          ],
+          "label": "Hormuz",
+          "statusColors": {
+            "clear": "#3DDC97",
+            "watch": "#F4B942",
+            "disrupted": "#FF4D5E",
+            "closed": "#7A8699"
+          },
+          "style": "badge",
+          "size": "small",
+          "pulse": true,
+          "defaultValue": "disrupted",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_chokepoints"
+              },
+              "valuePath": "hormuz"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Schedule",
+      "icon": "calendar.badge.clock",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "sc-mode",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "pills",
+          "options": [
+            "all",
+            "ocean",
+            "air",
+            "rail"
+          ],
+          "optionLabels": [
+            "All",
+            "Ocean",
+            "Air",
+            "Rail"
+          ],
+          "defaultValue": "all",
+          "tint": "#2EC4B6",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_mode_filter",
+              "mode": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "gantt",
+          "id": "sc-gantt",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "In-transit · Sep–Oct",
+          "tint": "#2EC4B6",
+          "animation": "smooth",
+          "ganttConfig": {
+            "rowHeight": 28,
+            "showToday": true,
+            "showGrid": true,
+            "scrub": true,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "supply_chain_shipment_select",
+                "shipment": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\":[{\"name\":\"MSK-4471 SHA\\u2192RTM\",\"start\":\"2026-09-08\",\"end\":\"2026-10-09\",\"progress\":0.58,\"color\":\"#2EC4B6\"},{\"name\":\"ONE-2209 PUS\\u2192LAX\",\"start\":\"2026-09-15\",\"end\":\"2026-10-01\",\"progress\":0.66,\"color\":\"#2EC4B6\"},{\"name\":\"CV-883 PEN\\u2192MEM\",\"start\":\"2026-09-23\",\"end\":\"2026-09-26\",\"progress\":0.35,\"color\":\"#FF6B2C\"},{\"name\":\"KCS-17 MTY\\u2192MEM\",\"start\":\"2026-09-21\",\"end\":\"2026-09-27\",\"progress\":0.5,\"color\":\"#8C7CFF\"},{\"name\":\"HLC-6120 SIN\\u2192RTM\",\"start\":\"2026-09-19\",\"end\":\"2026-10-16\",\"progress\":0.2,\"color\":\"#2EC4B6\"},{\"name\":\"CMA-3308 ZLO\\u2192LAX\",\"start\":\"2026-09-25\",\"end\":\"2026-10-02\",\"progress\":0.0,\"color\":\"#2EC4B6\"},{\"name\":\"Peak cutoff\",\"start\":\"2026-10-12\",\"milestone\":true,\"color\":\"#FF4D5E\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_shipments"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "sc-expedite",
+          "position": [
+            6,
+            0
+          ],
+          "label": "Expedite",
+          "icon": "hare.fill",
+          "style": "tinted",
+          "tint": "#FF6B2C",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_shipment_cmd",
+              "cmd": "expedite"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "sc-reroute",
+          "position": [
+            6,
+            1
+          ],
+          "label": "Reroute",
+          "icon": "arrow.triangle.turn.up.right.diamond.fill",
+          "style": "tinted",
+          "tint": "#2EC4B6",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_shipment_cmd",
+              "cmd": "reroute"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "sc-hold",
+          "position": [
+            6,
+            2
+          ],
+          "label": "Hold",
+          "icon": "pause.circle.fill",
+          "style": "tinted",
+          "tint": "#F4B942",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_shipment_cmd",
+              "cmd": "hold"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "sc-split",
+          "position": [
+            6,
+            3
+          ],
+          "label": "Split",
+          "icon": "square.split.2x1.fill",
+          "style": "tinted",
+          "tint": "#8C7CFF",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_shipment_cmd",
+              "cmd": "split"
+            }
+          }
+        },
+        {
+          "type": "heatmap",
+          "id": "sc-risk",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Supplier risk matrix",
+          "tint": "#FF4D5E",
+          "heatmapConfig": {
+            "colors": [
+              "#0F2A3A",
+              "#2EC4B6",
+              "#F4B942",
+              "#FF4D5E"
+            ],
+            "vMin": 0,
+            "vMax": 100,
+            "showScale": true,
+            "showValues": true,
+            "cellCorner": 4,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "supply_chain_risk_drill",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"rows\":[\"Shenzhen Fab\",\"Busan Cells\",\"Penang Assy\",\"Monterrey\",\"Rotterdam DC\",\"Memphis DC\"],\"cols\":[\"Geo\",\"Wx\",\"Labor\",\"Fin\",\"Cyber\",\"QA\"],\"values\":[[82,64,31,22,45,18],[38,71,26,19,30,12],[41,55,48,27,33,36],[29,22,67,35,21,44],[12,34,58,14,40,9],[9,47,23,18,62,15]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_risk"
+              },
+              "valuePath": "heatmap"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sc-riskidx",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Risk index",
+          "icon": "exclamationmark.shield.fill",
+          "min": 0,
+          "max": 100,
+          "tint": "#F4B942",
+          "segments": [
+            {
+              "limit": 40,
+              "color": "#2EC4B6"
+            },
+            {
+              "limit": 70,
+              "color": "#F4B942"
+            },
+            {
+              "limit": 100,
+              "color": "#FF4D5E"
+            }
+          ],
+          "animation": "bouncy",
+          "defaultValue": 57,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_risk"
+              },
+              "valuePath": "index"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "sc-customs",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Customs cleared",
+          "icon": "doc.badge.checkmark",
+          "min": 0,
+          "max": 100,
+          "tint": "#3DDC97",
+          "defaultValue": 78,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_shipments"
+              },
+              "valuePath": "customs_pct"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Exceptions",
+      "icon": "exclamationmark.triangle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 4,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "ex-summary",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "headline",
+          "icon": "bell.badge.fill",
+          "tint": "#FF4D5E",
+          "text": "3 critical · 7 open · MTTR 2h 14m",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_kpi"
+              },
+              "valuePath": "exception_summary"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ex-feed",
+          "label": "Live exceptions",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3,
+            "mode": "flow"
+          },
+          "dynamic": "supply_chain_exceptions",
+          "pulse": {
+            "event": "supply_chain_exceptions",
+            "color": "#FF4D5E",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "ex-seed-1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "icon": "flame.fill",
+              "tint": "#FF4D5E",
+              "text": "EX-2291 · Shenzhen Fab power curtailment · 3 lots"
+            },
+            {
+              "type": "button",
+              "id": "ex-seed-1-ack",
+              "position": [
+                0,
+                3
+              ],
+              "label": "Ack",
+              "icon": "checkmark",
+              "style": "tinted",
+              "tint": "#FF4D5E",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_ack_exception",
+                  "exception": "EX-2291"
+                }
+              }
+            },
+            {
+              "type": "label",
+              "id": "ex-seed-2",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "icon": "ferry.fill",
+              "tint": "#F4B942",
+              "text": "EX-2288 · MSK-4471 rolled at Colombo · +4 d"
+            },
+            {
+              "type": "button",
+              "id": "ex-seed-2-ack",
+              "position": [
+                1,
+                3
+              ],
+              "label": "Ack",
+              "icon": "checkmark",
+              "style": "tinted",
+              "tint": "#F4B942",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_ack_exception",
+                  "exception": "EX-2288"
+                }
+              }
+            },
+            {
+              "type": "label",
+              "id": "ex-seed-3",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "icon": "doc.text.magnifyingglass",
+              "tint": "#2EC4B6",
+              "text": "EX-2284 · HS 8507.60 re-classification query"
+            },
+            {
+              "type": "button",
+              "id": "ex-seed-3-ack",
+              "position": [
+                2,
+                3
+              ],
+              "label": "Ack",
+              "icon": "checkmark",
+              "style": "tinted",
+              "tint": "#2EC4B6",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "supply_chain_ack_exception",
+                  "exception": "EX-2284"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "ex-log",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Event stream · EDI / AIS / ERP",
+          "maxLines": 300,
+          "showTimestamps": false,
+          "fontSize": 11,
+          "controlHeight": 240,
+          "autoScroll": true,
+          "tint": "#2EC4B6",
+          "logColors": {
+            "info": "#C9D6E2",
+            "warn": "#F4B942",
+            "error": "#FF4D5E"
+          },
+          "defaultValue": "[{\"level\":\"info\",\"message\":\"06:02Z EDI 214 \\u00b7 MSK-4471 departed Colombo\"},{\"level\":\"warn\",\"message\":\"06:17Z Shanghai Yangshan queue 41 vessels (+6/24h)\"},{\"level\":\"error\",\"message\":\"06:31Z Hormuz advisory \\u00b7 war-risk surcharge +$180/FEU\"},{\"level\":\"info\",\"message\":\"06:40Z Customs release \\u00b7 KCS-17 Nuevo Laredo\"},{\"level\":\"warn\",\"message\":\"06:52Z Penang Assy yield 91.8% (target 94)\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "supply_chain_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "ex-ack-all",
+          "position": [
+            3,
+            0
+          ],
+          "label": "Ack all",
+          "icon": "checkmark.circle.fill",
+          "style": "tinted",
+          "tint": "#2EC4B6",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_ack_exception",
+              "exception": "*"
+            }
+          },
+          "span": [
+            1,
+            2
+          ]
+        },
+        {
+          "type": "button",
+          "id": "ex-page",
+          "position": [
+            3,
+            2
+          ],
+          "label": "Page duty lead",
+          "icon": "phone.arrow.up.right.fill",
+          "style": "filled",
+          "tint": "#FF4D5E",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "supply_chain_page_duty",
+              "severity": "critical"
+            }
+          },
+          "span": [
+            1,
+            2
+          ]
+        }
+      ]
+    }
+  ]
+}

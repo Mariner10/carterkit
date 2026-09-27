@@ -1,0 +1,803 @@
+{
+  "name": "Pool & Spa",
+  "version": 1,
+  "headerTitle": "BACKYARD · POOL & SPA",
+  "accentColor": "#2FD3E6",
+  "description": "Backyard pool and spa controller: live water temperature and chemistry, pump, heater and jet switches, a filtration schedule, and pool light color and shows.",
+  "difficulty": "intermediate",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#2FD3E6",
+    "cornerRadius": 16,
+    "fontDesign": "rounded",
+    "tabBarTint": "#2FD3E6",
+    "pageBackgroundGradient": [
+      "#031A24",
+      "#05293A",
+      "#073B4F"
+    ],
+    "surfacePrimary": "#7FE7F51A",
+    "surfaceSecondary": "#7FE7F50D",
+    "borderColor": "#7FE7F533",
+    "foregroundColor": "#EAFBFF",
+    "secondaryColor": "#8FC3CF",
+    "toggle": {
+      "trackActiveColor": "#2FD3E6"
+    },
+    "slider": {
+      "trackActiveColor": "#FF8A3D"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Water",
+      "icon": "drop.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "ps-water-temp",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Pool Water",
+          "icon": "thermometer.medium",
+          "min": 60,
+          "max": 104,
+          "step": 0.1,
+          "formatValue": "suffix:°F",
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "colorBlend": 0.35,
+          "segments": [
+            {
+              "limit": 76,
+              "color": "#5AA9FF"
+            },
+            {
+              "limit": 86,
+              "color": "#2FD3E6"
+            },
+            {
+              "limit": 96,
+              "color": "#FFB547"
+            },
+            {
+              "limit": 104,
+              "color": "#FF6259"
+            }
+          ],
+          "defaultValue": 82.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "pool_spa_water"
+              },
+              "valuePath": "temp_f"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ps-chem",
+          "label": "Chemistry",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "ps-ph",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "7.4 pH",
+              "icon": "testtube.2",
+              "style": "large-mono",
+              "formatValue": "suffix: pH",
+              "tint": "#9BE8F2",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_chem"
+                  },
+                  "valuePath": "ph"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "ps-chlorine",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "2.8 ppm",
+              "icon": "drop.triangle.fill",
+              "style": "large-mono",
+              "formatValue": "suffix: ppm",
+              "tint": "#C6F58A",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_chem"
+                  },
+                  "valuePath": "free_chlorine_ppm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "ps-temp-trend",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Water Temp · 12h",
+          "tint": "#2FD3E6",
+          "sparklineFill": true,
+          "sparklinePoints": 72,
+          "defaultValue": [
+            79.8,
+            79.6,
+            79.5,
+            79.5,
+            79.9,
+            80.6,
+            81.3,
+            81.9,
+            82.2,
+            82.4,
+            82.5,
+            82.4
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "pool_spa_water"
+              },
+              "valuePath": "temp_f"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ps-equipment",
+          "label": "Equipment",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "ps-pump",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Filter Pump",
+              "icon": "fan.fill",
+              "tint": "#2FD3E6",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_pump_set",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "pump_on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "ps-heater",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Heater",
+              "icon": "flame.fill",
+              "tint": "#FF8A3D",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_heater_set",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "heater_on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "ps-jets",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Spa Jets",
+              "icon": "bubbles.and.sparkles.fill",
+              "tint": "#8C7CFF",
+              "defaultValue": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_jets_set",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "jets_on"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "ps-flow",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Flow Sensor",
+              "style": "badge",
+              "pulse": true,
+              "defaultValue": "flowing",
+              "statusColors": {
+                "flowing": "#34D399",
+                "low": "#FFB547",
+                "no_flow": "#FF6259"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "flow_state"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "ps-pump-speed",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "eco",
+            "normal",
+            "boost"
+          ],
+          "optionLabels": [
+            "Eco",
+            "Normal",
+            "Boost"
+          ],
+          "style": "pills",
+          "tint": "#2FD3E6",
+          "defaultValue": "normal",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "pool_spa_pump_speed_set",
+              "speed": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "pool_spa_equipment"
+              },
+              "valuePath": "pump_speed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Schedule",
+      "icon": "clock.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "ps-filtration",
+          "label": "Filtration & Heat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "datePicker",
+              "id": "ps-filter-start",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Pump Starts",
+              "datePickerMode": "time",
+              "datePickerStyle": "compact",
+              "tint": "#2FD3E6",
+              "defaultValue": "2026-09-24T07:00:00Z",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_schedule_set",
+                  "field": "filter_start",
+                  "time": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "datePicker",
+              "id": "ps-filter-stop",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Pump Stops",
+              "datePickerMode": "time",
+              "datePickerStyle": "compact",
+              "tint": "#2FD3E6",
+              "defaultValue": "2026-09-24T15:30:00Z",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_schedule_set",
+                  "field": "filter_stop",
+                  "time": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "ps-setpoint",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Spa Setpoint (°F)",
+              "min": 80,
+              "max": 104,
+              "step": 1,
+              "defaultValue": 101,
+              "tint": "#FF8A3D",
+              "minIcon": "thermometer.low",
+              "maxIcon": "thermometer.high",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_setpoint_set",
+                  "temp_f": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "setpoint_f"
+                }
+              ]
+            },
+            {
+              "type": "picker",
+              "id": "ps-body",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Heat Target",
+              "pickerStyle": "menu",
+              "tint": "#FF8A3D",
+              "options": [
+                "pool",
+                "spa",
+                "spillover"
+              ],
+              "optionLabels": [
+                "Pool Only",
+                "Spa Only",
+                "Spillover"
+              ],
+              "defaultValue": "spa",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_body_set",
+                  "body": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_equipment"
+                  },
+                  "valuePath": "heat_body"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ps-lighting",
+          "label": "Lighting",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "ps-lights",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Pool Lights",
+              "icon": "lightbulb.fill",
+              "tint": "#FFD166",
+              "defaultValue": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_lights_set",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_lights"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "colorPicker",
+              "id": "ps-light-color",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Light Color",
+              "defaultValue": "#2FB6FF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_light_color_set",
+                  "hex": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_lights"
+                  },
+                  "valuePath": "hex"
+                }
+              ]
+            },
+            {
+              "type": "picker",
+              "id": "ps-light-show",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Light Show",
+              "pickerStyle": "menu",
+              "tint": "#FFD166",
+              "options": [
+                "solid",
+                "caribbean",
+                "sunset",
+                "party",
+                "romance"
+              ],
+              "optionLabels": [
+                "Solid Color",
+                "Caribbean",
+                "Sunset Fade",
+                "Party Cycle",
+                "Romance"
+              ],
+              "defaultValue": "solid",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "pool_spa_light_show_set",
+                  "show": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "pool_spa_lights"
+                  },
+                  "valuePath": "show"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Service",
+      "icon": "list.bullet.clipboard",
+      "grid": {
+        "columns": 4,
+        "rows": 7
+      },
+      "children": [
+        {
+          "type": "pieChart",
+          "id": "ps-chem-usage",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Chemical Spend · Sept",
+          "pieStyle": "donut",
+          "tint": "#2FD3E6",
+          "pieConfig": {
+            "showLegend": true,
+            "showValues": false,
+            "percent": true,
+            "centerText": "${{total}}"
+          },
+          "defaultValue": "{\"slices\": [{\"label\": \"Chlorine\", \"value\": 46, \"color\": \"#C6F58A\"}, {\"label\": \"Acid\", \"value\": 22, \"color\": \"#FF8A3D\"}, {\"label\": \"Shock\", \"value\": 18, \"color\": \"#8C7CFF\"}, {\"label\": \"Stabilizer\", \"value\": 14, \"color\": \"#5AA9FF\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "pool_spa_chem_usage"
+              },
+              "valuePath": "slices"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "ps-log",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Service Log",
+          "maxLines": 250,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "tint": "#2FD3E6",
+          "logColors": {
+            "info": "#9FC9D1",
+            "ok": "#34D399",
+            "warn": "#FFB547",
+            "error": "#FF6259"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "pool_spa_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

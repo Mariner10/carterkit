@@ -1,0 +1,2028 @@
+{
+  "name": "Factory OEE",
+  "headerTitle": "PLANT 2 · OEE",
+  "version": 1,
+  "id": "factory-oee",
+  "accentColor": "#F5A300",
+  "description": "A shop-floor OEE war room for a four-line stamping-to-assembly plant: per-line OEE gauges, a downtime Pareto, material-flow sankey, an editable shift gantt, live MQTT PLC pipes and a server-driven andon board.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "oee-historian",
+    "acks": true,
+    "ackTimeoutMs": 2000
+  },
+  "sources": {
+    "plc": {
+      "type": "mqtt",
+      "url": "mqtt://10.40.0.12:1883",
+      "username": "oee-panel"
+    }
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#111612",
+        "#1A211C"
+      ],
+      "light": "#EEF0EA"
+    }
+  },
+  "theme": {
+    "accentColor": "#F5A300",
+    "accentGradient": [
+      "#F5A300",
+      "#FF7A1A"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 3,
+    "controlPadding": 8,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontSize": 14,
+    "valueFontWeight": "heavy",
+    "tabBarTint": "#F5A300",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0C110E",
+        "#141B16",
+        "#1B241D"
+      ],
+      "surfacePrimary": "#E8F0E60D",
+      "surfaceSecondary": "#E8F0E608",
+      "surfaceTertiary": "#E8F0E605",
+      "borderColor": "#F5A30040",
+      "foregroundColor": "#EDEFE6",
+      "secondaryColor": "#A3ADA0",
+      "tertiaryColor": "#66705F",
+      "tabBarBackground": "#0F1411"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#EEF0EA",
+        "#DFE3D8"
+      ],
+      "surfacePrimary": "#FFFFFFE8",
+      "borderColor": "#1A211C29",
+      "foregroundColor": "#141B16",
+      "secondaryColor": "#4B5448"
+    },
+    "toggle": {
+      "trackActiveColor": "#4FA3FF",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#F5A300",
+      "thumbColor": "#EDEFE6",
+      "trackHeight": 5
+    },
+    "segmented": {
+      "selectedColor": "#F5A300",
+      "selectedTextColor": "#141B16"
+    },
+    "stepper": {
+      "buttonColor": "#F5A30026",
+      "iconColor": "#F5A300"
+    }
+  },
+  "glance": {
+    "title": "Plant 2 OEE",
+    "icon": "gearshape.2.fill",
+    "tint": "#F5A300",
+    "hero": "oee-plant",
+    "slots": [
+      "oee-line-a",
+      "oee-line-c",
+      "oee-plant-state"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "andon-maint",
+        "kind": "button",
+        "label": "Call Maintenance",
+        "icon": "wrench.fill",
+        "control": "oee-call-maintenance"
+      },
+      {
+        "id": "smed",
+        "kind": "toggle",
+        "label": "Changeover",
+        "control": "oee-smed-mode",
+        "on": {
+          "label": "SMED on",
+          "icon": "arrow.triangle.2.circlepath",
+          "tint": "#4FA3FF"
+        },
+        "off": {
+          "label": "Producing",
+          "icon": "gearshape.fill"
+        }
+      }
+    ],
+    "widgets": [
+      {
+        "id": "plant",
+        "title": "Plant OEE",
+        "icon": "gearshape.2.fill",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "oee-plant"
+              },
+              {
+                "tile": "light",
+                "control": "oee-plant-state"
+              }
+            ],
+            [
+              {
+                "tile": "gauge",
+                "control": "oee-line-a"
+              },
+              {
+                "tile": "gauge",
+                "control": "oee-line-b"
+              },
+              {
+                "tile": "gauge",
+                "control": "oee-line-c"
+              },
+              {
+                "tile": "gauge",
+                "control": "oee-line-d"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "oee-throughput",
+                "span": 3
+              },
+              {
+                "tile": "button",
+                "control": "oee-call-maintenance"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "oee-plant"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "oee-plant-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "light",
+          "control": "oee-plant-state"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "value",
+                "control": "oee-plant"
+              },
+              {
+                "tile": "gauge",
+                "control": "oee-line-c"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "oee-call-maintenance"
+              },
+              {
+                "tile": "toggle",
+                "control": "oee-smed-mode"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Floor",
+      "icon": "gauge.with.dots.needle.67percent",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "oee-shift-title",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "Plant 2 · Shift B",
+          "style": "headline",
+          "icon": "building.2.fill",
+          "tint": "#F5A300",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "shift_title"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-plant-state",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Plant",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "statusColors": {
+            "producing": "#3DDC84",
+            "degraded": "#F5C400",
+            "halted": "#FF3B30",
+            "changeover": "#4FA3FF"
+          },
+          "defaultValue": "degraded",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "oee-plant",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Plant OEE",
+          "icon": "gearshape.2.fill",
+          "min": 0,
+          "max": 100,
+          "formatValue": "decimal:1",
+          "tint": "#F5A300",
+          "defaultValue": 76.8,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "oee"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "oee-avail",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Availability",
+          "text": "88.2%",
+          "icon": "clock.fill",
+          "style": "mono",
+          "formatValue": "suffix:% avail",
+          "tint": "#4FA3FF",
+          "defaultValue": 88.2,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "availability"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "oee-perf",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Performance",
+          "text": "91.5%",
+          "icon": "speedometer",
+          "style": "mono",
+          "formatValue": "suffix:% perf",
+          "tint": "#F5C400",
+          "defaultValue": 91.5,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "performance"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "oee-qual",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Quality",
+          "text": "95.1%",
+          "icon": "checkmark.seal.fill",
+          "style": "mono",
+          "formatValue": "suffix:% qual",
+          "tint": "#3DDC84",
+          "defaultValue": 95.1,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "quality"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-line-a",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Line A · Stamping",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "formatValue": "suffix:%",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#FF3B30"
+            },
+            {
+              "limit": 75,
+              "color": "#F5A300"
+            },
+            {
+              "limit": 85,
+              "color": "#F5C400"
+            },
+            {
+              "limit": 100,
+              "color": "#3DDC84"
+            }
+          ],
+          "colorBlend": 0.25,
+          "defaultValue": 82.4,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "A"
+              },
+              "valuePath": "oee"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-line-b",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Line B · Weld",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "formatValue": "suffix:%",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#FF3B30"
+            },
+            {
+              "limit": 75,
+              "color": "#F5A300"
+            },
+            {
+              "limit": 85,
+              "color": "#F5C400"
+            },
+            {
+              "limit": 100,
+              "color": "#3DDC84"
+            }
+          ],
+          "colorBlend": 0.25,
+          "defaultValue": 71.9,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "B"
+              },
+              "valuePath": "oee"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-line-c",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Line C · Paint",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "formatValue": "suffix:%",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#FF3B30"
+            },
+            {
+              "limit": 75,
+              "color": "#F5A300"
+            },
+            {
+              "limit": 85,
+              "color": "#F5C400"
+            },
+            {
+              "limit": 100,
+              "color": "#3DDC84"
+            }
+          ],
+          "colorBlend": 0.25,
+          "defaultValue": 64.3,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "C"
+              },
+              "valuePath": "oee"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-line-d",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Line D · Final Assy",
+          "min": 0,
+          "max": 100,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "formatValue": "suffix:%",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#FF3B30"
+            },
+            {
+              "limit": 75,
+              "color": "#F5A300"
+            },
+            {
+              "limit": 85,
+              "color": "#F5C400"
+            },
+            {
+              "limit": 100,
+              "color": "#3DDC84"
+            }
+          ],
+          "colorBlend": 0.25,
+          "defaultValue": 88.6,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "D"
+              },
+              "valuePath": "oee"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "oee-throughput",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Plant throughput · units/min",
+          "tint": "#F5A300",
+          "sparklinePoints": 90,
+          "sparklineFill": true,
+          "defaultValue": [
+            41,
+            43,
+            44,
+            42,
+            39,
+            31,
+            28,
+            35,
+            40,
+            44,
+            46,
+            45,
+            47,
+            44,
+            43
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_plant"
+              },
+              "valuePath": "units_per_min"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-line-a-state",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Line A",
+          "style": "dot",
+          "statusColors": {
+            "running": "#3DDC84",
+            "slow": "#F5C400",
+            "down": "#FF3B30",
+            "changeover": "#4FA3FF",
+            "starved": "#B07CFF",
+            "planned": "#7A8580"
+          },
+          "defaultValue": "running",
+          "pulse": false,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "A"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-line-b-state",
+          "position": [
+            12,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Line B",
+          "style": "dot",
+          "statusColors": {
+            "running": "#3DDC84",
+            "slow": "#F5C400",
+            "down": "#FF3B30",
+            "changeover": "#4FA3FF",
+            "starved": "#B07CFF",
+            "planned": "#7A8580"
+          },
+          "defaultValue": "slow",
+          "pulse": false,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "B"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-line-c-state",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Line C",
+          "style": "dot",
+          "statusColors": {
+            "running": "#3DDC84",
+            "slow": "#F5C400",
+            "down": "#FF3B30",
+            "changeover": "#4FA3FF",
+            "starved": "#B07CFF",
+            "planned": "#7A8580"
+          },
+          "defaultValue": "down",
+          "pulse": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "C"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-line-d-state",
+          "position": [
+            12,
+            3
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Line D",
+          "style": "dot",
+          "statusColors": {
+            "running": "#3DDC84",
+            "slow": "#F5C400",
+            "down": "#FF3B30",
+            "changeover": "#4FA3FF",
+            "starved": "#B07CFF",
+            "planned": "#7A8580"
+          },
+          "defaultValue": "running",
+          "pulse": false,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "D"
+              },
+              "valuePath": "state"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Losses",
+      "icon": "chart.bar.xaxis",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "oee-loss-window",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Window",
+          "options": [
+            "shift",
+            "day",
+            "week"
+          ],
+          "optionLabels": [
+            "Shift",
+            "24 h",
+            "Week"
+          ],
+          "defaultValue": "shift",
+          "style": "pills",
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_loss_window",
+              "window": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_losses"
+              },
+              "valuePath": "window"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "oee-pareto",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Downtime Pareto · min",
+          "formatValue": "decimal",
+          "defaultValue": "{\"categories\":[\"Die change\",\"Weld tip dress\",\"Paint booth purge\",\"Robot fault\",\"Material short\",\"Sensor misread\",\"Operator break\",\"Quality hold\"],\"series\":[{\"name\":\"Minutes\",\"type\":\"bar\",\"color\":\"#F5A300\",\"values\":[74,52,41,33,27,14,9,6]},{\"name\":\"Cumulative %\",\"type\":\"line\",\"color\":\"#4FA3FF\",\"values\":[29,50,66,79,90,95,98,100]}]}",
+          "animation": "smooth",
+          "chartConfig": {
+            "showLegend": true,
+            "showValues": false,
+            "barCornerRadius": 2,
+            "scrub": true,
+            "datumAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "factory_oee_inspect_loss",
+                "datum": "{{value}}"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_losses"
+              },
+              "valuePath": "pareto"
+            }
+          ]
+        },
+        {
+          "type": "sankey",
+          "id": "oee-material",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Material flow · t/shift",
+          "formatValue": "decimal:1",
+          "defaultValue": "{\"nodes\":[{\"name\":\"Coil steel\",\"color\":\"#9AA7A0\"},{\"name\":\"Stamping\"},{\"name\":\"Weld\"},{\"name\":\"Paint\"},{\"name\":\"Final assy\"},{\"name\":\"Shipped\",\"color\":\"#3DDC84\"},{\"name\":\"Rework\",\"color\":\"#F5C400\"},{\"name\":\"Scrap\",\"color\":\"#FF3B30\"}],\"links\":[{\"source\":\"Coil steel\",\"target\":\"Stamping\",\"value\":12.4},{\"source\":\"Stamping\",\"target\":\"Weld\",\"value\":11.6},{\"source\":\"Stamping\",\"target\":\"Scrap\",\"value\":0.8},{\"source\":\"Weld\",\"target\":\"Paint\",\"value\":11.1},{\"source\":\"Weld\",\"target\":\"Rework\",\"value\":0.5},{\"source\":\"Paint\",\"target\":\"Final assy\",\"value\":10.5},{\"source\":\"Paint\",\"target\":\"Rework\",\"value\":0.6},{\"source\":\"Final assy\",\"target\":\"Shipped\",\"value\":10.2},{\"source\":\"Final assy\",\"target\":\"Scrap\",\"value\":0.3}]}",
+          "animation": "smooth",
+          "sankeyConfig": {
+            "showValues": true,
+            "nodeWidth": 8,
+            "linkOpacity": 0.36,
+            "scrub": true,
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "factory_oee_inspect_node",
+                "node": "{{value}}"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_material"
+              },
+              "valuePath": "sankey"
+            }
+          ]
+        },
+        {
+          "type": "pieChart",
+          "id": "oee-scrap",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Scrap by defect",
+          "pieStyle": "donut",
+          "defaultValue": "{\"slices\":[{\"label\":\"Porosity\",\"value\":38,\"color\":\"#FF3B30\"},{\"label\":\"Orange peel\",\"value\":24,\"color\":\"#F5A300\"},{\"label\":\"Dent\",\"value\":17,\"color\":\"#F5C400\"},{\"label\":\"Misweld\",\"value\":13,\"color\":\"#4FA3FF\"},{\"label\":\"Other\",\"value\":8,\"color\":\"#7A8580\"}]}",
+          "pieConfig": {
+            "centerText": "{{total}} pcs",
+            "percent": true
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_quality"
+              },
+              "valuePath": "scrap_split"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "oee-quality-grp",
+          "label": "First-pass yield",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "factory_oee_quality"
+            },
+            "color": "#3DDC84",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "oee-fpy",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "96.4%",
+              "style": "large-mono",
+              "tint": "#3DDC84",
+              "formatValue": "suffix:% FPY",
+              "defaultValue": 96.4,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "factory_oee_quality"
+                  },
+                  "valuePath": "fpy"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "oee-ppm",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "1,840 ppm",
+              "style": "mono",
+              "icon": "xmark.bin.fill",
+              "tint": "#FF3B30",
+              "formatValue": "suffix: ppm",
+              "defaultValue": 1840,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "factory_oee_quality"
+                  },
+                  "valuePath": "scrap_ppm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "oee-down-heat",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Downtime min · line × hour",
+          "defaultValue": "{\"rows\":[\"A\",\"B\",\"C\",\"D\"],\"cols\":[\"14\",\"15\",\"16\",\"17\",\"18\",\"19\",\"20\",\"21\"],\"values\":[[0,4,0,12,0,0,3,0],[6,0,9,0,14,2,0,5],[18,22,0,7,0,26,11,0],[0,0,2,0,0,5,0,1]]}",
+          "formatValue": "suffix: min",
+          "heatmapConfig": {
+            "colors": [
+              "#1A2320",
+              "#3A4A2A",
+              "#F5A300",
+              "#FF3B30"
+            ],
+            "showScale": true,
+            "showValues": true,
+            "vMin": 0,
+            "vMax": 30,
+            "cellGap": 3,
+            "cellCorner": 2
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_losses"
+              },
+              "valuePath": "heatmap"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Shift",
+      "icon": "calendar.day.timeline.left",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "oee-shift-window",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "14:00 – 22:00",
+          "icon": "calendar.badge.clock",
+          "style": "mono",
+          "tint": "#F5A300",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_schedule"
+              },
+              "valuePath": "window"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "oee-target",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Target / hr",
+          "min": 100,
+          "max": 600,
+          "step": 10,
+          "defaultValue": 320,
+          "formatValue": "suffix: u",
+          "haptic": "light",
+          "repeatOnHold": true,
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_set_target",
+              "units_per_hour": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_schedule"
+              },
+              "valuePath": "target_uph"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "oee-shift-gantt",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Shift B plan · Line A",
+          "defaultValue": "{\"tasks\":[{\"name\":\"Startup checks\",\"start\":\"2026-09-24T14:00:00\",\"end\":\"2026-09-24T14:20:00\",\"progress\":1.0,\"color\":\"#7A8580\"},{\"name\":\"WO-4471 bracket\",\"start\":\"2026-09-24T14:20:00\",\"end\":\"2026-09-24T17:10:00\",\"progress\":1.0,\"color\":\"#F5A300\"},{\"name\":\"SMED die swap\",\"start\":\"2026-09-24T17:10:00\",\"end\":\"2026-09-24T17:40:00\",\"progress\":0.65,\"color\":\"#4FA3FF\"},{\"name\":\"WO-4480 rail\",\"start\":\"2026-09-24T17:40:00\",\"end\":\"2026-09-24T20:30:00\",\"progress\":0.1,\"color\":\"#F5A300\"},{\"name\":\"Meal break\",\"start\":\"2026-09-24T18:30:00\",\"end\":\"2026-09-24T19:00:00\",\"progress\":0.0,\"color\":\"#7A8580\"},{\"name\":\"Tip dress B\",\"start\":\"2026-09-24T19:15:00\",\"end\":\"2026-09-24T19:35:00\",\"progress\":0.0,\"color\":\"#B07CFF\"},{\"name\":\"WO-4492 hinge\",\"start\":\"2026-09-24T20:30:00\",\"end\":\"2026-09-24T21:50:00\",\"progress\":0.0,\"color\":\"#F5A300\"},{\"name\":\"Handover\",\"start\":\"2026-09-24T22:00:00\",\"milestone\":true,\"color\":\"#3DDC84\"}]}",
+          "animation": "smooth",
+          "ganttConfig": {
+            "editable": true,
+            "step": 0.05,
+            "rowHeight": 26,
+            "barCornerRadius": 3,
+            "showToday": true,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "factory_oee_task_progress",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_schedule"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "oee-start-smed",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Start changeover",
+          "icon": "arrow.triangle.2.circlepath",
+          "style": "filled",
+          "tint": "#4FA3FF",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_changeover",
+              "line": "A",
+              "phase": "start"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "oee-log-break",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Log micro-stop",
+          "icon": "pause.circle.fill",
+          "style": "tinted",
+          "tint": "#F5C400",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_micro_stop",
+              "line": "A"
+            }
+          }
+        },
+        {
+          "type": "list",
+          "id": "oee-work-orders",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Open work orders",
+          "defaultValue": "[{\"wo\":\"WO-4471\",\"part\":\"BRK-220 bracket\",\"line\":\"A\",\"done\":1840,\"target\":1800},{\"wo\":\"WO-4480\",\"part\":\"RL-118 seat rail\",\"line\":\"A\",\"done\":212,\"target\":2100},{\"wo\":\"WO-4476\",\"part\":\"FRM-9 subframe\",\"line\":\"B\",\"done\":640,\"target\":900},{\"wo\":\"WO-4479\",\"part\":\"DR-44 door shell\",\"line\":\"C\",\"done\":388,\"target\":720},{\"wo\":\"WO-4468\",\"part\":\"ASM-3 hinge kit\",\"line\":\"D\",\"done\":1410,\"target\":1500}]",
+          "listColumns": [
+            {
+              "key": "wo",
+              "label": "WO"
+            },
+            {
+              "key": "part",
+              "label": "Part"
+            },
+            {
+              "key": "line",
+              "label": "Ln"
+            },
+            {
+              "key": "done",
+              "label": "Done",
+              "format": "decimal"
+            },
+            {
+              "key": "target",
+              "label": "Tgt",
+              "format": "decimal"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_schedule"
+              },
+              "valuePath": "work_orders"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Line A",
+      "icon": "wrench.and.screwdriver",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "oee-smed-mode",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Changeover mode",
+          "icon": "wrench.and.screwdriver.fill",
+          "defaultValue": true,
+          "haptic": "rigid",
+          "animation": "bouncy",
+          "tint": "#4FA3FF",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_changeover_mode",
+              "line": "A",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_line_state",
+                "line": "A"
+              },
+              "valuePath": "changeover"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "oee-compressor",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Air compressor",
+          "style": "badge",
+          "statusColors": {
+            "LOADED": "#3DDC84",
+            "UNLOADED": "#F5C400",
+            "FAULT": "#FF3B30"
+          },
+          "defaultValue": "LOADED",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "plc",
+              "topic": "plant2/utilities/compressor1/state",
+              "valuePath": ""
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "oee-smed-grp",
+          "label": "SMED · Line A die swap",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "visible": {
+            "when": "oee-smed-mode",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "progressRing",
+              "id": "oee-smed-progress",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                2,
+                2
+              ],
+              "label": "Checklist",
+              "min": 0,
+              "max": 12,
+              "formatValue": "suffix:/12",
+              "tint": "#4FA3FF",
+              "defaultValue": 8,
+              "animation": "bouncy",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "factory_oee_changeover",
+                    "line": "A"
+                  },
+                  "valuePath": "steps_done"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "oee-smed-target",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Target",
+              "text": "30:00",
+              "style": "mono",
+              "icon": "flag.checkered",
+              "formatValue": "time",
+              "defaultValue": 1800,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "factory_oee_changeover",
+                    "line": "A"
+                  },
+                  "valuePath": "target_s"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "oee-smed-elapsed",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Elapsed",
+              "text": "19:42",
+              "style": "mono",
+              "icon": "stopwatch.fill",
+              "tint": "#F5C400",
+              "formatValue": "time",
+              "defaultValue": 1182,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "factory_oee_changeover",
+                    "line": "A"
+                  },
+                  "valuePath": "elapsed_s"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "oee-die-in-place",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Die clamped",
+              "icon": "lock.fill",
+              "style": "outlined",
+              "tint": "#4FA3FF",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "factory_oee_changeover",
+                  "line": "A",
+                  "phase": "die_clamped"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "oee-first-off",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "First-off OK",
+              "icon": "checkmark.seal.fill",
+              "style": "filled",
+              "tint": "#3DDC84",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "factory_oee_changeover",
+                  "line": "A",
+                  "phase": "first_off_approved"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "oee-line-a-speed",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Line A press rate · SPM",
+          "min": 8,
+          "max": 40,
+          "step": 1,
+          "defaultValue": 28,
+          "formatValue": "decimal",
+          "tint": "#F5A300",
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "plc",
+              "topic": "plant2/lineA/press/spm_actual",
+              "valuePath": ""
+            }
+          ],
+          "action": {
+            "method": "mqtt",
+            "source": "plc",
+            "topic": "plant2/lineA/press/spm_set",
+            "payload": "{{value}}",
+            "retain": false
+          }
+        },
+        {
+          "type": "sparkline",
+          "id": "oee-press-tonnage",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Press tonnage · t",
+          "tint": "#FF7A1A",
+          "sparklinePoints": 60,
+          "sparklineFill": true,
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "plc",
+              "topic": "plant2/lineA/press/tonnage",
+              "valuePath": "value"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-air-pressure",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Header air · bar",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "defaultValue": 6.4,
+          "segments": [
+            {
+              "limit": 5.5,
+              "color": "#FF3B30"
+            },
+            {
+              "limit": 6.0,
+              "color": "#F5C400"
+            },
+            {
+              "limit": 10,
+              "color": "#3DDC84"
+            }
+          ],
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "plc",
+              "topic": "plant2/utilities/air/header_bar",
+              "valuePath": ""
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oee-coolant-temp",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Weld coolant · °C",
+          "min": 10,
+          "max": 45,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "defaultValue": 24.7,
+          "tint": "#4FA3FF",
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "plc",
+              "topic": "plant2/lineB/weld/coolant_c",
+              "valuePath": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Andon",
+      "icon": "light.beacon.max.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 3,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "button",
+          "id": "oee-call-maintenance",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Maint.",
+          "icon": "wrench.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#FF3B30",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_andon_call",
+              "kind": "maintenance",
+              "station": "panel-floor-2"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "oee-call-quality",
+          "position": [
+            0,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Quality",
+          "icon": "checkmark.shield.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#F5C400",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_andon_call",
+              "kind": "quality",
+              "station": "panel-floor-2"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "oee-call-material",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Material",
+          "icon": "shippingbox.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#4FA3FF",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_andon_call",
+              "kind": "material",
+              "station": "panel-floor-2"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "oee-call-supervisor",
+          "position": [
+            0,
+            3
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Lead",
+          "icon": "person.fill.badge.plus",
+          "style": "filled",
+          "size": "large",
+          "tint": "#B07CFF",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "factory_oee_andon_call",
+              "kind": "supervisor",
+              "station": "panel-floor-2"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "oee-andon-board",
+          "label": "Active andon calls",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "dynamic": "factory_oee_andon",
+          "grid": {
+            "columns": 4,
+            "rows": 2,
+            "mode": "flow"
+          },
+          "pulse": {
+            "event": "factory_oee_andon",
+            "color": "#FF3B30",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "oee-andon-1-lt",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "MAINTENANCE",
+              "style": "dot",
+              "pulse": true,
+              "statusColors": {
+                "maintenance": "#FF3B30",
+                "quality": "#F5C400",
+                "material": "#4FA3FF",
+                "supervisor": "#B07CFF",
+                "ack": "#3DDC84"
+              },
+              "defaultValue": "maintenance"
+            },
+            {
+              "type": "label",
+              "id": "oee-andon-1-tx",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "style": "mono",
+              "text": "Line C · booth 2 exhaust fan trip · 6m"
+            },
+            {
+              "type": "button",
+              "id": "oee-andon-1-ack",
+              "position": [
+                0,
+                3
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Ack",
+              "icon": "hand.raised.fill",
+              "style": "tinted",
+              "tint": "#3DDC84",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "factory_oee_andon_ack",
+                  "call_id": "AN-2291"
+                }
+              }
+            },
+            {
+              "type": "statusLight",
+              "id": "oee-andon-2-lt",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "MATERIAL",
+              "style": "dot",
+              "pulse": true,
+              "statusColors": {
+                "maintenance": "#FF3B30",
+                "quality": "#F5C400",
+                "material": "#4FA3FF",
+                "supervisor": "#B07CFF",
+                "ack": "#3DDC84"
+              },
+              "defaultValue": "material"
+            },
+            {
+              "type": "label",
+              "id": "oee-andon-2-tx",
+              "position": [
+                1,
+                1
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "style": "mono",
+              "text": "Line B · M8 weld nuts < 1 bin · 2m"
+            },
+            {
+              "type": "button",
+              "id": "oee-andon-2-ack",
+              "position": [
+                1,
+                3
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Ack",
+              "icon": "hand.raised.fill",
+              "style": "tinted",
+              "tint": "#3DDC84",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "factory_oee_andon_ack",
+                  "call_id": "AN-2294"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "oee-andon-log",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Andon + MES events",
+          "controlHeight": 260,
+          "maxLines": 300,
+          "fontSize": 11,
+          "showTimestamps": true,
+          "autoScroll": true,
+          "tint": "#F5A300",
+          "logColors": {
+            "andon": "#FF3B30",
+            "mes": "#F5A300",
+            "plc": "#4FA3FF",
+            "quality": "#F5C400",
+            "ack": "#3DDC84"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "factory_oee_andon_log"
+              },
+              "valuePath": "lines"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

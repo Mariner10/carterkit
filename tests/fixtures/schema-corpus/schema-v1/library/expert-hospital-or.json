@@ -1,0 +1,2145 @@
+{
+  "name": "OR Integrator",
+  "headerTitle": "OR 7 · INTEGRATOR",
+  "version": 1,
+  "accentColor": "#19E3C5",
+  "description": "A surgical-suite integrator for Operating Room 7: a monitor-coloured vitals wall, a drag-to-count instrument sortboard, a live procedure gantt with the case team, surgical-light aiming by joystick, and a scrubbed-in team chat.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "batchPublishers": true,
+  "publishers": [
+    {
+      "sensor": "audio",
+      "interval": 2
+    },
+    {
+      "sensor": "device",
+      "interval": 30
+    }
+  ],
+  "state": {
+    "sync": true,
+    "authority": "or7-integrator",
+    "acks": true,
+    "ackTimeoutMs": 2500
+  },
+  "sources": {
+    "bms": {
+      "type": "http",
+      "baseURL": "https://bms.surgical-suite.local:8443",
+      "headers": {
+        "Accept": "application/json"
+      },
+      "interval": 15
+    },
+    "airflow": {
+      "type": "mqtt",
+      "url": "mqtts://10.40.12.5:8883",
+      "clientId": "or7-integrator-ipad"
+    }
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "showHeader": true,
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#041714",
+        "#07231F"
+      ],
+      "light": [
+        "#041714",
+        "#07231F"
+      ]
+    }
+  },
+  "theme": {
+    "accentColor": "#19E3C5",
+    "accentGradient": [
+      "#19E3C5",
+      "#3FD8FF"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 6,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "pageBackgroundGradient": [
+      "#020B0A",
+      "#05201C",
+      "#031412"
+    ],
+    "surfacePrimary": "#19E3C512",
+    "surfaceSecondary": "#19E3C50B",
+    "surfaceTertiary": "#19E3C506",
+    "foregroundColor": "#E4FFF9",
+    "secondaryColor": "#8FC9BE",
+    "tertiaryColor": "#4E7F76",
+    "borderColor": "#19E3C533",
+    "tabBarBackground": "#031412F2",
+    "tabBarTint": "#19E3C5",
+    "toggle": {
+      "trackActiveColor": "#19E3C5",
+      "knobColor": "#E4FFF9",
+      "knobShadow": true
+    },
+    "slider": {
+      "trackActiveColor": "#FFE9B0",
+      "thumbColor": "#E4FFF9",
+      "trackHeight": 6
+    },
+    "stepper": {
+      "buttonColor": "#19E3C522",
+      "iconColor": "#19E3C5"
+    },
+    "segmented": {
+      "trackColor": "#19E3C514",
+      "selectedColor": "#19E3C5",
+      "textColor": "#8FC9BE",
+      "selectedTextColor": "#021210"
+    },
+    "progressBar": {
+      "trackColor": "#19E3C51A",
+      "trackActiveColor": "#19E3C5"
+    }
+  },
+  "glance": {
+    "title": "OR 7",
+    "icon": "cross.case.fill",
+    "tint": "#19E3C5",
+    "hero": "hr",
+    "slots": [
+      "spo2",
+      "alarm-level",
+      "case-progress"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh",
+      "activity": {
+        "stale": 60
+      }
+    },
+    "controls": [
+      {
+        "id": "cc-audio-pause",
+        "kind": "toggle",
+        "label": "Pause OR 7 alarms",
+        "control": "audio-pause",
+        "on": {
+          "label": "Paused",
+          "icon": "speaker.slash.fill",
+          "tint": "#FFD23F"
+        },
+        "off": {
+          "label": "Audible",
+          "icon": "speaker.wave.2.fill"
+        }
+      },
+      {
+        "id": "cc-ack",
+        "kind": "button",
+        "label": "Ack OR 7 alarm",
+        "icon": "checkmark.shield.fill",
+        "control": "alarm-ack"
+      },
+      {
+        "id": "cc-phase",
+        "kind": "cycle",
+        "label": "Case phase",
+        "control": "case-phase",
+        "states": [
+          {
+            "value": "prep",
+            "label": "Prep",
+            "icon": "hands.and.sparkles.fill"
+          },
+          {
+            "value": "incise",
+            "label": "Incise",
+            "icon": "bolt.horizontal.fill",
+            "tint": "#FFD23F"
+          },
+          {
+            "value": "dissect",
+            "label": "Dissect",
+            "icon": "scissors",
+            "tint": "#FF9A3C"
+          },
+          {
+            "value": "close",
+            "label": "Close",
+            "icon": "bandage.fill",
+            "tint": "#C792FF"
+          },
+          {
+            "value": "out",
+            "label": "Out",
+            "icon": "figure.walk.departure",
+            "tint": "#19E3C5"
+          }
+        ]
+      }
+    ],
+    "widgets": [
+      {
+        "id": "or7-vitals",
+        "title": "OR 7 vitals",
+        "icon": "waveform.path.ecg",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "hr"
+              },
+              {
+                "tile": "gauge",
+                "control": "spo2"
+              }
+            ],
+            [
+              {
+                "tile": "light",
+                "control": "alarm-level"
+              },
+              {
+                "tile": "bar",
+                "control": "case-progress"
+              }
+            ],
+            [
+              {
+                "tile": "toggle",
+                "control": "audio-pause"
+              },
+              {
+                "tile": "open",
+                "tab": "Vitals",
+                "label": "Open"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "icon": "heart.fill",
+        "effect": "pulse",
+        "tint": "#3DFF8C"
+      },
+      "compactTrailing": {
+        "tile": "value",
+        "control": "hr"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "alarm-level"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "value",
+          "control": "hr"
+        },
+        "trailing": {
+          "tile": "value",
+          "control": "spo2"
+        },
+        "center": {
+          "tile": "light",
+          "control": "alarm-level",
+          "effect": "wiggle"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "bar",
+                "control": "case-progress",
+                "span": 2
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "alarm-ack"
+              },
+              {
+                "tile": "toggle",
+                "control": "audio-pause"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Vitals",
+      "icon": "waveform.path.ecg",
+      "grid": {
+        "columns": 4,
+        "rows": 16
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "case-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Case",
+          "style": "badge",
+          "size": "default",
+          "statusColors": {
+            "pre-op": "#3FD8FF",
+            "in-room": "#FFD23F",
+            "incision": "#3DFF8C",
+            "closing": "#C792FF",
+            "out": "#4E7F76"
+          },
+          "defaultValue": "incision",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_case"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "alarm-level",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Alarm",
+          "style": "badge",
+          "size": "default",
+          "pulse": true,
+          "statusColors": {
+            "none": "#3DFF8C",
+            "advisory": "#3FD8FF",
+            "medium": "#FFD23F",
+            "high": "#FF4D5E"
+          },
+          "defaultValue": "medium",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_alarm"
+              },
+              "valuePath": "level"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "hr",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "HR · bpm",
+          "icon": "heart.fill",
+          "min": 30,
+          "max": 180,
+          "gaugeStyle": "full",
+          "arcAngle": 270,
+          "arcRotation": 0,
+          "segments": [
+            {
+              "limit": 50,
+              "color": "#FFD23F"
+            },
+            {
+              "limit": 110,
+              "color": "#3DFF8C"
+            },
+            {
+              "limit": 130,
+              "color": "#FFD23F"
+            },
+            {
+              "limit": 180,
+              "color": "#FF4D5E"
+            }
+          ],
+          "defaultValue": 72,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "hr"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "spo2",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "SpO₂ · %",
+          "icon": "lungs.fill",
+          "min": 80,
+          "max": 100,
+          "gaugeStyle": "full",
+          "arcAngle": 270,
+          "segments": [
+            {
+              "limit": 90,
+              "color": "#FF4D5E"
+            },
+            {
+              "limit": 94,
+              "color": "#FFD23F"
+            },
+            {
+              "limit": 100,
+              "color": "#3FD8FF"
+            }
+          ],
+          "defaultValue": 98,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "spo2"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "ecg-strip",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "ECG · Lead II · 25 mm/s",
+          "tint": "#3DFF8C",
+          "chartConfig": {
+            "showXAxis": false,
+            "showYAxis": false,
+            "showGrid": true,
+            "smooth": true,
+            "lineWidth": 2,
+            "maxPoints": 120,
+            "yMin": -10,
+            "yMax": 25
+          },
+          "defaultValue": "{\"categories\": [\"0\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\", \"9\", \"10\", \"11\", \"12\", \"13\", \"14\", \"15\", \"16\", \"17\", \"18\", \"19\", \"20\", \"21\", \"22\", \"23\", \"24\", \"25\", \"26\", \"27\", \"28\", \"29\", \"30\", \"31\", \"32\", \"33\", \"34\", \"35\", \"36\", \"37\", \"38\", \"39\"], \"series\": [{\"name\": \"II\", \"type\": \"line\", \"color\": \"#3DFF8C\", \"values\": [0, 0, 1, 2, 1, 0, 0, -3, 22, -7, 0, 0, 2, 4, 5, 3, 1, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, -3, 22, -7, 0, 0, 2, 4, 5, 3, 1, 0, 0, 0]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_ecg"
+              },
+              "valuePath": "strip"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "etco2",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "EtCO₂ · mmHg",
+          "tint": "#FFD23F",
+          "sparklineFill": true,
+          "sparklinePoints": 90,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "etco2"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "nibp",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "NIBP",
+          "text": "118/72 (88)",
+          "icon": "drop.fill",
+          "style": "large-mono",
+          "tint": "#FF4D5E",
+          "align": "trailing",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "nibp"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "temp",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Temp",
+          "text": "36.4°",
+          "icon": "thermometer.medium",
+          "style": "mono",
+          "tint": "#FFB26B",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "temp_c"
+            }
+          ],
+          "formatValue": "suffix:°"
+        },
+        {
+          "type": "label",
+          "id": "resp",
+          "position": [
+            8,
+            3
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "RR",
+          "text": "12",
+          "icon": "wind",
+          "style": "mono",
+          "tint": "#3FD8FF",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "rr"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "abp-trend",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Arterial line · last hour",
+          "tint": "#FF4D5E",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "yMin": 40,
+            "yMax": 150,
+            "lineWidth": 2,
+            "scrub": true
+          },
+          "defaultValue": "{\"categories\": [\"08:10\", \"08:15\", \"08:20\", \"08:25\", \"08:30\", \"08:35\", \"08:40\", \"08:45\", \"08:50\", \"08:55\", \"09:00\", \"09:05\"], \"series\": [{\"name\": \"SYS\", \"type\": \"line\", \"color\": \"#FF4D5E\", \"values\": [132, 128, 121, 109, 104, 112, 118, 121, 119, 116, 118, 120]}, {\"name\": \"MAP\", \"type\": \"area\", \"color\": \"#FF4D5E66\", \"values\": [94, 91, 86, 77, 73, 80, 85, 88, 86, 84, 86, 88]}, {\"name\": \"DIA\", \"type\": \"line\", \"color\": \"#FF9AA4\", \"values\": [76, 74, 70, 63, 59, 65, 69, 72, 70, 69, 71, 72]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_abp"
+              },
+              "valuePath": "trend"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "bis",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "BIS depth",
+          "icon": "brain.head.profile",
+          "min": 0,
+          "max": 100,
+          "tint": "#C792FF",
+          "defaultValue": 46,
+          "animation": "gentle",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_vitals"
+              },
+              "valuePath": "bis"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "alarm-bell",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Alarm annunciator",
+          "systemName": "bell.badge.waveform.fill",
+          "tint": "#FF4D5E",
+          "iconMap": {
+            "none": "bell.slash.fill",
+            "advisory": "bell.fill",
+            "medium": "bell.badge.fill",
+            "high": "bell.badge.waveform.fill"
+          },
+          "colorMap": {
+            "none": "#3DFF8C",
+            "advisory": "#3FD8FF",
+            "medium": "#FFD23F",
+            "high": "#FF4D5E"
+          },
+          "haptic": "warning",
+          "defaultValue": "medium",
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "wiggle",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "loop": "periodic",
+            "loopDelay": 1.5,
+            "activeWhen": "high",
+            "transition": "replace.magic",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "hospital_or_alarm",
+                  "level": "high"
+                },
+                "effect": "wiggle"
+              },
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "hospital_or_alarm",
+                  "level": "medium"
+                },
+                "effect": "pulse"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_alarm"
+              },
+              "valuePath": "level"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "alarm-ack",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Acknowledge",
+          "icon": "checkmark.shield.fill",
+          "style": "filled",
+          "tint": "#FF4D5E",
+          "haptic": "warning",
+          "animation": "bouncy",
+          "visible": {
+            "when": "alarm-level",
+            "operator": "neq",
+            "value": "none"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_alarm_ack",
+              "station": "or7-ipad",
+              "pressed": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "audio-pause",
+          "position": [
+            15,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Pause audio 2m",
+          "style": "button",
+          "onIcon": "speaker.slash.fill",
+          "offIcon": "speaker.wave.2.fill",
+          "tint": "#FFD23F",
+          "haptic": "rigid",
+          "animation": "snappy",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_audio_pause",
+              "paused": "{{value}}",
+              "seconds": 120
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_alarm"
+              },
+              "valuePath": "audio_paused"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Count",
+      "icon": "tray.full.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "instr-board",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            9,
+            4
+          ],
+          "label": "Instrument & sponge count",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Back table",
+            "columns": 2,
+            "items": [
+              {
+                "id": "mayo-8",
+                "label": "Mayo scissors 8\"",
+                "icon": "scissors",
+                "tint": "#C9D6D3",
+                "zone": "field"
+              },
+              {
+                "id": "metz-7",
+                "label": "Metzenbaum 7\"",
+                "icon": "scissors",
+                "tint": "#C9D6D3",
+                "zone": "field"
+              },
+              {
+                "id": "kelly-4",
+                "label": "Kelly clamps ×4",
+                "icon": "wrench.and.screwdriver.fill",
+                "tint": "#C9D6D3",
+                "zone": "field"
+              },
+              {
+                "id": "allis-2",
+                "label": "Allis clamps ×2",
+                "icon": "wrench.and.screwdriver.fill",
+                "tint": "#C9D6D3",
+                "zone": "tray"
+              },
+              {
+                "id": "dbk-2",
+                "label": "DeBakey forceps ×2",
+                "icon": "hand.pinch.fill",
+                "tint": "#C9D6D3",
+                "zone": "field"
+              },
+              {
+                "id": "nh-7",
+                "label": "Needle driver 7\"",
+                "icon": "pencil.and.outline",
+                "tint": "#C9D6D3",
+                "zone": "tray"
+              },
+              {
+                "id": "scalpel-10",
+                "label": "#10 blade handle",
+                "icon": "bolt.horizontal.fill",
+                "tint": "#FFD23F",
+                "zone": "field"
+              },
+              {
+                "id": "scalpel-15",
+                "label": "#15 blade handle",
+                "icon": "bolt.horizontal.fill",
+                "tint": "#FFD23F",
+                "zone": "tray"
+              },
+              {
+                "id": "richard-2",
+                "label": "Richardson retractors ×2",
+                "icon": "arrow.left.and.right",
+                "tint": "#C9D6D3",
+                "zone": "field"
+              },
+              {
+                "id": "balfour",
+                "label": "Balfour retractor",
+                "icon": "square.dashed",
+                "tint": "#C9D6D3",
+                "zone": "tray"
+              },
+              {
+                "id": "yank",
+                "label": "Yankauer suction",
+                "icon": "drop.triangle.fill",
+                "tint": "#3FD8FF",
+                "zone": "field"
+              },
+              {
+                "id": "bovie",
+                "label": "Bovie pencil",
+                "icon": "bolt.fill",
+                "tint": "#FF9A3C",
+                "zone": "field"
+              },
+              {
+                "id": "lap-10",
+                "label": "Lap sponges ×10",
+                "icon": "square.stack.3d.up.fill",
+                "tint": "#FF4D5E",
+                "zone": "counted"
+              },
+              {
+                "id": "rayt-10",
+                "label": "Raytec ×10",
+                "icon": "square.grid.3x3.fill",
+                "tint": "#FF4D5E"
+              },
+              {
+                "id": "needle-ct1",
+                "label": "CT-1 needles ×3",
+                "icon": "staroflife.fill",
+                "tint": "#FFD23F",
+                "zone": "returned"
+              },
+              {
+                "id": "trocar-12",
+                "label": "12 mm trocar",
+                "icon": "circle.circle",
+                "tint": "#C792FF"
+              },
+              {
+                "id": "specimen",
+                "label": "Specimen · gallbladder",
+                "icon": "flask.fill",
+                "tint": "#3DFF8C",
+                "zone": "specimen",
+                "locked": true
+              }
+            ],
+            "zones": [
+              {
+                "id": "tray",
+                "label": "Mayo tray",
+                "tint": "#8FC9BE"
+              },
+              {
+                "id": "field",
+                "label": "On field",
+                "tint": "#FFD23F"
+              },
+              {
+                "id": "returned",
+                "label": "Returned",
+                "tint": "#3FD8FF"
+              },
+              {
+                "id": "counted",
+                "label": "Counted ✓",
+                "tint": "#3DFF8C"
+              },
+              {
+                "id": "specimen",
+                "label": "Specimen",
+                "tint": "#3DFF8C",
+                "locked": true
+              }
+            ],
+            "events": {
+              "pickup": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hospital_or_count_pickup",
+                  "item": "{{item}}",
+                  "zone": "{{from}}"
+                }
+              },
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hospital_or_count_move",
+                  "item": "{{item}}",
+                  "src": "{{from}}",
+                  "dst": "{{to}}",
+                  "index": "{{index}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "hospital_or_count_layout"
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_counts"
+              },
+              "valuePath": "board"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "sponge-count",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Sponges out",
+          "icon": "square.stack.3d.up.fill",
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "defaultValue": 10,
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_count_set",
+              "kind": "sponges",
+              "count": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_counts"
+              },
+              "valuePath": "sponges"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "sharps-count",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Sharps out",
+          "icon": "staroflife.fill",
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "defaultValue": 3,
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_count_set",
+              "kind": "sharps",
+              "count": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_counts"
+              },
+              "valuePath": "sharps"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "count-status",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Count",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": {
+            "open": "#FFD23F",
+            "reconciled": "#3DFF8C",
+            "discrepancy": "#FF4D5E"
+          },
+          "defaultValue": "open",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_counts"
+              },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "count-verify",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Verify count",
+          "icon": "checkmark.seal.fill",
+          "style": "tinted",
+          "tint": "#3DFF8C",
+          "haptic": "success",
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_count_verify",
+              "nurse": "RN Okafor",
+              "tech": "ST Lindqvist"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "count-banner",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "DISCREPANCY · recount before closure",
+          "icon": "exclamationmark.triangle.fill",
+          "style": "headline",
+          "tint": "#FF4D5E",
+          "align": "center",
+          "visible": {
+            "when": "count-status",
+            "operator": "eq",
+            "value": "discrepancy"
+          },
+          "animation": "gentle"
+        },
+        {
+          "type": "label",
+          "id": "count-note",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Initial count 07:52 · 2nd count due at fascia closure",
+          "icon": "clock.badge.checkmark",
+          "style": "caption",
+          "tint": "#8FC9BE",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_counts"
+              },
+              "valuePath": "note"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Procedure",
+      "icon": "list.bullet.clipboard.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "case-title",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Lap cholecystectomy · MRN ••4471 · Dr. Aranda",
+          "icon": "cross.case.fill",
+          "style": "headline",
+          "tint": "#E4FFF9",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_case"
+              },
+              "valuePath": "title"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "case-phase",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "prep",
+            "incise",
+            "dissect",
+            "close",
+            "out"
+          ],
+          "optionLabels": [
+            "Prep",
+            "Incise",
+            "Dissect",
+            "Close",
+            "Out"
+          ],
+          "optionIcons": [
+            "hands.and.sparkles.fill",
+            "bolt.horizontal.fill",
+            "scissors",
+            "bandage.fill",
+            "figure.walk.departure"
+          ],
+          "style": "pills",
+          "tint": "#19E3C5",
+          "defaultValue": "dissect",
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_phase_set",
+              "phase": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_case"
+              },
+              "valuePath": "phase"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "case-gantt",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Case timeline",
+          "tint": "#19E3C5",
+          "ganttConfig": {
+            "showToday": true,
+            "showProgress": true,
+            "rowHeight": 26,
+            "barCornerRadius": 3,
+            "scrub": true,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "hospital_or_task_select",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\": [{\"name\": \"Time-out\", \"start\": \"2026-09-24T07:40:00\", \"milestone\": true, \"color\": \"#3FD8FF\"}, {\"name\": \"Induction\", \"start\": \"2026-09-24T07:30:00\", \"end\": \"2026-09-24T07:48:00\", \"progress\": 1.0, \"color\": \"#C792FF\"}, {\"name\": \"Prep & drape\", \"start\": \"2026-09-24T07:48:00\", \"end\": \"2026-09-24T08:02:00\", \"progress\": 1.0, \"color\": \"#8FC9BE\"}, {\"name\": \"Port entry\", \"start\": \"2026-09-24T08:02:00\", \"end\": \"2026-09-24T08:14:00\", \"progress\": 1.0, \"color\": \"#FFD23F\"}, {\"name\": \"Calot dissect\", \"start\": \"2026-09-24T08:14:00\", \"end\": \"2026-09-24T08:50:00\", \"progress\": 1.0, \"color\": \"#FF9A3C\"}, {\"name\": \"Clip & divide\", \"start\": \"2026-09-24T08:50:00\", \"end\": \"2026-09-24T09:05:00\", \"progress\": 0.6, \"color\": \"#FF4D5E\"}, {\"name\": \"GB removal\", \"start\": \"2026-09-24T09:05:00\", \"end\": \"2026-09-24T09:25:00\", \"progress\": 0.0, \"color\": \"#3DFF8C\"}, {\"name\": \"Closure\", \"start\": \"2026-09-24T09:25:00\", \"end\": \"2026-09-24T09:40:00\", \"progress\": 0.0, \"color\": \"#C792FF\"}, {\"name\": \"Wheels out\", \"start\": \"2026-09-24T09:48:00\", \"milestone\": true, \"color\": \"#19E3C5\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_schedule"
+              },
+              "valuePath": "tasks"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "case-progress",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Case progress",
+          "progressStyle": "bar",
+          "min": 0,
+          "max": 100,
+          "tint": "#19E3C5",
+          "defaultValue": 64,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_case"
+              },
+              "valuePath": "progress"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "case-elapsed",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Since incision",
+          "text": "1h 01m",
+          "icon": "timer",
+          "style": "large-mono",
+          "tint": "#FFD23F",
+          "align": "trailing",
+          "formatValue": "duration",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_case"
+              },
+              "valuePath": "elapsed_s"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "case-team",
+          "label": "Case team · live",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2,
+            "mode": "flow"
+          },
+          "dynamic": "hospital_or_team",
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "hospital_or_team"
+            },
+            "direction": "inward",
+            "color": "19E3C5"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "team-placeholder",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "text": "Awaiting roster from OR 7 integrator…",
+              "icon": "person.3.sequence.fill",
+              "style": "caption",
+              "tint": "#8FC9BE"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "case-log",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Intra-op record",
+          "maxLines": 400,
+          "showTimestamps": false,
+          "fontSize": 11,
+          "controlHeight": 230,
+          "autoScroll": true,
+          "logColors": {
+            "error": "#FF4D5E",
+            "warn": "#FFD23F",
+            "info": "#8FC9BE"
+          },
+          "tint": "#19E3C5",
+          "defaultValue": "[{\"level\": \"info\", \"message\": \"07:40 Time-out complete \\u00b7 Dr. Aranda / Dr. Whitfield / RN Okafor\"}, {\"level\": \"info\", \"message\": \"07:44 Propofol 180 mg \\u00b7 rocuronium 50 mg\"}, {\"level\": \"info\", \"message\": \"08:02 Insufflation 15 mmHg \\u00b7 4 ports\"}, {\"level\": \"warn\", \"message\": \"08:21 MAP 73 \\u00b7 phenylephrine 100 mcg\"}, {\"level\": \"info\", \"message\": \"08:49 Critical view of safety confirmed\"}, {\"level\": \"error\", \"message\": \"08:58 SpO\\u2082 91% \\u00b7 FiO\\u2082 \\u2191 0.6 \\u00b7 resolved\"}, {\"level\": \"info\", \"message\": \"09:03 Cystic artery clipped \\u00d73\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_log"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "timeout-btn",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Call time-out",
+          "icon": "hand.raised.fill",
+          "style": "filled",
+          "tint": "#3FD8FF",
+          "haptic": "heavy",
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_timeout",
+              "kind": "surgical_pause"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "debrief-btn",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Start debrief",
+          "icon": "text.bubble.fill",
+          "style": "outlined",
+          "tint": "#C792FF",
+          "haptic": "medium",
+          "visible": {
+            "when": "case-phase",
+            "operator": "eq",
+            "value": "close"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_debrief_start"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Room",
+      "icon": "light.cylindrical.ceiling.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "joystick",
+          "id": "light-aim",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Light head aim",
+          "tint": "#FFE9B0",
+          "style": "analog",
+          "deadzone": 0.12,
+          "sticky": true,
+          "sendRate": 0.15,
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_light_aim",
+              "head": "{{value}}",
+              "x": "{{x}}",
+              "y": "{{y}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "light-head",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "L1",
+            "L2",
+            "SAT"
+          ],
+          "style": "pills",
+          "tint": "#FFE9B0",
+          "defaultValue": "L1",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_light_select",
+              "head": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_light"
+              },
+              "valuePath": "head"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "light-lux",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Intensity",
+          "min": 40,
+          "max": 160,
+          "step": 5,
+          "defaultValue": 120,
+          "formatValue": "decimal",
+          "minIcon": "sun.min",
+          "maxIcon": "sun.max.fill",
+          "tint": "#FFE9B0",
+          "continuous": false,
+          "animation": "smooth",
+          "visible": {
+            "when": "endo-mode",
+            "operator": "eq",
+            "value": false
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_light_set",
+              "param": "klux",
+              "level": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_light"
+              },
+              "valuePath": "klux"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "light-cct",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Colour temp K",
+          "min": 3500,
+          "max": 5000,
+          "step": 100,
+          "defaultValue": 4300,
+          "formatValue": "decimal",
+          "minIcon": "flame",
+          "maxIcon": "snowflake",
+          "tint": "#BFE3FF",
+          "continuous": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_light_set",
+              "param": "cct",
+              "level": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_light"
+              },
+              "valuePath": "cct"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "endo-mode",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Endo mode",
+          "icon": "video.fill",
+          "defaultValue": true,
+          "haptic": "medium",
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_endo_mode",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_light"
+              },
+              "valuePath": "endo"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "endo-banner",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "ENDO MODE · ambient 10% · light heads parked",
+          "icon": "moon.stars.fill",
+          "style": "headline",
+          "tint": "#3FD8FF",
+          "align": "center",
+          "animation": "gentle",
+          "visible": {
+            "when": "endo-mode",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "gauge",
+          "id": "room-temp",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Room °C · BMS",
+          "icon": "thermometer.medium",
+          "min": 16,
+          "max": 26,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 18,
+              "color": "#3FD8FF"
+            },
+            {
+              "limit": 23,
+              "color": "#19E3C5"
+            },
+            {
+              "limit": 26,
+              "color": "#FF9A3C"
+            }
+          ],
+          "defaultValue": 19.5,
+          "formatValue": "suffix:°",
+          "sync": [
+            {
+              "method": "http",
+              "source": "bms",
+              "path": "/api/rooms/or7",
+              "interval": 15,
+              "valuePath": "temperature_c"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "room-rh",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Humidity % · BMS",
+          "icon": "humidity.fill",
+          "min": 20,
+          "max": 70,
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 30,
+              "color": "#FFD23F"
+            },
+            {
+              "limit": 60,
+              "color": "#19E3C5"
+            },
+            {
+              "limit": 70,
+              "color": "#FF4D5E"
+            }
+          ],
+          "defaultValue": 44,
+          "formatValue": "percent",
+          "sync": [
+            {
+              "method": "http",
+              "source": "bms",
+              "path": "/api/rooms/or7",
+              "interval": 15,
+              "valuePath": "humidity_pct"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "laminar",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Laminar flow",
+          "style": "badge",
+          "statusColors": {
+            "ON": "#3DFF8C",
+            "SETBACK": "#FFD23F",
+            "FAULT": "#FF4D5E"
+          },
+          "defaultValue": "ON",
+          "pulse": true,
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "airflow",
+              "topic": "suite/or7/laminar/state"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ach",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Air changes",
+          "text": "22 /h",
+          "icon": "wind",
+          "style": "mono",
+          "tint": "#19E3C5",
+          "formatValue": "suffix: /h",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "airflow",
+              "topic": "suite/or7/ach",
+              "valuePath": "value"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "or-noise",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Room noise · this iPad",
+          "icon": "ear.fill",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "full",
+          "arcAngle": 240,
+          "segments": [
+            {
+              "limit": 55,
+              "color": "#19E3C5"
+            },
+            {
+              "limit": 70,
+              "color": "#FFD23F"
+            },
+            {
+              "limit": 100,
+              "color": "#FF4D5E"
+            }
+          ],
+          "defaultValue": 48,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "audio"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "pressure-diff",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Pressure Δ · Pa",
+          "tint": "#3FD8FF",
+          "sparklineFill": true,
+          "sparklinePoints": 120,
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "airflow",
+              "topic": "suite/or7/pressure",
+              "valuePath": "delta_pa"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "music",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Music",
+          "icon": "music.note",
+          "defaultValue": true,
+          "style": "switch",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_music",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_room"
+              },
+              "valuePath": "music"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "music-vol",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Volume",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "defaultValue": 35,
+          "formatValue": "percent",
+          "hideValue": false,
+          "visible": {
+            "when": "music",
+            "operator": "eq",
+            "value": true
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_music_volume",
+              "level": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_or_room"
+              },
+              "valuePath": "music_volume"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "door-lock",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Hold doors · do not enter",
+          "icon": "door.left.hand.closed",
+          "style": "tinted",
+          "tint": "#FFD23F",
+          "haptic": "heavy",
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_door_release"
+            }
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_or_door_hold",
+              "minutes": 20
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Team",
+      "icon": "bubble.left.and.text.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "team-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "OR 7 · scrubbed-in",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": false,
+            "allowClear": true,
+            "historyCount": 150,
+            "tint": "#19E3C5"
+          }
+        }
+      ]
+    }
+  ]
+}

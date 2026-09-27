@@ -1,0 +1,32 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "g",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "sideways",
+          "flavor": "mint"
+        }
+      ]
+    }
+  ]
+}

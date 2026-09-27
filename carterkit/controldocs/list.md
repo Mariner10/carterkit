@@ -79,6 +79,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | color | `"#FFFFFF"` | Header text color |
 | `hideLabel` | bool | `false` | Hide header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
+| `defaultValue` | object[] | — | Seed rows shown before the first sync, the same row objects a sync delivers. See [[control-def#defaultValue per type]] |
 
 ## Column keys
 

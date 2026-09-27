@@ -1,0 +1,92 @@
+{
+  "name": "Map Demo",
+  "headerTitle": "MAP",
+  "version": 1,
+  "accentColor": "#FF9F0A",
+  "appearance": { "colorScheme": "dark" },
+  "theme": {
+    "accentColor": "#FF9F0A",
+    "pageBackgroundGradient": ["#06070A", "#131019"],
+    "cornerRadius": 12,
+    "borderWidth": 1,
+    "borderColor": "#FFFFFF1A"
+  },
+  "tabs": [
+    {
+      "title": "Fleet",
+      "icon": "map.fill",
+      "grid": { "columns": 4, "rows": 8, "mode": "grid" },
+      "children": [
+        {
+          "type": "map",
+          "id": "fleet-map",
+          "position": [0, 0],
+          "span": [6, 4],
+          "label": "Fleet — live",
+          "mapStyle": "standard",
+          "mapZoom": 0.05,
+          "tint": "#FF9F0A",
+          "defaultValue": "{\"markers\":[{\"coordinate\":[42.3601,-71.0589],\"color\":\"#FF9F0A\",\"size\":16,\"label\":\"Depot\"},{\"coordinate\":[42.3736,-71.1097],\"color\":\"#30D158\",\"size\":12,\"label\":\"Van 1\"},{\"coordinate\":[42.3467,-71.0972],\"color\":\"#30D158\",\"size\":12,\"label\":\"Van 2\"},{\"coordinate\":[42.3875,-71.0995],\"color\":\"#FF453A\",\"size\":20,\"label\":\"Van 3 — stalled\",\"ripple\":{\"color\":\"#FF453A\",\"period\":1.4,\"radius\":56}}],\"paths\":[{\"points\":[[42.3601,-71.0589],[42.3654,-71.0806],[42.3736,-71.1097]],\"color\":\"#30D158\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": { "msg_type": "fleet_positions" },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fleet-note",
+          "position": [6, 0],
+          "span": [2, 4],
+          "text": "Markers carry their own color, size, label and ripple. The red van ripples because its marker says so — no wire event needed.",
+          "style": "caption"
+        }
+      ]
+    },
+    {
+      "title": "Quakes",
+      "icon": "waveform.path.ecg",
+      "grid": { "columns": 4, "rows": 8, "mode": "grid" },
+      "children": [
+        {
+          "type": "map",
+          "id": "quake-map",
+          "position": [0, 0],
+          "span": [6, 4],
+          "label": "USGS — last hour",
+          "mapStyle": "hybrid",
+          "mapZoom": 20,
+          "tint": "#FF9F0A",
+          "mapConfig": {
+            "markerSizeProperty": "mag",
+            "markerSizeDomain": [0, 7],
+            "markerSizeRange": [6, 30],
+            "markerLabelProperty": "place",
+            "rippleProperty": "mag",
+            "rippleThreshold": 4.0,
+            "ripple": { "color": "#FF453A", "period": 1.8, "radius": 60 }
+          },
+          "sync": [
+            {
+              "method": "http",
+              "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
+              "interval": 300
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "quake-note",
+          "position": [6, 0],
+          "span": [2, 4],
+          "text": "Raw USGS GeoJSON, polled straight from the app. Magnitude drives marker size; M4.0+ ripples.",
+          "style": "caption"
+        }
+      ]
+    }
+  ]
+}

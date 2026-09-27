@@ -1,0 +1,160 @@
+{
+  "name": "Atlas Ops",
+  "headerTitle": "ATLAS",
+  "version": 1,
+  "accentColor": "#FF9500",
+  "appearance": {
+    "colorScheme": "dark"
+  },
+  "theme": {
+    "accentColor": "#FF9500",
+    "accentGradient": ["#FF9500", "#FF6B6B"],
+    "pageBackgroundGradient": ["#120B02", "#1F1206"],
+    "cornerRadius": 16,
+    "cardPadding": 10,
+    "borderWidth": 1,
+    "borderColor": "#3A2A10",
+    "tabBarTint": "#FF9500"
+  },
+  "tabs": [
+    {
+      "title": "Triage",
+      "icon": "square.stack.3d.up.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "grid" },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "atlas-board",
+          "position": [0, 0],
+          "span": [10, 4],
+          "label": "Incident Triage",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Unsorted reports",
+            "columns": 3,
+            "items": [
+              { "id": "NET-31", "label": "Uplink flap", "icon": "wifi.exclamationmark", "tint": "#FF6B6B" },
+              { "id": "PWR-07", "label": "UPS on battery", "icon": "bolt.badge.clock", "tint": "#FFD60A" },
+              { "id": "CAM-12", "label": "Dock cam offline", "icon": "video.slash.fill", "tint": "#FF9500", "zone": "active" },
+              { "id": "ENV-19", "label": "Server room 31°C", "icon": "thermometer.high", "tint": "#FF453A", "zone": "active" },
+              { "id": "SEC-02", "label": "Badge reader jam", "icon": "person.badge.shield.checkmark", "tint": "#30D158", "zone": "resolved" }
+            ],
+            "zones": [
+              { "id": "triage", "label": "Triage" },
+              { "id": "active", "label": "Active", "capacity": 4, "tint": "#FF9500" },
+              { "id": "resolved", "label": "Resolved", "tint": "#30D158" }
+            ]
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "atlas.card-moved", "item": "{{item}}", "from": "{{from}}", "to": "{{to}}", "index": "{{index}}" }
+          },
+          "sync": [
+            { "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "atlas.board" }, "valuePath": "state" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Floor",
+      "icon": "map.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "grid" },
+      "children": [
+        {
+          "type": "pinboard",
+          "id": "atlas-floor",
+          "position": [0, 0],
+          "span": [10, 4],
+          "label": "Sensor Placement",
+          "pinboardConfig": {
+            "background": "building.2.fill",
+            "surfaceAspect": 1.4,
+            "paletteLabel": "Unplaced sensors",
+            "items": [
+              { "id": "th-lobby", "label": "Lobby T/H", "icon": "thermometer.medium", "tint": "#FF9500", "x": 0.22, "y": 0.3,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.sensor-tapped", "sensor": "{{value}}" } } },
+              { "id": "th-server", "label": "Server room", "icon": "thermometer.high", "tint": "#FF453A", "x": 0.72, "y": 0.24,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.sensor-tapped", "sensor": "{{value}}" } } },
+              { "id": "leak-basement", "label": "Leak sensor", "icon": "drop.fill", "tint": "#64D2FF" },
+              { "id": "cam-dock", "label": "Dock cam", "icon": "video.fill", "tint": "#30D158" }
+            ]
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": { "msg_type": "atlas.sensor-placed", "item": "{{item}}", "x": "{{x}}", "y": "{{y}}" }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Dispatch",
+      "icon": "location.north.circle.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "grid" },
+      "children": [
+        {
+          "type": "compass",
+          "id": "atlas-ring",
+          "position": [0, 0],
+          "span": [7, 4],
+          "label": "Point to dispatch",
+          "defaultValue": 15,
+          "compassConfig": {
+            "tolerance": 18,
+            "dwell": 0.8,
+            "pucks": [
+              { "id": "crew-north", "label": "North crew", "icon": "figure.walk", "tint": "#FF9500", "bearing": 0,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.dispatch", "crew": "{{value}}" } } },
+              { "id": "crew-east", "label": "East crew", "icon": "figure.run", "tint": "#30D158", "bearing": 90,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.dispatch", "crew": "{{value}}" } } },
+              { "id": "crew-south", "label": "South crew", "icon": "wrench.and.screwdriver.fill", "tint": "#64D2FF", "bearing": 180,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.dispatch", "crew": "{{value}}" } } },
+              { "id": "crew-west", "label": "West crew", "icon": "cross.case.fill", "tint": "#FF453A", "bearing": 270,
+                "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "atlas.dispatch", "crew": "{{value}}" } } }
+            ]
+          },
+          "sync": [{ "method": "sensor", "sensor": "heading" }]
+        },
+        {
+          "type": "statusLight",
+          "id": "atlas-dispatch-status",
+          "position": [7, 0],
+          "span": [1, 2],
+          "label": "Dispatch",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": { "idle": "#8E8E93", "enroute": "#FF9500", "onsite": "#30D158" },
+          "defaultValue": "idle",
+          "sync": [
+            { "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "atlas.status" }, "valuePath": "dispatch" }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "atlas-last-dispatch",
+          "position": [7, 2],
+          "span": [1, 2],
+          "style": "mono",
+          "align": "trailing",
+          "defaultValue": "no crew dispatched",
+          "sync": [
+            { "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "atlas.status" }, "valuePath": "lastDispatch" }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "atlas-dispatch-log",
+          "position": [8, 0],
+          "span": [2, 4],
+          "label": "Dispatch log",
+          "sync": [
+            { "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "atlas.log" }, "valuePath": "entry" }
+          ]
+        }
+      ]
+    }
+  ]
+}

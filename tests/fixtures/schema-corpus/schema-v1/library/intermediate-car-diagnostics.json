@@ -1,0 +1,685 @@
+{
+  "name": "Car Diagnostics",
+  "headerTitle": "OBD Scanner",
+  "id": "car-diagnostics",
+  "version": 1,
+  "accentColor": "#FF6B35",
+  "description": "A live OBD-II scanner: RPM and coolant gauges, speed, fuel and battery beside a trouble-code table with rescan/clear, plus trip economy charts. Readouts listen for car_diagnostics_* broadcasts; every input sends one carrying {{value}}.",
+  "difficulty": "intermediate",
+  "theme": {
+    "accentColor": "#FF6B35",
+    "cornerRadius": 14,
+    "fontDesign": "rounded",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0B0D10",
+        "#16191F"
+      ],
+      "surfacePrimary": "#FFFFFF12",
+      "surfaceSecondary": "#FFFFFF0A",
+      "foregroundColor": "#F2F4F7",
+      "borderColor": "#FF6B3526"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F2F3F5",
+        "#E2E5EA"
+      ],
+      "surfacePrimary": "#FFFFFFEB",
+      "surfaceSecondary": "#F7F8FA",
+      "foregroundColor": "#15181D",
+      "borderColor": "#15181D18"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Live",
+      "icon": "gauge.with.dots.needle.bottom.50percent",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "cd-link",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "OBD Link",
+          "style": "badge",
+          "defaultValue": "connected",
+          "statusColors": {
+            "connected": "#34C759",
+            "searching": "#FF9F0A",
+            "offline": "#FF453A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_status"
+              },
+              "valuePath": "link"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "cd-mil",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Check Engine",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "on",
+          "statusColors": {
+            "off": "#34C759",
+            "on": "#FF9F0A",
+            "flashing": "#FF453A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_status"
+              },
+              "valuePath": "mil"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "cd-rpm",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Engine RPM",
+          "icon": "gauge.with.dots.needle.67percent",
+          "min": 0,
+          "max": 7000,
+          "step": 10,
+          "gaugeStyle": "half",
+          "defaultValue": 2350,
+          "segments": [
+            {
+              "limit": 4500,
+              "color": "#30D158"
+            },
+            {
+              "limit": 6000,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 7000,
+              "color": "#FF453A"
+            }
+          ],
+          "colorBlend": 0.25,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "rpm"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "cd-coolant",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Coolant °C",
+          "icon": "thermometer.medium",
+          "min": 40,
+          "max": 130,
+          "step": 1,
+          "gaugeStyle": "half",
+          "defaultValue": 91,
+          "segments": [
+            {
+              "limit": 75,
+              "color": "#0A84FF"
+            },
+            {
+              "limit": 105,
+              "color": "#30D158"
+            },
+            {
+              "limit": 130,
+              "color": "#FF453A"
+            }
+          ],
+          "colorBlend": 0.25,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "coolant_c"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "cd-speed",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Speed km/h",
+          "icon": "speedometer",
+          "style": "large-mono",
+          "align": "center",
+          "formatValue": "decimal:0",
+          "defaultValue": 64,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "speed_kmh"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "cd-fuel",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Fuel",
+          "icon": "fuelpump.fill",
+          "min": 0,
+          "max": 100,
+          "tint": "#FFD60A",
+          "defaultValue": 58,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "fuel_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "cd-battery",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Battery V",
+          "icon": "minus.plus.batteryblock",
+          "style": "mono",
+          "align": "center",
+          "formatValue": "decimal:1",
+          "defaultValue": 14.2,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "battery_v"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "cd-rpm-trace",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "RPM (last 2 min)",
+          "tint": "#FF6B35",
+          "sparklineFill": true,
+          "sparklinePoints": 120,
+          "defaultValue": [
+            820,
+            840,
+            1500,
+            2100,
+            2650,
+            3100,
+            2800,
+            2400,
+            2300,
+            2550,
+            2900,
+            2350
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_telemetry"
+              },
+              "valuePath": "rpm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Codes",
+      "icon": "exclamationmark.triangle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "cd-codes-group",
+          "label": "Diagnostic Trouble Codes",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 5
+          },
+          "children": [
+            {
+              "type": "list",
+              "id": "cd-dtc-list",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                4,
+                4
+              ],
+              "label": "Stored & Pending",
+              "listColumns": [
+                {
+                  "key": "code",
+                  "label": "Code"
+                },
+                {
+                  "key": "system",
+                  "label": "System"
+                },
+                {
+                  "key": "desc",
+                  "label": "Description"
+                },
+                {
+                  "key": "status",
+                  "label": "Status"
+                }
+              ],
+              "defaultValue": "[{\"code\": \"P0171\", \"system\": \"Fuel trim\", \"desc\": \"System too lean, bank 1\", \"status\": \"Confirmed\"}, {\"code\": \"P0420\", \"system\": \"Emissions\", \"desc\": \"Catalyst efficiency below threshold\", \"status\": \"Pending\"}, {\"code\": \"P0304\", \"system\": \"Ignition\", \"desc\": \"Cylinder 4 misfire detected\", \"status\": \"Confirmed\"}, {\"code\": \"U0100\", \"system\": \"Network\", \"desc\": \"Lost comms with ECM/PCM\", \"status\": \"History\"}, {\"code\": \"P0455\", \"system\": \"EVAP\", \"desc\": \"Large leak detected\", \"status\": \"Pending\"}]",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "car_diagnostics_dtc"
+                  },
+                  "valuePath": "codes"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "cd-rescan",
+              "position": [
+                4,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Rescan",
+              "icon": "arrow.clockwise",
+              "style": "tinted",
+              "tint": "#0A84FF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "car_diagnostics_scan",
+                  "command": "rescan",
+                  "mode": "full"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "cd-clear",
+              "position": [
+                4,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Clear Codes",
+              "icon": "trash.fill",
+              "tint": "#FF453A",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "car_diagnostics_clear_codes",
+                  "command": "clear",
+                  "confirm": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "picker",
+          "id": "cd-module",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Module",
+          "icon": "cpu",
+          "options": [
+            "all",
+            "ecm",
+            "tcm",
+            "abs",
+            "bcm"
+          ],
+          "optionLabels": [
+            "All Modules",
+            "Engine (ECM)",
+            "Transmission (TCM)",
+            "ABS / Brakes",
+            "Body (BCM)"
+          ],
+          "defaultValue": "all",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "car_diagnostics_select_module",
+              "module": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "cd-scan-log",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Scan Log",
+          "controlHeight": 220,
+          "maxLines": 300,
+          "logColors": {
+            "error": "#FF453A",
+            "warn": "#FF9F0A",
+            "info": "#30D158",
+            "debug": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_log"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trip",
+      "icon": "road.lanes",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "cd-trip-range",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "trip",
+            "week",
+            "month"
+          ],
+          "optionLabels": [
+            "Trip",
+            "Week",
+            "Month"
+          ],
+          "defaultValue": "trip",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "car_diagnostics_trip_range",
+              "range": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "chart",
+          "id": "cd-economy",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Fuel Economy L/100km",
+          "tint": "#FF6B35",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "barCornerRadius": 4
+          },
+          "defaultValue": {
+            "categories": [
+              "Mon",
+              "Tue",
+              "Wed",
+              "Thu",
+              "Fri",
+              "Sat",
+              "Sun"
+            ],
+            "series": [
+              {
+                "name": "L/100km",
+                "type": "bar",
+                "color": "#FF6B35",
+                "values": [
+                  7.8,
+                  8.4,
+                  7.2,
+                  9.1,
+                  8.0,
+                  6.6,
+                  7.0
+                ]
+              },
+              {
+                "name": "Avg km/h",
+                "type": "line",
+                "color": "#5AC8FA",
+                "values": [
+                  42,
+                  38,
+                  51,
+                  33,
+                  40,
+                  68,
+                  61
+                ]
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_trip"
+              },
+              "valuePath": "economy_chart"
+            }
+          ]
+        },
+        {
+          "type": "pieChart",
+          "id": "cd-drive-split",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Drive Time Split",
+          "pieStyle": "donut",
+          "centerText": "{{total}} min",
+          "showLegend": true,
+          "defaultValue": {
+            "slices": [
+              {
+                "label": "Idle",
+                "value": 22,
+                "color": "#8E8E93"
+              },
+              {
+                "label": "City",
+                "value": 64,
+                "color": "#FF9F0A"
+              },
+              {
+                "label": "Highway",
+                "value": 41,
+                "color": "#30D158"
+              },
+              {
+                "label": "Stop-go",
+                "value": 18,
+                "color": "#FF453A"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "car_diagnostics_trip"
+              },
+              "valuePath": "drive_split"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

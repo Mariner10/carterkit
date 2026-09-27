@@ -1,0 +1,514 @@
+{
+  "name": "Deep Nest Test",
+  "headerTitle": "Deep Nest",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Deep",
+      "icon": "square.stack.3d.up",
+      "grid": {
+        "columns": 4,
+        "rows": 8,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "lvl-0",
+          "label": "Level 0",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            8,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 8,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "leaf-0",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "text": "depth 0"
+            },
+            {
+              "type": "group",
+              "id": "lvl-1",
+              "label": "Level 1",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                8,
+                4
+              ],
+              "grid": {
+                "columns": 4,
+                "rows": 8,
+                "mode": "flow"
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "id": "leaf-1",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    4
+                  ],
+                  "text": "depth 1"
+                },
+                {
+                  "type": "group",
+                  "id": "lvl-2",
+                  "label": "Level 2",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    8,
+                    4
+                  ],
+                  "grid": {
+                    "columns": 4,
+                    "rows": 8,
+                    "mode": "flow"
+                  },
+                  "children": [
+                    {
+                      "type": "label",
+                      "id": "leaf-2",
+                      "position": [
+                        0,
+                        0
+                      ],
+                      "span": [
+                        1,
+                        4
+                      ],
+                      "text": "depth 2"
+                    },
+                    {
+                      "type": "group",
+                      "id": "lvl-3",
+                      "label": "Level 3",
+                      "position": [
+                        1,
+                        0
+                      ],
+                      "span": [
+                        8,
+                        4
+                      ],
+                      "grid": {
+                        "columns": 4,
+                        "rows": 8,
+                        "mode": "flow"
+                      },
+                      "children": [
+                        {
+                          "type": "label",
+                          "id": "leaf-3",
+                          "position": [
+                            0,
+                            0
+                          ],
+                          "span": [
+                            1,
+                            4
+                          ],
+                          "text": "depth 3"
+                        },
+                        {
+                          "type": "group",
+                          "id": "lvl-4",
+                          "label": "Level 4",
+                          "position": [
+                            1,
+                            0
+                          ],
+                          "span": [
+                            8,
+                            4
+                          ],
+                          "grid": {
+                            "columns": 4,
+                            "rows": 8,
+                            "mode": "flow"
+                          },
+                          "children": [
+                            {
+                              "type": "label",
+                              "id": "leaf-4",
+                              "position": [
+                                0,
+                                0
+                              ],
+                              "span": [
+                                1,
+                                4
+                              ],
+                              "text": "depth 4"
+                            },
+                            {
+                              "type": "group",
+                              "id": "lvl-5",
+                              "label": "Level 5",
+                              "position": [
+                                1,
+                                0
+                              ],
+                              "span": [
+                                8,
+                                4
+                              ],
+                              "grid": {
+                                "columns": 4,
+                                "rows": 8,
+                                "mode": "flow"
+                              },
+                              "children": [
+                                {
+                                  "type": "label",
+                                  "id": "leaf-5",
+                                  "position": [
+                                    0,
+                                    0
+                                  ],
+                                  "span": [
+                                    1,
+                                    4
+                                  ],
+                                  "text": "depth 5"
+                                },
+                                {
+                                  "type": "group",
+                                  "id": "lvl-6",
+                                  "label": "Level 6",
+                                  "position": [
+                                    1,
+                                    0
+                                  ],
+                                  "span": [
+                                    8,
+                                    4
+                                  ],
+                                  "grid": {
+                                    "columns": 4,
+                                    "rows": 8,
+                                    "mode": "flow"
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "label",
+                                      "id": "leaf-6",
+                                      "position": [
+                                        0,
+                                        0
+                                      ],
+                                      "span": [
+                                        1,
+                                        4
+                                      ],
+                                      "text": "depth 6"
+                                    },
+                                    {
+                                      "type": "group",
+                                      "id": "lvl-7",
+                                      "label": "Level 7",
+                                      "position": [
+                                        1,
+                                        0
+                                      ],
+                                      "span": [
+                                        8,
+                                        4
+                                      ],
+                                      "grid": {
+                                        "columns": 4,
+                                        "rows": 8,
+                                        "mode": "flow"
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "label",
+                                          "id": "leaf-7",
+                                          "position": [
+                                            0,
+                                            0
+                                          ],
+                                          "span": [
+                                            1,
+                                            4
+                                          ],
+                                          "text": "depth 7"
+                                        },
+                                        {
+                                          "type": "group",
+                                          "id": "lvl-8",
+                                          "label": "Level 8",
+                                          "position": [
+                                            1,
+                                            0
+                                          ],
+                                          "span": [
+                                            8,
+                                            4
+                                          ],
+                                          "grid": {
+                                            "columns": 4,
+                                            "rows": 8,
+                                            "mode": "flow"
+                                          },
+                                          "children": [
+                                            {
+                                              "type": "label",
+                                              "id": "leaf-8",
+                                              "position": [
+                                                0,
+                                                0
+                                              ],
+                                              "span": [
+                                                1,
+                                                4
+                                              ],
+                                              "text": "depth 8"
+                                            },
+                                            {
+                                              "type": "group",
+                                              "id": "lvl-9",
+                                              "label": "Level 9",
+                                              "position": [
+                                                1,
+                                                0
+                                              ],
+                                              "span": [
+                                                8,
+                                                4
+                                              ],
+                                              "grid": {
+                                                "columns": 4,
+                                                "rows": 8,
+                                                "mode": "flow"
+                                              },
+                                              "children": [
+                                                {
+                                                  "type": "label",
+                                                  "id": "leaf-9",
+                                                  "position": [
+                                                    0,
+                                                    0
+                                                  ],
+                                                  "span": [
+                                                    1,
+                                                    4
+                                                  ],
+                                                  "text": "depth 9"
+                                                },
+                                                {
+                                                  "type": "group",
+                                                  "id": "lvl-10",
+                                                  "label": "Level 10",
+                                                  "position": [
+                                                    1,
+                                                    0
+                                                  ],
+                                                  "span": [
+                                                    8,
+                                                    4
+                                                  ],
+                                                  "grid": {
+                                                    "columns": 4,
+                                                    "rows": 8,
+                                                    "mode": "flow"
+                                                  },
+                                                  "children": [
+                                                    {
+                                                      "type": "label",
+                                                      "id": "leaf-10",
+                                                      "position": [
+                                                        0,
+                                                        0
+                                                      ],
+                                                      "span": [
+                                                        1,
+                                                        4
+                                                      ],
+                                                      "text": "depth 10"
+                                                    },
+                                                    {
+                                                      "type": "group",
+                                                      "id": "lvl-11",
+                                                      "label": "Level 11",
+                                                      "position": [
+                                                        1,
+                                                        0
+                                                      ],
+                                                      "span": [
+                                                        8,
+                                                        4
+                                                      ],
+                                                      "grid": {
+                                                        "columns": 4,
+                                                        "rows": 8,
+                                                        "mode": "flow"
+                                                      },
+                                                      "children": [
+                                                        {
+                                                          "type": "label",
+                                                          "id": "leaf-11",
+                                                          "position": [
+                                                            0,
+                                                            0
+                                                          ],
+                                                          "span": [
+                                                            1,
+                                                            4
+                                                          ],
+                                                          "text": "depth 11"
+                                                        },
+                                                        {
+                                                          "type": "group",
+                                                          "id": "lvl-12",
+                                                          "label": "Level 12",
+                                                          "position": [
+                                                            1,
+                                                            0
+                                                          ],
+                                                          "span": [
+                                                            8,
+                                                            4
+                                                          ],
+                                                          "grid": {
+                                                            "columns": 4,
+                                                            "rows": 8,
+                                                            "mode": "flow"
+                                                          },
+                                                          "children": [
+                                                            {
+                                                              "type": "label",
+                                                              "id": "leaf-12",
+                                                              "position": [
+                                                                0,
+                                                                0
+                                                              ],
+                                                              "span": [
+                                                                1,
+                                                                4
+                                                              ],
+                                                              "text": "depth 12"
+                                                            },
+                                                            {
+                                                              "type": "group",
+                                                              "id": "lvl-13",
+                                                              "label": "Level 13",
+                                                              "position": [
+                                                                1,
+                                                                0
+                                                              ],
+                                                              "span": [
+                                                                8,
+                                                                4
+                                                              ],
+                                                              "grid": {
+                                                                "columns": 4,
+                                                                "rows": 8,
+                                                                "mode": "flow"
+                                                              },
+                                                              "children": [
+                                                                {
+                                                                  "type": "label",
+                                                                  "id": "leaf-13",
+                                                                  "position": [
+                                                                    0,
+                                                                    0
+                                                                  ],
+                                                                  "span": [
+                                                                    1,
+                                                                    4
+                                                                  ],
+                                                                  "text": "depth 13"
+                                                                },
+                                                                {
+                                                                  "type": "group",
+                                                                  "id": "lvl-14",
+                                                                  "label": "Level 14",
+                                                                  "position": [
+                                                                    1,
+                                                                    0
+                                                                  ],
+                                                                  "span": [
+                                                                    8,
+                                                                    4
+                                                                  ],
+                                                                  "grid": {
+                                                                    "columns": 4,
+                                                                    "rows": 8,
+                                                                    "mode": "flow"
+                                                                  },
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "label",
+                                                                      "id": "leaf-14",
+                                                                      "position": [
+                                                                        0,
+                                                                        0
+                                                                      ],
+                                                                      "span": [
+                                                                        1,
+                                                                        4
+                                                                      ],
+                                                                      "text": "depth 14"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

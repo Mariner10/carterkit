@@ -1,0 +1,438 @@
+{
+  "name": "CAR-TER Demo",
+  "headerTitle": "CAR-TER Demo",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Docs",
+      "icon": "circle.hexagongrid.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "cardList",
+          "id": "docs-graph",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "hideLabel": true,
+          "hideBackground": true
+        }
+      ]
+    },
+    {
+      "title": "Input",
+      "icon": "slider.horizontal.3",
+      "grid": {
+        "columns": 4,
+        "rows": 6,
+        "mode": "grid"
+      },
+      "children": [
+        {
+          "type": "button",
+          "id": "demo-btn",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Execute",
+          "icon": "bolt.fill",
+          "haptic": "heavy"
+        },
+        {
+          "type": "toggle",
+          "id": "demo-toggle",
+          "position": [
+            0,
+            2
+          ],
+          "label": "Power",
+          "defaultValue": true
+        },
+        {
+          "type": "toggle",
+          "id": "demo-toggle-2",
+          "position": [
+            0,
+            3
+          ],
+          "label": "Auto",
+          "defaultValue": false
+        },
+        {
+          "type": "slider",
+          "id": "demo-slider",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Brightness",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 75,
+          "minIcon": "sun.min",
+          "maxIcon": "sun.max"
+        },
+        {
+          "type": "stepper",
+          "id": "demo-stepper",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Interval",
+          "min": 1,
+          "max": 60,
+          "step": 1,
+          "defaultValue": 5
+        },
+        {
+          "type": "colorPicker",
+          "id": "demo-color",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Accent Color",
+          "defaultValue": "#667eea"
+        },
+        {
+          "type": "segmentedControl",
+          "id": "demo-segment",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "Off",
+            "Low",
+            "Medium",
+            "High"
+          ],
+          "defaultValue": "Medium",
+          "label": "Power Level"
+        },
+        {
+          "type": "picker",
+          "id": "demo-picker",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Theme",
+          "options": [
+            "Ocean",
+            "Forest",
+            "Sunset",
+            "Midnight"
+          ],
+          "defaultValue": "Ocean",
+          "pickerStyle": "menu"
+        },
+        {
+          "type": "datePicker",
+          "id": "demo-date",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Schedule",
+          "datePickerStyle": "compact",
+          "datePickerMode": "dateAndTime"
+        },
+        {
+          "type": "textInput",
+          "id": "demo-text",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Command",
+          "placeholder": "Enter command..."
+        }
+      ]
+    },
+    {
+      "title": "Display",
+      "icon": "gauge.with.dots.needle.67percent",
+      "grid": {
+        "columns": 4,
+        "rows": 9,
+        "mode": "grid"
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "demo-gauge",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "CPU",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 42,
+          "tint": "#667eea",
+          "gaugeStyle": "three_quarter",
+          "segments": [
+            {
+              "limit": 50,
+              "color": "#34C759"
+            },
+            {
+              "limit": 80,
+              "color": "#FF9500"
+            },
+            {
+              "limit": 100,
+              "color": "#FF3B30"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "demo-gauge-2",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Memory",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 61,
+          "tint": "#FF6B6B",
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#34C759"
+            },
+            {
+              "limit": 85,
+              "color": "#FF9500"
+            },
+            {
+              "limit": 100,
+              "color": "#FF3B30"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "demo-progress",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Disk Usage",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 73,
+          "tint": "#FF9500",
+          "progressStyle": "ring"
+        },
+        {
+          "type": "progressRing",
+          "id": "demo-bar",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Network",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 45,
+          "tint": "#5AC8FA",
+          "progressStyle": "bar"
+        },
+        {
+          "type": "sparkline",
+          "id": "demo-sparkline",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "CPU History",
+          "min": 0,
+          "max": 100,
+          "tint": "#667eea",
+          "sparklineFill": true,
+          "sparklinePoints": 40
+        },
+        {
+          "type": "label",
+          "id": "demo-label",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "Status: Ready"
+        },
+        {
+          "type": "label",
+          "id": "demo-vis-label",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "text": "Power: Active",
+          "tint": "#34C759",
+          "visible": {
+            "when": "demo-toggle",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "demo-log",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Event Log",
+          "tint": "#667eea",
+          "maxLines": 100,
+          "showTimestamps": true
+        }
+      ]
+    },
+    {
+      "title": "Data",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8,
+        "mode": "grid"
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "demo-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Location"
+        },
+        {
+          "type": "image",
+          "id": "demo-image",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Feed",
+          "systemName": "antenna.radiowaves.left.and.right"
+        }
+      ]
+    },
+    {
+      "title": "Chat",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "demo-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Channel"
+        }
+      ]
+    }
+  ]
+}

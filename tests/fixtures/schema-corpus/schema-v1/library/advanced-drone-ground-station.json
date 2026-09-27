@@ -1,0 +1,1260 @@
+{
+  "name": "Drone Ground Station",
+  "headerTitle": "HX-4 \u00b7 GROUND",
+  "version": 1,
+  "accentColor": "#00E5FF",
+  "description": "A field ground station for a survey quadcopter: live flight path over satellite, heading ring, altitude/battery dials, telemetry trends, and arm-gated flight commands.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#00E5FF",
+    "accentGradient": [
+      "#00E5FF",
+      "#0A84FF"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 10,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "labelFontSize": 11,
+    "valueFontSize": 14,
+    "valueFontWeight": "semibold",
+    "tabBarTint": "#00E5FF",
+    "pageBackgroundGradient": [
+      "#03070C",
+      "#081421",
+      "#0C1E2E"
+    ],
+    "surfacePrimary": "#7FDBFF12",
+    "surfaceSecondary": "#7FDBFF0A",
+    "surfaceTertiary": "#7FDBFF06",
+    "borderColor": "#7FDBFF2E",
+    "foregroundColor": "#E6F7FF",
+    "secondaryColor": "#8FB8CC",
+    "tertiaryColor": "#557A8C",
+    "toggle": {
+      "trackActiveColor": "#FF453A"
+    },
+    "slider": {
+      "trackActiveColor": "#00E5FF",
+      "thumbColor": "#E6F7FF"
+    }
+  },
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 3
+    }
+  ],
+  "tabs": [
+    {
+      "title": "Flight",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "map",
+          "id": "dgs-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Flight path \u00b7 Marymoor Field",
+          "mapStyle": "hybrid",
+          "mapZoom": 0.008,
+          "tint": "#00E5FF",
+          "mapConfig": {
+            "recenter": "auto"
+          },
+          "defaultValue": "{\"markers\": [{\"coordinate\": [47.6421, -122.1376], \"color\": \"#34C759\", \"size\": 14, \"label\": \"Home\"}, {\"coordinate\": [47.6433, -122.1359], \"color\": \"#FFD60A\", \"size\": 10, \"label\": \"WP1\"}, {\"coordinate\": [47.6447, -122.1362], \"color\": \"#FFD60A\", \"size\": 10, \"label\": \"WP2\"}, {\"coordinate\": [47.6452, -122.1384], \"color\": \"#FFD60A\", \"size\": 10, \"label\": \"WP3\"}, {\"coordinate\": [47.6444, -122.1373], \"color\": \"#00E5FF\", \"size\": 18, \"label\": \"HX-4 \\u00b7 62 m\", \"ripple\": {\"color\": \"#00E5FF\", \"period\": 1.6, \"radius\": 40}}], \"paths\": [{\"points\": [[47.6421, -122.1376], [47.6433, -122.1359], [47.6447, -122.1362], [47.6452, -122.1384], [47.644, -122.1401], [47.6426, -122.1395]], \"color\": \"#FFD60A80\"}, {\"points\": [[47.6421, -122.1376], [47.6433, -122.1359], [47.6447, -122.1362], [47.6444, -122.1373]], \"color\": \"#00E5FF\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_position"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "compass",
+          "id": "dgs-compass",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Heading \u00b7 point to yaw",
+          "defaultValue": 38,
+          "compassConfig": {
+            "tolerance": 12,
+            "dwell": 1.5,
+            "editable": false,
+            "pucks": [
+              {
+                "id": "wp1",
+                "label": "WP1",
+                "icon": "1.circle.fill",
+                "tint": "#FFD60A",
+                "bearing": 45,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "drone_ground_station_yaw_to",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "wp3",
+                "label": "WP3",
+                "icon": "3.circle.fill",
+                "tint": "#FFD60A",
+                "bearing": 320,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "drone_ground_station_yaw_to",
+                    "target": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "home",
+                "label": "Home",
+                "icon": "house.fill",
+                "tint": "#34C759",
+                "bearing": 200,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "drone_ground_station_yaw_to",
+                    "target": "{{value}}"
+                  }
+                }
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_attitude"
+              },
+              "valuePath": "heading_deg"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "dgs-alt",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Altitude AGL",
+          "icon": "arrow.up.to.line",
+          "min": 0,
+          "max": 120,
+          "step": 0.1,
+          "formatValue": "suffix: m",
+          "segments": [
+            {
+              "limit": 100,
+              "color": "#00E5FF"
+            },
+            {
+              "limit": 120,
+              "color": "#FF9F0A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "defaultValue": 62.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "alt_agl"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "dgs-batt",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Battery",
+          "icon": "battery.75percent",
+          "min": 0,
+          "max": 100,
+          "formatValue": "suffix:%",
+          "segments": [
+            {
+              "limit": 20,
+              "color": "#FF453A"
+            },
+            {
+              "limit": 35,
+              "color": "#FF9F0A"
+            },
+            {
+              "limit": 100,
+              "color": "#30D158"
+            }
+          ],
+          "defaultValue": 71,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "battery_pct"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "dgs-link",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "grid": {
+            "columns": 3,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "dgs-rc",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "RC 2.4G",
+              "style": "badge",
+              "statusColors": {
+                "strong": "#30D158",
+                "weak": "#FF9F0A",
+                "lost": "#FF453A"
+              },
+              "defaultValue": "strong",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_link"
+                  },
+                  "valuePath": "rc"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "dgs-video",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Video 5.8G",
+              "style": "badge",
+              "statusColors": {
+                "strong": "#30D158",
+                "weak": "#FF9F0A",
+                "lost": "#FF453A"
+              },
+              "defaultValue": "weak",
+              "pulse": true,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_link"
+                  },
+                  "valuePath": "video"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "dgs-geofence",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Geofence",
+              "style": "badge",
+              "statusColors": {
+                "inside": "#30D158",
+                "edge": "#FF9F0A",
+                "breach": "#FF453A"
+              },
+              "defaultValue": "inside",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_link"
+                  },
+                  "valuePath": "geofence"
+                }
+              ]
+            }
+          ],
+          "label": "Link health"
+        }
+      ]
+    },
+    {
+      "title": "Telemetry",
+      "icon": "waveform.path.ecg",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "dgs-gps-sym",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "location.north.line.fill",
+          "label": "GNSS \u00b7 RTK float",
+          "tint": "#00E5FF",
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "breathe",
+            "effectOptions": [
+              "pulse"
+            ],
+            "loop": "continuous",
+            "speed": 0.8,
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "drone_ground_station_gps_fix"
+                },
+                "effect": "bounce"
+              }
+            ],
+            "tapEffect": "wiggle"
+          }
+        },
+        {
+          "type": "label",
+          "id": "dgs-sats",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Satellites",
+          "text": "17 in view",
+          "icon": "dot.radiowaves.up.forward",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_gps"
+              },
+              "valuePath": "sats_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "dgs-hdop",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "HDOP",
+          "text": "0.72",
+          "icon": "scope",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_gps"
+              },
+              "valuePath": "hdop"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "dgs-fix",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Fix",
+          "style": "badge",
+          "statusColors": {
+            "rtk_fixed": "#30D158",
+            "rtk_float": "#64D2FF",
+            "3d": "#FFD60A",
+            "none": "#FF453A"
+          },
+          "defaultValue": "rtk_float",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_gps"
+              },
+              "valuePath": "fix"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "dgs-sp-alt",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Altitude \u00b7 m",
+          "tint": "#00E5FF",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": "[0, 4, 11, 19, 27, 34, 40, 45, 49, 52, 55, 57, 58, 60, 61, 61, 62, 62, 63, 62, 62]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "alt_agl"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "dgs-sp-volt",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Pack \u00b7 V",
+          "tint": "#30D158",
+          "sparklinePoints": 60,
+          "defaultValue": "[25.1, 24.9, 24.6, 24.4, 24.3, 24.1, 24.0, 23.9, 23.8, 23.7, 23.6, 23.6, 23.5]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "pack_v"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "dgs-sp-amp",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Current \u00b7 A",
+          "tint": "#FF9F0A",
+          "sparklinePoints": 60,
+          "defaultValue": "[2, 31, 38, 36, 22, 19, 24, 27, 21, 18, 20, 23, 19]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "current_a"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "dgs-sp-vib",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Vibration \u00b7 m/s\u00b2",
+          "tint": "#BF5AF2",
+          "sparklinePoints": 60,
+          "defaultValue": "[8, 12, 14, 11, 9, 10, 13, 15, 12, 10, 9, 11, 12]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_telemetry"
+              },
+              "valuePath": "vibe"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "dgs-sp-rssi",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "RC RSSI \u00b7 dBm",
+          "tint": "#64D2FF",
+          "sparklinePoints": 60,
+          "defaultValue": "[-48, -51, -55, -58, -61, -63, -66, -64, -62, -65, -67, -66, -64]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_link"
+              },
+              "valuePath": "rssi_dbm"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "dgs-motors",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "progressRing",
+              "id": "dgs-m1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                3,
+                1
+              ],
+              "label": "M1 FL",
+              "min": 0,
+              "max": 100,
+              "tint": "#FF9F0A",
+              "icon": "fanblades.fill",
+              "defaultValue": 54,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_motors"
+                  },
+                  "valuePath": "m1_temp_pct"
+                }
+              ]
+            },
+            {
+              "type": "progressRing",
+              "id": "dgs-m2",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                3,
+                1
+              ],
+              "label": "M2 FR",
+              "min": 0,
+              "max": 100,
+              "tint": "#FF9F0A",
+              "icon": "fanblades.fill",
+              "defaultValue": 57,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_motors"
+                  },
+                  "valuePath": "m2_temp_pct"
+                }
+              ]
+            },
+            {
+              "type": "progressRing",
+              "id": "dgs-m3",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                3,
+                1
+              ],
+              "label": "M3 RL",
+              "min": 0,
+              "max": 100,
+              "tint": "#FF9F0A",
+              "icon": "fanblades.fill",
+              "defaultValue": 61,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_motors"
+                  },
+                  "valuePath": "m3_temp_pct"
+                }
+              ]
+            },
+            {
+              "type": "progressRing",
+              "id": "dgs-m4",
+              "position": [
+                0,
+                3
+              ],
+              "span": [
+                3,
+                1
+              ],
+              "label": "M4 RR",
+              "min": 0,
+              "max": 100,
+              "tint": "#FF9F0A",
+              "icon": "fanblades.fill",
+              "defaultValue": 55,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "drone_ground_station_motors"
+                  },
+                  "valuePath": "m4_temp_pct"
+                }
+              ]
+            }
+          ],
+          "label": "Motor temperature"
+        }
+      ]
+    },
+    {
+      "title": "Command",
+      "icon": "dot.scope",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "dgs-arm",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Arm motors",
+          "icon": "power",
+          "tint": "#FF453A",
+          "haptic": "heavy",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "drone_ground_station_arm",
+              "armed": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_state"
+              },
+              "valuePath": "armed"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "dgs-armstate",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Vehicle",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "statusColors": {
+            "disarmed": "#8E8E93",
+            "armed": "#FF453A",
+            "in_air": "#30D158",
+            "rtl": "#FF9F0A"
+          },
+          "defaultValue": "disarmed",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_state"
+              },
+              "valuePath": "vehicle"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "dgs-mode",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Flight mode",
+          "options": [
+            "stab",
+            "loiter",
+            "auto",
+            "guided"
+          ],
+          "optionLabels": [
+            "Stab",
+            "Loiter",
+            "Auto",
+            "Guide"
+          ],
+          "defaultValue": "loiter",
+          "tint": "#00E5FF",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "drone_ground_station_set_mode",
+              "mode": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_state"
+              },
+              "valuePath": "mode"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "dgs-armed-grp",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "dgs-takeoff",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Takeoff",
+              "icon": "airplane.departure",
+              "tint": "#30D158",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_takeoff",
+                  "alt_m": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "dgs-land",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Land here",
+              "icon": "airplane.arrival",
+              "style": "tinted",
+              "tint": "#FFD60A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_land"
+                }
+              }
+            },
+            {
+              "type": "slider",
+              "id": "dgs-target-alt",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Target altitude",
+              "min": 10,
+              "max": 120,
+              "step": 5,
+              "defaultValue": 60,
+              "tint": "#00E5FF",
+              "minIcon": "arrow.down",
+              "maxIcon": "arrow.up",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_set_alt",
+                  "alt_m": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "dgs-rtl",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Return to launch",
+              "icon": "house.and.flag.fill",
+              "tint": "#FF9F0A",
+              "size": "large",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_rtl"
+                }
+              }
+            }
+          ],
+          "label": "Armed controls",
+          "visible": {
+            "when": "dgs-arm",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "label",
+          "id": "dgs-safe",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Disarmed \u00b7 props safe to handle",
+          "icon": "checkmark.shield.fill",
+          "tint": "#30D158",
+          "align": "center",
+          "visible": {
+            "when": "dgs-arm",
+            "operator": "eq",
+            "value": false
+          }
+        },
+        {
+          "type": "group",
+          "id": "dgs-mission",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "dgs-cruise",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Cruise speed \u00b7 m/s",
+              "min": 2,
+              "max": 15,
+              "step": 0.5,
+              "defaultValue": 8,
+              "tint": "#00E5FF",
+              "continuous": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_set_speed",
+                  "mps": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "dgs-upload",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Upload",
+              "icon": "square.and.arrow.up",
+              "style": "outlined",
+              "tint": "#64D2FF",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_mission_upload",
+                  "plan": "survey_b"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "dgs-start",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Start",
+              "icon": "play.fill",
+              "tint": "#30D158",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "drone_ground_station_mission_start",
+                  "plan": "survey_b"
+                }
+              },
+              "visible": {
+                "when": "dgs-arm",
+                "operator": "eq",
+                "value": true
+              }
+            }
+          ],
+          "label": "Mission \u00b7 Survey grid B"
+        },
+        {
+          "type": "button",
+          "id": "dgs-kill",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Emergency motor stop",
+          "icon": "exclamationmark.octagon.fill",
+          "tint": "#FF3B30",
+          "size": "large",
+          "haptic": "error",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "drone_ground_station_kill",
+              "confirm": true
+            }
+          },
+          "visible": {
+            "when": "dgs-arm",
+            "operator": "eq",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "title": "Log",
+      "icon": "terminal.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 2,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "dgs-log-hdr",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "MAVLink",
+          "text": "HX-4 \u00b7 sysid 1 \u00b7 57600 baud",
+          "icon": "terminal",
+          "style": "mono",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_status"
+              },
+              "valuePath": "link_text"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "dgs-log",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Flight log",
+          "maxLines": 400,
+          "fontSize": 11,
+          "controlHeight": 520,
+          "logColors": {
+            "error": "#FF453A",
+            "warn": "#FF9F0A",
+            "info": "#30D158",
+            "debug": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "drone_ground_station_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

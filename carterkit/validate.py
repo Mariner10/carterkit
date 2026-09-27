@@ -731,6 +731,7 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                 findings.append(_f("warn", "bad_enum", spot,
                                    f"{ctype}.{k} = '{v}' is not one of {fd['values']} — "
                                    f"the app will fall back to the default"))
+    _validate_default_value(ch.get("defaultValue"), ctype, spot, findings)
     _validate_bindings(ch, ctype, spot, findings, sources)
 
 
@@ -768,6 +769,42 @@ def _hosted_too_deep(node, depth):
         if d - 1 > MAX_DEPTH or _hosted_too_deep(sub, d):
             return True
     return False
+
+
+#: Controls whose value is a JSON document: a `defaultValue` object/array is their dataset
+#: (the app stores it as the encoded string). Mirrors ControlType.jsonDocumentTypes.
+_JSON_DOCUMENT_TYPES = {"chart", "pieChart", "heatmap", "radar", "boxPlot", "gantt", "sankey",
+                        "treemap", "chord", "sortboard", "pinboard", "canvas", "map", "graph",
+                        "cardList"}
+
+
+def _validate_default_value(dv, ctype, spot, findings):
+    """control-def.md#defaultValue per type: scalars everywhere; an array/object seed only on
+    buffer (sparkline/list/logConsole) and dataset controls. The app drops any other seed on
+    load with a repair note (carter-7vs), so this is a warning."""
+    if not isinstance(dv, (list, dict)):
+        return
+    if ctype == "sparkline":
+        ok = isinstance(dv, list) and any(_is_number(v) for v in dv) \
+            and all(v is None or _is_number(v) for v in dv)
+        need = "an array of numbers"
+    elif ctype == "list":
+        ok = isinstance(dv, list) and all(isinstance(v, dict) for v in dv)
+        need = "an array of row objects"
+    elif ctype == "logConsole" or ctype in _JSON_DOCUMENT_TYPES:
+        ok, need = True, ""
+    else:
+        ok, need = False, "a bool, number or string"
+    if not ok:
+        findings.append(_f("warn", "bad_default_value", spot,
+                           f"{ctype}.defaultValue should be {need} — the app drops this seed on load"))
+    elif len(json.dumps(dv, separators=(",", ":"))) > 4096:
+        findings.append(_f("warn", "bad_default_value", spot,
+                           f"{ctype}.defaultValue seed is over 4 KB encoded — the app drops it on load"))
+
+
+def _is_number(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a

@@ -1,0 +1,97 @@
+{
+  "name": "Sortboard Demo",
+  "headerTitle": "Drag & Place",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Sprint",
+      "icon": "rectangle.3.group.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "sprint-board",
+          "position": [0, 0],
+          "span": [10, 4],
+          "controlHeight": 560,
+          "label": "Sprint Board",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Backlog",
+            "columns": 3,
+            "items": [
+              { "id": "AUTH-14", "label": "OAuth refresh", "icon": "person.badge.key.fill", "tint": "#FF9500" },
+              { "id": "UI-88", "label": "Dark mode", "icon": "moon.fill", "tint": "#667eea" },
+              { "id": "PERF-5", "label": "Cold start", "icon": "bolt.fill", "tint": "#FF6B6B" },
+              { "id": "API-31", "label": "Rate limits", "icon": "gauge.with.dots.needle.67percent", "tint": "#34C759" },
+              { "id": "DOC-9", "label": "API docs", "icon": "book.fill", "tint": "#5AC8FA", "zone": "doing" },
+              { "id": "BUG-72", "label": "Crash on launch", "icon": "ant.fill", "tint": "#FF3B30", "zone": "done" },
+              { "id": "REL-19", "label": "1.9 shipped", "icon": "shippingbox.fill", "tint": "#34C759", "zone": "done", "locked": true }
+            ],
+            "zones": [
+              { "id": "todo", "label": "To Do" },
+              { "id": "doing", "label": "In Progress", "capacity": 3, "tint": "#FF9500" },
+              { "id": "done", "label": "Done", "tint": "#34C759" }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg",
+                "payload": {
+                  "target_id": "tracker",
+                  "type": "move_ticket",
+                  "payload": { "ticket": "{{item}}", "from": "{{from}}", "column": "{{to}}", "index": "{{index}}" }
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "board_state"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Seating",
+      "icon": "person.2.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "seating-board",
+          "position": [0, 0],
+          "span": [10, 4],
+          "controlHeight": 560,
+          "label": "Table Assignments",
+          "sortboardConfig": {
+            "searchable": false,
+            "paletteLabel": "Guests",
+            "columns": 2,
+            "items": [
+              { "id": "ada", "label": "Ada", "icon": "person.fill" },
+              { "id": "linus", "label": "Linus", "icon": "person.fill" },
+              { "id": "grace", "label": "Grace", "icon": "person.fill" },
+              { "id": "alan", "label": "Alan", "icon": "person.fill" },
+              { "id": "margaret", "label": "Margaret", "icon": "person.fill" }
+            ],
+            "zones": [
+              { "id": "table-1", "label": "Table 1", "capacity": 2, "tint": "#667eea" },
+              { "id": "table-2", "label": "Table 2", "capacity": 2, "tint": "#FF9500" }
+            ],
+            "events": {
+              "layout": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "seating_state"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

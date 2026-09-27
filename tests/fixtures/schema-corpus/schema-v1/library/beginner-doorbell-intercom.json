@@ -1,0 +1,189 @@
+{
+  "name": "Doorbell Intercom",
+  "headerTitle": "Front Door",
+  "id": "doorbell-intercom",
+  "version": 1,
+  "accentColor": "#30B0C7",
+  "description": "A front-door intercom with a visitor light, talk and unlock buttons, and a quick-message field. Shows how a text input sends what you type with {{value}} and how one broadcast drives both the light and the caption.",
+  "difficulty": "beginner",
+  "tabs": [
+    {
+      "title": "Intercom",
+      "icon": "bell.and.waves.left.and.right",
+      "grid": {
+        "columns": 2,
+        "rows": 8,
+        "rowHeight": 56
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "visitor-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Front Porch",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "defaultValue": "ringing",
+          "statusColors": {
+            "idle": "#8E8E93",
+            "ringing": "#FF9F0A",
+            "talking": "#30B0C7",
+            "unlocked": "#34C759"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "doorbell_intercom_state"
+              },
+              "valuePath": "visitor"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "visitor-detail",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "person.crop.circle.badge.clock",
+          "style": "caption",
+          "text": "Doorbell pressed at 4:18 PM - package courier",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "doorbell_intercom_state"
+              },
+              "valuePath": "detail"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "talk",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Talk",
+          "icon": "mic.fill",
+          "style": "tinted",
+          "tint": "#30B0C7",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "doorbell_intercom_command",
+              "command": "talk"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "unlock",
+          "position": [
+            2,
+            1
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Unlock",
+          "icon": "lock.open.fill",
+          "style": "filled",
+          "tint": "#34C759",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "doorbell_intercom_command",
+              "command": "unlock"
+            }
+          }
+        },
+        {
+          "type": "textInput",
+          "id": "quick-message",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Quick message",
+          "icon": "text.bubble",
+          "placeholder": "Leave it by the side gate, thanks!",
+          "autocorrect": true,
+          "clearOnSubmit": true,
+          "tint": "#30B0C7",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "doorbell_intercom_message",
+              "text": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "divider",
+          "id": "about-divider",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "About this layout",
+          "tint": "#8E8E93"
+        },
+        {
+          "type": "label",
+          "id": "about",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "style": "caption",
+          "text": "Talk and Unlock send a doorbell_intercom_command. Typing a message and pressing Return sends it as {{value}}, spoken at the door. One doorbell_intercom_state broadcast updates both the light (visitor) and the caption (detail)."
+        }
+      ]
+    }
+  ]
+}

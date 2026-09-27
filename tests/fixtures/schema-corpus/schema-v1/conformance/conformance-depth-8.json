@@ -1,0 +1,173 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "g1",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 4
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "g2",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                4,
+                4
+              ],
+              "grid": {
+                "columns": 4,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "group",
+                  "id": "g3",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    4,
+                    4
+                  ],
+                  "grid": {
+                    "columns": 4,
+                    "rows": 4
+                  },
+                  "children": [
+                    {
+                      "type": "group",
+                      "id": "g4",
+                      "position": [
+                        0,
+                        0
+                      ],
+                      "span": [
+                        4,
+                        4
+                      ],
+                      "grid": {
+                        "columns": 4,
+                        "rows": 4
+                      },
+                      "children": [
+                        {
+                          "type": "group",
+                          "id": "g5",
+                          "position": [
+                            0,
+                            0
+                          ],
+                          "span": [
+                            4,
+                            4
+                          ],
+                          "grid": {
+                            "columns": 4,
+                            "rows": 4
+                          },
+                          "children": [
+                            {
+                              "type": "group",
+                              "id": "g6",
+                              "position": [
+                                0,
+                                0
+                              ],
+                              "span": [
+                                4,
+                                4
+                              ],
+                              "grid": {
+                                "columns": 4,
+                                "rows": 4
+                              },
+                              "children": [
+                                {
+                                  "type": "group",
+                                  "id": "g7",
+                                  "position": [
+                                    0,
+                                    0
+                                  ],
+                                  "span": [
+                                    4,
+                                    4
+                                  ],
+                                  "grid": {
+                                    "columns": 4,
+                                    "rows": 4
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "group",
+                                      "id": "g8",
+                                      "position": [
+                                        0,
+                                        0
+                                      ],
+                                      "span": [
+                                        4,
+                                        4
+                                      ],
+                                      "grid": {
+                                        "columns": 4,
+                                        "rows": 4
+                                      },
+                                      "children": [
+                                        {
+                                          "type": "label",
+                                          "id": "deep",
+                                          "position": [
+                                            0,
+                                            0
+                                          ],
+                                          "span": [
+                                            1,
+                                            2
+                                          ],
+                                          "text": "Hi"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

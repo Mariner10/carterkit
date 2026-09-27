@@ -25,7 +25,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `controlHeight` | number | — | **Override** the grid-derived height with an exact point value. Rarely needed: in a 2-D grid the cell (`rowSpan × rowHeight`) is the height, and in a `flow` grid shaped controls auto-size to their aspect. Use it to pin a height the grid wouldn't otherwise give. See [[grid-dimensions]]. |
 | `name` | string | — | Readable name the editor shows for this control (e.g. `"Water level"`). Never used for identity or on the wire; omit it and the editor shows `label`, then the type |
 | `label` | string | — | Display label for the control |
-| `defaultValue` | bool/number/string | — | Initial value before sync |
+| `defaultValue` | bool/number/string, or a seed | — | Initial value before sync. Buffer and dataset controls also take a JSON seed; see [[#defaultValue per type]] |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on interaction |
 | `sync` | [[sync\|SyncDefinition]][] | — | Live state listeners |
 | `visible` | [[visibility\|VisibilityCondition]] | — | Show/hide condition |
@@ -57,6 +57,24 @@ Controls store their value as one of three types:
 | Boolean | `true`/`false` | toggle |
 | Number | `42`, `3.14` | slider, stepper, gauge, progressRing, sparkline |
 | String | `"text"` | label, textInput, segmentedControl, picker, datePicker, colorPicker, image, map, camera (last scanned value) |
+
+### defaultValue per type
+
+`defaultValue` is what a control shows before its first sync, in the shape that sync
+would deliver:
+
+| Control | `defaultValue` |
+|---------|----------------|
+| scalar controls (toggle, slider, stepper, gauge, progressRing, label, picker, …) | a bool, number or string |
+| sparkline | a number, or an **array of numbers** that seeds the series (`[41, 40, 39]`; trimmed to `sparklinePoints`; the readout shows the last point) |
+| list | an **array of row objects**, the rows shown until the first sync |
+| logConsole | an **array of lines** (strings or `{text, level}` objects) |
+| chart, pieChart, heatmap, radar, boxPlot, gantt, sankey, treemap, chord, graph, cardList, sortboard, pinboard, canvas, map | the control's dataset, as JSON (`{"series": […]}`) or as that JSON encoded in a string |
+
+A seed may be at most 4 KB once encoded (the string cap). Saving keeps it exactly as
+written: an array stays an array. A seed on any other control, or
+a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
+"Repaired on load" note: one control's `defaultValue` never stops a layout loading.
 
 ## Value Formatters
 

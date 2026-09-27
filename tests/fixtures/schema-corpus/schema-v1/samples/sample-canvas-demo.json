@@ -1,0 +1,86 @@
+{
+  "name": "Canvas Demo",
+  "headerTitle": "Freeform",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Board",
+      "icon": "square.on.square.dashed",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "canvas",
+          "id": "status-board",
+          "position": [0, 0],
+          "span": [10, 4],
+          "controlHeight": 560,
+          "label": "Ops Board",
+          "canvasConfig": {
+            "aspect": 0.85,
+            "items": [
+              { "id": "cpu", "x": 0.04, "y": 0.03, "w": 0.44, "h": 0.3,
+                "control": { "type": "gauge", "id": "cpu-gauge", "label": "CPU", "min": 0, "max": 100, "defaultValue": 62,
+                             "segments": [ { "limit": 60, "color": "#34C759" }, { "limit": 85, "color": "#FF9500" }, { "limit": 100, "color": "#FF3B30" } ] } },
+              { "id": "ring", "x": 0.52, "y": 0.03, "w": 0.44, "h": 0.3,
+                "control": { "type": "progressRing", "id": "storage-ring", "label": "Storage", "defaultValue": 71 } },
+              { "id": "power", "x": 0.04, "y": 0.38, "w": 0.55, "h": 0.14,
+                "control": { "type": "toggle", "id": "rig-power", "label": "Rig Power", "icon": "bolt.fill", "defaultValue": true,
+                             "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                                         "payload": { "target_id": "hub", "type": "power", "payload": { "on": "{{value}}" } } } } },
+              { "id": "status", "x": 0.63, "y": 0.38, "w": 0.33, "h": 0.14,
+                "control": { "type": "statusLight", "id": "link-status", "label": "Link", "defaultValue": "online" } },
+              { "id": "dim", "x": 0.04, "y": 0.56, "w": 0.92, "h": 0.16,
+                "control": { "type": "slider", "id": "dim-slider", "label": "Brightness", "min": 0, "max": 100, "defaultValue": 70,
+                             "minIcon": "sun.min", "maxIcon": "sun.max.fill",
+                             "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                                         "payload": { "target_id": "hub", "type": "dim", "payload": { "level": "{{value}}" } } } } },
+              { "id": "note", "x": 0.04, "y": 0.76, "w": 0.92, "h": 0.2,
+                "control": { "type": "label", "id": "board-note", "label": "Note",
+                             "text": "Pinch to zoom · drag empty space to pan" } }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Editable",
+      "icon": "hand.draw.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "canvas",
+          "id": "war-room",
+          "position": [0, 0],
+          "span": [10, 4],
+          "controlHeight": 560,
+          "label": "War Room — hold a card to move it",
+          "canvasConfig": {
+            "aspect": 0.85,
+            "editable": true,
+            "showGrid": true,
+            "snap": 0.05,
+            "items": [
+              { "id": "heat", "x": 0.05, "y": 0.05, "w": 0.9, "h": 0.32,
+                "control": { "type": "sparkline", "id": "load-spark", "label": "Load", "sparklineFill": true } },
+              { "id": "arm", "x": 0.05, "y": 0.45, "w": 0.42, "h": 0.16, "locked": true,
+                "control": { "type": "button", "id": "arm-btn", "label": "Arm", "icon": "lock.shield",
+                             "action": { "method": "meshsocket", "mode": "send", "event": "arm" } } },
+              { "id": "mode", "x": 0.53, "y": 0.45, "w": 0.42, "h": 0.16,
+                "control": { "type": "segmentedControl", "id": "mode-seg", "label": "Mode", "options": ["Auto", "Manual"], "defaultValue": "Auto" } },
+              { "id": "kill", "x": 0.05, "y": 0.68, "w": 0.42, "h": 0.16,
+                "control": { "type": "button", "id": "kill-btn", "label": "Kill", "tint": "#FF3B30",
+                             "action": { "method": "meshsocket", "mode": "send", "event": "kill" } } }
+            ],
+            "events": {
+              "place": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                         "payload": { "target_id": "hub", "type": "board_place",
+                                      "payload": { "card": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
+              "layout": { "method": "meshsocket", "mode": "send", "event": "board_state" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

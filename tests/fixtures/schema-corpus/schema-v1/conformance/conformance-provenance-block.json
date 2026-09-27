@@ -1,0 +1,40 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "id": "lay_child01",
+  "provenance": {
+    "parents": [
+      {
+        "id": "lay_parent01",
+        "relation": "copy",
+        "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "source": "template:first-layout"
+      }
+    ]
+  },
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "button",
+          "id": "go",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Go"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "Compass Demo",
+  "headerTitle": "Point to Activate",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Ring",
+      "icon": "location.north.circle.fill",
+      "grid": { "columns": 4, "rows": 10, "mode": "flow" },
+      "children": [
+        {
+          "type": "compass",
+          "id": "action-ring",
+          "position": [0, 0],
+          "span": [7, 4],
+          "controlHeight": 420,
+          "label": "Action Ring",
+          "defaultValue": 5,
+          "compassConfig": {
+            "tolerance": 20,
+            "dwell": 1.0,
+            "showCardinals": true,
+            "editable": true,
+            "pucks": [
+              { "id": "lights", "label": "Lights", "icon": "lightbulb.fill", "tint": "#FF9500", "bearing": 0,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+              { "id": "music", "label": "Music", "icon": "music.note", "tint": "#FF2D55", "bearing": 90,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+              { "id": "lock", "label": "Lock", "icon": "lock.fill", "tint": "#34C759", "bearing": 180,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+              { "id": "away", "label": "Away", "icon": "figure.walk", "tint": "#5AC8FA", "bearing": 270,
+                "action": { "method": "meshsocket", "mode": "send", "event": "route_msg",
+                            "payload": { "target_id": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
+            ],
+            "events": {
+              "layout": { "method": "meshsocket", "mode": "send", "event": "ring_layout" }
+            }
+          },
+          "sync": [
+            { "method": "sensor", "sensor": "heading" }
+          ]
+        }
+      ]
+    }
+  ]
+}

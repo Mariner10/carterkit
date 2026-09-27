@@ -1,0 +1,2166 @@
+{
+ "name": "Esports Caster Desk",
+ "headerTitle": "CASTER DESK · LIVE",
+ "version": 1,
+ "id": "esports-caster-desk",
+ "accentColor": "#FFE14D",
+ "description": "A broadcast caster's second screen for a tactical-shooter final: team radar, credit-flow sankey, a telestrator map canvas, a highlight reel pinboard, a live kill-feed and a sponsor carousel, all driven by one esports_caster_* hub.",
+ "difficulty": "expert",
+ "keepAwake": true,
+ "appearance": {
+  "colorScheme": "dark",
+  "showHeader": true,
+  "statusBarStyle": "light",
+  "header": {
+   "style": "color",
+   "dark": [
+    "#1A0B2E",
+    "#07040F"
+   ],
+   "light": [
+    "#1A0B2E",
+    "#07040F"
+   ]
+  }
+ },
+ "theme": {
+  "fontFamily": "Futura",
+  "labelFontSize": 11,
+  "valueFontSize": 15,
+  "valueFontWeight": "bold",
+  "accentColor": "#FFE14D",
+  "accentGradient": [
+   "#FF3D7F",
+   "#FFE14D",
+   "#2DE2E6"
+  ],
+  "cornerRadius": 6,
+  "cardPadding": 12,
+  "controlPadding": 8,
+  "borderWidth": 1,
+  "pageBackgroundGradient": [
+   "#07040F",
+   "#120A24",
+   "#1A0B2E"
+  ],
+  "surfacePrimary": "#FFFFFF0D",
+  "surfaceSecondary": "#FFFFFF08",
+  "surfaceTertiary": "#FFFFFF05",
+  "borderColor": "#FF3D7F38",
+  "foregroundColor": "#F6F2FF",
+  "secondaryColor": "#B7A8D6",
+  "tertiaryColor": "#6E5F8F",
+  "tabBarBackground": "#07040FE6",
+  "tabBarTint": "#FFE14D",
+  "segmented": {
+   "trackColor": "#FFFFFF10",
+   "selectedColor": "#FFE14D",
+   "textColor": "#B7A8D6",
+   "selectedTextColor": "#07040F"
+  },
+  "toggle": {
+   "trackActiveColor": "#FF3D7F",
+   "knobShadow": true
+  },
+  "progressBar": {
+   "trackColor": "#FFFFFF14",
+   "trackActiveColor": "#FF3D7F",
+   "trackHeight": 6
+  }
+ },
+ "connection": {
+  "url": "wss://connect.carterbeaudoin.net/ws",
+  "identity": {
+   "name": "caster-desk",
+   "channel": "esports-caster",
+   "role": "client"
+  }
+ },
+ "state": {
+  "sync": true,
+  "authority": "EsportsCasterHub"
+ },
+ "sources": {
+  "league": {
+   "type": "http",
+   "baseURL": "https://api.cascadeleague.gg",
+   "interval": 30
+  }
+ },
+ "publishers": [
+  {
+   "sensor": "audio",
+   "interval": 1
+  },
+  {
+   "sensor": "device",
+   "interval": 30
+  }
+ ],
+ "glance": {
+  "title": "Caster Desk",
+  "icon": "gamecontroller.fill",
+  "tint": "#FFE14D",
+  "hero": "ec-winprob",
+  "slots": [
+   "ec-score-a",
+   "ec-score-b",
+   "ec-phase"
+  ],
+  "liveActivity": true,
+  "live": {
+   "tier": "realtime",
+   "activity": {
+    "stale": 60
+   }
+  },
+  "controls": [
+   {
+    "id": "cc-onair",
+    "kind": "toggle",
+    "label": "On air",
+    "control": "ec-onair",
+    "on": {
+     "label": "LIVE",
+     "icon": "record.circle.fill",
+     "tint": "#FF4D4D"
+    },
+    "off": {
+     "label": "Off air",
+     "icon": "record.circle"
+    }
+   },
+   {
+    "id": "cc-replay",
+    "kind": "button",
+    "label": "Cue replay",
+    "icon": "backward.end.alt.fill",
+    "control": "ec-cue-replay"
+   },
+   {
+    "id": "cc-focus",
+    "kind": "cycle",
+    "label": "Observer",
+    "control": "ec-focus",
+    "states": [
+     {
+      "value": "auto",
+      "label": "Auto",
+      "icon": "sparkles"
+     },
+     {
+      "value": "nj",
+      "label": "Nightjar",
+      "icon": "person.fill",
+      "tint": "#FF3D7F"
+     },
+     {
+      "value": "sol",
+      "label": "Solstice",
+      "icon": "person.fill",
+      "tint": "#2DE2E6"
+     },
+     {
+      "value": "spike",
+      "label": "Spike",
+      "icon": "bolt.fill",
+      "tint": "#FFE14D"
+     }
+    ]
+   }
+  ],
+  "widgets": [
+   {
+    "id": "scoreline",
+    "title": "Scoreline",
+    "icon": "trophy.fill",
+    "families": [
+     "systemSmall",
+     "systemMedium",
+     "accessoryRectangular"
+    ],
+    "scene": {
+     "rows": [
+      [
+       {
+        "tile": "value",
+        "control": "ec-score-a",
+        "tint": "#FF3D7F"
+       },
+       {
+        "tile": "light",
+        "control": "ec-phase"
+       },
+       {
+        "tile": "value",
+        "control": "ec-score-b",
+        "tint": "#2DE2E6"
+       }
+      ],
+      [
+       {
+        "tile": "sparkline",
+        "control": "ec-winprob-trend",
+        "span": 2
+       },
+       {
+        "tile": "gauge",
+        "control": "ec-winprob"
+       }
+      ],
+      [
+       {
+        "tile": "toggle",
+        "control": "ec-onair"
+       },
+       {
+        "tile": "button",
+        "control": "ec-cue-replay"
+       },
+       {
+        "tile": "open",
+        "tab": "Replay",
+        "label": "Reel"
+       }
+      ]
+     ]
+    }
+   }
+  ],
+  "island": {
+   "compactLeading": {
+    "tile": "icon",
+    "effect": "bounce"
+   },
+   "compactTrailing": {
+    "tile": "value",
+    "control": "ec-score-a",
+    "tint": "#FF3D7F"
+   },
+   "minimal": {
+    "tile": "light",
+    "control": "ec-phase"
+   },
+   "expanded": {
+    "leading": {
+     "tile": "value",
+     "control": "ec-score-a",
+     "tint": "#FF3D7F"
+    },
+    "trailing": {
+     "tile": "value",
+     "control": "ec-score-b",
+     "tint": "#2DE2E6"
+    },
+    "center": {
+     "tile": "light",
+     "control": "ec-phase"
+    },
+    "bottom": {
+     "rows": [
+      [
+       {
+        "tile": "gauge",
+        "control": "ec-winprob"
+       },
+       {
+        "tile": "sparkline",
+        "control": "ec-winprob-trend"
+       }
+      ],
+      [
+       {
+        "tile": "toggle",
+        "control": "ec-onair"
+       },
+       {
+        "tile": "button",
+        "control": "ec-cue-replay"
+       }
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "tabs": [
+  {
+   "title": "Desk",
+   "icon": "trophy.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 15
+   },
+   "children": [
+    {
+     "type": "label",
+     "id": "ec-team-a",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Team A",
+     "text": "NIGHTJAR",
+     "style": "headline",
+     "align": "leading",
+     "tint": "#FF3D7F",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "team_a"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-team-b",
+     "position": [
+      0,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Team B",
+     "text": "SOLSTICE",
+     "style": "headline",
+     "align": "trailing",
+     "tint": "#2DE2E6",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "team_b"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-score-a",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      2,
+      1
+     ],
+     "label": "NJ",
+     "text": "9",
+     "style": "title",
+     "align": "center",
+     "tint": "#FF3D7F",
+     "formatValue": "decimal",
+     "animation": "bouncy",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "score_a"
+      }
+     ]
+    },
+    {
+     "type": "symbol",
+     "id": "ec-live-pulse",
+     "position": [
+      1,
+      1
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "systemName": "dot.radiowaves.left.and.right",
+     "label": "Harbor District · Map 2",
+     "tint": "#FFE14D",
+     "defaultValue": "live",
+     "symbolConfig": {
+      "renderingMode": "palette",
+      "palette": [
+       "#FFE14D",
+       "#FF3D7F"
+      ],
+      "effect": "variableColor",
+      "effectOptions": [
+       "iterative"
+      ],
+      "activeWhen": "live",
+      "tapEffect": "bounce",
+      "triggers": [
+       {
+        "event": "broadcast",
+        "filter": {
+         "msg_type": "esports_caster_kill"
+        },
+        "effect": "bounce"
+       }
+      ]
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "phase"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-score-b",
+     "position": [
+      1,
+      3
+     ],
+     "span": [
+      2,
+      1
+     ],
+     "label": "SOL",
+     "text": "7",
+     "style": "title",
+     "align": "center",
+     "tint": "#2DE2E6",
+     "formatValue": "decimal",
+     "animation": "bouncy",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "score_b"
+      }
+     ]
+    },
+    {
+     "type": "statusLight",
+     "id": "ec-phase",
+     "position": [
+      3,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Round 17",
+     "style": "badge",
+     "pulse": true,
+     "defaultValue": "live",
+     "statusColors": {
+      "buy": "#FFE14D",
+      "live": "#FF4D4D",
+      "planted": "#FF9F1C",
+      "post": "#2DE2E6",
+      "timeout": "#6E5F8F",
+      "tech": "#B7A8D6"
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "phase"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-clock",
+     "position": [
+      3,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Round clock",
+     "text": "1:12",
+     "style": "large-mono",
+     "align": "trailing",
+     "formatValue": "time",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "clock_s"
+      }
+     ]
+    },
+    {
+     "type": "radar",
+     "id": "ec-team-radar",
+     "position": [
+      4,
+      0
+     ],
+     "span": [
+      4,
+      2
+     ],
+     "label": "Team profile · last 5 maps",
+     "radarConfig": {
+      "showLegend": true,
+      "curved": false,
+      "fillOpacity": 0.28,
+      "rings": 4,
+      "maxValue": 100,
+      "showAxisLabels": true,
+      "colors": [
+       "#FF3D7F",
+       "#2DE2E6"
+      ]
+     },
+     "defaultValue": "{\"axes\":[\"Entry\",\"Trade\",\"Util\",\"Clutch\",\"Retake\",\"Eco\"],\"max\":100,\"series\":[{\"name\":\"Nightjar\",\"color\":\"#FF3D7F\",\"values\":[82,64,71,58,49,66]},{\"name\":\"Solstice\",\"color\":\"#2DE2E6\",\"values\":[61,77,68,72,74,52]}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_teamstats"
+       },
+       "valuePath": "radar"
+      }
+     ]
+    },
+    {
+     "type": "gauge",
+     "id": "ec-winprob",
+     "position": [
+      4,
+      2
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Win prob · Nightjar",
+     "min": 0,
+     "max": 100,
+     "gaugeStyle": "half",
+     "formatValue": "percent",
+     "icon": "chart.line.uptrend.xyaxis",
+     "defaultValue": 63,
+     "segments": [
+      {
+       "limit": 40,
+       "color": "#2DE2E6"
+      },
+      {
+       "limit": 60,
+       "color": "#B7A8D6"
+      },
+      {
+       "limit": 100,
+       "color": "#FF3D7F"
+      }
+     ],
+     "animation": {
+      "profile": "smooth",
+      "duration": 0.8
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "win_prob_a"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-series",
+     "position": [
+      7,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Series · Bo3",
+     "text": "NJ leads 1–0",
+     "style": "caption",
+     "align": "trailing",
+     "tint": "#FFE14D",
+     "sync": [
+      {
+       "method": "http",
+       "source": "league",
+       "path": "/v1/matches/current",
+       "interval": 30,
+       "valuePath": "series_text"
+      },
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "series_text"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "ec-winprob-trend",
+     "position": [
+      8,
+      0
+     ],
+     "span": [
+      2,
+      4
+     ],
+     "label": "Win prob trend",
+     "sparklinePoints": 40,
+     "sparklineFill": true,
+     "tint": "#FF3D7F",
+     "defaultValue": 58,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_match"
+       },
+       "valuePath": "win_prob_a"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "ec-focus",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Observer focus",
+     "style": "pills",
+     "tint": "#FFE14D",
+     "options": [
+      "nj",
+      "sol",
+      "spike",
+      "auto"
+     ],
+     "optionLabels": [
+      "NJ",
+      "SOL",
+      "Spike",
+      "Auto"
+     ],
+     "optionIcons": [
+      "person.fill",
+      "person.fill",
+      "bolt.fill",
+      "sparkles"
+     ],
+     "defaultValue": "auto",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_set_focus",
+       "focus": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_observer"
+       },
+       "valuePath": "focus"
+      }
+     ]
+    },
+    {
+     "type": "toggle",
+     "id": "ec-onair",
+     "position": [
+      11,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "On air",
+     "style": "button",
+     "icon": "record.circle",
+     "onIcon": "record.circle.fill",
+     "offIcon": "record.circle",
+     "tint": "#FF4D4D",
+     "defaultValue": true,
+     "animation": "snappy",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_onair",
+       "on_air": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_booth"
+       },
+       "valuePath": "on_air"
+      }
+     ]
+    },
+    {
+     "type": "button",
+     "id": "ec-cue-replay",
+     "position": [
+      11,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Cue replay",
+     "icon": "backward.end.alt.fill",
+     "style": "tinted",
+     "tint": "#FFE14D",
+     "haptic": "heavy",
+     "visible": {
+      "when": "ec-onair",
+      "operator": "eq",
+      "value": true
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_cue_replay",
+       "clip": "last_kill",
+       "speed": 0.5
+      }
+     },
+     "longPressAction": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_cue_replay",
+       "clip": "round_start",
+       "speed": 1.0
+      }
+     }
+    },
+    {
+     "type": "group",
+     "id": "ec-booth",
+     "label": "Booth",
+     "position": [
+      12,
+      0
+     ],
+     "span": [
+      3,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 2
+     },
+     "pulse": {
+      "event": "broadcast",
+      "filter": {
+       "msg_type": "esports_caster_talkback"
+      },
+      "color": "#FFE14D",
+      "direction": "inward"
+     },
+     "children": [
+      {
+       "type": "label",
+       "id": "ec-booth-loud",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Booth loudness",
+       "text": "—",
+       "style": "mono",
+       "formatValue": "decimal",
+       "sync": [
+        {
+         "method": "sensor",
+         "sensor": "audio"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "ec-talkback",
+       "position": [
+        0,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Producer talkback",
+       "style": "badge",
+       "defaultValue": "idle",
+       "statusColors": {
+        "idle": "#6E5F8F",
+        "open": "#FFE14D",
+        "urgent": "#FF4D4D"
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "esports_caster_talkback"
+         },
+         "valuePath": "state"
+        }
+       ]
+      },
+      {
+       "type": "stepper",
+       "id": "ec-delay",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "Broadcast delay (s)",
+       "icon": "clock.arrow.circlepath",
+       "min": 0,
+       "max": 180,
+       "step": 15,
+       "defaultValue": 90,
+       "formatValue": "time",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "esports_caster_set_delay",
+         "seconds": "{{value}}"
+        }
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "esports_caster_booth"
+         },
+         "valuePath": "delay_s"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Economy",
+   "icon": "dollarsign.arrow.circlepath",
+   "grid": {
+    "columns": 4,
+    "rows": 17
+   },
+   "children": [
+    {
+     "type": "label",
+     "id": "ec-bank-a",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Nightjar bank",
+     "text": "23,400",
+     "style": "large-mono",
+     "tint": "#FF3D7F",
+     "formatValue": "suffix: cr",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "bank_a"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "ec-bank-b",
+     "position": [
+      0,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Solstice bank",
+     "text": "14,900",
+     "style": "large-mono",
+     "align": "trailing",
+     "tint": "#2DE2E6",
+     "formatValue": "suffix: cr",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "bank_b"
+      }
+     ]
+    },
+    {
+     "type": "sankey",
+     "id": "ec-econ-flow",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      5,
+      4
+     ],
+     "label": "Credit flow · rounds 1–16",
+     "formatValue": "decimal",
+     "haptic": "selection",
+     "sankeyConfig": {
+      "showValues": false,
+      "showLabels": true,
+      "nodeWidth": 8,
+      "nodeSpacing": 8,
+      "linkOpacity": 0.36,
+      "scrub": true,
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "esports_caster_inspect_flow",
+        "node": "{{value}}"
+       }
+      }
+     },
+     "animation": "smooth",
+     "defaultValue": "{\"nodes\":[{\"name\":\"Win bonus\",\"color\":\"#FFE14D\"},{\"name\":\"Loss bonus\",\"color\":\"#B7A8D6\"},{\"name\":\"Kills\",\"color\":\"#FF9F1C\"},{\"name\":\"Spike plant\",\"color\":\"#FFB86B\"},{\"name\":\"Nightjar\",\"color\":\"#FF3D7F\"},{\"name\":\"Solstice\",\"color\":\"#2DE2E6\"},{\"name\":\"Rifles\",\"color\":\"#F6F2FF\"},{\"name\":\"Shields\",\"color\":\"#8C7BFF\"},{\"name\":\"Utility\",\"color\":\"#6BF2A3\"},{\"name\":\"Banked\",\"color\":\"#6E5F8F\"}],\"links\":[{\"source\":\"Win bonus\",\"target\":\"Nightjar\",\"value\":27000},{\"source\":\"Win bonus\",\"target\":\"Solstice\",\"value\":21000},{\"source\":\"Loss bonus\",\"target\":\"Nightjar\",\"value\":11900},{\"source\":\"Loss bonus\",\"target\":\"Solstice\",\"value\":16800},{\"source\":\"Kills\",\"target\":\"Nightjar\",\"value\":14200},{\"source\":\"Kills\",\"target\":\"Solstice\",\"value\":12600},{\"source\":\"Spike plant\",\"target\":\"Nightjar\",\"value\":2700},{\"source\":\"Spike plant\",\"target\":\"Solstice\",\"value\":3600},{\"source\":\"Nightjar\",\"target\":\"Rifles\",\"value\":28400},{\"source\":\"Nightjar\",\"target\":\"Shields\",\"value\":9600},{\"source\":\"Nightjar\",\"target\":\"Utility\",\"value\":12100},{\"source\":\"Nightjar\",\"target\":\"Banked\",\"value\":5700},{\"source\":\"Solstice\",\"target\":\"Rifles\",\"value\":24900},{\"source\":\"Solstice\",\"target\":\"Shields\",\"value\":8800},{\"source\":\"Solstice\",\"target\":\"Utility\",\"value\":13300},{\"source\":\"Solstice\",\"target\":\"Banked\",\"value\":7000}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "sankey"
+      }
+     ]
+    },
+    {
+     "type": "chart",
+     "id": "ec-round-spend",
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Spend per round",
+     "formatValue": "decimal",
+     "chartConfig": {
+      "showLegend": true,
+      "showGrid": true,
+      "barCornerRadius": 2,
+      "smooth": true,
+      "maxPoints": 24,
+      "scrub": true,
+      "datumAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "esports_caster_inspect_round",
+        "datum": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"categories\":[\"R10\",\"R11\",\"R12\",\"R13\",\"R14\",\"R15\",\"R16\"],\"series\":[{\"name\":\"Nightjar spend\",\"type\":\"bar\",\"color\":\"#FF3D7F\",\"values\":[4100,3900,1200,4400,4300,2200,4500]},{\"name\":\"Solstice spend\",\"type\":\"bar\",\"color\":\"#2DE2E6\",\"values\":[3800,1600,4200,4000,1900,4100,3700]},{\"name\":\"Loadout delta\",\"type\":\"line\",\"color\":\"#FFE14D\",\"values\":[300,2300,-3000,400,2400,-1900,800]}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "rounds"
+      }
+     ]
+    },
+    {
+     "type": "pieChart",
+     "id": "ec-buy-mix",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "NJ buy types",
+     "pieStyle": "donut",
+     "pieConfig": {
+      "centerText": "{{total}} rds",
+      "showLegend": false,
+      "showLabels": true,
+      "explodeSelected": true,
+      "sliceAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "esports_caster_inspect_buy",
+        "buy": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"slices\":[{\"label\":\"Full\",\"value\":9,\"color\":\"#FF3D7F\"},{\"label\":\"Force\",\"value\":3,\"color\":\"#FF9F1C\"},{\"label\":\"Half\",\"value\":2,\"color\":\"#FFE14D\"},{\"label\":\"Eco\",\"value\":2,\"color\":\"#6E5F8F\"}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "buy_mix"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "ec-econ-team",
+     "position": [
+      10,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Breakdown",
+     "options": [
+      "nj",
+      "sol"
+     ],
+     "optionLabels": [
+      "NJ",
+      "SOL"
+     ],
+     "defaultValue": "nj",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_econ_team",
+       "team": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "label",
+     "id": "ec-buy-call",
+     "position": [
+      11,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Model buy call",
+     "text": "SOL · forced half-buy",
+     "style": "caption",
+     "tint": "#FFE14D",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "buy_call"
+      }
+     ]
+    },
+    {
+     "type": "statusLight",
+     "id": "ec-eco-alert",
+     "position": [
+      12,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Eco watch",
+     "style": "badge",
+     "defaultValue": "reset risk",
+     "pulse": true,
+     "statusColors": {
+      "stable": "#6BF2A3",
+      "reset risk": "#FF9F1C",
+      "broke": "#FF4D4D"
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_economy"
+       },
+       "valuePath": "eco_state"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "ec-player-stats",
+     "position": [
+      13,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Scoreboard · K / D / A",
+     "tint": "#FFE14D",
+     "listColumns": [
+      {
+       "key": "p",
+       "label": "Player"
+      },
+      {
+       "key": "agent",
+       "label": "Role"
+      },
+      {
+       "key": "k",
+       "label": "K",
+       "format": "decimal"
+      },
+      {
+       "key": "d",
+       "label": "D",
+       "format": "decimal"
+      },
+      {
+       "key": "a",
+       "label": "A",
+       "format": "decimal"
+      },
+      {
+       "key": "adr",
+       "label": "ADR",
+       "format": "decimal:1"
+      }
+     ],
+     "defaultValue": "[{\"p\":\"NJ Vex\",\"k\":24,\"d\":14,\"a\":6,\"adr\":187.4,\"agent\":\"Duelist\"},{\"p\":\"NJ Kairo\",\"k\":19,\"d\":15,\"a\":9,\"adr\":151.2,\"agent\":\"Initiator\"},{\"p\":\"NJ Mothwing\",\"k\":15,\"d\":16,\"a\":12,\"adr\":128.9,\"agent\":\"Controller\"},{\"p\":\"SOL Halcyon\",\"k\":22,\"d\":17,\"a\":5,\"adr\":172.6,\"agent\":\"Duelist\"},{\"p\":\"SOL Tarn\",\"k\":17,\"d\":18,\"a\":10,\"adr\":139.3,\"agent\":\"Sentinel\"},{\"p\":\"SOL Brisa\",\"k\":14,\"d\":19,\"a\":14,\"adr\":118.7,\"agent\":\"Controller\"}]",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_players"
+       },
+       "valuePath": "rows"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Map",
+   "icon": "map.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 16
+   },
+   "children": [
+    {
+     "type": "segmentedControl",
+     "id": "ec-draw-tool",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Telestrator",
+     "style": "pills",
+     "tint": "#FFE14D",
+     "options": [
+      "arrow",
+      "ring",
+      "smoke",
+      "clear"
+     ],
+     "optionLabels": [
+      "Arrow",
+      "Ring",
+      "Smoke",
+      "Clear"
+     ],
+     "optionIcons": [
+      "arrow.up.right",
+      "circle.dashed",
+      "cloud.fill",
+      "eraser.fill"
+     ],
+     "defaultValue": "arrow",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_draw_tool",
+       "tool": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "toggle",
+     "id": "ec-heat-overlay",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Kill heat",
+     "icon": "flame.fill",
+     "tint": "#FF9F1C",
+     "defaultValue": true,
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_heat_overlay",
+       "on": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "ec-push-board",
+     "position": [
+      1,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Push to stream",
+     "icon": "play.tv.fill",
+     "style": "filled",
+     "tint": "#FF3D7F",
+     "haptic": "success",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_push_board",
+       "board": "harbor_district"
+      }
+     }
+    },
+    {
+     "type": "canvas",
+     "id": "ec-map-board",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      10,
+      4
+     ],
+     "label": "Harbor District · annotations",
+     "haptic": "medium",
+     "canvasConfig": {
+      "aspect": 0.62,
+      "editable": true,
+      "showGrid": true,
+      "snap": 0.05,
+      "maxZoom": 2.5,
+      "items": [
+       {
+        "id": "call-smoke",
+        "x": 0.08,
+        "y": 0.06,
+        "w": 0.42,
+        "h": 0.12,
+        "control": {
+         "type": "label",
+         "id": "ec-ann-smoke",
+         "label": "A Main",
+         "text": "Smoke · Mothwing 0:48",
+         "style": "caption",
+         "icon": "cloud.fill",
+         "tint": "#B7A8D6",
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "esports_caster_map_calls"
+           },
+           "valuePath": "smoke"
+          }
+         ]
+        }
+       },
+       {
+        "id": "call-spike",
+        "x": 0.55,
+        "y": 0.22,
+        "w": 0.4,
+        "h": 0.12,
+        "control": {
+         "type": "statusLight",
+         "id": "ec-ann-spike",
+         "label": "Spike · B Site",
+         "style": "badge",
+         "pulse": true,
+         "defaultValue": "planted",
+         "statusColors": {
+          "carried": "#FFE14D",
+          "dropped": "#B7A8D6",
+          "planted": "#FF4D4D",
+          "defused": "#2DE2E6"
+         },
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "esports_caster_map_calls"
+           },
+           "valuePath": "spike"
+          }
+         ]
+        }
+       },
+       {
+        "id": "call-rotate",
+        "x": 0.1,
+        "y": 0.42,
+        "w": 0.5,
+        "h": 0.12,
+        "control": {
+         "type": "label",
+         "id": "ec-ann-rotate",
+         "label": "Rotation",
+         "text": "Tarn + Brisa → Mid, 3s",
+         "style": "caption",
+         "icon": "arrow.triangle.turn.up.right.diamond.fill",
+         "tint": "#2DE2E6",
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "esports_caster_map_calls"
+           },
+           "valuePath": "rotate"
+          }
+         ]
+        }
+       },
+       {
+        "id": "call-ult",
+        "x": 0.52,
+        "y": 0.6,
+        "w": 0.44,
+        "h": 0.14,
+        "control": {
+         "type": "progressRing",
+         "id": "ec-ann-ult",
+         "label": "Vex ult",
+         "progressStyle": "bar",
+         "min": 0,
+         "max": 7,
+         "tint": "#FF3D7F",
+         "defaultValue": 6,
+         "sync": [
+          {
+           "method": "meshsocket",
+           "type": "listen",
+           "event": "broadcast",
+           "filter": {
+            "msg_type": "esports_caster_map_calls"
+           },
+           "valuePath": "vex_ult_points"
+          }
+         ]
+        }
+       },
+       {
+        "id": "call-flag",
+        "x": 0.08,
+        "y": 0.8,
+        "w": 0.5,
+        "h": 0.12,
+        "locked": true,
+        "control": {
+         "type": "button",
+         "id": "ec-ann-flag",
+         "label": "Flag this setup",
+         "icon": "flag.fill",
+         "style": "outlined",
+         "tint": "#FFE14D",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "esports_caster_flag_setup",
+           "round": 17
+          }
+         }
+        }
+       }
+      ],
+      "events": {
+       "place": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "esports_caster_annotation_place",
+         "card": "{{item}}",
+         "x": "{{x}}",
+         "y": "{{y}}"
+        }
+       },
+       "layout": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "esports_caster_annotation_layout"
+        }
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_map_board"
+       },
+       "valuePath": "frames"
+      }
+     ]
+    },
+    {
+     "type": "heatmap",
+     "id": "ec-kill-heat",
+     "position": [
+      12,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Kill density by zone",
+     "visible": {
+      "when": "ec-heat-overlay",
+      "operator": "eq",
+      "value": true
+     },
+     "animation": "gentle",
+     "heatmapConfig": {
+      "colors": [
+       "#1A0B2E",
+       "#8C3BFF",
+       "#FF3D7F",
+       "#FFE14D"
+      ],
+      "showScale": true,
+      "cellGap": 2,
+      "cellCorner": 2,
+      "vMin": 0,
+      "vMax": 6
+     },
+     "defaultValue": "{\"rows\":[\"A Long\",\"A Main\",\"Mid\",\"Market\",\"B Main\",\"B Site\",\"CT\"],\"cols\":[\"R1\",\"R4\",\"R7\",\"R10\",\"R13\",\"R16\"],\"values\":[[1,0,2,1,3,1],[3,2,4,2,1,2],[2,4,3,5,4,3],[0,1,1,2,2,4],[2,3,1,4,5,3],[4,3,2,3,6,5],[1,2,1,1,2,2]]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_map_heat"
+       },
+       "valuePath": "matrix"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Replay",
+   "icon": "film.stack.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 6,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "group",
+     "id": "ec-killfeed",
+     "label": "Kill feed · live",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 6,
+      "mode": "flow"
+     },
+     "dynamic": "esports_caster_killfeed",
+     "pulse": {
+      "event": "broadcast",
+      "filter": {
+       "msg_type": "esports_caster_kill"
+      },
+      "color": "#FF3D7F",
+      "direction": "outward"
+     },
+     "children": [
+      {
+       "type": "label",
+       "id": "ec-killfeed-wait",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "text": "· waiting for the observer feed ·",
+       "style": "caption",
+       "align": "center",
+       "tint": "#6E5F8F"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "ec-ult-tracker",
+     "label": "Ultimates",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 3,
+      "mode": "flow"
+     },
+     "dynamic": "esports_caster_ults",
+     "children": [
+      {
+       "type": "label",
+       "id": "ec-ults-wait",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "text": "· ult points arrive each buy phase ·",
+       "style": "caption",
+       "align": "center",
+       "tint": "#6E5F8F"
+      }
+     ]
+    },
+    {
+     "type": "pinboard",
+     "id": "ec-highlights",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "controlHeight": 480,
+     "label": "Highlight board · drag clips to the reel",
+     "pinboardConfig": {
+      "background": "film.stack",
+      "surfaceAspect": 1.5,
+      "paletteLabel": "Unsorted clips",
+      "searchable": true,
+      "items": [
+       {
+        "id": "r4-vex-1v3",
+        "label": "R4 Vex 1v3",
+        "icon": "star.fill",
+        "tint": "#FF3D7F",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        },
+        "x": 0.18,
+        "y": 0.3
+       },
+       {
+        "id": "r9-halcyon-ace",
+        "label": "R9 Halcyon ace",
+        "icon": "crown.fill",
+        "tint": "#2DE2E6",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        },
+        "x": 0.48,
+        "y": 0.22
+       },
+       {
+        "id": "r12-ninja-defuse",
+        "label": "R12 ninja defuse",
+        "icon": "scissors",
+        "tint": "#FFE14D",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        },
+        "x": 0.78,
+        "y": 0.4
+       },
+       {
+        "id": "r15-mothwing-wall",
+        "label": "R15 wallbang",
+        "icon": "bolt.fill",
+        "tint": "#FF9F1C",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        },
+        "x": 0.35,
+        "y": 0.7
+       },
+       {
+        "id": "r16-tarn-lurk",
+        "label": "R16 Tarn lurk",
+        "icon": "eye.fill",
+        "tint": "#8C7BFF",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        }
+       },
+       {
+        "id": "r17-retake",
+        "label": "R17 B retake",
+        "icon": "arrow.uturn.backward",
+        "tint": "#6BF2A3",
+        "action": {
+         "method": "meshsocket",
+         "mode": "broadcast",
+         "event": "broadcast_request",
+         "payload": {
+          "msg_type": "esports_caster_cue_replay",
+          "clip": "{{value}}",
+          "speed": 0.5
+         }
+        }
+       }
+      ],
+      "events": {
+       "place": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "esports_caster_highlight_place",
+         "clip": "{{item}}",
+         "x": "{{x}}",
+         "y": "{{y}}"
+        }
+       },
+       "layout": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "esports_caster_highlight_layout"
+        }
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_highlights"
+       },
+       "valuePath": "points"
+      }
+     ]
+    },
+    {
+     "type": "carousel",
+     "id": "ec-sponsors",
+     "position": [
+      3,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "controlHeight": 200,
+     "carouselMode": "coverflow",
+     "indicator": "bars",
+     "autoAdvance": 8,
+     "loop": true,
+     "defaultValue": 0,
+     "containerAnimation": {
+      "profile": "smooth",
+      "sideScale": 0.8,
+      "sideRotation": 40,
+      "sideOpacity": 0.55
+     },
+     "panels": [
+      {
+       "type": "group",
+       "id": "ec-spon-volt",
+       "label": "Voltline Energy",
+       "position": [
+        0,
+        0
+       ],
+       "grid": {
+        "columns": 2,
+        "rows": 2
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "ec-spon-volt-tag",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Stay sharp past R24.",
+         "style": "headline",
+         "tint": "#FFE14D"
+        },
+        {
+         "type": "label",
+         "id": "ec-spon-volt-read",
+         "position": [
+          1,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Read at half · 15s",
+         "style": "caption"
+        }
+       ]
+      },
+      {
+       "type": "group",
+       "id": "ec-spon-aero",
+       "label": "Aerocore Peripherals",
+       "position": [
+        0,
+        0
+       ],
+       "grid": {
+        "columns": 2,
+        "rows": 2
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "ec-spon-aero-tag",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Zero-latency. Zero excuses.",
+         "style": "headline",
+         "tint": "#FFE14D"
+        },
+        {
+         "type": "label",
+         "id": "ec-spon-aero-read",
+         "position": [
+          1,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Replay bumper · 10s",
+         "style": "caption"
+        }
+       ]
+      },
+      {
+       "type": "group",
+       "id": "ec-spon-north",
+       "label": "Northwind Fiber",
+       "position": [
+        0,
+        0
+       ],
+       "grid": {
+        "columns": 2,
+        "rows": 2
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "ec-spon-north-tag",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Ping from the harbor, 4 ms.",
+         "style": "headline",
+         "tint": "#FFE14D"
+        },
+        {
+         "type": "label",
+         "id": "ec-spon-north-read",
+         "position": [
+          1,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Map-end read · 20s",
+         "style": "caption"
+        }
+       ]
+      }
+     ],
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_sponsor_slot",
+       "index": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_sponsor"
+       },
+       "valuePath": "index"
+      }
+     ]
+    },
+    {
+     "type": "button",
+     "id": "ec-sponsor-read",
+     "position": [
+      4,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Mark read done",
+     "icon": "checkmark.seal.fill",
+     "style": "tinted",
+     "tint": "#6BF2A3",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "esports_caster_sponsor_read",
+       "slot": "current"
+      }
+     }
+    },
+    {
+     "type": "label",
+     "id": "ec-next-read",
+     "position": [
+      4,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Next mandatory read",
+     "text": "Voltline · after R18",
+     "style": "caption",
+     "tint": "#FFE14D",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_sponsor"
+       },
+       "valuePath": "next_read"
+      }
+     ]
+    },
+    {
+     "type": "logConsole",
+     "id": "ec-event-log",
+     "position": [
+      5,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Match event log",
+     "maxLines": 300,
+     "showTimestamps": true,
+     "fontSize": 11,
+     "controlHeight": 240,
+     "autoScroll": true,
+     "logColors": {
+      "info": "#F6F2FF",
+      "warn": "#FFE14D",
+      "error": "#FF4D4D",
+      "debug": "#6E5F8F"
+     },
+     "defaultValue": "[{\"level\":\"info\",\"message\":\"R17 0:31 Vex \\u25b8 Tarn (Vandal, headshot)\"},{\"level\":\"info\",\"message\":\"R17 0:44 Halcyon \\u25b8 Kairo (Operator)\"},{\"level\":\"warn\",\"message\":\"R17 0:52 Spike planted B Site \\u00b7 45s\"},{\"level\":\"info\",\"message\":\"R17 1:04 Mothwing \\u25b8 Brisa (Spectre, wallbang)\"},{\"level\":\"error\",\"message\":\"Observer 2 feed dropped 1.2s \\u00b7 switched to OBS-3\"}]",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "esports_caster_log"
+       },
+       "valuePath": "line"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Booth",
+   "icon": "bubble.left.and.bubble.right.fill",
+   "grid": {
+    "columns": 1,
+    "rows": 1,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "chat",
+     "id": "ec-booth-chat",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      1
+     ],
+     "label": "Caster ↔ producer",
+     "config": {
+      "showTypingIndicators": true,
+      "showReadReceipts": true,
+      "allowReactions": true,
+      "allowReplies": true,
+      "allowImages": true,
+      "historyCount": 50,
+      "tint": "#FF3D7F",
+      "systemMessageEvents": [
+       "esports_caster_booth_notice"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

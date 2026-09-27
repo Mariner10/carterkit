@@ -1,0 +1,1663 @@
+{
+  "name": "Newsroom Live",
+  "headerTitle": "LEDGER \u00b7 LIVE DESK",
+  "version": 1,
+  "accentColor": "#D7263D",
+  "description": "A breaking-news command desk for a metro daily: drag-to-assign story budget, editable publishing gantt, a live wire feed injected as cards, a source map and desk hand-off chord, an editors' chat, and a breaking-news Live Activity.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "newsroom-live-hub"
+  },
+  "sources": {
+    "cms": {
+      "type": "http",
+      "baseURL": "https://cms.example.com/api",
+      "interval": 30
+    }
+  },
+  "batchPublishers": true,
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 10
+    },
+    {
+      "sensor": "device",
+      "interval": 60
+    }
+  ],
+  "appearance": {
+    "colorScheme": "system",
+    "statusBarStyle": "auto",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#0E0D0B",
+        "#1A1714"
+      ],
+      "light": "#F3EEE3F2"
+    }
+  },
+  "theme": {
+    "accentColor": "#D7263D",
+    "accentGradient": [
+      "#D7263D",
+      "#A61B2E"
+    ],
+    "fontDesign": "serif",
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 3,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "tabBarTint": "#D7263D",
+    "toggle": {
+      "trackActiveColor": "#D7263D",
+      "knobColor": "#F3EEE3"
+    },
+    "segmented": {
+      "selectedColor": "#D7263D",
+      "selectedTextColor": "#F3EEE3"
+    },
+    "slider": {
+      "trackActiveColor": "#D7263D",
+      "thumbColor": "#F3EEE3"
+    },
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0E0D0B",
+        "#15130F",
+        "#1C1812"
+      ],
+      "surfacePrimary": "#F3EEE30D",
+      "surfaceSecondary": "#FFFFFF08",
+      "surfaceTertiary": "#00000033",
+      "borderColor": "#F3EEE326",
+      "foregroundColor": "#F3EEE3",
+      "secondaryColor": "#B5AC9C",
+      "tertiaryColor": "#7D7567",
+      "tabBarBackground": "#0E0D0BF2"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F6F2E9",
+        "#ECE5D6"
+      ],
+      "surfacePrimary": "#FFFFFFCC",
+      "borderColor": "#1A171426",
+      "foregroundColor": "#16130F",
+      "secondaryColor": "#5C5448",
+      "tabBarBackground": "#F6F2E9F2"
+    }
+  },
+  "glance": {
+    "title": "Ledger Live",
+    "icon": "newspaper.fill",
+    "tint": "#D7263D",
+    "hero": "nl-breaking-state",
+    "slots": [
+      "nl-readers",
+      "nl-filed-ring",
+      "nl-deadline"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh",
+      "activity": {
+        "stale": 180
+      }
+    },
+    "controls": [
+      {
+        "id": "breaking",
+        "kind": "toggle",
+        "label": "Breaking mode",
+        "control": "nl-breaking-mode",
+        "on": {
+          "label": "Armed",
+          "icon": "bolt.fill",
+          "tint": "#D7263D"
+        },
+        "off": {
+          "label": "Standby",
+          "icon": "bolt.slash"
+        }
+      },
+      {
+        "id": "edition",
+        "kind": "cycle",
+        "label": "Edition",
+        "control": "nl-edition",
+        "states": [
+          {
+            "value": "web",
+            "label": "Web",
+            "icon": "globe"
+          },
+          {
+            "value": "app",
+            "label": "App",
+            "icon": "iphone"
+          },
+          {
+            "value": "print",
+            "label": "Print",
+            "icon": "printer.fill"
+          },
+          {
+            "value": "news",
+            "label": "Letter",
+            "icon": "envelope.fill"
+          }
+        ]
+      },
+      {
+        "id": "push",
+        "kind": "button",
+        "label": "Push alert",
+        "icon": "bell.badge.fill",
+        "control": "nl-push-alert"
+      }
+    ],
+    "widgets": [
+      {
+        "id": "desk-pulse",
+        "title": "Desk pulse",
+        "icon": "newspaper",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "light",
+                "control": "nl-breaking-state"
+              },
+              {
+                "tile": "ring",
+                "control": "nl-filed-ring"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "nl-pv-trend",
+                "span": 2
+              }
+            ],
+            [
+              {
+                "tile": "value",
+                "control": "nl-readers"
+              },
+              {
+                "tile": "toggle",
+                "control": "nl-breaking-mode"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "pulse"
+      },
+      "compactTrailing": {
+        "tile": "light",
+        "control": "nl-breaking-state"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "nl-breaking-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "value",
+          "control": "nl-readers",
+          "label": "Readers"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "nl-filed-ring"
+              },
+              {
+                "tile": "sparkline",
+                "control": "nl-pv-trend"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "nl-push-alert"
+              },
+              {
+                "tile": "open",
+                "tab": "Wire",
+                "label": "Wire"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    "lockScreen": {
+      "rows": [
+        [
+          {
+            "tile": "light",
+            "control": "nl-breaking-state"
+          },
+          {
+            "tile": "value",
+            "control": "nl-readers"
+          },
+          {
+            "tile": "value",
+            "control": "nl-deadline"
+          }
+        ],
+        [
+          {
+            "tile": "sparkline",
+            "control": "nl-pv-trend",
+            "span": 3
+          }
+        ]
+      ]
+    }
+  },
+  "tabs": [
+    {
+      "title": "Front",
+      "icon": "newspaper.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "nl-masthead",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "THE HARBOR LEDGER \u00b7 Live Desk",
+          "style": "headline",
+          "icon": "newspaper",
+          "tint": "#D7263D",
+          "align": "center",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "masthead"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "nl-filed-ring",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Stories filed",
+          "icon": "doc.text.fill",
+          "tint": "#D7263D",
+          "min": 0,
+          "max": 64,
+          "defaultValue": 41,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "stories_filed"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "nl-breaking-state",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Breaking",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "developing",
+          "statusColors": {
+            "quiet": "#5E6B7D",
+            "developing": "#E0B64A",
+            "breaking": "#D7263D",
+            "all-clear": "#3FB6A8"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "breaking"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "nl-deadline",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Print close in",
+          "icon": "clock.badge.exclamationmark",
+          "style": "large-mono",
+          "tint": "#E0B64A",
+          "formatValue": "time",
+          "defaultValue": 5220,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "deadline_s"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "nl-edition",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "web",
+            "app",
+            "print",
+            "news"
+          ],
+          "optionLabels": [
+            "Web",
+            "App",
+            "Print",
+            "Letter"
+          ],
+          "defaultValue": "web",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_set_edition",
+              "edition": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "edition"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "nl-pv-trend",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Pageviews / min",
+          "tint": "#D7263D",
+          "sparklinePoints": 24,
+          "sparklineFill": true,
+          "defaultValue": [
+            3100,
+            3240,
+            3180,
+            3420,
+            3600,
+            3550,
+            3890,
+            4210,
+            4480,
+            4390,
+            4720,
+            5100,
+            5630,
+            6020,
+            5880,
+            6410,
+            7050,
+            7420,
+            7310,
+            7960,
+            8480,
+            8820,
+            9150,
+            9460
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "pageviews_per_min"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "nl-readers",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Concurrent readers",
+          "icon": "person.3.fill",
+          "min": 0,
+          "max": 120000,
+          "gaugeStyle": "full",
+          "tint": "#D7263D",
+          "defaultValue": 68400,
+          "animation": "smooth",
+          "segments": [
+            {
+              "limit": 60000,
+              "color": "#3FB6A8"
+            },
+            {
+              "limit": 90000,
+              "color": "#E0B64A"
+            },
+            {
+              "limit": 120000,
+              "color": "#D7263D"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "readers"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "nl-cms-health",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "CMS",
+          "defaultValue": "ok",
+          "statusColors": {
+            "ok": "#3FB6A8",
+            "degraded": "#E0B64A",
+            "down": "#D7263D"
+          },
+          "sync": [
+            {
+              "method": "http",
+              "source": "cms",
+              "path": "/v2/health",
+              "interval": 30,
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "sankey",
+          "id": "nl-traffic",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Referrers \u2192 sections",
+          "tint": "#D7263D",
+          "formatValue": "decimal:0",
+          "animation": "smooth",
+          "sankeyConfig": {
+            "showValues": true,
+            "linkOpacity": 0.36,
+            "nodeWidth": 8,
+            "scrub": true,
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "newsroom_live_inspect_referrer",
+                "node": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"nodes\":[{\"name\":\"Search\",\"color\":\"#E0B64A\"},{\"name\":\"Social\",\"color\":\"#3FB6A8\"},{\"name\":\"Direct\",\"color\":\"#8A93A6\"},{\"name\":\"Newsletter\",\"color\":\"#B38BD9\"},{\"name\":\"Metro\"},{\"name\":\"Politics\",\"color\":\"#D7263D\"},{\"name\":\"Business\"},{\"name\":\"Sports\"}],\"links\":[{\"source\":\"Search\",\"target\":\"Politics\",\"value\":2400},{\"source\":\"Search\",\"target\":\"Metro\",\"value\":1300},{\"source\":\"Social\",\"target\":\"Politics\",\"value\":1900},{\"source\":\"Social\",\"target\":\"Sports\",\"value\":820},{\"source\":\"Direct\",\"target\":\"Metro\",\"value\":1100},{\"source\":\"Direct\",\"target\":\"Business\",\"value\":640},{\"source\":\"Newsletter\",\"target\":\"Business\",\"value\":710},{\"source\":\"Newsletter\",\"target\":\"Politics\",\"value\":560}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_traffic"
+              },
+              "valuePath": "sankey"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "nl-breaking-mode",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Breaking mode",
+          "icon": "bolt.fill",
+          "defaultValue": false,
+          "haptic": "warning",
+          "tint": "#D7263D",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_breaking_mode",
+              "armed": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "breaking_mode"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "nl-push-alert",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Push alert",
+          "icon": "bell.badge.fill",
+          "style": "filled",
+          "tint": "#D7263D",
+          "haptic": "heavy",
+          "visible": {
+            "when": "nl-breaking-mode",
+            "operator": "eq",
+            "value": true
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_push_alert",
+              "edition": "web",
+              "slug": "harbor-bridge-closure"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "nl-surge-banner",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Traffic surge \u2014 CDN autoscale engaged, paywall meter relaxed",
+          "style": "caption",
+          "icon": "exclamationmark.triangle.fill",
+          "tint": "#D7263D",
+          "align": "center",
+          "visible": {
+            "when": "nl-readers",
+            "operator": "gt",
+            "value": 90000
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_state"
+              },
+              "valuePath": "surge_banner"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Budget",
+      "icon": "rectangle.3.group.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 5,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "nl-budget-hint",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Drag slugs through the desk \u00b7 Copy desk holds 3 \u00b7 Published is locked",
+          "style": "caption",
+          "icon": "hand.draw.fill",
+          "tint": "#8A93A6"
+        },
+        {
+          "type": "sortboard",
+          "id": "nl-story-board",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            10,
+            4
+          ],
+          "controlHeight": 600,
+          "label": "Story budget \u00b7 Thu 24 Sep",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Unassigned pitches",
+            "columns": 2,
+            "items": [
+              {
+                "id": "BRIDGE",
+                "label": "Harbor Bridge closure",
+                "icon": "car.fill",
+                "tint": "#D7263D",
+                "zone": "editing"
+              },
+              {
+                "id": "COUNCIL",
+                "label": "Council budget vote",
+                "icon": "building.columns.fill",
+                "tint": "#E0B64A",
+                "zone": "reporting"
+              },
+              {
+                "id": "PORT",
+                "label": "Port strike day 3",
+                "icon": "shippingbox.fill",
+                "tint": "#3FB6A8",
+                "zone": "reporting"
+              },
+              {
+                "id": "SCHOOLS",
+                "label": "School bond audit",
+                "icon": "graduationcap.fill",
+                "tint": "#8A93A6",
+                "zone": "pitched"
+              },
+              {
+                "id": "STORM",
+                "label": "Nor'easter track",
+                "icon": "cloud.bolt.rain.fill",
+                "tint": "#5DA9E9",
+                "zone": "copy"
+              },
+              {
+                "id": "MAYOR",
+                "label": "Mayor interview",
+                "icon": "mic.fill",
+                "tint": "#E0B64A",
+                "zone": "editing"
+              },
+              {
+                "id": "FERRY",
+                "label": "Ferry fare hike",
+                "icon": "ferry.fill",
+                "tint": "#3FB6A8"
+              },
+              {
+                "id": "CANNERY",
+                "label": "Cannery reopening",
+                "icon": "fish.fill",
+                "tint": "#8A93A6"
+              },
+              {
+                "id": "OBIT",
+                "label": "Obit: R. Aldana",
+                "icon": "text.book.closed.fill",
+                "tint": "#9A8F7E",
+                "zone": "published",
+                "locked": true
+              },
+              {
+                "id": "SPORTS",
+                "label": "Gulls clinch playoff",
+                "icon": "sportscourt.fill",
+                "tint": "#3FB6A8",
+                "zone": "published",
+                "locked": true
+              },
+              {
+                "id": "OPED",
+                "label": "Op-ed: housing",
+                "icon": "quote.opening",
+                "tint": "#B38BD9"
+              }
+            ],
+            "zones": [
+              {
+                "id": "pitched",
+                "label": "Pitched",
+                "tint": "#8A93A6"
+              },
+              {
+                "id": "reporting",
+                "label": "Reporting",
+                "tint": "#3FB6A8",
+                "capacity": 5
+              },
+              {
+                "id": "editing",
+                "label": "Editing",
+                "tint": "#E0B64A",
+                "capacity": 4
+              },
+              {
+                "id": "copy",
+                "label": "Copy desk",
+                "tint": "#5DA9E9",
+                "capacity": 3
+              },
+              {
+                "id": "published",
+                "label": "Published",
+                "tint": "#D7263D",
+                "locked": true
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_story_move",
+                  "slug": "{{item}}",
+                  "from_stage": "{{from}}",
+                  "to_stage": "{{to}}",
+                  "index": "{{index}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_budget_layout"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_budget"
+              },
+              "valuePath": "arrangement"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "nl-publish-gantt",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Publishing plan",
+          "tint": "#D7263D",
+          "ganttConfig": {
+            "editable": true,
+            "step": 0.05,
+            "rowHeight": 28,
+            "barCornerRadius": 3,
+            "colors": [
+              "#D7263D",
+              "#E0B64A",
+              "#3FB6A8",
+              "#8A93A6"
+            ],
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "newsroom_live_slot_progress",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "[{\"name\":\"Bridge \\u00b7 web\",\"start\":\"2026-09-24T06:00:00\",\"end\":\"2026-09-24T09:30:00\",\"progress\":0.8,\"color\":\"#D7263D\"},{\"name\":\"Council live\",\"start\":\"2026-09-24T09:00:00\",\"end\":\"2026-09-24T14:00:00\",\"progress\":0.45},{\"name\":\"Port strike\",\"start\":\"2026-09-24T10:00:00\",\"end\":\"2026-09-24T16:00:00\",\"progress\":0.3},{\"name\":\"Storm tracker\",\"start\":\"2026-09-24T07:00:00\",\"end\":\"2026-09-24T20:00:00\",\"progress\":0.6,\"color\":\"#5DA9E9\"},{\"name\":\"Mayor Q&A\",\"start\":\"2026-09-24T13:00:00\",\"end\":\"2026-09-24T17:00:00\",\"progress\":0.1},{\"name\":\"Newsletter\",\"start\":\"2026-09-24T16:30:00\",\"end\":\"2026-09-24T17:30:00\",\"progress\":0.0},{\"name\":\"A1 lock\",\"start\":\"2026-09-24T21:30:00\",\"milestone\":true},{\"name\":\"Press run\",\"start\":\"2026-09-24T23:00:00\",\"milestone\":true}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_schedule"
+              },
+              "valuePath": "tasks"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "nl-budget-actions",
+          "label": "Page one",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "nl-lock-a1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Lock A1",
+              "icon": "lock.fill",
+              "style": "filled",
+              "tint": "#D7263D",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_lock_a1",
+                  "edition": "print"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "nl-send-budget",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Send budget",
+              "icon": "paperplane.fill",
+              "style": "outlined",
+              "tint": "#E0B64A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_send_budget",
+                  "to": "masthead"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Wire",
+      "icon": "antenna.radiowaves.left.and.right",
+      "grid": {
+        "columns": 4,
+        "rows": 5,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "picker",
+          "id": "nl-wire-source",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Wire",
+          "pickerStyle": "menu",
+          "options": [
+            "all",
+            "ap",
+            "reuters",
+            "afp",
+            "stringers"
+          ],
+          "optionLabels": [
+            "All wires",
+            "AP",
+            "Reuters",
+            "AFP",
+            "Stringers"
+          ],
+          "defaultValue": "all",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_wire_filter",
+              "source": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_wire_state"
+              },
+              "valuePath": "source"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "nl-embargo-guard",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Embargo guard",
+          "icon": "hand.raised.fill",
+          "defaultValue": true,
+          "tint": "#E0B64A",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_embargo_guard",
+              "enabled": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_wire_state"
+              },
+              "valuePath": "embargo_guard"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "nl-wire-search",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "placeholder": "Search slugs, datelines, keywords\u2026",
+          "style": "search",
+          "icon": "magnifyingglass",
+          "clearOnSubmit": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_wire_search",
+              "query": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "nl-wire-feed",
+          "label": "Incoming wire",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3,
+            "mode": "flow"
+          },
+          "dynamic": "newsroom_live_wire_items",
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "newsroom_live_wire_items"
+            },
+            "direction": "inward",
+            "color": "D7263D"
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "nl-wire-ap-1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "AP \u00b7 09:41 \u00b7 URGENT",
+              "text": "Coast Guard suspends harbor traffic after barge strikes bridge pier",
+              "style": "default",
+              "icon": "bolt.horizontal.fill",
+              "tint": "#D7263D"
+            },
+            {
+              "type": "label",
+              "id": "nl-wire-rt-1",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Reuters \u00b7 09:37",
+              "text": "Longshore union rejects port authority offer; strike enters day three",
+              "style": "default",
+              "icon": "shippingbox",
+              "tint": "#3FB6A8"
+            },
+            {
+              "type": "button",
+              "id": "nl-wire-claim",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Claim AP urgent",
+              "icon": "hand.point.up.left.fill",
+              "style": "tinted",
+              "tint": "#D7263D",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_wire_claim",
+                  "wire_id": "ap-2609-0941"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "nl-wire-spike",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Spike",
+              "icon": "trash",
+              "style": "ghost",
+              "tint": "#8A93A6",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "newsroom_live_wire_spike",
+                  "wire_id": "ap-2609-0941"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "nl-wire-log",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Ingest log",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "controlHeight": 240,
+          "tint": "#D7263D",
+          "logColors": {
+            "error": "#D7263D",
+            "warn": "#E0B64A",
+            "info": "#F3EEE3",
+            "debug": "#8A93A6"
+          },
+          "defaultValue": "[{\"level\":\"info\",\"message\":\"AP ingest: 14 items (3 urgent) in last 5 min\"},{\"level\":\"debug\",\"message\":\"Reuters socket heartbeat 212ms\"},{\"level\":\"warn\",\"message\":\"AFP item afp-7731 carries embargo 12:00 EDT \\u2014 held\"},{\"level\":\"info\",\"message\":\"Stringer upload: bridge_pier_04.jpg (EXIF ok, geotag 41.49,-71.31)\"},{\"level\":\"error\",\"message\":\"Getty caption feed 503 \\u2014 retrying in 30s\"},{\"level\":\"info\",\"message\":\"Dupe filter merged 4 near-identical council items\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_wire_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sources",
+      "icon": "point.3.connected.trianglepath.dotted",
+      "grid": {
+        "columns": 4,
+        "rows": 23
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "nl-graph-lens",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "all",
+            "people",
+            "orgs",
+            "docs"
+          ],
+          "optionLabels": [
+            "All",
+            "People",
+            "Orgs",
+            "Docs"
+          ],
+          "defaultValue": "all",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_graph_lens",
+              "lens": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "graph",
+          "id": "nl-source-graph",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Source map \u00b7 bridge + port",
+          "tint": "#D7263D",
+          "graphConfig": {
+            "nodeSize": 9,
+            "edgeCurved": true,
+            "edgeOpacity": 0.35,
+            "labelSize": 9,
+            "repulsionForce": 620,
+            "centerForce": 0.004,
+            "attractionForce": 0.004,
+            "backgroundColor": "#0E0D0B",
+            "glowColor": "#D7263D",
+            "glowRadius": 7,
+            "groupColors": {
+              "desk": "#D7263D",
+              "official": "#E0B64A",
+              "org": "#3FB6A8",
+              "person": "#5DA9E9",
+              "doc": "#8A93A6"
+            },
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "newsroom_live_source_open",
+                "source_id": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"nodes\":[{\"id\":\"desk\",\"label\":\"Metro desk\",\"group\":\"desk\"},{\"id\":\"uscg\",\"label\":\"USCG Sector\",\"group\":\"official\"},{\"id\":\"dot\",\"label\":\"State DOT\",\"group\":\"official\"},{\"id\":\"ilwu\",\"label\":\"ILWU Local 8\",\"group\":\"org\"},{\"id\":\"portauth\",\"label\":\"Port Authority\",\"group\":\"official\"},{\"id\":\"witness1\",\"label\":\"Eyewitness (ferry)\",\"group\":\"person\"},{\"id\":\"witness2\",\"label\":\"Tugboat captain\",\"group\":\"person\"},{\"id\":\"docs\",\"label\":\"Bridge inspection PDF\",\"group\":\"doc\"},{\"id\":\"council\",\"label\":\"Cllr. Okafor\",\"group\":\"person\"},{\"id\":\"budgetdoc\",\"label\":\"FY27 budget draft\",\"group\":\"doc\"},{\"id\":\"politics\",\"label\":\"Politics desk\",\"group\":\"desk\"}],\"edges\":[{\"from\":\"desk\",\"to\":\"uscg\"},{\"from\":\"desk\",\"to\":\"dot\"},{\"from\":\"desk\",\"to\":\"witness1\"},{\"from\":\"desk\",\"to\":\"witness2\"},{\"from\":\"dot\",\"to\":\"docs\",\"width\":2.0},{\"from\":\"desk\",\"to\":\"ilwu\"},{\"from\":\"ilwu\",\"to\":\"portauth\"},{\"from\":\"politics\",\"to\":\"council\"},{\"from\":\"council\",\"to\":\"budgetdoc\"},{\"from\":\"politics\",\"to\":\"portauth\"},{\"from\":\"uscg\",\"to\":\"witness2\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_sources"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "chord",
+          "id": "nl-desk-handoffs",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Desk hand-offs today",
+          "tint": "#D7263D",
+          "formatValue": "decimal:0",
+          "animation": "smooth",
+          "chordConfig": {
+            "showLabels": true,
+            "pad": 3,
+            "ribbonOpacity": 0.42,
+            "scrub": true,
+            "arcAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "newsroom_live_desk_focus",
+                "desk": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"labels\":[\"Metro\",\"Politics\",\"Business\",\"Photo\",\"Copy\",\"Web\"],\"colors\":[\"#D7263D\",\"#E0B64A\",\"#3FB6A8\",\"#5DA9E9\",\"#B38BD9\",\"#8A93A6\"],\"matrix\":[[0,4,2,9,11,7],[3,0,2,4,8,5],[1,3,0,2,6,4],[6,2,1,0,3,8],[2,1,1,0,0,14],[1,1,0,2,1,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_sources"
+              },
+              "valuePath": "handoffs"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "nl-verified-list",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Verification queue",
+          "tint": "#E0B64A",
+          "listColumns": [
+            {
+              "key": "claim",
+              "label": "Claim"
+            },
+            {
+              "key": "source",
+              "label": "Source"
+            },
+            {
+              "key": "status",
+              "label": "Status"
+            }
+          ],
+          "defaultValue": "[{\"claim\":\"Barge was unpiloted\",\"source\":\"Tug captain\",\"status\":\"2nd src needed\"},{\"claim\":\"Pier 4 cracked in 2024\",\"source\":\"DOT PDF\",\"status\":\"Confirmed\"},{\"claim\":\"No injuries\",\"source\":\"USCG PIO\",\"status\":\"Confirmed\"},{\"claim\":\"Strike vote 91%\",\"source\":\"ILWU Local 8\",\"status\":\"Pending\"},{\"claim\":\"$14M overrun\",\"source\":\"Budget draft\",\"status\":\"Checking\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_sources"
+              },
+              "valuePath": "verification"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "nl-verify-ring",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Claims verified",
+          "icon": "checkmark.shield.fill",
+          "tint": "#3FB6A8",
+          "min": 0,
+          "max": 100,
+          "formatValue": "percent",
+          "defaultValue": 62,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "newsroom_live_sources"
+              },
+              "valuePath": "verified_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "nl-field-battery",
+          "position": [
+            15,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Field phone battery",
+          "icon": "battery.75percent",
+          "style": "mono",
+          "formatValue": "suffix:%",
+          "defaultValue": 74,
+          "tint": "#E0B64A",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sensor",
+                "sensor": "device"
+              },
+              "valuePath": "battery"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "nl-field-speed",
+          "position": [
+            16,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Field unit speed",
+          "icon": "figure.walk",
+          "style": "mono",
+          "formatValue": "suffix: km/h",
+          "defaultValue": 4.2,
+          "tint": "#3FB6A8",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "sensor",
+                "sensor": "location"
+              },
+              "valuePath": "value"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "nl-request-callback",
+          "position": [
+            17,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Page reporter",
+          "icon": "phone.arrow.up.right.fill",
+          "style": "tinted",
+          "tint": "#D7263D",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "newsroom_live_page_reporter",
+              "reporter": "m.reyes"
+            }
+          }
+        },
+        {
+          "type": "webView",
+          "id": "nl-homepage-preview",
+          "position": [
+            18,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Live homepage (staging)",
+          "url": "https://example.com/",
+          "webInteractive": true,
+          "webScrollEnabled": true,
+          "webRefreshInterval": 60
+        }
+      ]
+    },
+    {
+      "title": "Desk Chat",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "nl-editor-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "#metro-desk \u00b7 editors",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": true,
+            "historyCount": 50,
+            "tint": "#D7263D"
+          }
+        }
+      ]
+    }
+  ]
+}

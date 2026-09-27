@@ -1,0 +1,1359 @@
+{
+  "name": "Brewery Ops",
+  "headerTitle": "COPPERLINE · CELLAR",
+  "version": 1,
+  "accentColor": "#F2A516",
+  "description": "Cellar ops for a 15-bbl craft brewery: live fermenter temps and gravity, batch tracker, brewhouse schedule and glycol/CIP controls.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#F2A516",
+    "accentGradient": [
+      "#F2A516",
+      "#C8661B"
+    ],
+    "fontFamily": "Avenir Next",
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 16,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "pageBackgroundGradient": [
+      "#0C0703",
+      "#1D1106",
+      "#2E1B07"
+    ],
+    "surfacePrimary": "#FFB84D14",
+    "surfaceSecondary": "#FFB84D0B",
+    "surfaceTertiary": "#FFB84D06",
+    "borderColor": "#F2A5162E",
+    "foregroundColor": "#FFF1DC",
+    "secondaryColor": "#D8B07A",
+    "tertiaryColor": "#8C6A55",
+    "tabBarTint": "#F2A516",
+    "tabBarBackground": "#140C05E6",
+    "toggle": {
+      "trackActiveColor": "#F2A516"
+    },
+    "segmented": {
+      "selectedColor": "#F2A516",
+      "selectedTextColor": "#1D1106"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Cellar",
+      "icon": "drop.halffull",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "cellar-activity",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "bubbles.and.sparkles.fill",
+          "label": "Active ferment",
+          "haptic": "soft",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#F2A516",
+              "#FFE2A8"
+            ],
+            "effect": "breathe",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "speed": 0.8,
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "brewery_ops_blowoff"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "fermenting"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "glycol-loop",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Glycol loop",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": {
+            "nominal": "#7BC67E",
+            "warm": "#F2A516",
+            "fault": "#D9412B"
+          },
+          "defaultValue": "nominal",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "glycol_state"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "cellar-ambient",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cellar ambient",
+          "icon": "thermometer.variable",
+          "formatValue": "suffix:°F",
+          "defaultValue": 58.4,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "ambient_f"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "cellar-co2",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "CO₂ room",
+          "icon": "aqi.medium",
+          "formatValue": "suffix: ppm",
+          "defaultValue": 820,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "co2_ppm"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "hall-a",
+          "label": "Hall A · Ales",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 5
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "fv1-tank",
+              "label": "FV-1 · Hazy IPA",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                5,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "fv1-temp",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Temp °F",
+                  "icon": "thermometer.medium",
+                  "min": 30,
+                  "max": 85,
+                  "gaugeStyle": "half",
+                  "step": 0.1,
+                  "formatValue": "suffix:°",
+                  "colorBlend": 0.35,
+                  "segments": [
+                    {
+                      "limit": 40,
+                      "color": "#6FA8DC"
+                    },
+                    {
+                      "limit": 70,
+                      "color": "#F2A516"
+                    },
+                    {
+                      "limit": 78,
+                      "color": "#E8742A"
+                    },
+                    {
+                      "limit": 85,
+                      "color": "#D9412B"
+                    }
+                  ],
+                  "defaultValue": 66.2,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv1"
+                      },
+                      "valuePath": "temp_f"
+                    }
+                  ]
+                },
+                {
+                  "type": "sparkline",
+                  "id": "fv1-gravity",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Gravity SG",
+                  "tint": "#F2A516",
+                  "sparklinePoints": 96,
+                  "sparklineFill": true,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv1"
+                      },
+                      "valuePath": "gravity"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "fv3-tank",
+              "label": "FV-3 · Oat Stout",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                5,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "fv3-temp",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Temp °F",
+                  "icon": "thermometer.medium",
+                  "min": 30,
+                  "max": 85,
+                  "gaugeStyle": "half",
+                  "step": 0.1,
+                  "formatValue": "suffix:°",
+                  "colorBlend": 0.35,
+                  "segments": [
+                    {
+                      "limit": 40,
+                      "color": "#6FA8DC"
+                    },
+                    {
+                      "limit": 70,
+                      "color": "#F2A516"
+                    },
+                    {
+                      "limit": 78,
+                      "color": "#E8742A"
+                    },
+                    {
+                      "limit": 85,
+                      "color": "#D9412B"
+                    }
+                  ],
+                  "defaultValue": 68.0,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv3"
+                      },
+                      "valuePath": "temp_f"
+                    }
+                  ]
+                },
+                {
+                  "type": "sparkline",
+                  "id": "fv3-gravity",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Gravity SG",
+                  "tint": "#C8661B",
+                  "sparklinePoints": 96,
+                  "sparklineFill": true,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv3"
+                      },
+                      "valuePath": "gravity"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "hall-b",
+          "label": "Hall B · Lagers & Farmhouse",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 5
+          },
+          "children": [
+            {
+              "type": "group",
+              "id": "fv2-tank",
+              "label": "FV-2 · Czech Pils",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                5,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "fv2-temp",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Temp °F",
+                  "icon": "thermometer.medium",
+                  "min": 30,
+                  "max": 85,
+                  "gaugeStyle": "half",
+                  "step": 0.1,
+                  "formatValue": "suffix:°",
+                  "colorBlend": 0.35,
+                  "segments": [
+                    {
+                      "limit": 40,
+                      "color": "#6FA8DC"
+                    },
+                    {
+                      "limit": 70,
+                      "color": "#F2A516"
+                    },
+                    {
+                      "limit": 78,
+                      "color": "#E8742A"
+                    },
+                    {
+                      "limit": 85,
+                      "color": "#D9412B"
+                    }
+                  ],
+                  "defaultValue": 50.4,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv2"
+                      },
+                      "valuePath": "temp_f"
+                    }
+                  ]
+                },
+                {
+                  "type": "sparkline",
+                  "id": "fv2-gravity",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Gravity SG",
+                  "tint": "#FFD36B",
+                  "sparklinePoints": 96,
+                  "sparklineFill": true,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv2"
+                      },
+                      "valuePath": "gravity"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "fv4-tank",
+              "label": "FV-4 · Saison",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                5,
+                2
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "fv4-temp",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Temp °F",
+                  "icon": "thermometer.medium",
+                  "min": 30,
+                  "max": 85,
+                  "gaugeStyle": "half",
+                  "step": 0.1,
+                  "formatValue": "suffix:°",
+                  "colorBlend": 0.35,
+                  "segments": [
+                    {
+                      "limit": 40,
+                      "color": "#6FA8DC"
+                    },
+                    {
+                      "limit": 70,
+                      "color": "#F2A516"
+                    },
+                    {
+                      "limit": 78,
+                      "color": "#E8742A"
+                    },
+                    {
+                      "limit": 85,
+                      "color": "#D9412B"
+                    }
+                  ],
+                  "defaultValue": 74.6,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv4"
+                      },
+                      "valuePath": "temp_f"
+                    }
+                  ]
+                },
+                {
+                  "type": "sparkline",
+                  "id": "fv4-gravity",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    2,
+                    2
+                  ],
+                  "label": "Gravity SG",
+                  "tint": "#E88A3A",
+                  "sparklinePoints": 96,
+                  "sparklineFill": true,
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "brewery_ops_tank",
+                        "tank": "fv4"
+                      },
+                      "valuePath": "gravity"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Batches",
+      "icon": "list.bullet.rectangle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "cardList",
+          "id": "batch-cards",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Batches",
+          "defaultValue": "{\"nodes\":[{\"id\":\"b2419\",\"label\":\"B-2419 \\u00b7 Hazy IPA \\u00b7 FV-1 \\u00b7 dry-hop day 2\",\"group\":\"fermenting\",\"icon\":\"leaf.fill\"},{\"id\":\"b2421\",\"label\":\"B-2421 \\u00b7 Oat Stout \\u00b7 FV-3 \\u00b7 1.031 falling\",\"group\":\"fermenting\",\"icon\":\"cup.and.saucer.fill\"},{\"id\":\"b2422\",\"label\":\"B-2422 \\u00b7 Saison Dupont yeast \\u00b7 FV-4 \\u00b7 free-rise\",\"group\":\"fermenting\",\"icon\":\"sun.max.fill\"},{\"id\":\"b2417\",\"label\":\"B-2417 \\u00b7 Czech Pils \\u00b7 FV-2 \\u00b7 lagering 4 of 28 d\",\"group\":\"conditioning\",\"icon\":\"snowflake\"},{\"id\":\"b2415\",\"label\":\"B-2415 \\u00b7 K\\u00f6lsch \\u00b7 BBT-1 \\u00b7 carbonating 2.6 vol\",\"group\":\"conditioning\",\"icon\":\"bubbles.and.sparkles\"},{\"id\":\"b2412\",\"label\":\"B-2412 \\u00b7 West Coast IPA \\u00b7 42 kegs + 110 cs\",\"group\":\"packaged\",\"icon\":\"shippingbox.fill\"},{\"id\":\"b2410\",\"label\":\"B-2410 \\u00b7 Amber Lager \\u00b7 38 kegs\",\"group\":\"packaged\",\"icon\":\"shippingbox.fill\"},{\"id\":\"b2423\",\"label\":\"B-2423 \\u00b7 Pale Ale \\u00b7 brew day Fri\",\"group\":\"planned\",\"icon\":\"calendar\"},{\"id\":\"b2424\",\"label\":\"B-2424 \\u00b7 Pumpkin Porter \\u00b7 brew day Mon\",\"group\":\"planned\",\"icon\":\"calendar\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_batches"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "radar",
+          "id": "b2419-sensory",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "B-2419 sensory",
+          "radarConfig": {
+            "curved": true,
+            "showPoints": true,
+            "rings": 4,
+            "fillOpacity": 0.3,
+            "colors": [
+              "#F2A516",
+              "#8C6A55"
+            ]
+          },
+          "defaultValue": "{\"axes\":[\"Citrus\",\"Tropical\",\"Bitter\",\"Body\",\"Haze\",\"Aroma\"],\"max\":10,\"series\":[{\"name\":\"B-2419\",\"color\":\"#F2A516\",\"values\":[8,9,5,7,9,8]},{\"name\":\"Target\",\"color\":\"#8C6A55\",\"values\":[8,8,4,7,8,9]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_sensory",
+                "batch": "b2419"
+              },
+              "valuePath": "radar"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "b2419-attenuation",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Attenuation",
+          "icon": "arrow.down.right",
+          "min": 0,
+          "max": 100,
+          "tint": "#F2A516",
+          "defaultValue": 78,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_batch",
+                "batch": "b2419"
+              },
+              "valuePath": "attenuation_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "b2419-og-fg",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "OG → SG",
+          "icon": "drop.fill",
+          "defaultValue": "1.068 → 1.015",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_batch",
+                "batch": "b2419"
+              },
+              "valuePath": "og_sg"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "b2419-abv",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Est. ABV",
+          "icon": "percent",
+          "formatValue": "suffix:%",
+          "defaultValue": 7.0,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_batch",
+                "batch": "b2419"
+              },
+              "valuePath": "abv"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "gravity-curves",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Gravity curves · SG",
+          "tint": "#F2A516",
+          "chartConfig": {
+            "showLegend": true,
+            "smooth": true,
+            "scrub": true,
+            "showGrid": false,
+            "lineWidth": 2.5
+          },
+          "defaultValue": "{\"categories\":[\"D0\",\"D1\",\"D2\",\"D3\",\"D4\",\"D5\",\"D6\",\"D7\"],\"series\":[{\"name\":\"Hazy IPA\",\"type\":\"line\",\"color\":\"#F2A516\",\"values\":[1.068,1.061,1.044,1.028,1.019,1.015]},{\"name\":\"Oat Stout\",\"type\":\"line\",\"color\":\"#C8661B\",\"values\":[1.074,1.07,1.058,1.046,1.038,1.034,1.031]},{\"name\":\"Saison\",\"type\":\"line\",\"color\":\"#FFD36B\",\"values\":[1.06,1.052,1.036,1.02]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_batches"
+              },
+              "valuePath": "gravity_chart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Schedule",
+      "icon": "calendar",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "gantt",
+          "id": "cellar-schedule",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Cellar plan",
+          "tint": "#F2A516",
+          "ganttConfig": {
+            "rowHeight": 24,
+            "showGrid": false,
+            "editable": true,
+            "step": 0.05,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "brewery_ops_task_progress",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\":[{\"name\":\"B-2419 dry hop\",\"start\":\"2026-09-23\",\"end\":\"2026-09-26\",\"progress\":0.5,\"color\":\"#F2A516\"},{\"name\":\"B-2421 D-rest\",\"start\":\"2026-09-24\",\"end\":\"2026-09-27\",\"progress\":0.2,\"color\":\"#C8661B\"},{\"name\":\"B-2415 carb\",\"start\":\"2026-09-22\",\"end\":\"2026-09-25\",\"progress\":0.7,\"color\":\"#FFD36B\"},{\"name\":\"B-2423 brew\",\"start\":\"2026-09-26\",\"end\":\"2026-09-26\",\"milestone\":true,\"color\":\"#FFE2A8\"},{\"name\":\"B-2419 crash\",\"start\":\"2026-09-27\",\"end\":\"2026-09-30\",\"progress\":0.0,\"color\":\"#6FA8DC\"},{\"name\":\"Canning run\",\"start\":\"2026-09-29\",\"end\":\"2026-09-30\",\"progress\":0.0,\"color\":\"#E88A3A\"},{\"name\":\"B-2424 brew\",\"start\":\"2026-09-29\",\"milestone\":true,\"color\":\"#FFE2A8\"},{\"name\":\"B-2417 lager\",\"start\":\"2026-09-20\",\"end\":\"2026-10-18\",\"progress\":0.15,\"color\":\"#8C6A55\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_schedule"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "brewhouse-bookings",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Brewhouse · mash / boil / CIP",
+          "heatmapConfig": {
+            "discrete": true,
+            "colors": [
+              "#FFFFFF10",
+              "#F2A516",
+              "#C8661B",
+              "#6FA8DC"
+            ],
+            "cellGap": 3,
+            "cellCorner": 4,
+            "editable": true,
+            "sendMode": "cell",
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "brewery_ops_booking_set",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "haptic": "selection",
+          "defaultValue": "{\"rows\":[\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\",\"Sun\"],\"cols\":[\"06\",\"09\",\"12\",\"15\",\"18\"],\"values\":[[1,2,2,3,0],[0,0,3,0,0],[1,2,2,3,0],[0,0,0,3,0],[1,2,2,3,0],[0,0,0,0,0],[0,0,3,0,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_schedule"
+              },
+              "valuePath": "bookings"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "weekly-output",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "label": "Output · bbl / week",
+          "tint": "#F2A516",
+          "chartConfig": {
+            "showGrid": false,
+            "showLegend": true
+          },
+          "defaultValue": "{\"categories\":[\"W34\",\"W35\",\"W36\",\"W37\",\"W38\",\"W39\"],\"series\":[{\"name\":\"Kegs\",\"type\":\"bar\",\"color\":\"#F2A516\",\"values\":[42,38,51,47,55,44]},{\"name\":\"Cans\",\"type\":\"bar\",\"color\":\"#C8661B\",\"values\":[18,22,15,26,24,30]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_schedule"
+              },
+              "valuePath": "output_chart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Controls",
+      "icon": "slider.horizontal.3",
+      "grid": {
+        "columns": 4,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "id": "glycol-pump",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Glycol pump",
+          "icon": "snowflake",
+          "defaultValue": true,
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_glycol_pump",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "glycol_pump"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "cip-mode",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "CIP mode",
+          "icon": "sparkles",
+          "defaultValue": false,
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_cip_mode",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cip"
+              },
+              "valuePath": "armed"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "chiller-state",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "thermometer.snowflake",
+          "label": "Chiller 28°F",
+          "tint": "#6FA8DC",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "effect": "snow",
+            "particleColor": "#CFE3F5",
+            "particleIntensity": 0.55,
+            "particleAngle": 6,
+            "activeWhen": "truthy"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "glycol_pump"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "target-tank",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "fv1",
+            "fv2",
+            "fv3",
+            "fv4"
+          ],
+          "optionLabels": [
+            "FV1",
+            "FV2",
+            "FV3",
+            "FV4"
+          ],
+          "defaultValue": "fv1",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_select_tank",
+              "tank": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "tank-setpoint",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Setpoint °F",
+          "min": 28,
+          "max": 80,
+          "step": 0.5,
+          "defaultValue": 66,
+          "repeatOnHold": true,
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_setpoint",
+              "f": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "apply-setpoint",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Apply",
+          "icon": "checkmark.circle.fill",
+          "style": "tinted",
+          "tint": "#F2A516",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_setpoint_apply"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "cip-cycle",
+          "label": "CIP cycle · BBT-2",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 1
+          },
+          "visible": {
+            "when": "cip-mode",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "cip-caustic",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Caustic wash",
+              "icon": "drop.triangle.fill",
+              "style": "outlined",
+              "tint": "#E88A3A",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "brewery_ops_cip_step",
+                  "step": "caustic"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "cip-acid",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Acid rinse",
+              "icon": "drop.degreesign.fill",
+              "style": "outlined",
+              "tint": "#FFD36B",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "brewery_ops_cip_step",
+                  "step": "acid"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "dump-yeast",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Dump yeast",
+          "icon": "arrow.down.to.line",
+          "style": "filled",
+          "tint": "#C8661B",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_tank_cmd",
+              "cmd": "dump_yeast"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "crash-cool",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Crash cool",
+          "icon": "thermometer.snowflake",
+          "style": "filled",
+          "tint": "#6FA8DC",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "brewery_ops_tank_cmd",
+              "cmd": "crash_cool"
+            }
+          }
+        },
+        {
+          "type": "gauge",
+          "id": "glycol-supply",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Glycol supply",
+          "icon": "snowflake",
+          "min": 20,
+          "max": 45,
+          "gaugeStyle": "half",
+          "step": 0.1,
+          "formatValue": "suffix:°",
+          "tint": "#6FA8DC",
+          "defaultValue": 28.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "glycol_supply_f"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "co2-scrubber",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "CO₂ recovery",
+          "style": "badge",
+          "statusColors": {
+            "running": "#7BC67E",
+            "idle": "#8C6A55",
+            "alarm": "#D9412B"
+          },
+          "defaultValue": "running",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "co2_recovery"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "reservoir-level",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Reservoir",
+          "icon": "gauge.with.dots.needle.33percent",
+          "formatValue": "suffix: gal",
+          "defaultValue": 112,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "brewery_ops_cellar"
+              },
+              "valuePath": "reservoir_gal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

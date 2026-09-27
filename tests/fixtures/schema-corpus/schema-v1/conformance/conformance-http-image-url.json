@@ -1,0 +1,29 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "image",
+          "id": "pic",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "url": "http://example.com/a.png"
+        }
+      ]
+    }
+  ]
+}

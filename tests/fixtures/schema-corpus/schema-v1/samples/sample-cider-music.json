@@ -1,0 +1,516 @@
+{
+  "name": "Cider Music",
+  "headerTitle": "Music",
+  "version": 1,
+  "accentColor": "#ff375f",
+  "tabs": [
+    {
+      "title": "Now Playing",
+      "icon": "music.note",
+      "grid": {
+        "columns": 4,
+        "rows": 10,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "artwork-info",
+          "label": null,
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "image",
+              "id": "album-art",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                3,
+                2
+              ],
+              "systemName": "music.note.list",
+              "style": "rounded",
+              "imageCornerRadius": 8,
+              "hideBackground": true,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "artwork_url"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "track-title",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "No Track",
+              "style": "headline",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "title"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "track-artist",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "\u2014",
+              "icon": "person.fill",
+              "tint": "#AAAAAA",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "artist"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "track-album",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "text": "\u2014",
+              "icon": "opticaldisc.fill",
+              "style": "caption",
+              "tint": "#888888",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "album"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "seek-group",
+          "label": null,
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "seek-slider",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "min": 0,
+              "max": 300,
+              "step": 1,
+              "defaultValue": 0,
+              "label": "Position",
+              "style": "scrubber",
+              "tint": "#FF2D55",
+              "formatValue": "time",
+              "hideBackground": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "seek",
+                    "position": "{{value}}"
+                  }
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "elapsed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "transport",
+          "label": null,
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 5,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "btn-shuffle",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Shuffle",
+              "icon": "shuffle",
+              "style": "ghost",
+              "size": "large",
+              "hideLabel": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "toggle_shuffle"
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "btn-prev",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Previous",
+              "icon": "backward.fill",
+              "style": "ghost",
+              "size": "large",
+              "hideLabel": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "previous"
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "btn-playpause",
+              "position": [
+                0,
+                2
+              ],
+              "label": "Play/Pause",
+              "icon": "playpause.fill",
+              "style": "filled",
+              "size": "large",
+              "tint": "#FF2D55",
+              "hideLabel": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "playpause"
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "btn-next",
+              "position": [
+                0,
+                3
+              ],
+              "label": "Next",
+              "icon": "forward.fill",
+              "style": "ghost",
+              "size": "large",
+              "hideLabel": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "next"
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "btn-repeat",
+              "position": [
+                0,
+                4
+              ],
+              "label": "Repeat",
+              "icon": "repeat",
+              "style": "ghost",
+              "size": "large",
+              "hideLabel": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "toggle_repeat"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "volume-group",
+          "label": null,
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "id": "volume-slider",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "min": 0,
+              "max": 1,
+              "step": 0.01,
+              "defaultValue": 0.5,
+              "hideLabel": true,
+              "minIcon": "speaker.fill",
+              "maxIcon": "speaker.wave.3.fill",
+              "formatValue": "percent",
+              "tint": "#667eea",
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "volume_set",
+                    "volume": "{{value}}"
+                  }
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "cider_state"
+                  },
+                  "valuePath": "volume"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "quick-actions",
+          "label": null,
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "btn-stop",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Stop",
+              "icon": "stop.fill",
+              "style": "outline",
+              "tint": "#FF3B30",
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "stop"
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "btn-clear-queue",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Clear Queue",
+              "icon": "trash",
+              "style": "outline",
+              "tint": "#FF9500",
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "queue_clear"
+                  }
+                }
+              }
+            },
+            {
+              "type": "textInput",
+              "id": "play-url-input",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "placeholder": "Apple Music URL",
+              "defaultValue": "",
+              "icon": "link",
+              "action": {
+                "method": "meshsocket",
+                "mode": "send",
+                "event": "route_msg_noreply",
+                "payload": {
+                  "target_name": "cider-bridge-v2",
+                  "type": "cider_command",
+                  "payload": {
+                    "command": "play_url",
+                    "url": "{{value}}"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

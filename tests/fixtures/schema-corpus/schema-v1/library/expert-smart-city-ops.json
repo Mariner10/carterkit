@@ -1,0 +1,1979 @@
+{
+ "name": "Smart City Ops Center",
+ "headerTitle": "HARBORVIEW · TOC",
+ "version": 1,
+ "id": "smart-city-ops",
+ "accentColor": "#FF9F1C",
+ "description": "A traffic-operations-center wall for the fictional city of Harborview: district traffic heatmap, a force-directed transit network, a live incident queue pushed as dynamic cards, CCTV in a web view and a municipal energy sankey — mirrored to widgets and the Dynamic Island.",
+ "difficulty": "expert",
+ "keepAwake": true,
+ "state": {
+  "sync": true,
+  "authority": "harborview-toc-hub",
+  "acks": true,
+  "ackTimeoutMs": 2000
+ },
+ "sources": {
+  "cityapi": {
+   "type": "http",
+   "baseURL": "https://data.harborview-city.gov/api/v2",
+   "interval": 60,
+   "headers": {
+    "Accept": "application/json"
+   }
+  }
+ },
+ "batchPublishers": true,
+ "publishers": [
+  {
+   "sensor": "location",
+   "interval": 15
+  },
+  {
+   "sensor": "device",
+   "interval": 60
+  }
+ ],
+ "appearance": {
+  "colorScheme": "dark",
+  "statusBarStyle": "light",
+  "header": {
+   "style": "color",
+   "dark": [
+    "#05070D",
+    "#0B1220"
+   ],
+   "light": "#F2EEE4"
+  }
+ },
+ "theme": {
+  "accentColor": "#FF9F1C",
+  "accentGradient": [
+   "#FF9F1C",
+   "#FF5E3A",
+   "#FF3864"
+  ],
+  "fontFamily": "Avenir Next Condensed",
+  "cornerRadius": 6,
+  "cardPadding": 12,
+  "controlPadding": 8,
+  "borderWidth": 1,
+  "labelFontSize": 11,
+  "valueFontSize": 15,
+  "valueFontWeight": "bold",
+  "tabBarTint": "#FF9F1C",
+  "dark": {
+   "pageBackgroundGradient": [
+    "#04060B",
+    "#0A1220",
+    "#101A2B"
+   ],
+   "surfacePrimary": "#FF9F1C0F",
+   "surfaceSecondary": "#2EE6D60A",
+   "surfaceTertiary": "#FFFFFF06",
+   "borderColor": "#FF9F1C2E",
+   "foregroundColor": "#F4F1E8",
+   "secondaryColor": "#A7B0C0",
+   "tertiaryColor": "#5F6A7D",
+   "tabBarBackground": "#070B14",
+   "headerBackground": "#05070D"
+  },
+  "light": {
+   "pageBackgroundGradient": [
+    "#F2EEE4",
+    "#E4DED0"
+   ],
+   "surfacePrimary": "#FFFFFFE0",
+   "borderColor": "#1B222E26",
+   "foregroundColor": "#121824",
+   "secondaryColor": "#4A5264"
+  },
+  "toggle": {
+   "trackActiveColor": "#FF9F1C",
+   "knobColor": "#F4F1E8",
+   "knobShadow": true
+  },
+  "slider": {
+   "trackActiveColor": "#FF9F1C",
+   "thumbColor": "#F4F1E8",
+   "trackHeight": 4
+  },
+  "segmented": {
+   "trackColor": "#FF9F1C14",
+   "selectedColor": "#FF9F1C",
+   "textColor": "#A7B0C0",
+   "selectedTextColor": "#05070D"
+  }
+ },
+ "glance": {
+  "title": "Harborview TOC",
+  "icon": "building.2.crop.circle.fill",
+  "tint": "#FF9F1C",
+  "hero": "sco-congestion",
+  "slots": [
+   "sco-ontime",
+   "sco-grid-load",
+   "sco-h-cad"
+  ],
+  "liveActivity": true,
+  "live": {
+   "tier": "fresh"
+  },
+  "controls": [
+   {
+    "id": "surge",
+    "kind": "toggle",
+    "label": "Surge Protocol",
+    "control": "sco-surge",
+    "on": {
+     "label": "Surge ON",
+     "icon": "exclamationmark.triangle.fill",
+     "tint": "#FF3864"
+    },
+    "off": {
+     "label": "Normal",
+     "icon": "checkmark.shield"
+    }
+   },
+   {
+    "id": "alert",
+    "kind": "button",
+    "label": "Citywide Alert",
+    "icon": "megaphone.fill",
+    "control": "sco-alert-all"
+   },
+   {
+    "id": "plan",
+    "kind": "cycle",
+    "label": "Signal Plan",
+    "control": "sco-signal-plan",
+    "states": [
+     {
+      "value": "am",
+      "label": "AM Peak",
+      "icon": "sunrise.fill",
+      "tint": "#FF9F1C"
+     },
+     {
+      "value": "pm",
+      "label": "PM Peak",
+      "icon": "sunset.fill",
+      "tint": "#FF5E3A"
+     },
+     {
+      "value": "event",
+      "label": "Event",
+      "icon": "sportscourt.fill",
+      "tint": "#8C7BFF"
+     },
+     {
+      "value": "night",
+      "label": "Night",
+      "icon": "moon.stars.fill",
+      "tint": "#5AB8FF"
+     }
+    ]
+   }
+  ],
+  "widgets": [
+   {
+    "id": "ops",
+    "title": "City Pulse",
+    "icon": "building.2.fill",
+    "families": [
+     "systemSmall",
+     "systemMedium",
+     "accessoryRectangular"
+    ],
+    "scene": {
+     "rows": [
+      [
+       {
+        "tile": "gauge",
+        "control": "sco-congestion"
+       },
+       {
+        "tile": "ring",
+        "control": "sco-ontime"
+       }
+      ],
+      [
+       {
+        "tile": "light",
+        "control": "sco-h-cad"
+       },
+       {
+        "tile": "button",
+        "control": "sco-alert-all"
+       }
+      ]
+     ]
+    }
+   },
+   {
+    "id": "energy",
+    "title": "Grid Load",
+    "icon": "bolt.fill",
+    "families": [
+     "systemSmall",
+     "accessoryCircular"
+    ],
+    "scene": {
+     "rows": [
+      [
+       {
+        "tile": "gauge",
+        "control": "sco-grid-load"
+       }
+      ],
+      [
+       {
+        "tile": "sparkline",
+        "control": "sco-demand"
+       }
+      ]
+     ]
+    }
+   }
+  ],
+  "island": {
+   "compactLeading": {
+    "tile": "icon",
+    "effect": "bounce"
+   },
+   "compactTrailing": {
+    "tile": "gauge",
+    "control": "sco-congestion"
+   },
+   "minimal": {
+    "tile": "light",
+    "control": "sco-h-cad"
+   },
+   "expanded": {
+    "leading": {
+     "tile": "icon"
+    },
+    "trailing": {
+     "tile": "freshness"
+    },
+    "center": {
+     "tile": "value",
+     "control": "sco-inc-count"
+    },
+    "bottom": {
+     "rows": [
+      [
+       {
+        "tile": "gauge",
+        "control": "sco-congestion"
+       },
+       {
+        "tile": "ring",
+        "control": "sco-ontime"
+       },
+       {
+        "tile": "gauge",
+        "control": "sco-grid-load"
+       }
+      ],
+      [
+       {
+        "tile": "toggle",
+        "control": "sco-surge"
+       },
+       {
+        "tile": "button",
+        "control": "sco-alert-all"
+       }
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "tabs": [
+  {
+   "title": "Pulse",
+   "icon": "waveform.path.ecg",
+   "grid": {
+    "columns": 4,
+    "rows": 14
+   },
+   "children": [
+    {
+     "type": "group",
+     "id": "sco-health",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "hideBackground": true,
+     "grid": {
+      "columns": 4,
+      "rows": 1
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "sco-h-signals",
+       "position": [
+        0,
+        0
+       ],
+       "label": "Signals",
+       "style": "badge",
+       "size": "small",
+       "pulse": true,
+       "defaultValue": "nominal",
+       "statusColors": {
+        "nominal": "#B8F35A",
+        "degraded": "#FF9F1C",
+        "critical": "#FF3864",
+        "offline": "#5B6477"
+       },
+       "theme": {
+        "controlPadding": 3,
+        "labelFontSize": 10
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "smart_city_ops_health"
+         },
+         "valuePath": "signals"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "sco-h-transit",
+       "position": [
+        0,
+        1
+       ],
+       "label": "Transit",
+       "style": "badge",
+       "size": "small",
+       "pulse": true,
+       "defaultValue": "degraded",
+       "statusColors": {
+        "nominal": "#B8F35A",
+        "degraded": "#FF9F1C",
+        "critical": "#FF3864",
+        "offline": "#5B6477"
+       },
+       "theme": {
+        "controlPadding": 3,
+        "labelFontSize": 10
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "smart_city_ops_health"
+         },
+         "valuePath": "transit"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "sco-h-grid",
+       "position": [
+        0,
+        2
+       ],
+       "label": "Grid",
+       "style": "badge",
+       "size": "small",
+       "pulse": true,
+       "defaultValue": "nominal",
+       "statusColors": {
+        "nominal": "#B8F35A",
+        "degraded": "#FF9F1C",
+        "critical": "#FF3864",
+        "offline": "#5B6477"
+       },
+       "theme": {
+        "controlPadding": 3,
+        "labelFontSize": 10
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "smart_city_ops_health"
+         },
+         "valuePath": "grid"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "sco-h-cad",
+       "position": [
+        0,
+        3
+       ],
+       "label": "911 CAD",
+       "style": "badge",
+       "size": "small",
+       "pulse": true,
+       "defaultValue": "nominal",
+       "statusColors": {
+        "nominal": "#B8F35A",
+        "degraded": "#FF9F1C",
+        "critical": "#FF3864",
+        "offline": "#5B6477"
+       },
+       "theme": {
+        "controlPadding": 3,
+        "labelFontSize": 10
+       },
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "smart_city_ops_health"
+         },
+         "valuePath": "cad"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "gauge",
+     "id": "sco-congestion",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Congestion Index",
+     "icon": "car.2.fill",
+     "min": 0,
+     "max": 100,
+     "gaugeStyle": "full",
+     "arcAngle": 260,
+     "arcRotation": 140,
+     "tint": "#FF9F1C",
+     "colorBlend": 0.35,
+     "animation": "bouncy",
+     "segments": [
+      {
+       "limit": 40,
+       "color": "#2EE6D6"
+      },
+      {
+       "limit": 70,
+       "color": "#FF9F1C"
+      },
+      {
+       "limit": 100,
+       "color": "#FF3864"
+      }
+     ],
+     "defaultValue": 67,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_pulse"
+       },
+       "valuePath": "congestion_index"
+      }
+     ]
+    },
+    {
+     "type": "progressRing",
+     "id": "sco-ontime",
+     "position": [
+      1,
+      2
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Transit On-Time",
+     "icon": "tram.fill",
+     "min": 0,
+     "max": 100,
+     "tint": "#2EE6D6",
+     "animation": "smooth",
+     "defaultValue": 88,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_pulse"
+       },
+       "valuePath": "ontime_pct"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "sco-aqi",
+     "position": [
+      4,
+      0
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "AQI · PM2.5",
+     "tint": "#B8F35A",
+     "sparklineFill": true,
+     "sparklinePoints": 48,
+     "sync": [
+      {
+       "method": "http",
+       "source": "cityapi",
+       "path": "/environment/aqi/latest",
+       "interval": 60,
+       "valuePath": "pm25"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "sco-speed",
+     "position": [
+      4,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Arterial mph",
+     "tint": "#5AB8FF",
+     "sparklineFill": true,
+     "sparklinePoints": 60,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_pulse"
+       },
+       "valuePath": "arterial_mph"
+      }
+     ]
+    },
+    {
+     "type": "heatmap",
+     "id": "sco-traffic-heat",
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Traffic density · district × hour",
+     "formatValue": "suffix:%",
+     "heatmapConfig": {
+      "colors": [
+       "#0F1B2D",
+       "#1F6F78",
+       "#2EE6D6",
+       "#FF9F1C",
+       "#FF3864"
+      ],
+      "vMin": 0,
+      "vMax": 100,
+      "showScale": true,
+      "cellCorner": 4,
+      "cellGap": 3,
+      "cellAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "smart_city_ops_inspect_cell",
+        "cell": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"rows\":[\"Harbor\",\"Old Town\",\"Midtown\",\"Uptown\",\"Ironworks\",\"Airport\"],\"cols\":[\"06\",\"09\",\"12\",\"15\",\"18\",\"21\"],\"values\":[[22,71,48,55,88,34],[18,64,72,69,91,52],[25,83,77,74,96,61],[14,58,41,47,79,38],[31,76,52,60,84,27],[40,62,55,58,73,66]]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_traffic"
+       },
+       "valuePath": "heatmap"
+      }
+     ]
+    },
+    {
+     "type": "toggle",
+     "id": "sco-surge",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Surge Protocol",
+     "icon": "exclamationmark.triangle.fill",
+     "tint": "#FF3864",
+     "haptic": "warning",
+     "defaultValue": false,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_pulse"
+       },
+       "valuePath": "surge"
+      }
+     ],
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_set_surge",
+       "on": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "segmentedControl",
+     "id": "sco-signal-plan",
+     "position": [
+      10,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "style": "pills",
+     "options": [
+      "am",
+      "pm",
+      "event",
+      "night"
+     ],
+     "optionLabels": [
+      "AM",
+      "PM",
+      "Evt",
+      "Nite"
+     ],
+     "defaultValue": "pm",
+     "haptic": "selection",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_pulse"
+       },
+       "valuePath": "signal_plan"
+      }
+     ],
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_set_signal_plan",
+       "plan": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "group",
+     "id": "sco-surge-panel",
+     "label": "Surge Protocol · Arterial Override",
+     "position": [
+      11,
+      0
+     ],
+     "span": [
+      3,
+      4
+     ],
+     "visible": {
+      "when": "sco-surge",
+      "operator": "eq",
+      "value": true
+     },
+     "pulse": {
+      "event": "broadcast",
+      "color": "#FF3864",
+      "direction": "outward",
+      "filter": {
+       "msg_type": "smart_city_ops_surge_ack"
+      }
+     },
+     "grid": {
+      "columns": 4,
+      "rows": 2
+     },
+     "children": [
+      {
+       "type": "slider",
+       "id": "sco-green-bias",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "label": "Outbound green bias · s",
+       "min": 0,
+       "max": 40,
+       "step": 5,
+       "defaultValue": 15,
+       "formatValue": "decimal",
+       "tint": "#FF9F1C",
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "smart_city_ops_pulse"
+         },
+         "valuePath": "green_bias_s"
+        }
+       ],
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "smart_city_ops_set_green_bias",
+         "seconds": "{{value}}"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "sco-contraflow",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Contraflow I-705",
+       "icon": "arrow.left.arrow.right",
+       "style": "tinted",
+       "tint": "#FF9F1C",
+       "haptic": "heavy",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "smart_city_ops_contraflow",
+         "corridor": "I-705",
+         "enable": true
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "sco-vms",
+       "position": [
+        1,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Push VMS Msg",
+       "icon": "text.bubble.fill",
+       "style": "tinted",
+       "tint": "#2EE6D6",
+       "haptic": "medium",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "smart_city_ops_vms_push",
+         "template": "surge_detour"
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Transit",
+   "icon": "tram.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 18
+   },
+   "children": [
+    {
+     "type": "segmentedControl",
+     "id": "sco-line-filter",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "style": "pills",
+     "options": [
+      "all",
+      "red",
+      "blue",
+      "gold",
+      "brt"
+     ],
+     "optionLabels": [
+      "All",
+      "Red",
+      "Blue",
+      "Gold",
+      "BRT"
+     ],
+     "defaultValue": "all",
+     "haptic": "selection",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_line_filter",
+       "line": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "graph",
+     "id": "sco-transit-graph",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      6,
+      4
+     ],
+     "label": "Network · live headways",
+     "graphConfig": {
+      "repulsionForce": 620,
+      "centerForce": 0.004,
+      "attractionForce": 0.004,
+      "edgeCurved": true,
+      "edgeOpacity": 0.55,
+      "edgeWidth": 2,
+      "backgroundColor": "#070B14",
+      "glowEnabled": true,
+      "glowRadius": 9,
+      "glowColor": "#2EE6D6",
+      "labelColor": "#B9C4D6",
+      "labelSize": 9,
+      "groupColors": {
+       "hub": "#F4F1E8",
+       "red": "#FF3864",
+       "blue": "#5AB8FF",
+       "gold": "#FF9F1C",
+       "brt": "#B8F35A"
+      },
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "smart_city_ops_inspect_stop",
+        "stop": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"nodes\":[{\"id\":\"union\",\"label\":\"Union Station\",\"group\":\"hub\"},{\"id\":\"dome\",\"label\":\"Dome District\",\"group\":\"hub\"},{\"id\":\"st-helens\",\"label\":\"St. Helens\",\"group\":\"red\"},{\"id\":\"stadium\",\"label\":\"Stadium\",\"group\":\"red\"},{\"id\":\"hilltop\",\"label\":\"Hilltop\",\"group\":\"red\"},{\"id\":\"mlk\",\"label\":\"MLK Way\",\"group\":\"blue\"},{\"id\":\"tacoma-gen\",\"label\":\"General Hosp.\",\"group\":\"blue\"},{\"id\":\"ferry\",\"label\":\"Ferry Terminal\",\"group\":\"blue\"},{\"id\":\"ironworks\",\"label\":\"Ironworks\",\"group\":\"gold\"},{\"id\":\"port\",\"label\":\"Port Gate 7\",\"group\":\"gold\"},{\"id\":\"airport\",\"label\":\"Airport\",\"group\":\"brt\"},{\"id\":\"uptown\",\"label\":\"Uptown TC\",\"group\":\"brt\"},{\"id\":\"mall\",\"label\":\"Northgate\",\"group\":\"brt\"}],\"edges\":[{\"from\":\"union\",\"to\":\"st-helens\"},{\"from\":\"st-helens\",\"to\":\"stadium\"},{\"from\":\"stadium\",\"to\":\"hilltop\"},{\"from\":\"union\",\"to\":\"dome\"},{\"from\":\"dome\",\"to\":\"mlk\",\"color\":\"#FF3864\",\"width\":3},{\"from\":\"mlk\",\"to\":\"tacoma-gen\"},{\"from\":\"tacoma-gen\",\"to\":\"ferry\"},{\"from\":\"dome\",\"to\":\"ironworks\"},{\"from\":\"ironworks\",\"to\":\"port\"},{\"from\":\"union\",\"to\":\"uptown\"},{\"from\":\"uptown\",\"to\":\"mall\"},{\"from\":\"uptown\",\"to\":\"airport\"},{\"from\":\"ferry\",\"to\":\"union\"}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_transit"
+       },
+       "valuePath": "graph"
+      }
+     ]
+    },
+    {
+     "type": "chord",
+     "id": "sco-od-chord",
+     "position": [
+      7,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Origin → destination · k trips",
+     "formatValue": "decimal:1",
+     "animation": "smooth",
+     "chordConfig": {
+      "ribbonOpacity": 0.45,
+      "scrub": true,
+      "arcAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "smart_city_ops_focus_district",
+        "district": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"labels\":[\"Harbor\",\"Old Town\",\"Midtown\",\"Uptown\",\"Ironworks\",\"Airport\"],\"colors\":[\"#2EE6D6\",\"#8C7BFF\",\"#FF9F1C\",\"#5AB8FF\",\"#B8F35A\",\"#FF3864\"],\"matrix\":[[0,4.1,6.3,1.2,2.8,0.9],[3.8,0,5.2,2.1,0.7,0.6],[6.9,4.7,0,7.4,3.3,2.5],[1.4,2.2,8.1,0,0.9,3.7],[3.1,0.8,2.9,0.6,0,0.4],[1.1,0.5,2.2,3.9,0.3,0]]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_od_matrix"
+       },
+       "valuePath": "chord"
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "id": "sco-departures",
+     "position": [
+      11,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Next departures",
+     "listColumns": [
+      {
+       "key": "route",
+       "label": "Rt"
+      },
+      {
+       "key": "dest",
+       "label": "To"
+      },
+      {
+       "key": "stop",
+       "label": "From"
+      },
+      {
+       "key": "eta",
+       "label": "ETA"
+      },
+      {
+       "key": "load",
+       "label": "Load"
+      }
+     ],
+     "defaultValue": "[{\"route\":\"R1\",\"dest\":\"Hilltop\",\"stop\":\"Union Sta.\",\"eta\":\"2 min\",\"load\":\"72%\"},{\"route\":\"B4\",\"dest\":\"Ferry Term.\",\"stop\":\"Dome Dist.\",\"eta\":\"4 min\",\"load\":\"41%\"},{\"route\":\"G2\",\"dest\":\"Port Gate 7\",\"stop\":\"Ironworks\",\"eta\":\"7 min\",\"load\":\"18%\"},{\"route\":\"X9\",\"dest\":\"Airport\",\"stop\":\"Uptown TC\",\"eta\":\"9 min\",\"load\":\"88%\"},{\"route\":\"R1\",\"dest\":\"Union Sta.\",\"stop\":\"Stadium\",\"eta\":\"11 min\",\"load\":\"55%\"},{\"route\":\"B4\",\"dest\":\"MLK Way\",\"stop\":\"Gen. Hosp.\",\"eta\":\"DELAY +6\",\"load\":\"63%\"}]",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_departures"
+       },
+       "valuePath": "rows"
+      }
+     ]
+    },
+    {
+     "type": "chart",
+     "id": "sco-ridership",
+     "position": [
+      15,
+      0
+     ],
+     "span": [
+      3,
+      4
+     ],
+     "label": "Boardings · k/hr",
+     "formatValue": "decimal:1",
+     "chartConfig": {
+      "showLegend": true,
+      "smooth": true,
+      "stacked": false,
+      "maxPoints": 24,
+      "scrub": true
+     },
+     "defaultValue": "{\"categories\":[\"05\",\"07\",\"09\",\"11\",\"13\",\"15\",\"17\",\"19\",\"21\"],\"series\":[{\"name\":\"Rail\",\"type\":\"area\",\"color\":\"#2EE6D6\",\"values\":[2.1,9.8,7.2,4.4,5.1,6.3,11.2,6.8,3.0]},{\"name\":\"BRT\",\"type\":\"line\",\"color\":\"#FF9F1C\",\"values\":[1.2,5.6,4.1,2.9,3.3,4.0,6.9,4.2,1.8]}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_ridership"
+       },
+       "valuePath": "chart"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Incidents",
+   "icon": "light.beacon.max.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 6,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "label",
+     "id": "sco-inc-count",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "text": "7 active",
+     "icon": "exclamationmark.bubble.fill",
+     "style": "headline",
+     "tint": "#FF9F1C",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_incidents_summary"
+       },
+       "valuePath": "active_text"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "sco-sev-filter",
+     "position": [
+      0,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "style": "pills",
+     "options": [
+      "all",
+      "p1",
+      "p2"
+     ],
+     "optionLabels": [
+      "All",
+      "P1",
+      "P2"
+     ],
+     "defaultValue": "all",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_incident_filter",
+       "severity": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "map",
+     "id": "sco-incident-map",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Live incidents",
+     "mapStyle": "standard",
+     "mapZoom": 0.06,
+     "controlHeight": 260,
+     "tint": "#FF9F1C",
+     "mapConfig": {
+      "recenter": "initial"
+     },
+     "defaultValue": "{\"markers\":[{\"coordinate\":[47.2529,-122.4443],\"color\":\"#FF3864\",\"size\":20,\"label\":\"INC-4471 Collision\",\"ripple\":{\"color\":\"#FF3864\",\"period\":1.3,\"radius\":52}},{\"coordinate\":[47.2665,-122.418],\"color\":\"#FF9F1C\",\"size\":16,\"label\":\"INC-4468 Signal dark\"},{\"coordinate\":[47.2394,-122.4591],\"color\":\"#2EE6D6\",\"size\":13,\"label\":\"INC-4463 Water main\"},{\"coordinate\":[47.2712,-122.4587],\"color\":\"#B8F35A\",\"size\":12,\"label\":\"Unit E-12\"}],\"paths\":[{\"points\":[[47.2601,-122.438],[47.2566,-122.4412],[47.2529,-122.4443]],\"color\":\"#FF9F1C\"}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_incident_map"
+       },
+       "valuePath": "map"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "sco-incident-feed",
+     "label": "Incident queue",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "dynamic": "smart_city_ops_incident_cards",
+     "grid": {
+      "columns": 4,
+      "rows": 6,
+      "mode": "flow"
+     },
+     "children": [
+      {
+       "type": "group",
+       "id": "sco-inc-4471",
+       "label": "Collision · SR-509 @ E 11th",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "grid": {
+        "columns": 4,
+        "rows": 1,
+        "mode": "flow"
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "sco-inc-4471-where",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Lanes 1-2 blocked",
+         "icon": "mappin.and.ellipse",
+         "style": "caption"
+        },
+        {
+         "type": "statusLight",
+         "id": "sco-inc-4471-sev",
+         "position": [
+          0,
+          2
+         ],
+         "label": "P1",
+         "style": "badge",
+         "size": "small",
+         "pulse": true,
+         "defaultValue": "p1",
+         "statusColors": {
+          "p1": "#FF3864",
+          "p2": "#FF9F1C",
+          "p3": "#2EE6D6",
+          "cleared": "#B8F35A"
+         }
+        },
+        {
+         "type": "button",
+         "id": "sco-inc-4471-dispatch",
+         "position": [
+          0,
+          3
+         ],
+         "label": "E-12",
+         "icon": "light.beacon.max.fill",
+         "style": "tinted",
+         "size": "compact",
+         "tint": "#FF3864",
+         "haptic": "heavy",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "smart_city_ops_dispatch",
+           "incident": "INC-4471",
+           "unit": "E-12"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "type": "group",
+       "id": "sco-inc-4468",
+       "label": "Signal dark · Pacific & S 38th",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "grid": {
+        "columns": 4,
+        "rows": 1,
+        "mode": "flow"
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "sco-inc-4468-where",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Cab 118 on UPS",
+         "icon": "mappin.and.ellipse",
+         "style": "caption"
+        },
+        {
+         "type": "statusLight",
+         "id": "sco-inc-4468-sev",
+         "position": [
+          0,
+          2
+         ],
+         "label": "P2",
+         "style": "badge",
+         "size": "small",
+         "pulse": false,
+         "defaultValue": "p2",
+         "statusColors": {
+          "p1": "#FF3864",
+          "p2": "#FF9F1C",
+          "p3": "#2EE6D6",
+          "cleared": "#B8F35A"
+         }
+        },
+        {
+         "type": "button",
+         "id": "sco-inc-4468-dispatch",
+         "position": [
+          0,
+          3
+         ],
+         "label": "SIG-3",
+         "icon": "light.beacon.max.fill",
+         "style": "tinted",
+         "size": "compact",
+         "tint": "#FF9F1C",
+         "haptic": "heavy",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "smart_city_ops_dispatch",
+           "incident": "INC-4468",
+           "unit": "SIG-3"
+          }
+         }
+        }
+       ]
+      },
+      {
+       "type": "group",
+       "id": "sco-inc-4463",
+       "label": "Water main · Ruston Way",
+       "position": [
+        2,
+        0
+       ],
+       "span": [
+        1,
+        4
+       ],
+       "grid": {
+        "columns": 4,
+        "rows": 1,
+        "mode": "flow"
+       },
+       "children": [
+        {
+         "type": "label",
+         "id": "sco-inc-4463-where",
+         "position": [
+          0,
+          0
+         ],
+         "span": [
+          1,
+          2
+         ],
+         "text": "Curb lane closed",
+         "icon": "mappin.and.ellipse",
+         "style": "caption"
+        },
+        {
+         "type": "statusLight",
+         "id": "sco-inc-4463-sev",
+         "position": [
+          0,
+          2
+         ],
+         "label": "P3",
+         "style": "badge",
+         "size": "small",
+         "pulse": false,
+         "defaultValue": "p3",
+         "statusColors": {
+          "p1": "#FF3864",
+          "p2": "#FF9F1C",
+          "p3": "#2EE6D6",
+          "cleared": "#B8F35A"
+         }
+        },
+        {
+         "type": "button",
+         "id": "sco-inc-4463-dispatch",
+         "position": [
+          0,
+          3
+         ],
+         "label": "PW-7",
+         "icon": "light.beacon.max.fill",
+         "style": "tinted",
+         "size": "compact",
+         "tint": "#2EE6D6",
+         "haptic": "heavy",
+         "action": {
+          "method": "meshsocket",
+          "mode": "broadcast",
+          "event": "broadcast_request",
+          "payload": {
+           "msg_type": "smart_city_ops_dispatch",
+           "incident": "INC-4463",
+           "unit": "PW-7"
+          }
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "logConsole",
+     "id": "sco-dispatch-log",
+     "position": [
+      3,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "CAD dispatch log",
+     "maxLines": 400,
+     "showTimestamps": false,
+     "fontSize": 11,
+     "controlHeight": 220,
+     "logColors": {
+      "error": "#FF3864",
+      "warn": "#FF9F1C",
+      "info": "#2EE6D6",
+      "debug": "#6F7A8C"
+     },
+     "defaultValue": "[{\"level\":\"info\",\"message\":\"21:02:14 CAD sync \\u00b7 7 active \\u00b7 3 units staged\"},{\"level\":\"warn\",\"message\":\"21:04:51 INC-4468 \\u00b7 signal cabinet 118 on battery\"},{\"level\":\"error\",\"message\":\"21:07:09 INC-4471 \\u00b7 2-veh collision SR-509 @ E 11th \\u00b7 lanes 1-2 blocked\"},{\"level\":\"info\",\"message\":\"21:07:40 E-12 dispatched \\u2192 INC-4471 \\u00b7 ETA 4m\"},{\"level\":\"debug\",\"message\":\"21:08:02 VMS-22 template surge_detour armed\"}]",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_log"
+       },
+       "valuePath": "line"
+      }
+     ]
+    },
+    {
+     "type": "button",
+     "id": "sco-alert-all",
+     "position": [
+      4,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Citywide Alert",
+     "icon": "megaphone.fill",
+     "style": "filled",
+     "tint": "#FF3864",
+     "haptic": "error",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_citywide_alert",
+       "level": "advisory"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "sco-ack-all",
+     "position": [
+      4,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Ack All P3",
+     "icon": "checkmark.seal.fill",
+     "style": "outlined",
+     "tint": "#2EE6D6",
+     "haptic": "success",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_ack_incidents",
+       "severity": "p3"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "title": "Cameras",
+   "icon": "video.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 11
+   },
+   "children": [
+    {
+     "type": "segmentedControl",
+     "id": "sco-cam-select",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "style": "pills",
+     "options": [
+      "cam-0511",
+      "cam-0207",
+      "cam-0932",
+      "cam-1404"
+     ],
+     "optionLabels": [
+      "5th&Main",
+      "Harbor Br",
+      "Stadium",
+      "SR-509"
+     ],
+     "defaultValue": "cam-0511",
+     "haptic": "selection",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_camera"
+       },
+       "valuePath": "active"
+      }
+     ],
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_select_camera",
+       "camera": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "webView",
+     "id": "sco-cam-view",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      6,
+      4
+     ],
+     "label": "CCTV · live",
+     "url": "https://cctv.harborview-city.gov/live/cam-0511?kiosk=1&overlay=0",
+     "webInteractive": true,
+     "webScrollEnabled": false,
+     "webRefreshInterval": 20
+    },
+    {
+     "type": "toggle",
+     "id": "sco-cam-ptz",
+     "position": [
+      7,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "PTZ Control",
+     "icon": "camera.metering.center.weighted",
+     "tint": "#2EE6D6",
+     "defaultValue": false,
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_ptz_lock",
+       "camera": "active",
+       "on": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "toggle",
+     "id": "sco-cam-ai",
+     "position": [
+      7,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "AI Overlay",
+     "icon": "eye.trianglebadge.exclamationmark",
+     "tint": "#8C7BFF",
+     "defaultValue": true,
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_ai_overlay",
+       "on": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "slider",
+     "id": "sco-cam-zoom",
+     "position": [
+      8,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Optical zoom · ×",
+     "min": 1,
+     "max": 30,
+     "step": 1,
+     "defaultValue": 4,
+     "formatValue": "decimal",
+     "tint": "#2EE6D6",
+     "visible": {
+      "when": "sco-cam-ptz",
+      "operator": "eq",
+      "value": true
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_ptz_zoom",
+       "zoom": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "sco-cam-snap",
+     "position": [
+      9,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Snapshot",
+     "icon": "camera.shutter.button.fill",
+     "style": "tinted",
+     "tint": "#2EE6D6",
+     "haptic": "light",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_camera_snapshot",
+       "camera": "active"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "sco-cam-flag",
+     "position": [
+      9,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Flag 60s clip",
+     "icon": "flag.fill",
+     "style": "tinted",
+     "tint": "#FF9F1C",
+     "haptic": "medium",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_camera_flag_clip",
+       "seconds": 60
+      }
+     }
+    },
+    {
+     "type": "label",
+     "id": "sco-cam-detect",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "text": "42 veh/min · 3 peds · 1 stalled (lane 2)",
+     "icon": "viewfinder",
+     "style": "mono",
+     "tint": "#8C7BFF",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_camera"
+       },
+       "valuePath": "detections_text"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Energy",
+   "icon": "bolt.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 11
+   },
+   "children": [
+    {
+     "type": "sankey",
+     "id": "sco-energy-flow",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      5,
+      4
+     ],
+     "label": "Municipal load · MW",
+     "formatValue": "decimal:1",
+     "animation": "smooth",
+     "sankeyConfig": {
+      "showValues": true,
+      "scrub": true,
+      "linkOpacity": 0.4,
+      "nodeWidth": 8,
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "smart_city_ops_inspect_feeder",
+        "node": "{{value}}"
+       }
+      }
+     },
+     "defaultValue": "{\"nodes\":[{\"name\":\"Grid Import\",\"color\":\"#9AA6B8\"},{\"name\":\"Tideflats Solar\",\"color\":\"#FFD23F\"},{\"name\":\"Waste-to-Energy\",\"color\":\"#FF9F1C\"},{\"name\":\"Battery Park\",\"color\":\"#8C7BFF\"},{\"name\":\"Sub North\",\"color\":\"#5AB8FF\"},{\"name\":\"Sub South\",\"color\":\"#2EE6D6\"},{\"name\":\"Streetlights\",\"color\":\"#F4F1E8\"},{\"name\":\"Signals\",\"color\":\"#B8F35A\"},{\"name\":\"Light Rail\",\"color\":\"#FF3864\"},{\"name\":\"EV Chargers\",\"color\":\"#4FD1A5\"}],\"links\":[{\"source\":\"Grid Import\",\"target\":\"Sub North\",\"value\":6.2},{\"source\":\"Grid Import\",\"target\":\"Sub South\",\"value\":3.1},{\"source\":\"Tideflats Solar\",\"target\":\"Sub South\",\"value\":0.4},{\"source\":\"Waste-to-Energy\",\"target\":\"Sub North\",\"value\":2.3},{\"source\":\"Battery Park\",\"target\":\"Sub South\",\"value\":1.9},{\"source\":\"Sub North\",\"target\":\"Streetlights\",\"value\":2.7},{\"source\":\"Sub North\",\"target\":\"Light Rail\",\"value\":4.6},{\"source\":\"Sub North\",\"target\":\"Signals\",\"value\":1.2},{\"source\":\"Sub South\",\"target\":\"EV Chargers\",\"value\":3.4},{\"source\":\"Sub South\",\"target\":\"Streetlights\",\"value\":1.3},{\"source\":\"Sub South\",\"target\":\"Signals\",\"value\":0.7}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_energy"
+       },
+       "valuePath": "sankey"
+      }
+     ]
+    },
+    {
+     "type": "pieChart",
+     "id": "sco-load-mix",
+     "position": [
+      5,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Load mix",
+     "pieStyle": "donut",
+     "formatValue": "suffix:%",
+     "pieConfig": {
+      "centerText": "13.9 MW",
+      "percent": true,
+      "showLabels": false,
+      "showLegend": false
+     },
+     "defaultValue": "{\"slices\":[{\"label\":\"Transit\",\"value\":34,\"color\":\"#FF3864\"},{\"label\":\"Lighting\",\"value\":27,\"color\":\"#F4F1E8\"},{\"label\":\"EV\",\"value\":22,\"color\":\"#4FD1A5\"},{\"label\":\"Signals\",\"value\":11,\"color\":\"#B8F35A\"},{\"label\":\"Pumps\",\"value\":6,\"color\":\"#5AB8FF\"}]}",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_energy"
+       },
+       "valuePath": "mix"
+      }
+     ]
+    },
+    {
+     "type": "gauge",
+     "id": "sco-grid-load",
+     "position": [
+      5,
+      2
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Feeder capacity",
+     "icon": "bolt.horizontal.fill",
+     "min": 0,
+     "max": 100,
+     "formatValue": "percent",
+     "tint": "#5AB8FF",
+     "animation": "bouncy",
+     "segments": [
+      {
+       "limit": 75,
+       "color": "#2EE6D6"
+      },
+      {
+       "limit": 90,
+       "color": "#FF9F1C"
+      },
+      {
+       "limit": 100,
+       "color": "#FF3864"
+      }
+     ],
+     "defaultValue": 71,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_energy"
+       },
+       "valuePath": "capacity_pct"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "sco-demand",
+     "position": [
+      8,
+      0
+     ],
+     "span": [
+      2,
+      4
+     ],
+     "label": "Citywide demand · MW",
+     "tint": "#FF9F1C",
+     "sparklineFill": true,
+     "sparklinePoints": 96,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_energy"
+       },
+       "valuePath": "demand_mw"
+      }
+     ]
+    },
+    {
+     "type": "toggle",
+     "id": "sco-dim",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Dim Streetlights",
+     "icon": "lightbulb.led.fill",
+     "tint": "#F4F1E8",
+     "defaultValue": true,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "smart_city_ops_energy"
+       },
+       "valuePath": "dimming"
+      }
+     ],
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_streetlight_dim",
+       "on": "{{value}}"
+      }
+     }
+    },
+    {
+     "type": "slider",
+     "id": "sco-dim-level",
+     "position": [
+      10,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Dim level · %",
+     "min": 30,
+     "max": 100,
+     "step": 5,
+     "defaultValue": 60,
+     "formatValue": "decimal",
+     "tint": "#F4F1E8",
+     "visible": {
+      "when": "sco-dim",
+      "operator": "eq",
+      "value": true
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "smart_city_ops_streetlight_level",
+       "pct": "{{value}}"
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

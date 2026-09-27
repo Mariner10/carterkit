@@ -1,0 +1,1815 @@
+{
+  "name": "Film Post Pipeline",
+  "headerTitle": "EMBERFALL \u00b7 POST",
+  "version": 1,
+  "accentColor": "#FFB000",
+  "description": "A VFX post-production command desk for a feature film: an editable shot gantt, a department kanban, a dailies review chat, a lookbook pinboard and a live render-farm view with frame-flow sankey, node heatmap and Deadline log.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "film-post-hub"
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#0B0907",
+        "#1A1209"
+      ],
+      "light": "#F3EBDD"
+    }
+  },
+  "theme": {
+    "accentColor": "#FFB000",
+    "accentGradient": [
+      "#FFB000",
+      "#E8893A",
+      "#C9653B"
+    ],
+    "fontDesign": "monospaced",
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 6,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "tabBarTint": "#FFB000",
+    "toggle": {
+      "trackActiveColor": "#FFB000",
+      "knobColor": "#0B0907"
+    },
+    "slider": {
+      "trackActiveColor": "#FFB000",
+      "thumbColor": "#FFF1C9"
+    },
+    "segmented": {
+      "selectedColor": "#FFB000",
+      "selectedTextColor": "#0B0907"
+    },
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0B0907",
+        "#140E08",
+        "#1E140A"
+      ],
+      "surfacePrimary": "#FFB0000D",
+      "surfaceSecondary": "#FFFFFF08",
+      "surfaceTertiary": "#00000033",
+      "borderColor": "#FFB00033",
+      "foregroundColor": "#F6EBD6",
+      "secondaryColor": "#B8A68A",
+      "tertiaryColor": "#7A6C58",
+      "tabBarBackground": "#0B0907F2"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#F6EFE3",
+        "#EADCC4"
+      ],
+      "surfacePrimary": "#FFFFFFD9",
+      "borderColor": "#6B3A1E26",
+      "foregroundColor": "#1E140A",
+      "secondaryColor": "#6B5A44",
+      "tabBarBackground": "#F6EFE3F2"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Shots",
+      "icon": "film.stack.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 15
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "fpp-title",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "EMBERFALL \u00b7 Reel 3 \u00b7 VFX Turnover v14",
+          "style": "headline",
+          "icon": "film",
+          "tint": "#FFB000",
+          "align": "center",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "title"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "fpp-final-ring",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Shots finaled",
+          "icon": "checkmark.seal.fill",
+          "tint": "#FFB000",
+          "min": 0,
+          "max": 148,
+          "defaultValue": 97,
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "shots_final"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fpp-lock-days",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Days to picture lock",
+          "icon": "calendar.badge.clock",
+          "style": "large-mono",
+          "tint": "#FFB000",
+          "text": "15",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "days_to_lock"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "fpp-client-state",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Client review",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "notes",
+          "statusColors": {
+            "approved": "#46E08C",
+            "notes": "#FFB000",
+            "hold": "#FF4F3A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "client_status"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "fpp-vendor",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "all",
+            "ilm",
+            "dneg",
+            "inhouse"
+          ],
+          "optionLabels": [
+            "All",
+            "ILM",
+            "DNEG",
+            "House"
+          ],
+          "defaultValue": "all",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_post_pipeline_vendor_filter",
+              "vendor": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "vendor_filter"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "fpp-shot-gantt",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "VFX shot schedule",
+          "tint": "#FFB000",
+          "ganttConfig": {
+            "editable": true,
+            "step": 0.05,
+            "rowHeight": 28,
+            "barCornerRadius": 3,
+            "colors": [
+              "#FFB000",
+              "#E8893A",
+              "#C9653B",
+              "#9C8F7A"
+            ],
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "film_post_pipeline_shot_progress",
+                "shot": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "[{\"name\":\"EMB_010 fire\",\"start\":\"2026-09-14\",\"end\":\"2026-09-22\",\"progress\":1.0,\"color\":\"#FFB000\"},{\"name\":\"EMB_020 smoke\",\"start\":\"2026-09-16\",\"end\":\"2026-09-26\",\"progress\":0.82},{\"name\":\"EMB_045 matte\",\"start\":\"2026-09-18\",\"end\":\"2026-10-01\",\"progress\":0.55},{\"name\":\"EMB_060 sky rep\",\"start\":\"2026-09-20\",\"end\":\"2026-09-29\",\"progress\":0.7},{\"name\":\"EMB_075 crowd\",\"start\":\"2026-09-22\",\"end\":\"2026-10-06\",\"progress\":0.28,\"color\":\"#FF4F3A\"},{\"name\":\"EMB_090 wire rm\",\"start\":\"2026-09-23\",\"end\":\"2026-09-27\",\"progress\":0.9},{\"name\":\"EMB_110 CG car\",\"start\":\"2026-09-19\",\"end\":\"2026-10-08\",\"progress\":0.36},{\"name\":\"EMB_130 dehaze\",\"start\":\"2026-09-25\",\"end\":\"2026-10-02\",\"progress\":0.1},{\"name\":\"Client review\",\"start\":\"2026-09-30\",\"milestone\":true},{\"name\":\"Picture lock\",\"start\":\"2026-10-09\",\"milestone\":true}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_shots"
+              },
+              "valuePath": "tasks"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "fpp-overage",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Overtime hrs",
+          "icon": "clock.badge.exclamationmark",
+          "min": 0,
+          "max": 400,
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "tint": "#FFB000",
+          "defaultValue": 212,
+          "segments": [
+            {
+              "limit": 200,
+              "color": "#46E08C"
+            },
+            {
+              "limit": 320,
+              "color": "#FFB000"
+            },
+            {
+              "limit": 400,
+              "color": "#FF4F3A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "overtime_hours"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "fpp-finals-trend",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Finals / day",
+          "tint": "#FFB000",
+          "sparklinePoints": 14,
+          "sparklineFill": true,
+          "defaultValue": [
+            3,
+            5,
+            4,
+            6,
+            8,
+            7,
+            9,
+            6,
+            11,
+            10,
+            12,
+            9,
+            13,
+            14
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "finals_today"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "fpp-dcp",
+          "position": [
+            13,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "DCP QC",
+          "defaultValue": "pending",
+          "statusColors": {
+            "passed": "#46E08C",
+            "pending": "#9C8F7A",
+            "failed": "#FF4F3A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "dcp_qc"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fpp-late-banner",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "3 shots past vendor due date \u2014 escalate",
+          "style": "caption",
+          "icon": "exclamationmark.triangle.fill",
+          "tint": "#FF4F3A",
+          "align": "center",
+          "visible": {
+            "when": "fpp-overage",
+            "operator": "gt",
+            "value": 300
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_state"
+              },
+              "valuePath": "late_banner"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Board",
+      "icon": "rectangle.3.group.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 4,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "fpp-board-hint",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Drag shots between departments \u00b7 Final is locked by the supervisor",
+          "style": "caption",
+          "icon": "hand.draw.fill",
+          "tint": "#9C8F7A"
+        },
+        {
+          "type": "sortboard",
+          "id": "fpp-shot-board",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            10,
+            4
+          ],
+          "controlHeight": 620,
+          "label": "Department board",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Awaiting turnover",
+            "columns": 3,
+            "items": [
+              {
+                "id": "EMB_010",
+                "label": "010 Fire ext.",
+                "icon": "flame.fill",
+                "tint": "#FFB000",
+                "zone": "final",
+                "locked": true
+              },
+              {
+                "id": "EMB_020",
+                "label": "020 Smoke plume",
+                "icon": "smoke.fill",
+                "tint": "#E8893A",
+                "zone": "comp"
+              },
+              {
+                "id": "EMB_045",
+                "label": "045 Matte paint",
+                "icon": "paintbrush.fill",
+                "tint": "#C9653B",
+                "zone": "comp"
+              },
+              {
+                "id": "EMB_060",
+                "label": "060 Sky replace",
+                "icon": "cloud.sun.fill",
+                "tint": "#9C8F7A",
+                "zone": "lighting"
+              },
+              {
+                "id": "EMB_075",
+                "label": "075 Crowd sim",
+                "icon": "person.3.fill",
+                "tint": "#FF4F3A",
+                "zone": "anim"
+              },
+              {
+                "id": "EMB_090",
+                "label": "090 Wire removal",
+                "icon": "scissors",
+                "tint": "#9C8F7A",
+                "zone": "review"
+              },
+              {
+                "id": "EMB_110",
+                "label": "110 CG hero car",
+                "icon": "car.fill",
+                "tint": "#E8893A",
+                "zone": "lighting"
+              },
+              {
+                "id": "EMB_130",
+                "label": "130 Dehaze",
+                "icon": "sun.haze.fill",
+                "tint": "#C9653B"
+              },
+              {
+                "id": "EMB_140",
+                "label": "140 Muzzle flash",
+                "icon": "bolt.fill",
+                "tint": "#FFB000"
+              },
+              {
+                "id": "EMB_155",
+                "label": "155 Screen insert",
+                "icon": "tv.fill",
+                "tint": "#9C8F7A"
+              },
+              {
+                "id": "EMB_170",
+                "label": "170 Blood hit",
+                "icon": "drop.fill",
+                "tint": "#FF4F3A"
+              }
+            ],
+            "zones": [
+              {
+                "id": "anim",
+                "label": "Anim",
+                "tint": "#FF4F3A",
+                "capacity": 4
+              },
+              {
+                "id": "lighting",
+                "label": "Lighting",
+                "tint": "#E8893A",
+                "capacity": 4
+              },
+              {
+                "id": "comp",
+                "label": "Comp",
+                "tint": "#FFB000",
+                "capacity": 5
+              },
+              {
+                "id": "review",
+                "label": "Sup review",
+                "tint": "#9C8F7A",
+                "capacity": 3
+              },
+              {
+                "id": "final",
+                "label": "Final",
+                "tint": "#46E08C",
+                "locked": false
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_board_move",
+                  "shot": "{{item}}",
+                  "from_dept": "{{from}}",
+                  "to_dept": "{{to}}",
+                  "index": "{{index}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_board_layout"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_board"
+              },
+              "valuePath": "arrangement"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "fpp-shot-cards",
+          "label": "Shot notes (live)",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3,
+            "mode": "flow"
+          },
+          "dynamic": "film_post_pipeline_shot_cards",
+          "children": [
+            {
+              "type": "label",
+              "id": "fpp-cards-wait",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "text": "Waiting for supervisor notes\u2026",
+              "style": "caption",
+              "icon": "hourglass",
+              "tint": "#9C8F7A"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "fpp-board-actions",
+          "label": "Turnover",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "fpp-publish-board",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Publish to vendors",
+              "icon": "paperplane.fill",
+              "style": "filled",
+              "tint": "#FFB000",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_publish_board",
+                  "reel": "R3"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "fpp-request-dailies",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Request dailies",
+              "icon": "play.rectangle.on.rectangle.fill",
+              "style": "outlined",
+              "tint": "#E8893A",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_request_dailies",
+                  "reel": "R3"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Review",
+      "icon": "bubble.left.and.text.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "fpp-review-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Dailies review \u00b7 #emberfall-vfx",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": true,
+            "historyCount": 50,
+            "tint": "#FFB000"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Mood",
+      "icon": "photo.on.rectangle.angled",
+      "grid": {
+        "columns": 4,
+        "rows": 17
+      },
+      "children": [
+        {
+          "type": "picker",
+          "id": "fpp-lut",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Show LUT",
+          "options": [
+            "kodak2383",
+            "fuji3513",
+            "emberfall_v4",
+            "rec709"
+          ],
+          "optionLabels": [
+            "Kodak 2383",
+            "Fuji 3513",
+            "Emberfall v4",
+            "Rec.709"
+          ],
+          "defaultValue": "emberfall_v4",
+          "pickerStyle": "menu",
+          "tint": "#FFB000",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_post_pipeline_lut_select",
+              "lut": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_grade"
+              },
+              "valuePath": "lut"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "fpp-grade-preview",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Client monitor",
+          "icon": "tv.fill",
+          "defaultValue": false,
+          "tint": "#FFB000",
+          "haptic": "medium",
+          "animation": "bouncy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_post_pipeline_grade_preview",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_grade"
+              },
+              "valuePath": "preview_on"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fpp-preview-banner",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "LIVE on Suite 2 client monitor \u2014 grade is visible",
+          "style": "caption",
+          "icon": "dot.radiowaves.left.and.right",
+          "tint": "#FF4F3A",
+          "align": "center",
+          "visible": {
+            "when": "fpp-grade-preview",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "pinboard",
+          "id": "fpp-mood-board",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            9,
+            4
+          ],
+          "label": "Lookbook \u00b7 Act II firestorm",
+          "pinboardConfig": {
+            "background": "film",
+            "surfaceAspect": 1.5,
+            "paletteLabel": "Unpinned refs",
+            "searchable": true,
+            "items": [
+              {
+                "id": "ref-ember",
+                "label": "Ember glow",
+                "icon": "flame",
+                "tint": "#FFB000",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                },
+                "x": 0.22,
+                "y": 0.3
+              },
+              {
+                "id": "ref-ash",
+                "label": "Ash snowfall",
+                "icon": "snowflake",
+                "tint": "#9C8F7A",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                },
+                "x": 0.6,
+                "y": 0.22
+              },
+              {
+                "id": "ref-silhouette",
+                "label": "Backlit silhouette",
+                "icon": "figure.stand",
+                "tint": "#E8893A",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                },
+                "x": 0.42,
+                "y": 0.62
+              },
+              {
+                "id": "ref-sodium",
+                "label": "Sodium streetlight",
+                "icon": "lightbulb.fill",
+                "tint": "#FFB000",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                },
+                "x": 0.78,
+                "y": 0.55
+              },
+              {
+                "id": "ref-teal",
+                "label": "Teal shadows",
+                "icon": "drop.halffull",
+                "tint": "#3FA7A0",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "ref-grain",
+                "label": "35mm grain",
+                "icon": "circle.grid.3x3.fill",
+                "tint": "#C9653B",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "ref-anamorph",
+                "label": "Anamorphic flare",
+                "icon": "sparkles",
+                "tint": "#E8893A",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "film_post_pipeline_mood_open",
+                    "ref": "{{value}}"
+                  }
+                }
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_mood_place",
+                  "ref": "{{item}}",
+                  "x": "{{x}}",
+                  "y": "{{y}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_mood_layout"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_mood"
+              },
+              "valuePath": "points"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "fpp-grain",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Film grain",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "defaultValue": 35,
+          "formatValue": "percent",
+          "minIcon": "circle",
+          "maxIcon": "circle.grid.3x3.fill",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_post_pipeline_grade_grain",
+              "amount": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_grade"
+              },
+              "valuePath": "grain"
+            }
+          ]
+        },
+        {
+          "type": "webView",
+          "id": "fpp-stills",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Reference stills \u00b7 FilmGrab",
+          "url": "https://film-grab.com",
+          "webInteractive": true,
+          "webScrollEnabled": true
+        }
+      ]
+    },
+    {
+      "title": "Farm",
+      "icon": "server.rack",
+      "grid": {
+        "columns": 4,
+        "rows": 24
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "fpp-farm-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Render farm",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "rendering",
+          "statusColors": {
+            "rendering": "#46E08C",
+            "idle": "#9C8F7A",
+            "paused": "#FFB000",
+            "down": "#FF4F3A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fpp-nodes-online",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Nodes online",
+          "icon": "cpu",
+          "style": "mono",
+          "text": "46 / 48",
+          "tint": "#FFB000",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "nodes_label"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "fpp-farm-glyph",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "gearshape.2.fill",
+          "label": "Queue",
+          "tint": "#FFB000",
+          "defaultValue": "rendering",
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "rotate",
+            "activeWhen": "truthy",
+            "speed": 0.6,
+            "tapEffect": "bounce"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "status"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "fpp-gpu-util",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "GPU util",
+          "icon": "bolt.fill",
+          "min": 0,
+          "max": 100,
+          "formatValue": "percent",
+          "arcAngle": 270,
+          "arcRotation": 135,
+          "tint": "#FFB000",
+          "defaultValue": 87,
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#9C8F7A"
+            },
+            {
+              "limit": 90,
+              "color": "#FFB000"
+            },
+            {
+              "limit": 100,
+              "color": "#FF4F3A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "gpu_util"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "fpp-queue-ring",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Frames done",
+          "icon": "square.stack.3d.up.fill",
+          "min": 0,
+          "max": 11500,
+          "defaultValue": 10780,
+          "tint": "#46E08C",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "frames_done"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "fpp-fpm",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Frames / min",
+          "tint": "#FFB000",
+          "sparklinePoints": 20,
+          "sparklineFill": true,
+          "defaultValue": [
+            62,
+            64,
+            70,
+            68,
+            75,
+            81,
+            79,
+            84,
+            88,
+            86,
+            90,
+            93,
+            89,
+            95,
+            97,
+            94,
+            99,
+            101,
+            98,
+            104
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "frames_per_min"
+            }
+          ]
+        },
+        {
+          "type": "sankey",
+          "id": "fpp-frame-flow",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Frame flow (24h)",
+          "tint": "#FFB000",
+          "formatValue": "number",
+          "sankeyConfig": {
+            "showValues": true,
+            "linkOpacity": 0.38,
+            "nodeWidth": 8,
+            "scrub": true,
+            "nodeAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "film_post_pipeline_pool_inspect",
+                "node": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"nodes\":[{\"name\":\"Submitted\",\"color\":\"#FFB000\"},{\"name\":\"GPU pool\"},{\"name\":\"CPU pool\"},{\"name\":\"Rendered\",\"color\":\"#46E08C\"},{\"name\":\"Failed\",\"color\":\"#FF4F3A\"},{\"name\":\"Requeued\",\"color\":\"#9C8F7A\"}],\"links\":[{\"source\":\"Submitted\",\"target\":\"GPU pool\",\"value\":8400},{\"source\":\"Submitted\",\"target\":\"CPU pool\",\"value\":3100},{\"source\":\"GPU pool\",\"target\":\"Rendered\",\"value\":7920},{\"source\":\"GPU pool\",\"target\":\"Failed\",\"value\":180},{\"source\":\"GPU pool\",\"target\":\"Requeued\",\"value\":300},{\"source\":\"CPU pool\",\"target\":\"Rendered\",\"value\":2860},{\"source\":\"CPU pool\",\"target\":\"Failed\",\"value\":90},{\"source\":\"CPU pool\",\"target\":\"Requeued\",\"value\":150}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "frame_flow"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "fpp-node-heat",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Node load by hour",
+          "formatValue": "suffix:%",
+          "heatmapConfig": {
+            "colors": [
+              "#1A1410",
+              "#6B3A1E",
+              "#E8893A",
+              "#FFB000",
+              "#FFF1C9"
+            ],
+            "vMin": 0,
+            "vMax": 100,
+            "showScale": true,
+            "cellCorner": 2,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "film_post_pipeline_node_inspect",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"rows\":[\"gpu-a\",\"gpu-b\",\"gpu-c\",\"cpu-a\",\"cpu-b\"],\"cols\":[\"00\",\"03\",\"06\",\"09\",\"12\",\"15\",\"18\",\"21\"],\"values\":[[92,95,88,97,99,94,90,96],[71,80,85,90,93,88,76,82],[40,55,62,70,88,91,85,60],[35,30,45,68,72,75,70,50],[20,25,30,52,61,64,58,33]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm"
+              },
+              "valuePath": "node_heat"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "fpp-farm-log",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Deadline log",
+          "maxLines": 400,
+          "fontSize": 10,
+          "controlHeight": 210,
+          "showTimestamps": true,
+          "autoScroll": true,
+          "tint": "#FFB000",
+          "logColors": {
+            "error": "#FF4F3A",
+            "warn": "#FFB000",
+            "info": "#46E08C",
+            "debug": "#9C8F7A"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_post_pipeline_farm_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "fpp-farm-controls",
+          "label": "Farm controls",
+          "position": [
+            19,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "fpp-farm-pause",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Pause farm",
+              "style": "button",
+              "onIcon": "pause.fill",
+              "offIcon": "play.fill",
+              "defaultValue": false,
+              "tint": "#FFB000",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_farm_pause",
+                  "paused": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "film_post_pipeline_farm"
+                  },
+                  "valuePath": "paused"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "fpp-farm-priority",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "low",
+                "norm",
+                "rush"
+              ],
+              "optionLabels": [
+                "Low",
+                "Norm",
+                "Rush"
+              ],
+              "defaultValue": "norm",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_farm_priority",
+                  "priority": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "film_post_pipeline_farm"
+                  },
+                  "valuePath": "priority"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "fpp-max-nodes",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Max nodes",
+              "min": 4,
+              "max": 48,
+              "step": 4,
+              "defaultValue": 40,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_farm_max_nodes",
+                  "nodes": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "film_post_pipeline_farm"
+                  },
+                  "valuePath": "max_nodes"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "fpp-requeue",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Requeue failed",
+              "icon": "arrow.clockwise",
+              "style": "tinted",
+              "tint": "#FF4F3A",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_post_pipeline_farm_requeue",
+                  "scope": "failed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fpp-paused-banner",
+          "position": [
+            22,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "text": "Farm paused \u2014 11 jobs holding in queue",
+          "style": "caption",
+          "icon": "pause.circle.fill",
+          "tint": "#FFB000",
+          "align": "center",
+          "visible": {
+            "when": "fpp-farm-pause",
+            "operator": "eq",
+            "value": true
+          }
+        }
+      ]
+    }
+  ],
+  "glance": {
+    "title": "Emberfall Post",
+    "icon": "film.stack.fill",
+    "tint": "#FFB000",
+    "hero": "fpp-final-ring",
+    "slots": [
+      "fpp-lock-days",
+      "fpp-farm-state",
+      "fpp-gpu-util"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "farm-pause",
+        "kind": "toggle",
+        "label": "Render farm",
+        "control": "fpp-farm-pause",
+        "on": {
+          "label": "Paused",
+          "icon": "pause.fill",
+          "tint": "#FFB000"
+        },
+        "off": {
+          "label": "Rendering",
+          "icon": "play.fill",
+          "tint": "#46E08C"
+        }
+      },
+      {
+        "id": "farm-priority",
+        "kind": "cycle",
+        "label": "Farm priority",
+        "control": "fpp-farm-priority",
+        "states": [
+          {
+            "value": "low",
+            "label": "Low",
+            "icon": "tortoise.fill"
+          },
+          {
+            "value": "norm",
+            "label": "Normal",
+            "icon": "gauge.with.dots.needle.50percent"
+          },
+          {
+            "value": "rush",
+            "label": "Rush",
+            "icon": "hare.fill",
+            "tint": "#FF4F3A"
+          }
+        ]
+      }
+    ],
+    "widgets": [
+      {
+        "id": "post-status",
+        "title": "Post status",
+        "icon": "film",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "fpp-final-ring"
+              },
+              {
+                "tile": "value",
+                "control": "fpp-lock-days"
+              }
+            ],
+            [
+              {
+                "tile": "sparkline",
+                "control": "fpp-fpm",
+                "span": 2
+              }
+            ],
+            [
+              {
+                "tile": "light",
+                "control": "fpp-farm-state"
+              },
+              {
+                "tile": "toggle",
+                "control": "fpp-farm-pause"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "fpp-queue-ring"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "fpp-farm-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "value",
+          "control": "fpp-nodes-online"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "gauge",
+                "control": "fpp-gpu-util"
+              },
+              {
+                "tile": "ring",
+                "control": "fpp-final-ring"
+              }
+            ],
+            [
+              {
+                "tile": "toggle",
+                "control": "fpp-farm-pause"
+              },
+              {
+                "tile": "button",
+                "control": "fpp-requeue"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

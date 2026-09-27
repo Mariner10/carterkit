@@ -1,0 +1,620 @@
+{
+  "name": "Home Energy",
+  "headerTitle": "Home Energy",
+  "id": "home-energy",
+  "version": 1,
+  "accentColor": "#FFB347",
+  "description": "A whole-home power dashboard: live draw, today's kWh trend, per-circuit breakdown and room split, plus a Controls tab to shed big loads and schedule off-peak runs.",
+  "difficulty": "intermediate",
+  "theme": {
+    "accentColor": "#FFB347",
+    "accentGradient": [
+      "#FFB347",
+      "#FF6F3C"
+    ],
+    "cornerRadius": 14,
+    "tabBarTint": "#FFB347",
+    "surfacePrimary": "#FFD9A014",
+    "surfaceSecondary": "#FFD9A00A",
+    "borderColor": "#FFD9A02E",
+    "toggle": {
+      "trackActiveColor": "#FFB347"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Live",
+      "icon": "bolt.fill",
+      "grid": {
+        "columns": 2,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "he-live-watts",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Whole-Home Draw",
+          "icon": "bolt.fill",
+          "min": 0,
+          "max": 10000,
+          "gaugeStyle": "half",
+          "defaultValue": 3660,
+          "formatValue": "suffix: W",
+          "segments": [
+            {
+              "limit": 3000,
+              "color": "#34C759"
+            },
+            {
+              "limit": 6500,
+              "color": "#FFB347"
+            },
+            {
+              "limit": 10000,
+              "color": "#FF3B30"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_live"
+              },
+              "valuePath": "watts"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "he-today-kwh",
+          "position": [
+            3,
+            0
+          ],
+          "label": "Today",
+          "icon": "sum",
+          "defaultValue": 18.4,
+          "formatValue": "suffix: kWh",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_today"
+              },
+              "valuePath": "kwh_total"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "he-today-cost",
+          "position": [
+            3,
+            1
+          ],
+          "label": "Cost so far",
+          "icon": "dollarsign.circle",
+          "defaultValue": "$3.12",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_today"
+              },
+              "valuePath": "cost_display"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "he-kwh-trend",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "kWh per hour today",
+          "tint": "#FFB347",
+          "sparklineFill": true,
+          "sparklinePoints": 24,
+          "defaultValue": "[0.42,0.38,0.35,0.33,0.36,0.51,0.94,1.32,1.10,0.86,0.78,0.81,0.92,0.88,0.97,1.24,1.66,2.08,1.87]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_today"
+              },
+              "valuePath": "hourly_kwh"
+            }
+          ]
+        },
+        {
+          "type": "pieChart",
+          "id": "he-room-split",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Draw by room",
+          "pieStyle": "donut",
+          "tint": "#FFB347",
+          "pieConfig": {
+            "centerText": "{{total}} W",
+            "showLegend": true,
+            "percent": true,
+            "showLabels": false,
+            "donutRatio": 0.62
+          },
+          "defaultValue": "{\"slices\":[{\"label\":\"Kitchen\",\"value\":1988,\"color\":\"#FFB347\"},{\"label\":\"HVAC\",\"value\":1320,\"color\":\"#5AC8FA\"},{\"label\":\"Office\",\"value\":212,\"color\":\"#A78BFA\"},{\"label\":\"Laundry\",\"value\":96,\"color\":\"#34C759\"},{\"label\":\"Other\",\"value\":84,\"color\":\"#8E8E93\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_rooms"
+              },
+              "valuePath": "split"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Circuits",
+      "icon": "list.bullet.rectangle",
+      "grid": {
+        "columns": 2,
+        "rows": 9
+      },
+      "children": [
+        {
+          "type": "list",
+          "id": "he-circuit-list",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            2
+          ],
+          "label": "Panel · 8 circuits",
+          "listColumns": [
+            {
+              "key": "circuit",
+              "label": "Circuit"
+            },
+            {
+              "key": "breaker",
+              "label": "Brk"
+            },
+            {
+              "key": "watts",
+              "label": "W",
+              "format": "number"
+            },
+            {
+              "key": "amps",
+              "label": "A",
+              "format": "decimal:1"
+            }
+          ],
+          "defaultValue": "[{\"circuit\":\"Kitchen Range\",\"breaker\":\"B4\",\"watts\":1840,\"amps\":7.7},{\"circuit\":\"HVAC Heat Pump\",\"breaker\":\"B1\",\"watts\":1320,\"amps\":5.5},{\"circuit\":\"Water Heater\",\"breaker\":\"B2\",\"watts\":0,\"amps\":0.0},{\"circuit\":\"Fridge + Freezer\",\"breaker\":\"B7\",\"watts\":148,\"amps\":1.2},{\"circuit\":\"Office Outlets\",\"breaker\":\"B11\",\"watts\":212,\"amps\":1.8},{\"circuit\":\"Laundry\",\"breaker\":\"B5\",\"watts\":96,\"amps\":0.8},{\"circuit\":\"EV Charger\",\"breaker\":\"B3\",\"watts\":0,\"amps\":0.0},{\"circuit\":\"Lighting (Main)\",\"breaker\":\"B9\",\"watts\":84,\"amps\":0.7}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_circuits"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "he-event-log",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Panel events",
+          "maxLines": 200,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "controlHeight": 230,
+          "logColors": {
+            "error": "#FF3B30",
+            "warn": "#FFB347",
+            "info": "#34C759",
+            "debug": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Controls",
+      "icon": "switch.2",
+      "grid": {
+        "columns": 2,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "he-loads",
+          "label": "Sheddable loads",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "he-load-ev",
+              "position": [
+                0,
+                0
+              ],
+              "label": "EV Charger",
+              "icon": "bolt.car.fill",
+              "defaultValue": false,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "ev_charger",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "ev_charger"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "he-load-water",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Water Heater",
+              "icon": "flame.fill",
+              "defaultValue": true,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "water_heater",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "water_heater"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "he-load-pool",
+              "position": [
+                1,
+                0
+              ],
+              "label": "Pool Pump",
+              "icon": "drop.circle.fill",
+              "defaultValue": false,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "pool_pump",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "pool_pump"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "he-load-dehum",
+              "position": [
+                1,
+                1
+              ],
+              "label": "Dehumidifier",
+              "icon": "humidity.fill",
+              "defaultValue": true,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "dehumidifier",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "dehumidifier"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "he-load-garage",
+              "position": [
+                2,
+                0
+              ],
+              "label": "Garage Freezer",
+              "icon": "snowflake",
+              "defaultValue": true,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "garage_freezer",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "garage_freezer"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "he-load-standby",
+              "position": [
+                2,
+                1
+              ],
+              "label": "Office Standby",
+              "icon": "powerplug.fill",
+              "defaultValue": false,
+              "tint": "#FFB347",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "home_energy_set_load",
+                  "load": "office_standby",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "home_energy_load_state",
+                    "load": "office_standby"
+                  },
+                  "valuePath": "on"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "picker",
+          "id": "he-tariff-mode",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Rate plan",
+          "icon": "dollarsign.arrow.circlepath",
+          "options": [
+            "tou_peak_saver",
+            "flat_rate",
+            "ev_overnight"
+          ],
+          "optionLabels": [
+            "TOU Peak Saver",
+            "Flat Rate",
+            "EV Overnight"
+          ],
+          "defaultValue": "tou_peak_saver",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "home_energy_set_tariff",
+              "plan": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "home_energy_settings"
+              },
+              "valuePath": "tariff"
+            }
+          ]
+        },
+        {
+          "type": "datePicker",
+          "id": "he-offpeak-start",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Start deferred loads at",
+          "icon": "clock.badge.checkmark",
+          "datePickerMode": "time",
+          "datePickerStyle": "compact",
+          "defaultValue": "2026-09-24T23:00:00Z",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "home_energy_schedule_offpeak",
+              "start": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "colorPicker",
+          "id": "he-panel-led",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Over-budget LED color",
+          "icon": "lightbulb.led.fill",
+          "defaultValue": "#FF6F3C",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "home_energy_set_led_color",
+              "hex": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "he-controls-note",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "style": "caption",
+          "icon": "info.circle",
+          "text": "Deferred loads wait for the start time; toggles act immediately."
+        }
+      ]
+    }
+  ]
+}

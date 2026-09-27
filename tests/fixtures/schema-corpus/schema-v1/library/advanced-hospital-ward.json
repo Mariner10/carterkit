@@ -1,0 +1,1226 @@
+{
+  "name": "Hospital Ward Board",
+  "headerTitle": "4 WEST · WARD BOARD",
+  "version": 1,
+  "accentColor": "#2EC4B6",
+  "description": "A charge-nurse board for a 12-bed telemetry ward: live bed status lights, vitals trends and NEWS2 heatmap, an alarm log, and nurse-call acknowledgements.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "hospital_ward_hub"
+  },
+  "theme": {
+    "accentColor": "#2EC4B6",
+    "accentGradient": [
+      "#2EC4B6",
+      "#7AE7C7"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 16,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#2EC4B6",
+    "pageBackgroundGradient": [
+      "#061417",
+      "#0A2126",
+      "#0E2B30"
+    ],
+    "surfacePrimary": "#BFF5EC12",
+    "surfaceSecondary": "#BFF5EC0A",
+    "surfaceTertiary": "#BFF5EC06",
+    "borderColor": "#7AE7C72E",
+    "foregroundColor": "#EAFBF8",
+    "secondaryColor": "#9CC7C0",
+    "tertiaryColor": "#5E8580",
+    "toggle": {
+      "trackActiveColor": "#2EC4B6"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Beds",
+      "icon": "bed.double.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "ward-heart",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "waveform.path.ecg.rectangle.fill",
+          "label": "4 West · Telemetry",
+          "tint": "#2EC4B6",
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#2EC4B6",
+              "#E8FFFB"
+            ],
+            "weight": "semibold",
+            "effect": "pulse",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "loop": "periodic",
+            "loopDelay": 1.2,
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "hospital_ward_alarm"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "haptic": "light"
+        },
+        {
+          "type": "label",
+          "id": "ward-census",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "person.3.fill",
+          "style": "headline",
+          "text": "Census 10 / 12",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_census"
+              },
+              "valuePath": "summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "ward-open-alarms",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "bell.badge.fill",
+          "style": "headline",
+          "text": "3 open alarms",
+          "tint": "#FFB020",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_census"
+              },
+              "valuePath": "alarms_text"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "ward-state",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Ward status",
+          "style": "badge",
+          "statusColors": {
+            "normal": "#34C759",
+            "busy": "#FFB020",
+            "surge": "#FF3B30"
+          },
+          "defaultValue": "busy",
+          "pulse": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_census"
+              },
+              "valuePath": "ward_state"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "north-wing",
+          "label": "North wing · Beds N1–N6",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 3,
+            "rows": 2
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "hospital_ward_beds",
+              "wing": "north"
+            },
+            "direction": "inward",
+            "color": "#2EC4B6"
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "bed-n1",
+              "position": [
+                0,
+                0
+              ],
+              "label": "N1 · Okafor",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "stable",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n1"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-n2",
+              "position": [
+                0,
+                1
+              ],
+              "label": "N2 · Lindqvist",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "watch",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n2"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-n3",
+              "position": [
+                0,
+                2
+              ],
+              "label": "N3 · Ramirez",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": true,
+              "defaultValue": "critical",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n3"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-n4",
+              "position": [
+                1,
+                0
+              ],
+              "label": "N4 · —",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "cleaning",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n4"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-n5",
+              "position": [
+                1,
+                1
+              ],
+              "label": "N5 · Haddad",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "isolation",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n5"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-n6",
+              "position": [
+                1,
+                2
+              ],
+              "label": "N6 · Brennan",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "stable",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "north.n6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "south-wing",
+          "label": "South wing · Beds S1–S6",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 3,
+            "rows": 2
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "hospital_ward_beds",
+              "wing": "south"
+            },
+            "direction": "inward",
+            "color": "#2EC4B6"
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "bed-s1",
+              "position": [
+                0,
+                0
+              ],
+              "label": "S1 · Nakamura",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "stable",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s1"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-s2",
+              "position": [
+                0,
+                1
+              ],
+              "label": "S2 · Castillo",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "stable",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s2"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-s3",
+              "position": [
+                0,
+                2
+              ],
+              "label": "S3 · —",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "empty",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s3"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-s4",
+              "position": [
+                1,
+                0
+              ],
+              "label": "S4 · Osei",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "watch",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s4"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-s5",
+              "position": [
+                1,
+                1
+              ],
+              "label": "S5 · Petrova",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "stable",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s5"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "bed-s6",
+              "position": [
+                1,
+                2
+              ],
+              "label": "S6 · Delacroix",
+              "statusColors": {
+                "stable": "#34C759",
+                "watch": "#FFB020",
+                "critical": "#FF3B30",
+                "empty": "#5B6B78",
+                "cleaning": "#5AC8FA",
+                "isolation": "#BF5AF2"
+              },
+              "size": "large",
+              "pulse": false,
+              "defaultValue": "watch",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "hospital_ward_beds"
+                  },
+                  "valuePath": "south.s6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "charge-mode",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Charge nurse",
+          "icon": "person.badge.key.fill",
+          "tint": "#2EC4B6",
+          "defaultValue": false,
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_ward_charge_mode",
+              "on": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "call-rrt",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Call RRT",
+          "icon": "cross.case.fill",
+          "style": "filled",
+          "tint": "#FF3B30",
+          "haptic": "heavy",
+          "visible": {
+            "when": "charge-mode",
+            "operator": "eq",
+            "value": true
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_ward_rrt",
+              "unit": "4W",
+              "requested_by": "charge"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Vitals",
+      "icon": "waveform.path.ecg",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "vitals-group",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "north",
+            "south",
+            "stepdown"
+          ],
+          "optionLabels": [
+            "North",
+            "South",
+            "Step-dn"
+          ],
+          "style": "pills",
+          "tint": "#2EC4B6",
+          "defaultValue": "north",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "hospital_ward_view",
+              "group": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "sparkline",
+          "id": "hr-trend",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Heart rate · bpm",
+          "tint": "#FF6B6B",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            78,
+            80,
+            82,
+            81,
+            85,
+            88,
+            86,
+            84,
+            90,
+            92,
+            89,
+            87,
+            91,
+            94,
+            90
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "hr"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "spo2-trend",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "SpO₂ · %",
+          "tint": "#5AC8FA",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            97,
+            97,
+            96,
+            96,
+            95,
+            96,
+            94,
+            95,
+            95,
+            93,
+            94,
+            94,
+            95,
+            96,
+            95
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "spo2"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "rr-trend",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Resp rate · /min",
+          "tint": "#34C759",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            16,
+            16,
+            17,
+            18,
+            18,
+            19,
+            20,
+            19,
+            18,
+            20,
+            21,
+            20,
+            19,
+            18,
+            18
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "rr"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "sbp-trend",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Systolic BP · mmHg",
+          "tint": "#FFB020",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "defaultValue": [
+            128,
+            131,
+            126,
+            122,
+            119,
+            121,
+            117,
+            114,
+            118,
+            116,
+            112,
+            115,
+            119,
+            121,
+            124
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "sbp"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "news-heatmap",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "NEWS2 by bed · hour",
+          "heatmapConfig": {
+            "colors": [
+              "#12343B",
+              "#2EC4B6",
+              "#FFB020",
+              "#FF3B30"
+            ],
+            "vMin": 0,
+            "vMax": 8,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 2
+          },
+          "defaultValue": "{\"rows\": [\"N1\", \"N2\", \"N3\", \"N5\", \"N6\", \"S1\", \"S2\", \"S4\", \"S5\", \"S6\"], \"cols\": [\"06\", \"07\", \"08\", \"09\", \"10\", \"11\", \"12\", \"13\"], \"values\": [[1, 1, 0, 1, 1, 1, 0, 1], [2, 3, 3, 4, 3, 3, 4, 4], [5, 5, 6, 7, 6, 7, 8, 7], [2, 2, 1, 2, 3, 2, 2, 1], [0, 1, 1, 0, 1, 1, 1, 0], [1, 1, 1, 1, 2, 1, 1, 1], [0, 0, 1, 1, 1, 0, 1, 1], [3, 3, 4, 4, 5, 4, 4, 5], [1, 2, 1, 1, 1, 2, 1, 1], [2, 3, 3, 3, 4, 4, 5, 5]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "news_grid"
+            }
+          ]
+        },
+        {
+          "type": "radar",
+          "id": "acuity-radar",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Acuity profile",
+          "radarConfig": {
+            "rings": 5,
+            "maxValue": 5,
+            "curved": true,
+            "showLegend": true,
+            "fillOpacity": 0.3
+          },
+          "defaultValue": "{\"axes\": [\"Mobility\", \"Cognition\", \"Wound care\", \"Meds load\", \"Fall risk\", \"Monitoring\"], \"max\": 5, \"series\": [{\"name\": \"North\", \"color\": \"#2EC4B6\", \"values\": [3, 2, 4, 4, 3, 5]}, {\"name\": \"South\", \"color\": \"#FFB020\", \"values\": [2, 3, 2, 3, 4, 3]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "acuity"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "avg-news",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Avg NEWS2",
+          "icon": "heart.text.square.fill",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "gaugeStyle": "half",
+          "defaultValue": 2.8,
+          "segments": [
+            {
+              "limit": 4,
+              "color": "#34C759"
+            },
+            {
+              "limit": 6,
+              "color": "#FFB020"
+            },
+            {
+              "limit": 10,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "avg_news"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "vitals-updated",
+          "position": [
+            13,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "clock",
+          "style": "caption",
+          "align": "center",
+          "text": "Updated 13:42",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_vitals"
+              },
+              "valuePath": "updated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Alarms",
+      "icon": "bell.and.waves.left.and.right.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "logConsole",
+          "id": "alarm-log",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Alarm log",
+          "maxLines": 300,
+          "showTimestamps": false,
+          "fontSize": 11,
+          "controlHeight": 240,
+          "logColors": {
+            "error": "#FF3B30",
+            "warn": "#FFB020",
+            "info": "#8FD3CC"
+          },
+          "tint": "#2EC4B6",
+          "defaultValue": "[{\"level\": \"info\", \"message\": \"13:02 N6 IV pump occlusion cleared by RN Patel\"}, {\"level\": \"warn\", \"message\": \"13:11 S4 SpO2 91% (<92) sustained 45s\"}, {\"level\": \"error\", \"message\": \"13:24 N3 HR 138 \\u00b7 SVT alarm \\u00b7 telemetry\"}, {\"level\": \"info\", \"message\": \"13:25 N3 alarm acknowledged by RN Chen\"}, {\"level\": \"warn\", \"message\": \"13:31 S6 bed exit sensor \\u00b7 fall risk high\"}, {\"level\": \"error\", \"message\": \"13:38 N2 NEWS2 5 \\u00b7 escalate per protocol\"}, {\"level\": \"info\", \"message\": \"13:40 N4 terminal clean started (EVS)\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_alarm"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "nurse-calls",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Open nurse calls",
+          "tint": "#2EC4B6",
+          "listColumns": [
+            {
+              "key": "bed",
+              "label": "Bed"
+            },
+            {
+              "key": "reason",
+              "label": "Reason"
+            },
+            {
+              "key": "waiting",
+              "label": "Wait"
+            },
+            {
+              "key": "nurse",
+              "label": "Responder"
+            }
+          ],
+          "defaultValue": "[{\"bed\": \"N2\", \"reason\": \"Pain 7/10\", \"waiting\": \"4m\", \"nurse\": \"Unassigned\"}, {\"bed\": \"S6\", \"reason\": \"Bed exit alarm\", \"waiting\": \"2m\", \"nurse\": \"RN Diaz\"}, {\"bed\": \"N5\", \"reason\": \"Isolation \\u00b7 IV beeping\", \"waiting\": \"6m\", \"nurse\": \"RN Patel\"}, {\"bed\": \"S1\", \"reason\": \"Bathroom assist\", \"waiting\": \"1m\", \"nurse\": \"CNA Moore\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "hospital_ward_calls"
+              },
+              "valuePath": "calls"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "ack-panel",
+          "label": "Respond",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "segmentedControl",
+              "id": "responder",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "options": [
+                "chen",
+                "patel",
+                "diaz",
+                "moore"
+              ],
+              "optionLabels": [
+                "Chen",
+                "Patel",
+                "Diaz",
+                "Moore"
+              ],
+              "defaultValue": "chen",
+              "tint": "#2EC4B6",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hospital_ward_responder",
+                  "nurse": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "ack-oldest",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Ack oldest",
+              "icon": "checkmark.circle.fill",
+              "style": "tinted",
+              "tint": "#34C759",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hospital_ward_ack",
+                  "target": "oldest"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "silence-2m",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Silence 2m",
+              "icon": "speaker.slash.fill",
+              "style": "tinted",
+              "tint": "#FFB020",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "hospital_ward_silence",
+                  "seconds": 120
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

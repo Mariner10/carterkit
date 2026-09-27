@@ -1,0 +1,1283 @@
+{
+  "name": "Restaurant Kitchen Display",
+  "headerTitle": "LINE · KDS",
+  "version": 1,
+  "accentColor": "#FF8A3D",
+  "description": "An expo-and-line kitchen display: a live ticket rail with a bell that jumps on every new order, per-station timers, oven and HACCP temperatures, and a one-tap 86 list that pushes to front of house.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "state": {
+    "sync": true,
+    "authority": "restaurant_kitchen_hub"
+  },
+  "theme": {
+    "accentColor": "#FF8A3D",
+    "accentGradient": [
+      "#FF6B2C",
+      "#FFB020"
+    ],
+    "fontDesign": "rounded",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "cornerRadius": 14,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#FF8A3D",
+    "pageBackgroundGradient": [
+      "#140C08",
+      "#1E120B",
+      "#2A170D"
+    ],
+    "surfacePrimary": "#FFE3CC14",
+    "surfaceSecondary": "#FFE3CC0B",
+    "surfaceTertiary": "#FFE3CC06",
+    "borderColor": "#FFB0702E",
+    "foregroundColor": "#FFF4EA",
+    "secondaryColor": "#D2B49C",
+    "tertiaryColor": "#8A6E5A",
+    "toggle": {
+      "trackActiveColor": "#FF6B2C"
+    },
+    "slider": {
+      "trackActiveColor": "#FF8A3D",
+      "thumbColor": "#FFF4EA"
+    },
+    "segmented": {
+      "selectedColor": "#FF8A3D",
+      "selectedTextColor": "#140C08"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Pass",
+      "icon": "bell.and.waves.left.and.right.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "order-bell",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "bell.fill",
+          "label": "Order bell",
+          "tint": "#FF8A3D",
+          "defaultValue": true,
+          "haptic": "heavy",
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#FF8A3D",
+              "#FFD9A8"
+            ],
+            "weight": "semibold",
+            "variant": "none",
+            "effect": "wiggle",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "loop": "periodic",
+            "loopDelay": 4,
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "restaurant_kitchen_new_ticket"
+                },
+                "effect": "bounce",
+                "effectOptions": [
+                  "up",
+                  "byLayer"
+                ]
+              },
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "restaurant_kitchen_rush"
+                },
+                "effect": "variableColor"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_pass"
+              },
+              "valuePath": "tickets_waiting"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_bell_ack",
+              "by": "expo",
+              "bell": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "open-tickets",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "list.number",
+          "style": "headline",
+          "text": "8 open · 5 firing",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_pass"
+              },
+              "valuePath": "open_summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "avg-ticket-time",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "stopwatch.fill",
+          "style": "headline",
+          "text": "Avg 12:48 · goal 14:00",
+          "tint": "#FFD166",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_pass"
+              },
+              "valuePath": "avg_time_text"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "kitchen-state",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Line",
+          "style": "badge",
+          "pulse": true,
+          "defaultValue": "busy",
+          "statusColors": {
+            "steady": "#34C759",
+            "busy": "#FFB020",
+            "weeds": "#FF3B30",
+            "closed": "#5B6B78"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_pass"
+              },
+              "valuePath": "line_state"
+            }
+          ]
+        },
+        {
+          "type": "cardList",
+          "id": "ticket-rail",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Ticket rail",
+          "defaultValue": "{\"nodes\": [{\"id\": \"t412\", \"label\": \"#412 · T12 · 2× Ribeye MR, Halibut, Caesar · 11:42\", \"group\": \"firing\", \"icon\": \"flame.fill\"}, {\"id\": \"t413\", \"label\": \"#413 · T4 · Duck confit, Risotto (no shallot) · 09:10\", \"group\": \"firing\", \"icon\": \"flame.fill\"}, {\"id\": \"t414\", \"label\": \"#414 · Bar 3 · Fries, Wings hot · 06:05\", \"group\": \"firing\", \"icon\": \"flame.fill\"}, {\"id\": \"t415\", \"label\": \"#415 · T9 · 4-top · Burrata ×2, Tartare ×2 · 03:30\", \"group\": \"apps\", \"icon\": \"leaf.fill\"}, {\"id\": \"t416\", \"label\": \"#416 · T21 · Oysters dz, Crudo · ALLERGY shellfish-sep · 01:12\", \"group\": \"apps\", \"icon\": \"exclamationmark.triangle.fill\"}, {\"id\": \"t410\", \"label\": \"#410 · T7 · Short rib, Hanger MR · on the pass\", \"group\": \"pass\", \"icon\": \"bell.fill\"}, {\"id\": \"t409\", \"label\": \"#409 · T2 · Key lime ×2, Affogato · on the pass\", \"group\": \"pass\", \"icon\": \"birthday.cake.fill\"}, {\"id\": \"t417\", \"label\": \"#417 · T15 · Hold for mains · fire on call\", \"group\": \"on hold\", \"icon\": \"pause.circle.fill\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_tickets"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "fire-next",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Fire next course",
+          "icon": "flame.fill",
+          "style": "filled",
+          "tint": "#FF6B2C",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_fire",
+              "ticket": "next",
+              "by": "expo"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "call-runner",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Call runner",
+          "icon": "figure.walk.motion",
+          "style": "tinted",
+          "tint": "#FFD166",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_runner",
+              "zone": "pass"
+            }
+          },
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_runner",
+              "zone": "pass",
+              "priority": "all_hands"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Stations",
+      "icon": "timer",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "progressRing",
+          "id": "grill-timer",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Grill · #412 ribeye",
+          "icon": "flame",
+          "min": 0,
+          "max": 720,
+          "defaultValue": 486,
+          "formatValue": "time",
+          "tint": "#FF6B2C",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_stations"
+              },
+              "valuePath": "grill.elapsed_s"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "saute",
+          "label": "Sauté · Marco",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 1,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "label",
+              "id": "saute-timer",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "icon": "timer",
+              "style": "large-mono",
+              "formatValue": "time",
+              "defaultValue": 252,
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_stations"
+                  },
+                  "valuePath": "saute.elapsed_s"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "saute-state",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Risotto #413",
+              "defaultValue": "on_time",
+              "statusColors": {
+                "on_time": "#34C759",
+                "late": "#FFB020",
+                "dying": "#FF3B30"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_stations"
+                  },
+                  "valuePath": "saute.state"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "fry",
+          "label": "Fry station · baskets",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "fry-basket-1",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Basket 1 · fries",
+              "size": "large",
+              "defaultValue": "dropping",
+              "pulse": true,
+              "statusColors": {
+                "idle": "#5B6B78",
+                "dropping": "#FFB020",
+                "up": "#34C759"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_stations"
+                  },
+                  "valuePath": "fry.basket1"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "fry-basket-2",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Basket 2 · wings",
+              "size": "large",
+              "defaultValue": "up",
+              "statusColors": {
+                "idle": "#5B6B78",
+                "dropping": "#FFB020",
+                "up": "#34C759"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_stations"
+                  },
+                  "valuePath": "fry.basket2"
+                }
+              ]
+            },
+            {
+              "type": "stepper",
+              "id": "fry-drop-time",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Drop",
+              "min": 60,
+              "max": 420,
+              "step": 15,
+              "defaultValue": 195,
+              "formatValue": "time",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_fry_time",
+                  "seconds": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "fry-drop",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Drop basket",
+              "icon": "arrow.down.to.line",
+              "style": "tinted",
+              "tint": "#FFB020",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_fry_drop",
+                  "basket": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "station-times",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Avg ticket time by station (min)",
+          "chartConfig": {
+            "showValues": true,
+            "barCornerRadius": 6,
+            "showGrid": false,
+            "datumAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "restaurant_kitchen_station_focus",
+                "station": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"categories\": [\"Grill\", \"Sauté\", \"Fry\", \"Garde\", \"Pastry\"], \"series\": [{\"name\": \"Tonight\", \"values\": [13.2, 11.8, 6.4, 5.1, 8.7]}, {\"name\": \"Goal\", \"values\": [14, 12, 7, 6, 9]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_stations"
+              },
+              "valuePath": "chart"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "station-focus",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "all",
+            "grill",
+            "saute",
+            "fry",
+            "garde"
+          ],
+          "optionLabels": [
+            "All",
+            "Grill",
+            "Sauté",
+            "Fry",
+            "Garde"
+          ],
+          "defaultValue": "all",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_station_focus",
+              "station": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Ovens",
+      "icon": "thermometer.high",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "oven-deck",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Deck oven",
+          "icon": "flame.fill",
+          "min": 0,
+          "max": 700,
+          "defaultValue": 548,
+          "formatValue": "suffix:°F",
+          "gaugeStyle": "full",
+          "segments": [
+            {
+              "limit": 450,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 600,
+              "color": "#FF8A3D"
+            },
+            {
+              "limit": 700,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "deck_f"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oven-convection",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Convection",
+          "icon": "fan.fill",
+          "min": 0,
+          "max": 550,
+          "defaultValue": 352,
+          "formatValue": "suffix:°F",
+          "gaugeStyle": "full",
+          "segments": [
+            {
+              "limit": 300,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 450,
+              "color": "#FF8A3D"
+            },
+            {
+              "limit": 550,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "convection_f"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "oven-combi",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Combi · 60% steam",
+          "icon": "humidity.fill",
+          "min": 0,
+          "max": 500,
+          "defaultValue": 275,
+          "formatValue": "suffix:°F",
+          "gaugeStyle": "half",
+          "segments": [
+            {
+              "limit": 250,
+              "color": "#5AC8FA"
+            },
+            {
+              "limit": 400,
+              "color": "#FFB020"
+            },
+            {
+              "limit": 500,
+              "color": "#FF3B30"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "combi_f"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "deck-trend",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Deck · last 30 min",
+          "tint": "#FF8A3D",
+          "sparklineFill": true,
+          "sparklinePoints": 60,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "deck_f"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "combi-steam",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Combi steam",
+          "icon": "cloud.fog.fill",
+          "defaultValue": true,
+          "haptic": "rigid",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_combi_steam",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "combi_steam"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "haccp-temps",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "HACCP holds · °F by hour",
+          "formatValue": "suffix:°",
+          "heatmapConfig": {
+            "colors": [
+              "#2A6FDB",
+              "#34C759",
+              "#FFB020",
+              "#FF3B30"
+            ],
+            "showScale": true,
+            "showValues": true,
+            "vMin": 30,
+            "vMax": 170,
+            "cellCorner": 4,
+            "cellGap": 2
+          },
+          "defaultValue": "{\"rows\": [\"Walk-in\", \"Lowboy G\", \"Lowboy S\", \"Hot well\", \"Soup\"], \"cols\": [\"4p\", \"5p\", \"6p\", \"7p\", \"8p\", \"9p\"], \"values\": [[37, 37, 38, 38, 39, 38], [39, 40, 41, 43, 42, 40], [38, 38, 39, 40, 41, 41], [148, 151, 146, 142, 139, 144], [162, 165, 160, 158, 155, 161]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "haccp"
+            }
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "deck-setpoint",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Deck setpoint °F",
+          "min": 350,
+          "max": 700,
+          "step": 5,
+          "defaultValue": 550,
+          "formatValue": "decimal",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_oven_setpoint",
+              "oven": "deck",
+              "target_f": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "hood-fans",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Hood fans",
+          "icon": "wind",
+          "defaultValue": true,
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_hood",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "hood_on"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "proof-box",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Proof box",
+          "icon": "square.stack.3d.up.fill",
+          "defaultValue": false,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_proof_box",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_ovens"
+              },
+              "valuePath": "proof_on"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "86 List",
+      "icon": "xmark.octagon.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "list",
+          "id": "eighty-six-list",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "86'd tonight",
+          "tint": "#FF6B6B",
+          "listColumns": [
+            {
+              "key": "item",
+              "label": "Item"
+            },
+            {
+              "key": "since",
+              "label": "Since"
+            },
+            {
+              "key": "sub",
+              "label": "Push instead"
+            }
+          ],
+          "defaultValue": "[{\"item\": \"Halibut\", \"since\": \"7:12p\", \"sub\": \"Striped bass\"}, {\"item\": \"Oysters (Kumamoto)\", \"since\": \"7:40p\", \"sub\": \"Blue Point\"}, {\"item\": \"Burrata\", \"since\": \"8:05p\", \"sub\": \"Whipped ricotta\"}, {\"item\": \"Key lime pie\", \"since\": \"8:22p\", \"sub\": \"Olive oil cake\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_eighty_six"
+              },
+              "valuePath": "items"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "quick-86",
+          "label": "Quick 86 · low counts",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "e86-short-rib",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Short rib · 3 left",
+              "defaultValue": false,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_eighty_six",
+                  "item": "short_rib",
+                  "out": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_eighty_six"
+                  },
+                  "valuePath": "flags.short_rib"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "e86-duck",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Duck · 5 left",
+              "defaultValue": false,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_eighty_six",
+                  "item": "duck",
+                  "out": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_eighty_six"
+                  },
+                  "valuePath": "flags.duck"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "e86-risotto",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Risotto · 2 left",
+              "defaultValue": false,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_eighty_six",
+                  "item": "risotto",
+                  "out": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_eighty_six"
+                  },
+                  "valuePath": "flags.risotto"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "e86-souffle",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Soufflé · 4 left",
+              "defaultValue": false,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "restaurant_kitchen_eighty_six",
+                  "item": "souffle",
+                  "out": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "restaurant_kitchen_eighty_six"
+                  },
+                  "valuePath": "flags.souffle"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "short-rib-sub",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "icon": "arrow.triangle.swap",
+          "style": "headline",
+          "tint": "#FFD166",
+          "text": "Short rib out → push the hanger special",
+          "visible": {
+            "when": "e86-short-rib",
+            "operator": "eq",
+            "value": true
+          }
+        },
+        {
+          "type": "button",
+          "id": "broadcast-86",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Send 86 list to FOH & POS",
+          "icon": "megaphone.fill",
+          "style": "filled",
+          "tint": "#FF3B30",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "restaurant_kitchen_eighty_six_broadcast",
+              "targets": "foh,pos"
+            }
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "kitchen-log",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Kitchen log",
+          "maxLines": 200,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "info": "#34C759",
+            "warn": "#FFB020",
+            "error": "#FF3B30"
+          },
+          "defaultValue": "[{\"level\": \"info\", \"message\": \"8:31p #412 fired · grill + sauté\"}, {\"level\": \"warn\", \"message\": \"8:33p #413 risotto 9m on sauté (goal 8)\"}, {\"level\": \"error\", \"message\": \"8:34p 86 Key lime pie · pastry\"}, {\"level\": \"info\", \"message\": \"8:36p #416 shellfish allergy flagged · separate board\"}, {\"level\": \"info\", \"message\": \"8:38p Runner called to pass · T7\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "restaurant_kitchen_log"
+              },
+              "valuePath": "entry"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

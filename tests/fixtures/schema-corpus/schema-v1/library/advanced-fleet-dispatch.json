@@ -1,0 +1,1295 @@
+{
+  "name": "Fleet Dispatch",
+  "headerTitle": "DISPATCH \u00b7 SEA",
+  "version": 1,
+  "accentColor": "#FF8A3D",
+  "description": "Live dispatch board for a 28-van last-mile delivery fleet: map, driver roster, on-time KPIs, hourly demand heatmap and one-tap dispatch actions.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "theme": {
+    "accentColor": "#FF8A3D",
+    "accentGradient": [
+      "#FF8A3D",
+      "#FF5A5F",
+      "#2EE6C5"
+    ],
+    "fontDesign": "rounded",
+    "cornerRadius": 18,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 0.5,
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "tabBarTint": "#FF8A3D",
+    "pageBackgroundGradient": [
+      "#0B0F1A",
+      "#141B2D",
+      "#1D1A24"
+    ],
+    "surfacePrimary": "#FFB38A14",
+    "surfaceSecondary": "#FFB38A0C",
+    "surfaceTertiary": "#FFB38A06",
+    "foregroundColor": "#F4F1EC",
+    "secondaryColor": "#B9B3AA",
+    "tertiaryColor": "#7A746C",
+    "borderColor": "#FFB38A30",
+    "toggle": {
+      "trackActiveColor": "#2EE6C5",
+      "knobColor": "#F4F1EC",
+      "knobShadow": true
+    },
+    "segmented": {
+      "trackColor": "#FFB38A14",
+      "selectedColor": "#FF8A3D",
+      "textColor": "#B9B3AA",
+      "selectedTextColor": "#0B0F1A"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Live",
+      "icon": "map.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "hq-health",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "hideBackground": true,
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "hq-depot",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Depot",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#2EE6C5",
+                "busy": "#FFC145",
+                "degraded": "#FFC145",
+                "down": "#FF5A5F",
+                "idle": "#6FA8FF"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 11
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_health"
+                  },
+                  "valuePath": "depot"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hq-telematics",
+              "position": [
+                0,
+                1
+              ],
+              "label": "GPS",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#2EE6C5",
+                "busy": "#FFC145",
+                "degraded": "#FFC145",
+                "down": "#FF5A5F",
+                "idle": "#6FA8FF"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 11
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_health"
+                  },
+                  "valuePath": "telematics"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hq-routing",
+              "position": [
+                0,
+                2
+              ],
+              "label": "Router",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "busy",
+              "statusColors": {
+                "ok": "#2EE6C5",
+                "busy": "#FFC145",
+                "degraded": "#FFC145",
+                "down": "#FF5A5F",
+                "idle": "#6FA8FF"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 11
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_health"
+                  },
+                  "valuePath": "routing"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hq-weather",
+              "position": [
+                0,
+                3
+              ],
+              "label": "Roads",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "degraded",
+              "statusColors": {
+                "ok": "#2EE6C5",
+                "busy": "#FFC145",
+                "degraded": "#FFC145",
+                "down": "#FF5A5F",
+                "idle": "#6FA8FF"
+              },
+              "theme": {
+                "controlPadding": 3,
+                "labelFontSize": 11
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_health"
+                  },
+                  "valuePath": "roads"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "map",
+          "id": "fleet-map",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Fleet \u00b7 Seattle Metro",
+          "mapStyle": "standard",
+          "mapZoom": 0.2,
+          "tint": "#2EE6C5",
+          "defaultValue": "{\"markers\":[{\"coordinate\":[47.5801,-122.3352],\"color\":\"#FF8A3D\",\"size\":18,\"label\":\"SODO Depot\"},{\"coordinate\":[47.6205,-122.3493],\"color\":\"#2EE6C5\",\"size\":13,\"label\":\"Van 07 \\u00b7 Priya\"},{\"coordinate\":[47.6615,-122.313],\"color\":\"#2EE6C5\",\"size\":13,\"label\":\"Van 12 \\u00b7 Marcus\"},{\"coordinate\":[47.6097,-122.2015],\"color\":\"#2EE6C5\",\"size\":13,\"label\":\"Van 03 \\u00b7 Lena\"},{\"coordinate\":[47.548,-122.386],\"color\":\"#FFC145\",\"size\":14,\"label\":\"Van 19 \\u00b7 Diego (+14m)\"},{\"coordinate\":[47.687,-122.377],\"color\":\"#2EE6C5\",\"size\":13,\"label\":\"Van 22 \\u00b7 Hana\"},{\"coordinate\":[47.521,-122.275],\"color\":\"#FF5A5F\",\"size\":18,\"label\":\"Van 15 \\u00b7 stalled\",\"ripple\":{\"color\":\"#FF5A5F\",\"period\":1.4,\"radius\":56}}],\"paths\":[{\"points\":[[47.5801,-122.3352],[47.599,-122.332],[47.6205,-122.3493]],\"color\":\"#2EE6C5\"},{\"points\":[[47.5801,-122.3352],[47.565,-122.37],[47.548,-122.386]],\"color\":\"#FFC145\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_positions"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "kpi-ontime",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "On-time %",
+          "icon": "clock.badge.checkmark",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "full",
+          "defaultValue": 91,
+          "segments": [
+            {
+              "limit": 80,
+              "color": "#FF5A5F"
+            },
+            {
+              "limit": 90,
+              "color": "#FFC145"
+            },
+            {
+              "limit": 100,
+              "color": "#2EE6C5"
+            }
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "on_time_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "kpi-active",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "box.truck.fill",
+          "text": "22 vans on route",
+          "style": "headline",
+          "tint": "#FF8A3D",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "active_summary"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "kpi-latency",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Avg stop time (min)",
+          "sparklinePoints": 40,
+          "sparklineFill": true,
+          "tint": "#FF8A3D",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "avg_stop_min"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "hq-truck",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "truck.box.fill",
+          "label": "Wave 2 rolling",
+          "tint": "#FF8A3D",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#FF8A3D",
+              "#2EE6C5"
+            ],
+            "effect": "bounce",
+            "effectOptions": [
+              "up",
+              "byLayer"
+            ],
+            "loop": "periodic",
+            "loopDelay": 2.5,
+            "activeWhen": "truthy",
+            "tapEffect": "wiggle",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "fleet_dispatch_alert"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "wave_active"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "kpi-delivered",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "shippingbox.fill",
+          "text": "412 / 587 parcels",
+          "style": "headline",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "delivered_summary"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "kpi-progress",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Day complete",
+          "icon": "flag.checkered",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 70,
+          "tint": "#2EE6C5",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_kpis"
+              },
+              "valuePath": "day_pct"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Drivers",
+      "icon": "person.2.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "list",
+          "id": "driver-roster",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Driver roster",
+          "tint": "#FF8A3D",
+          "listColumns": [
+            {
+              "key": "van",
+              "label": "Van"
+            },
+            {
+              "key": "driver",
+              "label": "Driver"
+            },
+            {
+              "key": "zone",
+              "label": "Zone"
+            },
+            {
+              "key": "stops",
+              "label": "Stops"
+            },
+            {
+              "key": "eta",
+              "label": "ETA"
+            }
+          ],
+          "defaultValue": "[{\"van\":\"07\",\"driver\":\"Priya Nair\",\"zone\":\"Downtown\",\"stops\":\"18/24\",\"eta\":\"On time\"},{\"van\":\"12\",\"driver\":\"Marcus Webb\",\"zone\":\"U-District\",\"stops\":\"21/26\",\"eta\":\"On time\"},{\"van\":\"03\",\"driver\":\"Lena Park\",\"zone\":\"Bellevue\",\"stops\":\"14/22\",\"eta\":\"+3 min\"},{\"van\":\"19\",\"driver\":\"Diego Ruiz\",\"zone\":\"West Seattle\",\"stops\":\"11/23\",\"eta\":\"+14 min\"},{\"van\":\"22\",\"driver\":\"Hana Okafor\",\"zone\":\"Ballard\",\"stops\":\"19/21\",\"eta\":\"Early\"},{\"van\":\"15\",\"driver\":\"Tom Lindqvist\",\"zone\":\"Renton\",\"stops\":\"9/20\",\"eta\":\"Stalled\"},{\"van\":\"09\",\"driver\":\"Aisha Karim\",\"zone\":\"Capitol Hill\",\"stops\":\"16/25\",\"eta\":\"On time\"},{\"van\":\"28\",\"driver\":\"Owen Tran\",\"zone\":\"Fremont\",\"stops\":\"12/18\",\"eta\":\"+6 min\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_drivers"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "drv-console",
+          "label": "Driver console",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "picker",
+              "id": "drv-select",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Driver",
+              "options": [
+                "Priya Nair",
+                "Marcus Webb",
+                "Lena Park",
+                "Diego Ruiz",
+                "Hana Okafor",
+                "Tom Lindqvist",
+                "Aisha Karim",
+                "Owen Tran"
+              ],
+              "defaultValue": "Diego Ruiz",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_select_driver",
+                  "driver": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "drv-status",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "active",
+                "break",
+                "off"
+              ],
+              "optionLabels": [
+                "Active",
+                "Break",
+                "Off"
+              ],
+              "style": "pills",
+              "tint": "#FF8A3D",
+              "defaultValue": "active",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_driver_status",
+                  "status": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_driver_detail"
+                  },
+                  "valuePath": "status"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "drv-call",
+              "position": [
+                1,
+                0
+              ],
+              "label": "Call",
+              "icon": "phone.fill",
+              "style": "tinted",
+              "tint": "#2EE6C5",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_contact",
+                  "channel": "call"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "drv-msg",
+              "position": [
+                1,
+                1
+              ],
+              "label": "Text",
+              "icon": "message.fill",
+              "style": "tinted",
+              "tint": "#6FA8FF",
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_contact",
+                  "channel": "sms"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "drv-priority",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Priority lane",
+              "icon": "bolt.fill",
+              "tint": "#FF8A3D",
+              "defaultValue": false,
+              "haptic": "rigid",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_priority_lane",
+                  "enabled": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "drv-stops-chart",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Stops \u00b7 done vs remaining",
+          "tint": "#2EE6C5",
+          "chartConfig": {
+            "stacked": true,
+            "horizontal": true,
+            "showLegend": true,
+            "showGrid": false,
+            "barCornerRadius": 4,
+            "colors": [
+              "#2EE6C5",
+              "#FFFFFF33"
+            ],
+            "datumAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "fleet_dispatch_inspect_driver",
+                "datum": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"categories\":[\"Van 07\",\"Van 12\",\"Van 03\",\"Van 19\",\"Van 22\",\"Van 15\"],\"series\":[{\"name\":\"Done\",\"values\":[18,21,14,11,19,9]},{\"name\":\"Left\",\"values\":[6,5,8,12,2,11]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_drivers"
+              },
+              "valuePath": "stops_chart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Demand",
+      "icon": "chart.bar.xaxis",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "heatmap",
+          "id": "demand-heat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Deliveries by hour",
+          "formatValue": "decimal",
+          "heatmapConfig": {
+            "colors": [
+              "#1A2238",
+              "#2EE6C5",
+              "#FFC145",
+              "#FF5A5F"
+            ],
+            "showScale": true,
+            "vMin": 0,
+            "vMax": 110,
+            "cellCorner": 3,
+            "cellGap": 2
+          },
+          "defaultValue": "{\"rows\":[\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\",\"Sat\",\"Sun\"],\"cols\":[\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\",\"19\",\"20\"],\"values\":[[27,30,47,55,63,64,44,42,44,69,72,60,42,33],[24,25,38,49,62,54,37,32,41,52,66,52,38,23],[26,26,39,54,56,56,38,35,46,54,61,55,40,24],[26,25,35,51,61,56,43,36,45,59,65,56,38,25],[25,29,45,63,69,61,50,41,45,62,77,66,43,32],[17,27,35,40,46,48,36,31,37,51,57,44,30,23],[18,16,23,36,43,36,30,26,25,42,45,37,24,22]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "heat"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "demand-forecast",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Today \u00b7 actual vs forecast",
+          "tint": "#FF8A3D",
+          "chartConfig": {
+            "smooth": true,
+            "showLegend": true,
+            "scrub": true,
+            "showGrid": false,
+            "lineWidth": 2.5
+          },
+          "defaultValue": "{\"categories\":[\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"16\",\"17\",\"18\",\"19\",\"20\"],\"series\":[{\"name\":\"Forecast\",\"type\":\"area\",\"color\":\"#6FA8FF\",\"values\":[25,29,45,63,69,61,50,41,45,62,77,66,43,32]},{\"name\":\"Actual\",\"type\":\"line\",\"color\":\"#FF8A3D\",\"values\":[20,29,48,61,70,67,56,50,41]}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "forecast"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "demand-rate",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Orders / min",
+          "sparklinePoints": 60,
+          "sparklineFill": true,
+          "tint": "#2EE6C5",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "orders_per_min"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "demand-peak",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "flame.fill",
+          "text": "Peak 17:00 \u00b7 104",
+          "tint": "#FF5A5F",
+          "style": "headline",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "peak_summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "demand-backlog",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "tray.full.fill",
+          "text": "Backlog 38 parcels",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "backlog_summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "demand-surge",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "cloud.rain.fill",
+          "text": "Rain surge +12%",
+          "tint": "#6FA8FF",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_demand"
+              },
+              "valuePath": "surge_summary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dispatch",
+      "icon": "paperplane.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 13
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "dsp-new",
+          "label": "New dispatch",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "picker",
+              "id": "dsp-zone",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Zone",
+              "options": [
+                "Downtown",
+                "U-District",
+                "Bellevue",
+                "West Seattle",
+                "Ballard",
+                "Renton",
+                "Capitol Hill",
+                "Fremont"
+              ],
+              "defaultValue": "Ballard",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_draft",
+                  "field": "zone",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "picker",
+              "id": "dsp-van",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Van",
+              "options": [
+                "Van 03",
+                "Van 07",
+                "Van 09",
+                "Van 12",
+                "Van 15",
+                "Van 19",
+                "Van 22",
+                "Van 28"
+              ],
+              "defaultValue": "Van 22",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_draft",
+                  "field": "van",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "dsp-parcels",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Parcels",
+              "icon": "shippingbox",
+              "min": 1,
+              "max": 60,
+              "step": 1,
+              "defaultValue": 12,
+              "repeatOnHold": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_draft",
+                  "field": "parcels",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "dsp-window",
+              "position": [
+                1,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "ASAP",
+                "AM",
+                "PM"
+              ],
+              "style": "pills",
+              "tint": "#FF8A3D",
+              "defaultValue": "ASAP",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_draft",
+                  "field": "window",
+                  "value": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "dsp-send",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Dispatch",
+              "icon": "paperplane.fill",
+              "style": "filled",
+              "size": "large",
+              "tint": "#FF8A3D",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_assign_commit",
+                  "source": "dispatch_board"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "dsp-auto",
+          "label": "Automation",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "dsp-autoassign",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Auto-assign",
+              "icon": "wand.and.stars",
+              "tint": "#2EE6C5",
+              "defaultValue": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_auto_assign",
+                  "enabled": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "fleet_dispatch_config"
+                  },
+                  "valuePath": "auto_assign"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "dsp-zonebatch",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Batch by zone",
+              "icon": "square.grid.3x3.fill",
+              "tint": "#2EE6C5",
+              "defaultValue": false,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_zone_batching",
+                  "enabled": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "stepper",
+              "id": "dsp-maxstops",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Max stops per van",
+              "icon": "mappin.and.ellipse",
+              "min": 8,
+              "max": 40,
+              "step": 1,
+              "defaultValue": 26,
+              "visible": {
+                "when": "dsp-autoassign",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "fleet_dispatch_max_stops",
+                  "value": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "dsp-log",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Dispatch log",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "controlHeight": 290,
+          "logColors": {
+            "error": "#FF5A5F",
+            "warn": "#FFC145",
+            "info": "#2EE6C5",
+            "debug": "#8E8E93"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "fleet_dispatch_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "dsp-recall",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Recall all",
+          "icon": "arrow.uturn.backward.circle.fill",
+          "style": "outlined",
+          "tint": "#FF5A5F",
+          "haptic": "warning",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "fleet_dispatch_recall_all",
+              "confirm": true
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "dsp-hold",
+          "position": [
+            12,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Weather hold",
+          "icon": "cloud.bolt.rain.fill",
+          "style": "tinted",
+          "tint": "#FFC145",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "fleet_dispatch_weather_hold",
+              "active": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1947 @@
+{
+  "name": "Escape Room Game Master",
+  "headerTitle": "THE ALCHEMIST'S VAULT",
+  "version": 1,
+  "id": "escape-room-gm",
+  "accentColor": "#D4A248",
+  "description": "A game-master console for a three-room escape venue: a live countdown with animated sands, drag-to-advance puzzle flow, hint pins on the room map, maglock and atmosphere prop toggles, an IR camera feed and a direct line to the players' tablet.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "state": {
+    "sync": true,
+    "authority": "escape-room-gm-hub",
+    "acks": true,
+    "ackTimeoutMs": 2000
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#120A08",
+        "#1E120D"
+      ],
+      "light": "#EFE4CF"
+    }
+  },
+  "theme": {
+    "accentColor": "#D4A248",
+    "accentGradient": [
+      "#D4A248",
+      "#8A5A1F"
+    ],
+    "fontDesign": "serif",
+    "cornerRadius": 6,
+    "controlPadding": 8,
+    "cardPadding": 12,
+    "borderWidth": 1,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "bold",
+    "tabBarTint": "#D4A248",
+    "dark": {
+      "pageBackgroundGradient": [
+        "#0B0605",
+        "#1A0F0B",
+        "#24140E"
+      ],
+      "surfacePrimary": "#F3D9A40D",
+      "surfaceSecondary": "#F3D9A408",
+      "surfaceTertiary": "#F3D9A405",
+      "borderColor": "#D4A24838",
+      "foregroundColor": "#F3E6CC",
+      "secondaryColor": "#B8A488",
+      "tertiaryColor": "#7A6A58",
+      "tabBarBackground": "#0F0907"
+    },
+    "light": {
+      "pageBackgroundGradient": [
+        "#EFE4CF",
+        "#E0D0B2"
+      ],
+      "surfacePrimary": "#FFFFFFD9",
+      "borderColor": "#3A241A26",
+      "foregroundColor": "#24140E",
+      "secondaryColor": "#5C4636"
+    },
+    "toggle": {
+      "trackActiveColor": "#D4A248",
+      "knobShadow": true
+    },
+    "segmented": {
+      "selectedColor": "#D4A248",
+      "selectedTextColor": "#1A0F0B"
+    },
+    "stepper": {
+      "buttonColor": "#D4A24826",
+      "iconColor": "#D4A248"
+    }
+  },
+  "glance": {
+    "title": "Vault GM",
+    "icon": "hourglass",
+    "tint": "#D4A248",
+    "hero": "erg-time-left",
+    "slots": [
+      "erg-room-state",
+      "erg-solved",
+      "erg-hints-left"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh"
+    },
+    "controls": [
+      {
+        "id": "pause",
+        "kind": "button",
+        "label": "Pause Vault Clock",
+        "icon": "pause.fill",
+        "control": "erg-pause"
+      },
+      {
+        "id": "addtime",
+        "kind": "button",
+        "label": "Vault +5 min",
+        "icon": "plus.circle.fill",
+        "control": "erg-add-time"
+      },
+      {
+        "id": "fog",
+        "kind": "toggle",
+        "label": "Fog Burst",
+        "control": "erg-fog",
+        "on": {
+          "label": "Fogging",
+          "icon": "cloud.fog.fill",
+          "tint": "#C9C1B6"
+        },
+        "off": {
+          "label": "Fog Off",
+          "icon": "cloud"
+        }
+      }
+    ],
+    "widgets": [
+      {
+        "id": "vault",
+        "title": "Vault Clock",
+        "icon": "hourglass",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "erg-time-left"
+              },
+              {
+                "tile": "light",
+                "control": "erg-room-state"
+              }
+            ],
+            [
+              {
+                "tile": "bar",
+                "control": "erg-solved",
+                "span": 2
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "erg-time-left"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "erg-panic-state"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "light",
+          "control": "erg-team-mood"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "value",
+                "control": "erg-time-left"
+              },
+              {
+                "tile": "value",
+                "control": "erg-hints-left"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "erg-add-time"
+              },
+              {
+                "tile": "button",
+                "control": "erg-pause"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Clock",
+      "icon": "hourglass",
+      "grid": {
+        "columns": 4,
+        "rows": 16
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "erg-room-state",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Vault",
+          "style": "badge",
+          "size": "large",
+          "pulse": true,
+          "statusColors": {
+            "briefing": "#8C7B6B",
+            "running": "#7CFFB2",
+            "paused": "#D4A248",
+            "escaped": "#5AC8FA",
+            "failed": "#C8323C"
+          },
+          "defaultValue": "running",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "erg-team-mood",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Team Mood",
+          "style": "badge",
+          "size": "large",
+          "statusColors": {
+            "flowing": "#7CFFB2",
+            "stuck": "#D4A248",
+            "frustrated": "#C8323C",
+            "arguing": "#9C6BFF"
+          },
+          "defaultValue": "stuck",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_mood"
+              },
+              "valuePath": "mood"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "erg-time-left",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Time Left",
+          "icon": "timer",
+          "min": 0,
+          "max": 3600,
+          "formatValue": "time",
+          "tint": "#D4A248",
+          "animation": {
+            "profile": "smooth",
+            "duration": 0.9
+          },
+          "defaultValue": 1847,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "remaining_s"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "erg-hourglass",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Sands",
+          "systemName": "hourglass.bottomhalf.filled",
+          "tint": "#D4A248",
+          "defaultValue": "running",
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#D4A248",
+              "#F3D9A4"
+            ],
+            "weight": "semibold",
+            "effect": "rotate",
+            "effectOptions": [
+              "wholeSymbol"
+            ],
+            "loop": "periodic",
+            "loopDelay": 4,
+            "activeWhen": "running",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "escape_room_gm_hint_sent"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "erg-elapsed",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Elapsed",
+          "icon": "clock.arrow.circlepath",
+          "style": "large-mono",
+          "formatValue": "time",
+          "text": "29:13",
+          "tint": "#F3D9A4",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "elapsed_s"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "erg-start",
+          "position": [
+            4,
+            0
+          ],
+          "label": "Start",
+          "icon": "play.fill",
+          "style": "filled",
+          "tint": "#7CFFB2",
+          "haptic": "success",
+          "visible": {
+            "when": "erg-room-state",
+            "operator": "neq",
+            "value": "running"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_clock_cmd",
+              "cmd": "start",
+              "room": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "erg-pause",
+          "position": [
+            4,
+            1
+          ],
+          "label": "Pause",
+          "icon": "pause.fill",
+          "style": "tinted",
+          "tint": "#D4A248",
+          "haptic": "medium",
+          "visible": {
+            "when": "erg-room-state",
+            "operator": "eq",
+            "value": "running"
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_clock_cmd",
+              "cmd": "pause"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "erg-add-time",
+          "position": [
+            4,
+            2
+          ],
+          "label": "+5 min",
+          "icon": "plus.circle.fill",
+          "style": "outlined",
+          "tint": "#D4A248",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_clock_cmd",
+              "cmd": "add_time",
+              "seconds": 300
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "erg-reset",
+          "position": [
+            4,
+            3
+          ],
+          "label": "Reset",
+          "icon": "arrow.counterclockwise",
+          "style": "ghost",
+          "tint": "#C8323C",
+          "haptic": "warning",
+          "visible": {
+            "when": "erg-room-state",
+            "operator": "neq",
+            "value": "running"
+          },
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_clock_cmd",
+              "cmd": "reset",
+              "confirm": true
+            }
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_clock_cmd",
+              "cmd": "reset_armed"
+            }
+          }
+        },
+        {
+          "type": "progressRing",
+          "id": "erg-solved",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Puzzles Solved · 5 of 9",
+          "progressStyle": "bar",
+          "min": 0,
+          "max": 9,
+          "tint": "#7CFFB2",
+          "animation": "bouncy",
+          "defaultValue": 5,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_puzzles"
+              },
+              "valuePath": "solved_count"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "erg-hints-left",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Hints Left",
+          "icon": "lightbulb.fill",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "defaultValue": 2,
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_hints_budget",
+              "remaining": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "hints_left"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "erg-room",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Room",
+          "options": [
+            "vault",
+            "asylum",
+            "heist"
+          ],
+          "optionLabels": [
+            "Vault",
+            "Asylum",
+            "Heist"
+          ],
+          "defaultValue": "vault",
+          "haptic": "selection",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_room_select",
+              "room": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "room"
+            }
+          ]
+        },
+        {
+          "type": "gantt",
+          "id": "erg-schedule",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Tonight · hours from 5 PM",
+          "tint": "#D4A248",
+          "ganttConfig": {
+            "showToday": false,
+            "showProgress": true,
+            "rowHeight": 26,
+            "barCornerRadius": 3,
+            "scrub": true,
+            "colors": [
+              "#D4A248",
+              "#7CFFB2",
+              "#9C6BFF",
+              "#5AC8FA"
+            ],
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "escape_room_gm_booking_inspect",
+                "booking": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\": [{\"name\": \"Vault \\u00b7 Okafor\", \"start\": 0, \"end\": 1, \"progress\": 1.0, \"color\": \"#8C7B6B\"}, {\"name\": \"Asylum \\u00b7 Brandt\", \"start\": 0.5, \"end\": 1.5, \"progress\": 1.0, \"color\": \"#8C7B6B\"}, {\"name\": \"Vault \\u00b7 Ruiz x6\", \"start\": 1.25, \"end\": 2.25, \"progress\": 0.51, \"color\": \"#D4A248\"}, {\"name\": \"Heist \\u00b7 Lindqvist\", \"start\": 1.75, \"end\": 2.75, \"progress\": 0.22, \"color\": \"#9C6BFF\"}, {\"name\": \"Reset crew\", \"start\": 2.25, \"end\": 2.5, \"progress\": 0, \"color\": \"#8C7B6B\"}, {\"name\": \"Vault \\u00b7 Tanaka\", \"start\": 2.5, \"end\": 3.5, \"progress\": 0, \"color\": \"#D4A248\"}, {\"name\": \"Last call\", \"start\": 4.5, \"milestone\": true}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_schedule"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "erg-panic",
+          "label": "Panic Line · in-room red button",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "visible": {
+            "when": "erg-panic-state",
+            "operator": "neq",
+            "value": "quiet"
+          },
+          "pulse": {
+            "event": "broadcast",
+            "filter": {
+              "msg_type": "escape_room_gm_panic"
+            },
+            "color": "C8323C",
+            "direction": "outward"
+          },
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "erg-panic-state",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Button",
+              "style": "badge",
+              "pulse": true,
+              "statusColors": {
+                "quiet": "#8C7B6B",
+                "pressed": "#C8323C",
+                "acknowledged": "#D4A248"
+              },
+              "defaultValue": "acknowledged",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_panic"
+                  },
+                  "valuePath": "state"
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "id": "erg-panic-ack",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Go On Mic",
+              "icon": "mic.fill",
+              "style": "filled",
+              "tint": "#C8323C",
+              "haptic": "heavy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_panic_ack",
+                  "action": "open_intercom"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "erg-pace",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Pace vs. record (min ahead)",
+          "tint": "#7CFFB2",
+          "sparklineFill": true,
+          "defaultValue": 1.5,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_clock"
+              },
+              "valuePath": "pace_delta_min"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Puzzles",
+      "icon": "puzzlepiece.extension.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 3,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "sortboard",
+          "id": "erg-puzzle-board",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "controlHeight": 600,
+          "label": "Alchemist's Vault · puzzle flow",
+          "haptic": "soft",
+          "sortboardConfig": {
+            "searchable": true,
+            "paletteLabel": "Not yet reached",
+            "columns": 2,
+            "items": [
+              {
+                "id": "pz-ledger",
+                "label": "Cipher Ledger",
+                "icon": "book.closed.fill",
+                "tint": "#D4A248",
+                "zone": "solved"
+              },
+              {
+                "id": "pz-scales",
+                "label": "Brass Scales",
+                "icon": "scalemass.fill",
+                "tint": "#D4A248",
+                "zone": "solved"
+              },
+              {
+                "id": "pz-candles",
+                "label": "Candle Sequence",
+                "icon": "flame.fill",
+                "tint": "#FF9F43",
+                "zone": "solved"
+              },
+              {
+                "id": "pz-orrery",
+                "label": "Orrery Alignment",
+                "icon": "globe.europe.africa.fill",
+                "tint": "#5AC8FA",
+                "zone": "solved"
+              },
+              {
+                "id": "pz-periodic",
+                "label": "Periodic Wall",
+                "icon": "square.grid.3x3.fill",
+                "tint": "#7CFFB2",
+                "zone": "solved"
+              },
+              {
+                "id": "pz-uv",
+                "label": "UV Formula",
+                "icon": "eye.fill",
+                "tint": "#9C6BFF",
+                "zone": "active"
+              },
+              {
+                "id": "pz-flask",
+                "label": "Flask Pour",
+                "icon": "drop.fill",
+                "tint": "#4FC3F7",
+                "zone": "active"
+              },
+              {
+                "id": "pz-bookcase",
+                "label": "Bookcase Door",
+                "icon": "books.vertical.fill",
+                "tint": "#8C7B6B"
+              },
+              {
+                "id": "pz-philstone",
+                "label": "Philosopher's Stone",
+                "icon": "diamond.fill",
+                "tint": "#C8323C",
+                "locked": true
+              }
+            ],
+            "zones": [
+              {
+                "id": "active",
+                "label": "Working On",
+                "tint": "#D4A248",
+                "capacity": 3
+              },
+              {
+                "id": "solved",
+                "label": "Solved",
+                "tint": "#7CFFB2"
+              },
+              {
+                "id": "bypassed",
+                "label": "GM Bypassed",
+                "tint": "#C8323C"
+              },
+              {
+                "id": "broken",
+                "label": "Prop Fault",
+                "tint": "#9C6BFF",
+                "capacity": 2
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_puzzle_move",
+                  "puzzle": "{{item}}",
+                  "from": "{{from}}",
+                  "to": "{{to}}",
+                  "index": "{{index}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_puzzle_board"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_puzzles"
+              },
+              "valuePath": "board"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "erg-sensor-cards",
+          "label": "Prop sensors · live from the room controller",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "dynamic": "escape_room_gm_sensor_cards",
+          "grid": {
+            "columns": 4,
+            "rows": 1,
+            "mode": "flow"
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "erg-sns-scales",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Scales",
+              "statusColors": {
+                "ok": "#7CFFB2",
+                "tripped": "#D4A248",
+                "fault": "#C8323C"
+              },
+              "defaultValue": "tripped"
+            },
+            {
+              "type": "statusLight",
+              "id": "erg-sns-orrery",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Orrery",
+              "statusColors": {
+                "ok": "#7CFFB2",
+                "tripped": "#D4A248",
+                "fault": "#C8323C"
+              },
+              "defaultValue": "tripped"
+            },
+            {
+              "type": "statusLight",
+              "id": "erg-sns-flask",
+              "position": [
+                0,
+                2
+              ],
+              "label": "Flask",
+              "statusColors": {
+                "ok": "#7CFFB2",
+                "tripped": "#D4A248",
+                "fault": "#C8323C"
+              },
+              "defaultValue": "ok"
+            },
+            {
+              "type": "statusLight",
+              "id": "erg-sns-book",
+              "position": [
+                0,
+                3
+              ],
+              "label": "Bookcase",
+              "statusColors": {
+                "ok": "#7CFFB2",
+                "tripped": "#D4A248",
+                "fault": "#C8323C"
+              },
+              "defaultValue": "fault"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "erg-event-log",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "controlHeight": 220,
+          "label": "Room event log",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "solve": "#7CFFB2",
+            "hint": "#D4A248",
+            "fault": "#C8323C",
+            "info": "#8C7B6B"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Hints",
+      "icon": "lightbulb.max.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "pinboard",
+          "id": "erg-hint-map",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            8,
+            4
+          ],
+          "label": "Hint pins · tap to send, drag to re-anchor",
+          "haptic": "light",
+          "pinboardConfig": {
+            "background": "building.columns.fill",
+            "surfaceAspect": 1.3,
+            "paletteLabel": "Unpinned hints",
+            "searchable": true,
+            "items": [
+              {
+                "id": "h-uv-1",
+                "label": "UV: check the ceiling",
+                "icon": "lightbulb.max.fill",
+                "tint": "#9C6BFF",
+                "x": 0.22,
+                "y": 0.18,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              },
+              {
+                "id": "h-flask-1",
+                "label": "Flask: pour order = color wheel",
+                "icon": "lightbulb.max.fill",
+                "tint": "#4FC3F7",
+                "x": 0.68,
+                "y": 0.34,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              },
+              {
+                "id": "h-flask-2",
+                "label": "Flask: total must be 7 dram",
+                "icon": "lightbulb.max.fill",
+                "tint": "#4FC3F7",
+                "x": 0.74,
+                "y": 0.52,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              },
+              {
+                "id": "h-book-1",
+                "label": "Bookcase: read spines top-down",
+                "icon": "lightbulb.fill",
+                "tint": "#8C7B6B",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              },
+              {
+                "id": "h-stone-1",
+                "label": "Stone: all four elements",
+                "icon": "lightbulb.fill",
+                "tint": "#C8323C",
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              },
+              {
+                "id": "h-exit",
+                "label": "Exit key location",
+                "icon": "key.fill",
+                "tint": "#D4A248",
+                "x": 0.9,
+                "y": 0.88,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "escape_room_gm_hint_fire",
+                    "hint": "{{value}}",
+                    "delivery": "pinned"
+                  }
+                }
+              }
+            ],
+            "events": {
+              "place": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_hint_pin_move",
+                  "hint": "{{item}}",
+                  "x": "{{x}}",
+                  "y": "{{y}}"
+                }
+              },
+              "layout": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_hint_pins"
+                }
+              }
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_hint_pins"
+              },
+              "valuePath": "pins"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "erg-hint-compose",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Custom hint",
+          "placeholder": "The alchemist whispers…",
+          "icon": "quote.bubble.fill",
+          "sendButton": true,
+          "clearOnSubmit": true,
+          "maxLines": 3,
+          "tint": "#D4A248",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_hint_send",
+              "text": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "erg-hint-delivery",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Delivery",
+          "options": [
+            "screen",
+            "voice",
+            "scroll"
+          ],
+          "optionLabels": [
+            "Screen",
+            "Voice",
+            "Scroll"
+          ],
+          "optionIcons": [
+            "tv.fill",
+            "waveform",
+            "scroll.fill"
+          ],
+          "defaultValue": "screen",
+          "style": "pills",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_hint_delivery",
+              "mode": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_hint_state"
+              },
+              "valuePath": "delivery"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "erg-nudge",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Gentle Nudge",
+          "icon": "hand.point.up.left.fill",
+          "style": "tinted",
+          "tint": "#D4A248",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_hint_send",
+              "text": "You're closer than you think. Look again at what glows.",
+              "canned": "nudge"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "erg-clear-screen",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Clear Screen",
+          "icon": "xmark.rectangle.fill",
+          "style": "outlined",
+          "tint": "#8C7B6B",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_hint_clear"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "erg-auto-hint",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Auto-hint on stall",
+          "icon": "wand.and.stars",
+          "defaultValue": true,
+          "animation": "bouncy",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_auto_hint",
+              "enabled": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_hint_state"
+              },
+              "valuePath": "auto"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "erg-stall-min",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Stall after",
+          "formatValue": "suffix: min",
+          "min": 3,
+          "max": 20,
+          "step": 1,
+          "defaultValue": 8,
+          "visible": {
+            "when": "erg-auto-hint",
+            "operator": "eq",
+            "value": true
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_auto_hint",
+              "stall_min": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_hint_state"
+              },
+              "valuePath": "stall_min"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Props",
+      "icon": "lock.shield.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "erg-maglocks",
+          "label": "Maglocks · on = sealed",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "erg-lock-cabinet",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Apothecary Cabinet",
+              "style": "icon-toggle",
+              "onIcon": "lock.fill",
+              "offIcon": "lock.open.fill",
+              "tint": "#D4A248",
+              "defaultValue": false,
+              "haptic": "rigid",
+              "animation": "snappy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "lock-cabinet",
+                  "locked": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "lock-cabinet"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "erg-lock-trapdoor",
+              "position": [
+                0,
+                1
+              ],
+              "label": "Floor Trapdoor",
+              "style": "icon-toggle",
+              "onIcon": "lock.fill",
+              "offIcon": "lock.open.fill",
+              "tint": "#D4A248",
+              "defaultValue": true,
+              "haptic": "rigid",
+              "animation": "snappy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "lock-trapdoor",
+                  "locked": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "lock-trapdoor"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "erg-lock-bookcase",
+              "position": [
+                1,
+                0
+              ],
+              "label": "Bookcase Door",
+              "style": "icon-toggle",
+              "onIcon": "lock.fill",
+              "offIcon": "lock.open.fill",
+              "tint": "#D4A248",
+              "defaultValue": true,
+              "haptic": "rigid",
+              "animation": "snappy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "lock-bookcase",
+                  "locked": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "lock-bookcase"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "erg-lock-exit",
+              "position": [
+                1,
+                1
+              ],
+              "label": "Vault Exit",
+              "style": "icon-toggle",
+              "onIcon": "lock.fill",
+              "offIcon": "lock.open.fill",
+              "tint": "#D4A248",
+              "defaultValue": true,
+              "haptic": "rigid",
+              "animation": "snappy",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "lock-exit",
+                  "locked": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "lock-exit"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "erg-effects",
+          "label": "Atmosphere",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 2,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "erg-fog",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Fog Burst",
+              "icon": "cloud.fog.fill",
+              "defaultValue": false,
+              "tint": "#C9C1B6",
+              "animation": "gentle",
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "fog",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "fog"
+                }
+              ]
+            },
+            {
+              "type": "toggle",
+              "id": "erg-uv",
+              "position": [
+                0,
+                1
+              ],
+              "label": "UV Blacklight",
+              "icon": "light.beacon.max.fill",
+              "defaultValue": true,
+              "tint": "#9C6BFF",
+              "animation": "gentle",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_prop_set",
+                  "prop": "uv",
+                  "on": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "uv"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "erg-soundscape",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "options": [
+                "drip",
+                "storm",
+                "choir",
+                "silence"
+              ],
+              "optionLabels": [
+                "Drip",
+                "Storm",
+                "Choir",
+                "Mute"
+              ],
+              "defaultValue": "drip",
+              "animation": "smooth",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "escape_room_gm_soundscape",
+                  "track": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "escape_room_gm_props"
+                  },
+                  "valuePath": "soundscape"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "erg-door-sensor",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Entry Door",
+          "style": "badge",
+          "statusColors": {
+            "closed": "#7CFFB2",
+            "ajar": "#C8323C"
+          },
+          "defaultValue": "closed",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_props"
+              },
+              "valuePath": "entry_door"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "erg-controller",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Prop Controller",
+          "style": "badge",
+          "pulse": true,
+          "statusColors": {
+            "online": "#7CFFB2",
+            "degraded": "#D4A248",
+            "offline": "#C8323C"
+          },
+          "defaultValue": "online",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "escape_room_gm_props"
+              },
+              "valuePath": "controller"
+            }
+          ]
+        },
+        {
+          "type": "webView",
+          "id": "erg-camera",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Cam 2 · Laboratory (IR)",
+          "url": "https://nvr.vault-escapes.local/cam2/live.html",
+          "webInteractive": false,
+          "webScrollEnabled": false,
+          "webRefreshInterval": 300
+        },
+        {
+          "type": "segmentedControl",
+          "id": "erg-cam-select",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Camera",
+          "options": [
+            "cam1",
+            "cam2",
+            "cam3",
+            "cam4"
+          ],
+          "optionLabels": [
+            "Foyer",
+            "Lab",
+            "Library",
+            "Crypt"
+          ],
+          "defaultValue": "cam2",
+          "style": "pills",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_camera_select",
+              "camera": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "erg-release-all",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Hold to release every lock",
+          "icon": "exclamationmark.octagon.fill",
+          "style": "filled",
+          "size": "large",
+          "tint": "#C8323C",
+          "haptic": "error",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_safety",
+              "cmd": "release_arm"
+            }
+          },
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "escape_room_gm_safety",
+              "cmd": "release_all"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Players",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "erg-player-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "In-room tablet · Team Ruiz",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": false,
+            "historyCount": 50,
+            "tint": "#D4A248",
+            "systemMessageEvents": [
+              "escape_room_gm_hint_sent",
+              "escape_room_gm_puzzle_solved"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

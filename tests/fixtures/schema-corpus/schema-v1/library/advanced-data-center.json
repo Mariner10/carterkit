@@ -1,0 +1,1758 @@
+{
+  "name": "Data Center Racks",
+  "headerTitle": "ASH-1 · HALL 2",
+  "version": 1,
+  "accentColor": "#5CC8FF",
+  "description": "Hall-level DCIM console for a colocation data center: rack inlet heatmap, dual-feed PDU gauges, per-rack flip cards and a live alert board, fed by an MQTT BMS broker plus a MeshSocket hub.",
+  "difficulty": "advanced",
+  "keepAwake": true,
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "sources": {
+    "dcim": {
+      "type": "mqtt",
+      "url": "mqtt://10.40.0.12:1883",
+      "username": "carter-ro",
+      "clientId": "carter-hall2-panel"
+    }
+  },
+  "theme": {
+    "accentColor": "#5CC8FF",
+    "accentGradient": [
+      "#5CC8FF",
+      "#B48CFF",
+      "#3EE08F"
+    ],
+    "fontDesign": "monospaced",
+    "cornerRadius": 14,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "borderWidth": 0.5,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "tabBarTint": "#5CC8FF",
+    "pageBackgroundGradient": [
+      "#060A12",
+      "#0B1422",
+      "#101A2B"
+    ],
+    "surfacePrimary": "#5CC8FF12",
+    "surfaceSecondary": "#5CC8FF0A",
+    "surfaceTertiary": "#5CC8FF05",
+    "foregroundColor": "#E6F1FF",
+    "secondaryColor": "#9FB3C8",
+    "tertiaryColor": "#62748A",
+    "borderColor": "#5CC8FF2E",
+    "toggle": {
+      "trackActiveColor": "#3EE08F",
+      "knobColor": "#E6F1FF",
+      "knobShadow": true
+    },
+    "segmented": {
+      "trackColor": "#5CC8FF14",
+      "selectedColor": "#5CC8FF",
+      "textColor": "#9FB3C8",
+      "selectedTextColor": "#060A12"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Floor",
+      "icon": "square.grid.3x3.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "group",
+          "id": "hall-health",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "hideBackground": true,
+          "grid": {
+            "columns": 4,
+            "rows": 1
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "hh-utility",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Utility",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#3EE08F",
+                "warn": "#FFB547",
+                "alarm": "#FF4D6A",
+                "offline": "#6B7A90",
+                "maint": "#5CC8FF"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_facility"
+                  },
+                  "valuePath": "utility"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hh-ups",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "UPS",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#3EE08F",
+                "warn": "#FFB547",
+                "alarm": "#FF4D6A",
+                "offline": "#6B7A90",
+                "maint": "#5CC8FF"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_facility"
+                  },
+                  "valuePath": "ups"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hh-chiller",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "Chiller",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "warn",
+              "statusColors": {
+                "ok": "#3EE08F",
+                "warn": "#FFB547",
+                "alarm": "#FF4D6A",
+                "offline": "#6B7A90",
+                "maint": "#5CC8FF"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_facility"
+                  },
+                  "valuePath": "chiller"
+                }
+              ]
+            },
+            {
+              "type": "statusLight",
+              "id": "hh-fire",
+              "position": [
+                0,
+                3
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "VESDA",
+              "style": "badge",
+              "size": "small",
+              "pulse": true,
+              "defaultValue": "ok",
+              "statusColors": {
+                "ok": "#3EE08F",
+                "warn": "#FFB547",
+                "alarm": "#FF4D6A",
+                "offline": "#6B7A90",
+                "maint": "#5CC8FF"
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_facility"
+                  },
+                  "valuePath": "vesda"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "inlet-heat",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Hall 2 · rack inlet °C",
+          "formatValue": "suffix:°",
+          "defaultValue": "{\"rows\": [\"Row A\", \"Row B\", \"Row C\", \"Row D\"], \"cols\": [\"R01\", \"R02\", \"R03\", \"R04\", \"R05\", \"R06\", \"R07\", \"R08\", \"R09\", \"R10\"], \"values\": [[22.1, 22.8, 23.4, 24.9, 26.2, 25.7, 23.9, 23.1, 22.6, 22.4], [22.6, 23.5, 24.8, 27.3, 29.4, 28.1, 25.2, 23.8, 23.0, 22.7], [21.9, 22.4, 23.1, 24.0, 24.6, 24.3, 23.5, 22.9, 22.2, 21.8], [23.2, 24.1, 25.6, 26.8, 31.7, 30.2, 26.4, 24.7, 23.9, 23.3]]}",
+          "heatmapConfig": {
+            "colors": [
+              "#1E4C7A",
+              "#2FB8C9",
+              "#F3C24B",
+              "#FF4D6A"
+            ],
+            "vMin": 18,
+            "vMax": 32,
+            "showScale": true,
+            "cellCorner": 4,
+            "cellGap": 3,
+            "cellAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "data_center_inspect_rack",
+                "cell": "{{value}}"
+              }
+            }
+          },
+          "haptic": "selection",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_inlet_grid"
+              },
+              "valuePath": "grid"
+            },
+            {
+              "method": "mqtt",
+              "source": "dcim",
+              "topic": "dc/ash1/hall2/inlet_grid"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "it-load",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "IT load kW",
+          "icon": "bolt.fill",
+          "min": 0,
+          "max": 1200,
+          "gaugeStyle": "full",
+          "defaultValue": 846,
+          "segments": [
+            {
+              "limit": 840,
+              "color": "#3EE08F"
+            },
+            {
+              "limit": 1020,
+              "color": "#FFB547"
+            },
+            {
+              "limit": 1200,
+              "color": "#FF4D6A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_facility"
+              },
+              "valuePath": "it_load_kw"
+            },
+            {
+              "method": "mqtt",
+              "source": "dcim",
+              "topic": "dc/ash1/hall2/it_load_kw"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "pue-now",
+          "position": [
+            5,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "leaf.fill",
+          "text": "PUE 1.34",
+          "style": "headline",
+          "tint": "#3EE08F",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_facility"
+              },
+              "valuePath": "pue_summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "delta-t",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "thermometer.variable",
+          "text": "ΔT 11.2 °C",
+          "style": "headline",
+          "tint": "#5CC8FF",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_facility"
+              },
+              "valuePath": "delta_t_summary"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "supply-air",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Supply air °C",
+          "sparklinePoints": 60,
+          "sparklineFill": true,
+          "tint": "#2FB8C9",
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "dcim",
+              "topic": "dc/ash1/hall2/supply_air_c"
+            },
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_facility"
+              },
+              "valuePath": "supply_air_c"
+            }
+          ]
+        },
+        {
+          "type": "symbol",
+          "id": "crac-fan",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "fan.fill",
+          "label": "CRAH-2B · 78%",
+          "tint": "#5CC8FF",
+          "defaultValue": true,
+          "symbolConfig": {
+            "renderingMode": "hierarchical",
+            "weight": "semibold",
+            "effect": "rotate",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "loop": "continuous",
+            "speed": 1.4,
+            "activeWhen": "truthy",
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "data_center_crah_alarm"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_cooling"
+              },
+              "valuePath": "crah_running"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "cooling",
+          "label": "Cooling",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "grid": {
+            "columns": 1,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "free-cooling",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Economizer",
+              "icon": "wind",
+              "tint": "#3EE08F",
+              "defaultValue": true,
+              "haptic": "medium",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "data_center_economizer",
+                  "enabled": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_cooling"
+                  },
+                  "valuePath": "economizer"
+                }
+              ]
+            },
+            {
+              "type": "segmentedControl",
+              "id": "crah-mode",
+              "position": [
+                1,
+                0
+              ],
+              "options": [
+                "eco",
+                "std",
+                "max"
+              ],
+              "optionLabels": [
+                "Eco",
+                "Std",
+                "Max"
+              ],
+              "style": "pills",
+              "tint": "#5CC8FF",
+              "defaultValue": "std",
+              "haptic": "selection",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "data_center_crah_mode",
+                  "mode": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_cooling"
+                  },
+                  "valuePath": "crah_mode"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Power",
+      "icon": "bolt.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "gauge",
+          "id": "pdu-a",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Feed A load %",
+          "icon": "powerplug.fill",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "half",
+          "defaultValue": 58,
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#3EE08F"
+            },
+            {
+              "limit": 80,
+              "color": "#FFB547"
+            },
+            {
+              "limit": 100,
+              "color": "#FF4D6A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "dcim",
+              "topic": "dc/ash1/pdu/A/load_pct"
+            },
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_pdu"
+              },
+              "valuePath": "feed_a_pct"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "pdu-b",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Feed B load %",
+          "icon": "powerplug.fill",
+          "min": 0,
+          "max": 100,
+          "gaugeStyle": "half",
+          "defaultValue": 61,
+          "segments": [
+            {
+              "limit": 60,
+              "color": "#3EE08F"
+            },
+            {
+              "limit": 80,
+              "color": "#FFB547"
+            },
+            {
+              "limit": 100,
+              "color": "#FF4D6A"
+            }
+          ],
+          "sync": [
+            {
+              "method": "mqtt",
+              "source": "dcim",
+              "topic": "dc/ash1/pdu/B/load_pct"
+            },
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_pdu"
+              },
+              "valuePath": "feed_b_pct"
+            }
+          ]
+        },
+        {
+          "type": "chart",
+          "id": "branch-amps",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Hot racks · branch amps",
+          "tint": "#5CC8FF",
+          "defaultValue": "{\"categories\": [\"A01\", \"A04\", \"B02\", \"B05\", \"C03\", \"D05\", \"D06\"], \"series\": [{\"name\": \"Feed A\", \"type\": \"bar\", \"color\": \"#5CC8FF\", \"values\": [11.2, 14.8, 9.6, 13.1, 8.4, 17.9, 16.2]}, {\"name\": \"Feed B\", \"type\": \"bar\", \"color\": \"#B48CFF\", \"values\": [10.9, 14.1, 9.9, 12.7, 8.8, 17.2, 15.8]}]}",
+          "chartConfig": {
+            "showLegend": true,
+            "showGrid": false,
+            "barCornerRadius": 4
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_pdu"
+              },
+              "valuePath": "branch_amps"
+            }
+          ]
+        },
+        {
+          "type": "treemap",
+          "id": "tenant-kw",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Draw by tenant (kW)",
+          "formatValue": "suffix: kW",
+          "defaultValue": "{\"items\": [{\"label\": \"Kestrel AI\", \"color\": \"#B48CFF\", \"children\": [{\"label\": \"GPU pod 1\", \"value\": 212}, {\"label\": \"GPU pod 2\", \"value\": 188}]}, {\"label\": \"Northwind Bank\", \"color\": \"#5CC8FF\", \"children\": [{\"label\": \"Core\", \"value\": 96}, {\"label\": \"DR\", \"value\": 41}]}, {\"label\": \"Halcyon Media\", \"color\": \"#2FB8C9\", \"value\": 118}, {\"label\": \"Colo shared\", \"color\": \"#3EE08F\", \"value\": 74}, {\"label\": \"Network core\", \"color\": \"#F3C24B\", \"value\": 38}]}",
+          "treemapConfig": {
+            "showValues": true,
+            "showLabels": true,
+            "drillDown": true,
+            "cellGap": 3
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_pdu"
+              },
+              "valuePath": "tenant_tree"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "shed",
+          "label": "Load shedding",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 2
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "id": "shed-arm",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Arm shed",
+              "icon": "exclamationmark.shield.fill",
+              "tint": "#FF4D6A",
+              "defaultValue": false,
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "data_center_shed_arm",
+                  "armed": "{{value}}"
+                }
+              },
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "data_center_pdu"
+                  },
+                  "valuePath": "shed_armed"
+                }
+              ]
+            },
+            {
+              "type": "slider",
+              "id": "shed-cap",
+              "position": [
+                0,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Cap",
+              "min": 50,
+              "max": 100,
+              "step": 5,
+              "defaultValue": 85,
+              "formatValue": "percent",
+              "tint": "#FFB547",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "data_center_shed_cap",
+                  "cap_pct": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "shed-exec",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                4
+              ],
+              "label": "Shed non-critical tier",
+              "icon": "bolt.slash.fill",
+              "style": "filled",
+              "tint": "#FF4D6A",
+              "haptic": "heavy",
+              "visible": {
+                "when": "shed-arm",
+                "operator": "eq",
+                "value": true
+              },
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "data_center_shed_execute",
+                  "tier": "non_critical"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Racks",
+      "icon": "server.rack",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "flipCard",
+          "id": "rack-a04",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipAxis": "horizontal",
+          "haptic": "light",
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_rack_face",
+              "rack": "A04",
+              "face": "{{value}}"
+            }
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "rack-a04-front",
+              "label": "Rack A04",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "rack-a04-inlet",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    2
+                  ],
+                  "label": "Inlet °C",
+                  "min": 15,
+                  "max": 35,
+                  "gaugeStyle": "full",
+                  "defaultValue": 27.3,
+                  "segments": [
+                    {
+                      "limit": 27,
+                      "color": "#3EE08F"
+                    },
+                    {
+                      "limit": 30,
+                      "color": "#FFB547"
+                    },
+                    {
+                      "limit": 35,
+                      "color": "#FF4D6A"
+                    }
+                  ],
+                  "sync": [
+                    {
+                      "method": "mqtt",
+                      "source": "dcim",
+                      "topic": "dc/ash1/rack/A04/inlet_c"
+                    },
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "a04.inlet_c"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "rack-a04-back",
+              "label": "Kestrel GPU · 41U",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "statusLight",
+                  "id": "rack-a04-psu",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "PSU A+B",
+                  "style": "badge",
+                  "size": "small",
+                  "pulse": true,
+                  "defaultValue": "ok",
+                  "statusColors": {
+                    "ok": "#3EE08F",
+                    "warn": "#FFB547",
+                    "alarm": "#FF4D6A",
+                    "offline": "#6B7A90",
+                    "maint": "#5CC8FF"
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "a04.psu"
+                    }
+                  ]
+                },
+                {
+                  "type": "toggle",
+                  "id": "rack-a04-locate",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Locate LED",
+                  "icon": "light.beacon.max.fill",
+                  "tint": "#5CC8FF",
+                  "defaultValue": false,
+                  "haptic": "light",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_rack_locate",
+                      "rack": "A04",
+                      "on": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "rack-a04-ticket",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Remote hands",
+                  "icon": "wrench.and.screwdriver.fill",
+                  "style": "tinted",
+                  "tint": "#FFB547",
+                  "haptic": "medium",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_remote_hands",
+                      "rack": "A04"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "rack-b05",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipAxis": "horizontal",
+          "haptic": "light",
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_rack_face",
+              "rack": "B05",
+              "face": "{{value}}"
+            }
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "rack-b05-front",
+              "label": "Rack B05",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "rack-b05-inlet",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    2
+                  ],
+                  "label": "Inlet °C",
+                  "min": 15,
+                  "max": 35,
+                  "gaugeStyle": "full",
+                  "defaultValue": 29.4,
+                  "segments": [
+                    {
+                      "limit": 27,
+                      "color": "#3EE08F"
+                    },
+                    {
+                      "limit": 30,
+                      "color": "#FFB547"
+                    },
+                    {
+                      "limit": 35,
+                      "color": "#FF4D6A"
+                    }
+                  ],
+                  "sync": [
+                    {
+                      "method": "mqtt",
+                      "source": "dcim",
+                      "topic": "dc/ash1/rack/B05/inlet_c"
+                    },
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "b05.inlet_c"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "rack-b05-back",
+              "label": "Kestrel GPU · 42U",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "statusLight",
+                  "id": "rack-b05-psu",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "PSU A+B",
+                  "style": "badge",
+                  "size": "small",
+                  "pulse": true,
+                  "defaultValue": "warn",
+                  "statusColors": {
+                    "ok": "#3EE08F",
+                    "warn": "#FFB547",
+                    "alarm": "#FF4D6A",
+                    "offline": "#6B7A90",
+                    "maint": "#5CC8FF"
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "b05.psu"
+                    }
+                  ]
+                },
+                {
+                  "type": "toggle",
+                  "id": "rack-b05-locate",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Locate LED",
+                  "icon": "light.beacon.max.fill",
+                  "tint": "#5CC8FF",
+                  "defaultValue": false,
+                  "haptic": "light",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_rack_locate",
+                      "rack": "B05",
+                      "on": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "rack-b05-ticket",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Remote hands",
+                  "icon": "wrench.and.screwdriver.fill",
+                  "style": "tinted",
+                  "tint": "#FFB547",
+                  "haptic": "medium",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_remote_hands",
+                      "rack": "B05"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "rack-c03",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipAxis": "horizontal",
+          "haptic": "light",
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_rack_face",
+              "rack": "C03",
+              "face": "{{value}}"
+            }
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "rack-c03-front",
+              "label": "Rack C03",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "rack-c03-inlet",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    2
+                  ],
+                  "label": "Inlet °C",
+                  "min": 15,
+                  "max": 35,
+                  "gaugeStyle": "full",
+                  "defaultValue": 24.0,
+                  "segments": [
+                    {
+                      "limit": 27,
+                      "color": "#3EE08F"
+                    },
+                    {
+                      "limit": 30,
+                      "color": "#FFB547"
+                    },
+                    {
+                      "limit": 35,
+                      "color": "#FF4D6A"
+                    }
+                  ],
+                  "sync": [
+                    {
+                      "method": "mqtt",
+                      "source": "dcim",
+                      "topic": "dc/ash1/rack/C03/inlet_c"
+                    },
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "c03.inlet_c"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "rack-c03-back",
+              "label": "Northwind core · 38U",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "statusLight",
+                  "id": "rack-c03-psu",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "PSU A+B",
+                  "style": "badge",
+                  "size": "small",
+                  "pulse": true,
+                  "defaultValue": "ok",
+                  "statusColors": {
+                    "ok": "#3EE08F",
+                    "warn": "#FFB547",
+                    "alarm": "#FF4D6A",
+                    "offline": "#6B7A90",
+                    "maint": "#5CC8FF"
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "c03.psu"
+                    }
+                  ]
+                },
+                {
+                  "type": "toggle",
+                  "id": "rack-c03-locate",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Locate LED",
+                  "icon": "light.beacon.max.fill",
+                  "tint": "#5CC8FF",
+                  "defaultValue": false,
+                  "haptic": "light",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_rack_locate",
+                      "rack": "C03",
+                      "on": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "rack-c03-ticket",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Remote hands",
+                  "icon": "wrench.and.screwdriver.fill",
+                  "style": "tinted",
+                  "tint": "#FFB547",
+                  "haptic": "medium",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_remote_hands",
+                      "rack": "C03"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "flipCard",
+          "id": "rack-d05",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "flipAxis": "horizontal",
+          "haptic": "light",
+          "containerAnimation": {
+            "profile": "snappy",
+            "flipPerspective": 0.6
+          },
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_rack_face",
+              "rack": "D05",
+              "face": "{{value}}"
+            }
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "rack-d05-front",
+              "label": "Rack D05",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "gauge",
+                  "id": "rack-d05-inlet",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    3,
+                    2
+                  ],
+                  "label": "Inlet °C",
+                  "min": 15,
+                  "max": 35,
+                  "gaugeStyle": "full",
+                  "defaultValue": 31.7,
+                  "segments": [
+                    {
+                      "limit": 27,
+                      "color": "#3EE08F"
+                    },
+                    {
+                      "limit": 30,
+                      "color": "#FFB547"
+                    },
+                    {
+                      "limit": 35,
+                      "color": "#FF4D6A"
+                    }
+                  ],
+                  "sync": [
+                    {
+                      "method": "mqtt",
+                      "source": "dcim",
+                      "topic": "dc/ash1/rack/D05/inlet_c"
+                    },
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "d05.inlet_c"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "rack-d05-back",
+              "label": "Halcyon encode · 40U",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 2,
+                "rows": 3
+              },
+              "children": [
+                {
+                  "type": "statusLight",
+                  "id": "rack-d05-psu",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "PSU A+B",
+                  "style": "badge",
+                  "size": "small",
+                  "pulse": true,
+                  "defaultValue": "alarm",
+                  "statusColors": {
+                    "ok": "#3EE08F",
+                    "warn": "#FFB547",
+                    "alarm": "#FF4D6A",
+                    "offline": "#6B7A90",
+                    "maint": "#5CC8FF"
+                  },
+                  "sync": [
+                    {
+                      "method": "meshsocket",
+                      "type": "listen",
+                      "event": "broadcast",
+                      "filter": {
+                        "msg_type": "data_center_rack"
+                      },
+                      "valuePath": "d05.psu"
+                    }
+                  ]
+                },
+                {
+                  "type": "toggle",
+                  "id": "rack-d05-locate",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Locate LED",
+                  "icon": "light.beacon.max.fill",
+                  "tint": "#5CC8FF",
+                  "defaultValue": false,
+                  "haptic": "light",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_rack_locate",
+                      "rack": "D05",
+                      "on": "{{value}}"
+                    }
+                  }
+                },
+                {
+                  "type": "button",
+                  "id": "rack-d05-ticket",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "span": [
+                    1,
+                    2
+                  ],
+                  "label": "Remote hands",
+                  "icon": "wrench.and.screwdriver.fill",
+                  "style": "tinted",
+                  "tint": "#FFB547",
+                  "haptic": "medium",
+                  "action": {
+                    "method": "meshsocket",
+                    "mode": "broadcast",
+                    "event": "broadcast_request",
+                    "payload": {
+                      "msg_type": "data_center_remote_hands",
+                      "rack": "D05"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Alerts",
+      "icon": "exclamationmark.triangle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 12
+      },
+      "children": [
+        {
+          "type": "cardList",
+          "id": "alert-cards",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Open alerts",
+          "defaultValue": "{\"nodes\": [{\"id\": \"al-1\", \"label\": \"D05 inlet 31.7 \\u00b0C > 30\", \"group\": \"critical\", \"color\": \"#FF4D6A\"}, {\"id\": \"al-2\", \"label\": \"CHW-1 supply drift +1.8 \\u00b0C\", \"group\": \"critical\", \"color\": \"#FF4D6A\"}, {\"id\": \"al-3\", \"label\": \"B05 PSU-B redundancy lost\", \"group\": \"warning\", \"color\": \"#FFB547\"}, {\"id\": \"al-4\", \"label\": \"UPS-2 battery test due\", \"group\": \"warning\", \"color\": \"#FFB547\"}, {\"id\": \"al-5\", \"label\": \"Feed B at 61% of breaker\", \"group\": \"warning\", \"color\": \"#FFB547\"}, {\"id\": \"al-6\", \"label\": \"Badge access \\u00b7 cage 14\", \"group\": \"info\", \"color\": \"#5CC8FF\"}, {\"id\": \"al-7\", \"label\": \"Economizer engaged 04:12\", \"group\": \"info\", \"color\": \"#5CC8FF\"}], \"edges\": []}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_alerts"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "ack-all",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Ack all",
+          "icon": "checkmark.seal.fill",
+          "style": "tinted",
+          "tint": "#3EE08F",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_alerts_ack",
+              "scope": "all"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "page-oncall",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Page on-call",
+          "icon": "phone.arrow.up.right.fill",
+          "style": "filled",
+          "tint": "#FF4D6A",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "data_center_page_oncall",
+              "team": "facilities"
+            }
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "bms-log",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "BMS event log",
+          "maxLines": 400,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "error": "#FF4D6A",
+            "warn": "#FFB547",
+            "info": "#5CC8FF",
+            "debug": "#6B7A90"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "data_center_log"
+              },
+              "valuePath": "line"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

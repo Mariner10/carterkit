@@ -1,0 +1,234 @@
+{
+  "name": "Sprint Board",
+  "headerTitle": "Sprint 42 · Lighthouse",
+  "id": "sprint-board",
+  "version": 1,
+  "accentColor": "#7C5CFF",
+  "description": "A two-week sprint cockpit for a small product team: burndown, status split, the live ticket queue, and a quick-add form. Shows how one labeled group bundles an entry form while charts, a list, and a log all ride their own sprint_board_* broadcasts.",
+  "difficulty": "intermediate",
+  "theme": {
+    "accentColor": "#7C5CFF",
+    "cornerRadius": 14,
+    "fontDesign": "rounded",
+    "dark": {
+      "pageBackgroundGradient": ["#0E0B1F", "#161233"],
+      "surfacePrimary": "#FFFFFF10",
+      "surfaceSecondary": "#FFFFFF08",
+      "borderColor": "#7C5CFF33"
+    },
+    "light": {
+      "pageBackgroundGradient": ["#F3F0FF", "#E6E0FA"],
+      "surfacePrimary": "#FFFFFFEE",
+      "surfaceSecondary": "#FFFFFFB0",
+      "borderColor": "#7C5CFF22"
+    },
+    "segmented": { "selectedColor": "#7C5CFF", "selectedTextColor": "#FFFFFF" }
+  },
+  "tabs": [
+    {
+      "title": "Sprint",
+      "icon": "flag.checkered",
+      "grid": { "columns": 4, "rows": 9 },
+      "children": [
+        {
+          "type": "label",
+          "id": "sb-goal",
+          "position": [0, 0],
+          "span": [1, 4],
+          "icon": "target",
+          "style": "headline",
+          "text": "Goal: ship offline sync beta to 200 testers",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_summary" }, "valuePath": "goal" }]
+        },
+        {
+          "type": "gauge",
+          "id": "sb-points-done",
+          "position": [1, 0],
+          "span": [3, 2],
+          "label": "Points done",
+          "icon": "checkmark.seal.fill",
+          "min": 0,
+          "max": 54,
+          "gaugeStyle": "full",
+          "defaultValue": 31,
+          "segments": [
+            { "limit": 18, "color": "#FF6B6B" },
+            { "limit": 40, "color": "#FFB547" },
+            { "limit": 54, "color": "#3DDC97" }
+          ],
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_summary" }, "valuePath": "points_done" }]
+        },
+        {
+          "type": "pieChart",
+          "id": "sb-status-split",
+          "position": [1, 2],
+          "span": [3, 2],
+          "label": "Status",
+          "pieStyle": "donut",
+          "pieConfig": {
+            "centerText": "{{total}} tix",
+            "showLegend": true,
+            "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_filter_status", "status": "{{value}}" } }
+          },
+          "defaultValue": "{\"slices\":[{\"label\":\"Done\",\"value\":11,\"color\":\"#3DDC97\"},{\"label\":\"Review\",\"value\":4,\"color\":\"#5AC8FA\"},{\"label\":\"Doing\",\"value\":6,\"color\":\"#7C5CFF\"},{\"label\":\"To do\",\"value\":7,\"color\":\"#8E8E93\"},{\"label\":\"Blocked\",\"value\":2,\"color\":\"#FF6B6B\"}]}",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_status_split" }, "valuePath": "slices" }]
+        },
+        {
+          "type": "chart",
+          "id": "sb-burndown",
+          "position": [4, 0],
+          "span": [4, 4],
+          "label": "Burndown (pts)",
+          "tint": "#7C5CFF",
+          "chartConfig": { "showLegend": true, "smooth": true, "scrub": true, "yMin": 0, "maxPoints": 14 },
+          "defaultValue": "{\"categories\":[\"D1\",\"D2\",\"D3\",\"D4\",\"D5\",\"D6\",\"D7\",\"D8\",\"D9\",\"D10\"],\"series\":[{\"name\":\"Ideal\",\"type\":\"line\",\"color\":\"#8E8E93\",\"values\":[54,48,42,36,30,24,18,12,6,0]},{\"name\":\"Remaining\",\"type\":\"area\",\"color\":\"#7C5CFF\",\"values\":[54,52,47,45,38,33,29,23]}]}",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_burndown" }, "valuePath": "dataset" }]
+        },
+        {
+          "type": "label",
+          "id": "sb-days-left",
+          "position": [8, 0],
+          "span": [1, 2],
+          "icon": "calendar.badge.clock",
+          "text": "2",
+          "formatValue": "suffix: days left",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_summary" }, "valuePath": "days_left" }]
+        },
+        {
+          "type": "label",
+          "id": "sb-velocity",
+          "position": [8, 2],
+          "span": [1, 2],
+          "icon": "speedometer",
+          "text": "47",
+          "formatValue": "suffix: pt avg velocity",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_summary" }, "valuePath": "avg_velocity" }]
+        }
+      ]
+    },
+    {
+      "title": "Tickets",
+      "icon": "list.bullet.rectangle",
+      "grid": { "columns": 4, "rows": 10 },
+      "children": [
+        {
+          "type": "group",
+          "id": "sb-quick-add",
+          "label": "Quick add",
+          "position": [0, 0],
+          "span": [4, 4],
+          "grid": { "columns": 4, "rows": 3 },
+          "children": [
+            {
+              "type": "textInput",
+              "id": "sb-new-title",
+              "position": [0, 0],
+              "span": [1, 4],
+              "placeholder": "Ticket title, e.g. Retry queue drops on 3G",
+              "icon": "plus.square",
+              "autocorrect": true,
+              "clearOnSubmit": true,
+              "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_ticket_draft", "title": "{{value}}" } }
+            },
+            {
+              "type": "segmentedControl",
+              "id": "sb-new-priority",
+              "position": [1, 0],
+              "span": [1, 4],
+              "options": ["p0", "p1", "p2", "p3"],
+              "optionLabels": ["P0", "P1", "P2", "P3"],
+              "style": "pills",
+              "tint": "#7C5CFF",
+              "defaultValue": "p2",
+              "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_ticket_priority", "priority": "{{value}}" } }
+            },
+            {
+              "type": "button",
+              "id": "sb-add-ticket",
+              "position": [2, 0],
+              "span": [1, 4],
+              "label": "Add to sprint",
+              "icon": "tray.and.arrow.down.fill",
+              "style": "filled",
+              "tint": "#7C5CFF",
+              "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_ticket_commit", "sprint": "42" } }
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "sb-list-filter",
+          "position": [4, 0],
+          "span": [1, 4],
+          "options": ["all", "mine", "blocked"],
+          "optionLabels": ["All", "Mine", "Blocked"],
+          "defaultValue": "all",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_list_filter", "filter": "{{value}}" } }
+        },
+        {
+          "type": "list",
+          "id": "sb-tickets",
+          "position": [5, 0],
+          "span": [5, 4],
+          "label": "Sprint 42 tickets",
+          "listColumns": [
+            { "key": "key", "label": "Key" },
+            { "key": "title", "label": "Title" },
+            { "key": "pri", "label": "Pri" },
+            { "key": "status", "label": "Status" },
+            { "key": "pts", "label": "Pts", "format": "decimal" }
+          ],
+          "defaultValue": [
+            { "key": "LH-311", "title": "Offline queue persists across launch", "pri": "P0", "status": "Doing", "pts": 8 },
+            { "key": "LH-318", "title": "Conflict banner copy", "pri": "P2", "status": "Review", "pts": 2 },
+            { "key": "LH-322", "title": "Retry backoff jitter", "pri": "P1", "status": "Blocked", "pts": 5 },
+            { "key": "LH-325", "title": "Sync status in settings", "pri": "P2", "status": "To do", "pts": 3 },
+            { "key": "LH-327", "title": "Beta invite email", "pri": "P1", "status": "Done", "pts": 1 },
+            { "key": "LH-330", "title": "Crash on empty inbox", "pri": "P0", "status": "Doing", "pts": 3 }
+          ],
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_tickets" }, "valuePath": "rows" }]
+        }
+      ]
+    },
+    {
+      "title": "Standup",
+      "icon": "person.3.fill",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        {
+          "type": "datePicker",
+          "id": "sb-review-date",
+          "position": [0, 0],
+          "span": [1, 4],
+          "label": "Sprint review",
+          "datePickerMode": "date",
+          "datePickerStyle": "compact",
+          "tint": "#7C5CFF",
+          "defaultValue": "2026-10-02T15:00:00Z",
+          "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "sprint_board_review_date", "date": "{{value}}" } }
+        },
+        {
+          "type": "sparkline",
+          "id": "sb-throughput",
+          "position": [1, 0],
+          "span": [2, 4],
+          "label": "Tickets closed / day",
+          "tint": "#3DDC97",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_throughput" }, "valuePath": "closed" }]
+        },
+        {
+          "type": "logConsole",
+          "id": "sb-activity",
+          "position": [3, 0],
+          "span": [5, 4],
+          "label": "Board activity",
+          "maxLines": 300,
+          "showTimestamps": true,
+          "controlHeight": 280,
+          "logColors": { "blocked": "#FF6B6B", "moved": "#5AC8FA", "done": "#3DDC97", "info": "#8E8E93" },
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "sprint_board_activity" }, "valuePath": "entry" }]
+        }
+      ]
+    }
+  ]
+}

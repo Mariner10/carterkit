@@ -1,0 +1,574 @@
+{
+  "name": "Glance Bridge",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "title": "Send",
+      "icon": "paperplane.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "send-hdr",
+          "text": "LIVE ACTIVITY TEST",
+          "style": "headline",
+          "icon": "bolt.badge.clock",
+          "tint": "#667eea",
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            0,
+            0
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "message",
+          "placeholder": "Type → Send → Dynamic Island",
+          "label": "Message (becomes the hero line)",
+          "sendButton": true,
+          "clearOnSubmit": true,
+          "autocorrect": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "say",
+              "text": "{{value}}"
+            }
+          },
+          "span": [
+            2,
+            4
+          ],
+          "position": [
+            1,
+            0
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "level",
+          "label": "Level (slot 2)",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 40,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "level",
+              "value": "{{value}}"
+            }
+          },
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            3,
+            0
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "pulse",
+          "label": "Pulse mode (1s ticks)",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "pulse",
+              "on": "{{value}}"
+            }
+          },
+          "span": [
+            1,
+            2
+          ],
+          "position": [
+            4,
+            0
+          ]
+        },
+        {
+          "type": "button",
+          "id": "ping",
+          "label": "Ping",
+          "icon": "dot.radiowaves.left.and.right",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "ping"
+            }
+          },
+          "span": [
+            1,
+            1
+          ],
+          "position": [
+            4,
+            2
+          ]
+        },
+        {
+          "type": "button",
+          "id": "reset",
+          "label": "Reset",
+          "icon": "arrow.counterclockwise",
+          "style": "outlined",
+          "tint": "#8893b0",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "reset"
+            }
+          },
+          "span": [
+            1,
+            1
+          ],
+          "position": [
+            4,
+            3
+          ]
+        },
+        {
+          "type": "label",
+          "id": "send-hint",
+          "tint": "#8893b0",
+          "style": "caption",
+          "text": "Everything you send round-trips through the bridge and lands in the Mirror tab — whose controls feed the Live Activity, lock-screen widget, and Control Center.",
+          "span": [
+            2,
+            4
+          ],
+          "position": [
+            5,
+            0
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "mode",
+          "label": "Mode (Control Center cycles this)",
+          "options": [
+            "off",
+            "low",
+            "high"
+          ],
+          "defaultValue": "off",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "mode",
+              "mode": "{{value}}"
+            }
+          },
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            7,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Island",
+      "icon": "bolt.horizontal.circle",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "isl-hdr",
+          "text": "DYNAMIC ISLAND CONTROLS",
+          "style": "headline",
+          "icon": "platter.filled.top.iphone",
+          "tint": "#667eea",
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            0,
+            0
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "island-title",
+          "placeholder": "Set the island's hero line…",
+          "label": "Hero (via bridge)",
+          "sendButton": true,
+          "clearOnSubmit": true,
+          "autocorrect": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "say",
+              "text": "{{value}}"
+            }
+          },
+          "span": [
+            2,
+            4
+          ],
+          "position": [
+            1,
+            0
+          ]
+        },
+        {
+          "type": "slider",
+          "id": "island-dial",
+          "label": "Dial — island slot 1, no network",
+          "min": 0,
+          "max": 100,
+          "defaultValue": 25,
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            3,
+            0
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "island-flag",
+          "label": "Flag — island slot 2, no network",
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            4,
+            0
+          ]
+        },
+        {
+          "type": "label",
+          "id": "isl-hint",
+          "tint": "#8893b0",
+          "style": "caption",
+          "text": "Dial and Flag are the Live Activity's slots themselves — drag/tap and watch the island re-render locally (~1s flush). The hero line and uptime arrive over the relay. Lifecycle is load-bound: the activity starts when this layout opens and ends when it closes — reload the layout to restart it.",
+          "span": [
+            3,
+            4
+          ],
+          "position": [
+            5,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Mirror",
+      "icon": "sparkles.rectangle.stack",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "headline",
+          "text": "Waiting for a send…",
+          "style": "headline",
+          "label": "Hero",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "headline",
+              "filter": {
+                "msg_type": "state"
+              }
+            }
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "position": [
+            0,
+            0
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "sends",
+          "label": "Sends",
+          "min": 0,
+          "max": 50,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "count",
+              "filter": {
+                "msg_type": "state"
+              }
+            }
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "position": [
+            1,
+            0
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "level-echo",
+          "label": "Level",
+          "min": 0,
+          "max": 100,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "level",
+              "filter": {
+                "msg_type": "state"
+              }
+            }
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "position": [
+            1,
+            2
+          ]
+        },
+        {
+          "type": "label",
+          "id": "uptime",
+          "text": "0s",
+          "style": "mono",
+          "label": "Bridge uptime",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "uptime",
+              "filter": {
+                "msg_type": "state"
+              }
+            }
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "position": [
+            3,
+            0
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "pulse-light",
+          "label": "Pulse",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "pulse",
+              "filter": {
+                "msg_type": "state"
+              }
+            }
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "position": [
+            3,
+            2
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "activity",
+          "label": "Bridge activity",
+          "maxLines": 100,
+          "showTimestamps": false,
+          "autoScroll": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "valuePath": "line",
+              "filter": {
+                "msg_type": "log"
+              }
+            }
+          ],
+          "span": [
+            3,
+            4
+          ],
+          "position": [
+            4,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "connection": {
+    "identity": {
+      "name": "phone",
+      "channel": "glance",
+      "role": "controller",
+      "can_broadcast": true,
+      "can_route": true
+    },
+    "url": "wss://relay.carterbeaudoin.net",
+    "token": "<your-token>"
+  },
+  "glance": {
+    "title": "Glance Bridge",
+    "icon": "dot.radiowaves.left.and.right",
+    "tint": "#667eea",
+    "hero": "headline",
+    "slots": [
+      "island-dial",
+      "island-flag",
+      "uptime"
+    ],
+    "liveActivity": true,
+    "controls": [
+      {
+        "id": "cc-ping",
+        "label": "Ping Bridge",
+        "kind": "button",
+        "icon": "dot.radiowaves.left.and.right",
+        "event": "broadcast_request",
+        "payload": {
+          "msg_type": "ping"
+        }
+      },
+      {
+        "id": "cc-pulse",
+        "label": "Pulse Mode",
+        "kind": "toggle",
+        "icon": "waveform.path.ecg",
+        "control": "pulse",
+        "event": "broadcast_request",
+        "payload": {
+          "msg_type": "pulse"
+        },
+        "on": {
+          "label": "Pulsing",
+          "icon": "waveform.path.ecg",
+          "tint": "#30D158"
+        },
+        "off": {
+          "label": "Idle",
+          "icon": "waveform.path.ecg.rectangle",
+          "tint": "#8893b0"
+        }
+      },
+      {
+        "id": "cc-pulse-level",
+        "label": "Pulse + Level",
+        "kind": "toggle",
+        "icon": "gauge.with.dots.needle.bottom.50percent",
+        "control": "pulse",
+        "valueControl": "level-echo",
+        "valueLabel": "Level {{value}}",
+        "event": "broadcast_request",
+        "payload": {
+          "msg_type": "pulse"
+        }
+      },
+      {
+        "id": "cc-mode",
+        "label": "Mode",
+        "kind": "cycle",
+        "control": "mode",
+        "states": [
+          {
+            "value": "off",
+            "label": "Off",
+            "icon": "moon.zzz"
+          },
+          {
+            "value": "low",
+            "label": "Low",
+            "icon": "wind",
+            "tint": "#64D2FF"
+          },
+          {
+            "value": "high",
+            "label": "High",
+            "icon": "wind.circle.fill",
+            "tint": "#0A84FF"
+          }
+        ]
+      },
+      {
+        "id": "cc-level-up",
+        "label": "Level",
+        "kind": "step",
+        "control": "level",
+        "delta": 10,
+        "icon": "plus"
+      },
+      {
+        "id": "cc-level-down",
+        "label": "Level",
+        "kind": "step",
+        "control": "level",
+        "delta": -10,
+        "icon": "minus"
+      },
+      {
+        "id": "cc-level-half",
+        "label": "Level 50%",
+        "kind": "set",
+        "control": "level",
+        "value": 50,
+        "icon": "dial.medium"
+      }
+    ]
+  }
+}

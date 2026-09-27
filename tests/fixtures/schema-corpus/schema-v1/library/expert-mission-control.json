@@ -1,0 +1,1759 @@
+{
+ "name": "Mission Control",
+ "id": "mission-control-expert",
+ "headerTitle": "ARGO-3 · FLIGHT",
+ "version": 1,
+ "accentColor": "#FFB000",
+ "description": "A flight-director console for the ARGO-3 orbital mission: live ground track, a phosphor telemetry wall, subsystem and power topology, an editable flight plan, and the flight loop — with a T-minus Live Activity when you leave the app.",
+ "difficulty": "expert",
+ "keepAwake": true,
+ "batchPublishers": true,
+ "state": {
+  "sync": true,
+  "authority": "mission-control-hub",
+  "acks": true,
+  "ackTimeoutMs": 2500
+ },
+ "publishers": [
+  {
+   "sensor": "device",
+   "interval": 30
+  },
+  {
+   "sensor": "location",
+   "interval": 60
+  }
+ ],
+ "sources": {
+  "iss": {
+   "type": "http",
+   "baseURL": "https://api.wheretheiss.at/v1",
+   "interval": 10
+  }
+ },
+ "appearance": {
+  "colorScheme": "dark",
+  "statusBarStyle": "light",
+  "showHeader": true,
+  "header": {
+   "style": "color",
+   "dark": [
+    "#0B0906",
+    "#15110A"
+   ],
+   "light": [
+    "#0B0906",
+    "#15110A"
+   ]
+  }
+ },
+ "theme": {
+  "accentColor": "#FFB000",
+  "accentGradient": [
+   "#FFB000",
+   "#FF7A1A"
+  ],
+  "fontDesign": "monospaced",
+  "cornerRadius": 6,
+  "borderWidth": 1,
+  "cardPadding": 12,
+  "controlPadding": 8,
+  "labelFontSize": 11,
+  "valueFontSize": 15,
+  "valueFontWeight": "medium",
+  "blurEnabled": false,
+  "tabBarTint": "#FFB000",
+  "pageBackgroundGradient": [
+   "#070604",
+   "#0E0B07",
+   "#161008"
+  ],
+  "surfacePrimary": "#FFB0000D",
+  "surfaceSecondary": "#FFB00008",
+  "surfaceTertiary": "#FFB00005",
+  "foregroundColor": "#FFE7B8",
+  "secondaryColor": "#C9A86A",
+  "tertiaryColor": "#8A7A55",
+  "borderColor": "#FFB00033",
+  "tabBarBackground": "#0B0906F2",
+  "toggle": {
+   "trackActiveColor": "#FF4A3D",
+   "knobColor": "#FFE7B8",
+   "knobShadow": false
+  },
+  "slider": {
+   "trackActiveColor": "#FFB000",
+   "thumbColor": "#FFE7B8"
+  },
+  "segmented": {
+   "trackColor": "#FFB00014",
+   "selectedColor": "#FFB000",
+   "textColor": "#C9A86A",
+   "selectedTextColor": "#0B0906"
+  },
+  "progressBar": {
+   "trackColor": "#FFB0001A",
+   "trackActiveColor": "#FFB000"
+  }
+ },
+ "glance": {
+  "title": "ARGO-3",
+  "icon": "globe.americas.fill",
+  "tint": "#FFB000",
+  "hero": "mc-alt",
+  "slots": [
+   "mc-vel",
+   "mc-prop",
+   "mc-comm"
+  ],
+  "liveActivity": true,
+  "live": {
+   "tier": "fresh",
+   "activity": {
+    "stale": 90
+   }
+  },
+  "controls": [
+   {
+    "id": "hold",
+    "kind": "button",
+    "label": "Call hold",
+    "icon": "pause.circle.fill",
+    "control": "mc-hold"
+   },
+   {
+    "id": "rcs",
+    "kind": "cycle",
+    "label": "RCS mode",
+    "control": "mc-rcs-mode",
+    "states": [
+     {
+      "value": "auto",
+      "label": "Auto",
+      "icon": "gyroscope",
+      "tint": "#4FE0D2"
+     },
+     {
+      "value": "manual",
+      "label": "Manual",
+      "icon": "hand.raised.fill",
+      "tint": "#FFB000"
+     }
+    ]
+   }
+  ],
+  "widgets": [
+   {
+    "id": "orbit",
+    "title": "Orbit",
+    "icon": "globe.americas.fill",
+    "families": [
+     "systemSmall",
+     "systemMedium",
+     "accessoryRectangular"
+    ],
+    "scene": {
+     "rows": [
+      [
+       {
+        "tile": "gauge",
+        "control": "mc-alt"
+       },
+       {
+        "tile": "ring",
+        "control": "mc-prop"
+       }
+      ],
+      [
+       {
+        "tile": "sparkline",
+        "control": "mc-alt",
+        "span": 2
+       }
+      ],
+      [
+       {
+        "tile": "light",
+        "control": "mc-comm"
+       },
+       {
+        "tile": "timer",
+        "control": "mc-burn-epoch",
+        "label": "TIG"
+       }
+      ]
+     ]
+    }
+   }
+  ],
+  "island": {
+   "compactLeading": {
+    "tile": "icon",
+    "effect": "pulse"
+   },
+   "compactTrailing": {
+    "tile": "timer",
+    "control": "mc-burn-epoch"
+   },
+   "minimal": {
+    "tile": "light",
+    "control": "mc-gnc"
+   },
+   "expanded": {
+    "leading": {
+     "tile": "icon"
+    },
+    "trailing": {
+     "tile": "freshness"
+    },
+    "center": {
+     "tile": "timer",
+     "control": "mc-burn-epoch",
+     "label": "T-minus OMS-2"
+    },
+    "bottom": {
+     "rows": [
+      [
+       {
+        "tile": "value",
+        "control": "mc-alt"
+       },
+       {
+        "tile": "value",
+        "control": "mc-vel"
+       },
+       {
+        "tile": "ring",
+        "control": "mc-prop"
+       }
+      ],
+      [
+       {
+        "tile": "button",
+        "control": "mc-go-poll"
+       },
+       {
+        "tile": "button",
+        "control": "mc-hold"
+       }
+      ]
+     ]
+    }
+   }
+  }
+ },
+ "tabs": [
+  {
+   "title": "Orbit",
+   "icon": "globe.americas.fill",
+   "grid": {
+    "columns": 4,
+    "rows": 12
+   },
+   "children": [
+    {
+     "type": "group",
+     "id": "mc-sys-row",
+     "label": null,
+     "hideBackground": true,
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "grid": {
+      "columns": 4,
+      "rows": 1
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "mc-gnc",
+       "position": [
+        0,
+        0
+       ],
+       "label": "GNC",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "GO",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "mission_control_vehicle_state"
+         },
+         "valuePath": "systems.gnc"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "mc-eps",
+       "position": [
+        0,
+        1
+       ],
+       "label": "EPS",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "GO",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "mission_control_vehicle_state"
+         },
+         "valuePath": "systems.eps"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "mc-comm",
+       "position": [
+        0,
+        2
+       ],
+       "label": "COMM",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "WATCH",
+       "pulse": true,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "mission_control_vehicle_state"
+         },
+         "valuePath": "systems.comm"
+        }
+       ]
+      },
+      {
+       "type": "statusLight",
+       "id": "mc-eclss",
+       "position": [
+        0,
+        3
+       ],
+       "label": "ECLSS",
+       "style": "badge",
+       "size": "small",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "GO",
+       "pulse": false,
+       "sync": [
+        {
+         "method": "meshsocket",
+         "type": "listen",
+         "event": "broadcast",
+         "filter": {
+          "msg_type": "mission_control_vehicle_state"
+         },
+         "valuePath": "systems.eclss"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "webView",
+     "id": "mc-orbit-view",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      5,
+      4
+     ],
+     "label": "Ground track · ARGO-3",
+     "url": "https://www.heavens-above.com/orbitdisplay.aspx?icon=iss&width=600&height=300&mode=M&satid=25544",
+     "webInteractive": true,
+     "webScrollEnabled": false,
+     "webRefreshInterval": 60
+    },
+    {
+     "type": "gauge",
+     "id": "mc-alt",
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "Altitude",
+     "icon": "arrow.up.to.line",
+     "min": 380,
+     "max": 440,
+     "step": 0.1,
+     "gaugeStyle": "full",
+     "formatValue": "suffix: km",
+     "defaultValue": 417.6,
+     "segments": [
+      {
+       "limit": 395,
+       "color": "#FF4A3D"
+      },
+      {
+       "limit": 405,
+       "color": "#FFB000"
+      },
+      {
+       "limit": 440,
+       "color": "#4FE0D2"
+      }
+     ],
+     "animation": "smooth",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "alt_km"
+      },
+      {
+       "method": "http",
+       "source": "iss",
+       "path": "/satellites/25544",
+       "interval": 10,
+       "valuePath": "altitude"
+      }
+     ],
+     "longPressGroup": {
+      "id": "mc-alt-detail",
+      "label": "Apsides",
+      "position": [
+       0,
+       0
+      ],
+      "span": [
+       2,
+       2
+      ],
+      "grid": {
+       "columns": 2,
+       "rows": 2
+      },
+      "children": [
+       {
+        "type": "sparkline",
+        "id": "mc-alt-trend",
+        "position": [
+         0,
+         0
+        ],
+        "span": [
+         1,
+         2
+        ],
+        "tint": "#4FE0D2",
+        "sparklinePoints": 90,
+        "sync": [
+         {
+          "method": "meshsocket",
+          "type": "listen",
+          "event": "broadcast",
+          "filter": {
+           "msg_type": "mission_control_vehicle_state"
+          },
+          "valuePath": "alt_km"
+         }
+        ]
+       },
+       {
+        "type": "label",
+        "id": "mc-apo",
+        "position": [
+         1,
+         0
+        ],
+        "text": "Apo 421.3 km",
+        "style": "mono",
+        "sync": [
+         {
+          "method": "meshsocket",
+          "type": "listen",
+          "event": "broadcast",
+          "filter": {
+           "msg_type": "mission_control_vehicle_state"
+          },
+          "valuePath": "apo_label"
+         }
+        ]
+       },
+       {
+        "type": "label",
+        "id": "mc-peri",
+        "position": [
+         1,
+         1
+        ],
+        "text": "Peri 413.9 km",
+        "style": "mono",
+        "sync": [
+         {
+          "method": "meshsocket",
+          "type": "listen",
+          "event": "broadcast",
+          "filter": {
+           "msg_type": "mission_control_vehicle_state"
+          },
+          "valuePath": "peri_label"
+         }
+        ]
+       }
+      ]
+     }
+    },
+    {
+     "type": "gauge",
+     "id": "mc-vel",
+     "position": [
+      6,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Inertial velocity",
+     "min": 27000,
+     "max": 28500,
+     "formatValue": "suffix: km/h",
+     "defaultValue": 27583,
+     "tint": "#FFB000",
+     "animation": "smooth",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "vel_kmh"
+      },
+      {
+       "method": "http",
+       "source": "iss",
+       "path": "/satellites/25544",
+       "interval": 10,
+       "valuePath": "velocity"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "mc-met",
+     "position": [
+      8,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "icon": "clock.fill",
+     "style": "mono",
+     "formatValue": "duration",
+     "text": "MET 54h 33m",
+     "defaultValue": 196425,
+     "tint": "#FFB000",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "met_s"
+      }
+     ]
+    },
+    {
+     "type": "progressRing",
+     "id": "mc-prop",
+     "position": [
+      9,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "RCS prop",
+     "icon": "flame.fill",
+     "min": 0,
+     "max": 100,
+     "defaultValue": 63.4,
+     "tint": "#FFB000",
+     "animation": "gentle",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "propellant_pct"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "mc-tminus",
+     "position": [
+      9,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "style": "large-mono",
+     "align": "center",
+     "tint": "#FFB000",
+     "text": "T–00:42:17",
+     "defaultValue": "T–00:42:17",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_countdown"
+       },
+       "valuePath": "display"
+      }
+     ]
+    },
+    {
+     "type": "label",
+     "id": "mc-burn-epoch",
+     "position": [
+      10,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "style": "caption",
+     "icon": "flame",
+     "formatValue": "decimal:0",
+     "text": "TIG 1790265600",
+     "defaultValue": 1790265600,
+     "tint": "#8A7A55",
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_countdown"
+       },
+       "valuePath": "tig_unix"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "mc-orbit-mode",
+     "position": [
+      11,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "style": "pills",
+     "tint": "#FFB000",
+     "options": [
+      "ground",
+      "polar",
+      "3d"
+     ],
+     "optionLabels": [
+      "Track",
+      "Polar",
+      "3D"
+     ],
+     "defaultValue": "ground",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_set_view",
+       "view": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "view"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Telemetry",
+   "icon": "waveform.path.ecg",
+   "grid": {
+    "columns": 4,
+    "rows": 13
+   },
+   "children": [
+    {
+     "type": "sparkline",
+     "id": "mc-cabin-p",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Cabin press · kPa",
+     "tint": "#4FE0D2",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "cabin_kpa"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-ppo2",
+     "position": [
+      0,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "ppO₂ · kPa",
+     "tint": "#7CFF6B",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "ppo2_kpa"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-co2",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "CO₂ · ppm",
+     "tint": "#FFB000",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "co2_ppm"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-gyro",
+     "position": [
+      2,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Gyro rate · °/s",
+     "tint": "#B48CFF",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "gyro_dps"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-bus-a",
+     "position": [
+      4,
+      0
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Bus A · V",
+     "tint": "#FFB000",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "bus_a_v"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-bus-b",
+     "position": [
+      4,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Bus B · V",
+     "tint": "#FFB000",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "bus_b_v"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-soc",
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "Battery SOC · %",
+     "tint": "#7CFF6B",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "batt_soc"
+      }
+     ]
+    },
+    {
+     "type": "sparkline",
+     "id": "mc-downlink",
+     "position": [
+      6,
+      2
+     ],
+     "span": [
+      2,
+      2
+     ],
+     "label": "S-band · Mbps",
+     "tint": "#4FE0D2",
+     "sparklineFill": true,
+     "sparklinePoints": 120,
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "downlink_mbps"
+      }
+     ]
+    },
+    {
+     "type": "heatmap",
+     "id": "mc-thermal",
+     "position": [
+      8,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Shell thermal · °C",
+     "formatValue": "suffix:°",
+     "defaultValue": "{\"rows\": [\"Node 1\", \"Node 2\", \"Lab\", \"Airlock\", \"Hab\"], \"cols\": [\"Fwd\", \"Stbd\", \"Aft\", \"Port\", \"Zen\", \"Nad\"], \"values\": [[21.4, 22.0, 21.8, 21.1, 23.9, 20.2], [22.3, 22.9, 23.4, 22.0, 25.1, 21.0], [23.8, 24.6, 26.9, 24.1, 28.3, 22.7], [18.9, 19.4, 19.0, 18.2, 21.7, 17.6], [22.1, 22.4, 22.8, 21.9, 24.4, 21.3]]}",
+     "heatmapConfig": {
+      "colors": [
+       "#10233F",
+       "#4FE0D2",
+       "#FFB000",
+       "#FF4A3D"
+      ],
+      "vMin": 16,
+      "vMax": 30,
+      "showScale": true,
+      "showValues": true,
+      "cellCorner": 2
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_thermal"
+       },
+       "valuePath": "grid"
+      }
+     ]
+    },
+    {
+     "type": "segmentedControl",
+     "id": "mc-tlm-rate",
+     "position": [
+      12,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "tint": "#FFB000",
+     "options": [
+      "1",
+      "5",
+      "10",
+      "25"
+     ],
+     "optionLabels": [
+      "1 Hz",
+      "5 Hz",
+      "10 Hz",
+      "25 Hz"
+     ],
+     "defaultValue": "5",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_set_tlm_rate",
+       "hz": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_telemetry"
+       },
+       "valuePath": "rate_hz"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Systems",
+   "icon": "point.3.filled.connected.trianglepath.dotted",
+   "grid": {
+    "columns": 4,
+    "rows": 16
+   },
+   "children": [
+    {
+     "type": "graph",
+     "id": "mc-topology",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      6,
+      4
+     ],
+     "label": "Subsystem bus · tap to inspect",
+     "defaultValue": "{\"nodes\": [{\"id\": \"fcc\", \"label\": \"Flight Computer\", \"group\": \"cdh\"}, {\"id\": \"imu\", \"label\": \"IMU\", \"group\": \"gnc\"}, {\"id\": \"star\", \"label\": \"Star Tracker\", \"group\": \"gnc\"}, {\"id\": \"rcs\", \"label\": \"RCS Quads\", \"group\": \"prop\"}, {\"id\": \"oms\", \"label\": \"OMS Engine\", \"group\": \"prop\"}, {\"id\": \"pdu\", \"label\": \"PDU\", \"group\": \"eps\"}, {\"id\": \"sa\", \"label\": \"Solar Arrays\", \"group\": \"eps\"}, {\"id\": \"batt\", \"label\": \"Li-ion Bank\", \"group\": \"eps\"}, {\"id\": \"sband\", \"label\": \"S-Band\", \"group\": \"comm\", \"color\": \"#FFB000\"}, {\"id\": \"ka\", \"label\": \"Ka-Band\", \"group\": \"comm\"}, {\"id\": \"cdra\", \"label\": \"CDRA\", \"group\": \"eclss\"}, {\"id\": \"ogs\", \"label\": \"O\\u2082 Gen\", \"group\": \"eclss\"}, {\"id\": \"tcs\", \"label\": \"Thermal Loop\", \"group\": \"eclss\"}], \"edges\": [{\"from\": \"fcc\", \"to\": \"imu\"}, {\"from\": \"fcc\", \"to\": \"star\"}, {\"from\": \"fcc\", \"to\": \"rcs\"}, {\"from\": \"fcc\", \"to\": \"oms\"}, {\"from\": \"fcc\", \"to\": \"sband\"}, {\"from\": \"fcc\", \"to\": \"ka\"}, {\"from\": \"pdu\", \"to\": \"fcc\"}, {\"from\": \"sa\", \"to\": \"pdu\"}, {\"from\": \"batt\", \"to\": \"pdu\"}, {\"from\": \"pdu\", \"to\": \"cdra\"}, {\"from\": \"pdu\", \"to\": \"ogs\"}, {\"from\": \"pdu\", \"to\": \"tcs\"}, {\"from\": \"tcs\", \"to\": \"batt\"}, {\"from\": \"imu\", \"to\": \"rcs\"}]}",
+     "graphConfig": {
+      "nodeSize": 9,
+      "edgeColor": "#FFD58A",
+      "edgeOpacity": 0.35,
+      "edgeCurved": true,
+      "labelColor": "#E9D9B0",
+      "labelSize": 9,
+      "repulsionForce": 620,
+      "centerForce": 0.004,
+      "attractionForce": 0.004,
+      "damping": 0.85,
+      "backgroundColor": "#0B0A07",
+      "glowEnabled": true,
+      "glowRadius": 7,
+      "glowColor": "#FFB000",
+      "groupColors": {
+       "cdh": "#FFFFFF",
+       "gnc": "#4FE0D2",
+       "prop": "#FF4A3D",
+       "eps": "#FFB000",
+       "comm": "#B48CFF",
+       "eclss": "#7CFF6B"
+      },
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "mission_control_inspect_subsystem",
+        "node": "{{value}}"
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_topology"
+       },
+       "valuePath": "graph"
+      }
+     ]
+    },
+    {
+     "type": "sankey",
+     "id": "mc-power",
+     "position": [
+      6,
+      0
+     ],
+     "span": [
+      4,
+      4
+     ],
+     "label": "Power flow · kW",
+     "formatValue": "suffix: kW",
+     "defaultValue": "{\"nodes\": [{\"name\": \"Solar Arrays\", \"color\": \"#FFB000\"}, {\"name\": \"Li-ion Bank\", \"color\": \"#FFD58A\"}, {\"name\": \"PDU\", \"color\": \"#FFFFFF\"}, {\"name\": \"Avionics\", \"color\": \"#4FE0D2\"}, {\"name\": \"ECLSS\", \"color\": \"#7CFF6B\"}, {\"name\": \"Thermal\", \"color\": \"#5AA9FF\"}, {\"name\": \"Comms\", \"color\": \"#B48CFF\"}, {\"name\": \"Charge\", \"color\": \"#FFD58A\"}], \"links\": [{\"source\": \"Solar Arrays\", \"target\": \"PDU\", \"value\": 8.4}, {\"source\": \"Li-ion Bank\", \"target\": \"PDU\", \"value\": 1.2}, {\"source\": \"PDU\", \"target\": \"Avionics\", \"value\": 2.6}, {\"source\": \"PDU\", \"target\": \"ECLSS\", \"value\": 3.1}, {\"source\": \"PDU\", \"target\": \"Thermal\", \"value\": 1.7}, {\"source\": \"PDU\", \"target\": \"Comms\", \"value\": 1.1}, {\"source\": \"PDU\", \"target\": \"Charge\", \"value\": 1.1}]}",
+     "animation": "smooth",
+     "sankeyConfig": {
+      "showValues": true,
+      "linkOpacity": 0.4,
+      "nodeWidth": 8,
+      "scrub": true,
+      "nodeAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "mission_control_inspect_power",
+        "node": "{{value}}"
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_power_flow"
+       },
+       "valuePath": "sankey"
+      }
+     ]
+    },
+    {
+     "type": "joystick",
+     "id": "mc-rcs-jog",
+     "position": [
+      10,
+      0
+     ],
+     "span": [
+      3,
+      2
+     ],
+     "label": "RCS jog · pitch/yaw",
+     "tint": "#FFB000",
+     "style": "analog",
+     "deadzone": 0.15,
+     "sendRate": 0.2,
+     "visible": {
+      "when": "mc-rcs-mode",
+      "operator": "eq",
+      "value": "manual"
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_rcs_jog",
+       "pitch": "{{y}}",
+       "yaw": "{{x}}"
+      }
+     }
+    },
+    {
+     "type": "segmentedControl",
+     "id": "mc-rcs-mode",
+     "position": [
+      10,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "tint": "#FFB000",
+     "style": "pills",
+     "options": [
+      "auto",
+      "manual"
+     ],
+     "optionLabels": [
+      "Auto",
+      "Manual"
+     ],
+     "defaultValue": "auto",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_set_rcs_mode",
+       "mode": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "rcs_mode"
+      }
+     ]
+    },
+    {
+     "type": "toggle",
+     "id": "mc-arm",
+     "position": [
+      11,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Arm OMS burn",
+     "icon": "lock.open.fill",
+     "tint": "#FF4A3D",
+     "defaultValue": false,
+     "haptic": "heavy",
+     "animation": "snappy",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_arm_burn",
+       "armed": "{{value}}"
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_vehicle_state"
+       },
+       "valuePath": "burn_armed"
+      }
+     ]
+    },
+    {
+     "type": "button",
+     "id": "mc-burn",
+     "position": [
+      12,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Execute burn",
+     "icon": "flame.fill",
+     "style": "filled",
+     "tint": "#FF4A3D",
+     "haptic": "heavy",
+     "visible": {
+      "when": "mc-arm",
+      "operator": "eq",
+      "value": true
+     },
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_execute_burn",
+       "tig": "now",
+       "dv_mps": 2.4
+      }
+     }
+    },
+    {
+     "type": "group",
+     "id": "mc-abort",
+     "label": "Contingency · armed only",
+     "position": [
+      13,
+      0
+     ],
+     "span": [
+      3,
+      4
+     ],
+     "visible": {
+      "when": "mc-arm",
+      "operator": "eq",
+      "value": true
+     },
+     "pulse": {
+      "event": "broadcast",
+      "color": "#FF4A3D",
+      "direction": "outward",
+      "filter": {
+       "msg_type": "mission_control_abort_ack"
+      }
+     },
+     "grid": {
+      "columns": 4,
+      "rows": 2
+     },
+     "children": [
+      {
+       "type": "button",
+       "id": "mc-safe",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Safe mode",
+       "icon": "shield.lefthalf.filled",
+       "style": "tinted",
+       "tint": "#FFB000",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "mission_control_contingency",
+         "mode": "safe"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "mc-sun-point",
+       "position": [
+        0,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Sun-point",
+       "icon": "sun.max.fill",
+       "style": "tinted",
+       "tint": "#FFB000",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "mission_control_contingency",
+         "mode": "sun_point"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "mc-deorbit",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Deorbit",
+       "icon": "arrow.down.forward.circle.fill",
+       "style": "outlined",
+       "tint": "#FF4A3D",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "mission_control_contingency",
+         "mode": "deorbit"
+        }
+       }
+      },
+      {
+       "type": "button",
+       "id": "mc-disarm",
+       "position": [
+        1,
+        2
+       ],
+       "span": [
+        1,
+        2
+       ],
+       "label": "Stand down",
+       "icon": "xmark.octagon.fill",
+       "style": "ghost",
+       "tint": "#E9D9B0",
+       "action": {
+        "method": "meshsocket",
+        "mode": "broadcast",
+        "event": "broadcast_request",
+        "payload": {
+         "msg_type": "mission_control_arm_burn",
+         "armed": false
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Timeline",
+   "icon": "calendar.day.timeline.left",
+   "grid": {
+    "columns": 4,
+    "rows": 4,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "gantt",
+     "id": "mc-timeline",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "Flight plan · GET day 3",
+     "tint": "#FFB000",
+     "defaultValue": "{\"tasks\": [{\"name\": \"Crew wake\", \"start\": \"2026-09-24T10:00:00Z\", \"end\": \"2026-09-24T10:45:00Z\", \"progress\": 1.0}, {\"name\": \"IMU align\", \"start\": \"2026-09-24T10:30:00Z\", \"end\": \"2026-09-24T11:20:00Z\", \"progress\": 1.0, \"color\": \"#4FE0D2\"}, {\"name\": \"Ka pass \\u00b7 Canberra\", \"start\": \"2026-09-24T11:05:00Z\", \"end\": \"2026-09-24T11:55:00Z\", \"progress\": 0.7, \"color\": \"#B48CFF\"}, {\"name\": \"Burn prep\", \"start\": \"2026-09-24T11:40:00Z\", \"end\": \"2026-09-24T12:25:00Z\", \"progress\": 0.35, \"color\": \"#FFB000\"}, {\"name\": \"OMS-2 TIG\", \"start\": \"2026-09-24T12:40:00Z\", \"milestone\": true, \"color\": \"#FF4A3D\"}, {\"name\": \"Post-burn trim\", \"start\": \"2026-09-24T12:45:00Z\", \"end\": \"2026-09-24T13:30:00Z\", \"progress\": 0.0, \"color\": \"#FFB000\"}, {\"name\": \"CDRA regen\", \"start\": \"2026-09-24T11:00:00Z\", \"end\": \"2026-09-24T13:10:00Z\", \"progress\": 0.5, \"color\": \"#7CFF6B\"}, {\"name\": \"S-band LOS\", \"start\": \"2026-09-24T13:35:00Z\", \"end\": \"2026-09-24T13:58:00Z\", \"progress\": 0.0, \"color\": \"#6B6B6B\"}]}",
+     "ganttConfig": {
+      "editable": true,
+      "step": 0.05,
+      "rowHeight": 28,
+      "barCornerRadius": 3,
+      "showToday": true,
+      "taskAction": {
+       "method": "meshsocket",
+       "mode": "broadcast",
+       "event": "broadcast_request",
+       "payload": {
+        "msg_type": "mission_control_task_progress",
+        "task": "{{value}}"
+       }
+      }
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_timeline"
+       },
+       "valuePath": "gantt"
+      }
+     ]
+    },
+    {
+     "type": "group",
+     "id": "mc-anomalies",
+     "label": "Open anomalies",
+     "position": [
+      1,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "dynamic": "mission_control_anomalies",
+     "grid": {
+      "columns": 4,
+      "rows": 3,
+      "mode": "flow"
+     },
+     "pulse": {
+      "event": "mission_control_anomalies",
+      "color": "#FFB000",
+      "direction": "inward"
+     },
+     "children": [
+      {
+       "type": "statusLight",
+       "id": "mc-an-1-lt",
+       "position": [
+        0,
+        0
+       ],
+       "span": [
+        1,
+        1
+       ],
+       "label": "WATCH",
+       "style": "dot",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "WATCH",
+       "pulse": false
+      },
+      {
+       "type": "label",
+       "id": "mc-an-1-tx",
+       "position": [
+        0,
+        1
+       ],
+       "span": [
+        1,
+        3
+       ],
+       "style": "mono",
+       "text": "AR-0412 · Ka-band gimbal jitter 0.3°"
+      },
+      {
+       "type": "statusLight",
+       "id": "mc-an-2-lt",
+       "position": [
+        1,
+        0
+       ],
+       "span": [
+        1,
+        1
+       ],
+       "label": "WATCH",
+       "style": "dot",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "WATCH",
+       "pulse": false
+      },
+      {
+       "type": "label",
+       "id": "mc-an-2-tx",
+       "position": [
+        1,
+        1
+       ],
+       "span": [
+        1,
+        3
+       ],
+       "style": "mono",
+       "text": "AR-0409 · CDRA bed B slow regen"
+      },
+      {
+       "type": "statusLight",
+       "id": "mc-an-3-lt",
+       "position": [
+        2,
+        0
+       ],
+       "span": [
+        1,
+        1
+       ],
+       "label": "GO",
+       "style": "dot",
+       "statusColors": {
+        "GO": "#7CFF6B",
+        "WATCH": "#FFB000",
+        "NO-GO": "#FF4A3D",
+        "LOS": "#6B6B6B"
+       },
+       "defaultValue": "GO",
+       "pulse": false
+      },
+      {
+       "type": "label",
+       "id": "mc-an-3-tx",
+       "position": [
+        2,
+        1
+       ],
+       "span": [
+        1,
+        3
+       ],
+       "style": "mono",
+       "text": "AR-0398 · Star tracker 2 dropout (cleared)"
+      }
+     ]
+    },
+    {
+     "type": "logConsole",
+     "id": "mc-loop-log",
+     "position": [
+      2,
+      0
+     ],
+     "span": [
+      1,
+      4
+     ],
+     "label": "FD loop · voice-to-text",
+     "controlHeight": 260,
+     "maxLines": 400,
+     "fontSize": 11,
+     "showTimestamps": true,
+     "autoScroll": true,
+     "tint": "#FFB000",
+     "logColors": {
+      "flight": "#FFB000",
+      "gnc": "#4FE0D2",
+      "eps": "#FFD58A",
+      "eclss": "#7CFF6B",
+      "capcom": "#B48CFF",
+      "alarm": "#FF4A3D"
+     },
+     "sync": [
+      {
+       "method": "meshsocket",
+       "type": "listen",
+       "event": "broadcast",
+       "filter": {
+        "msg_type": "mission_control_loop_log"
+       },
+       "valuePath": "lines"
+      }
+     ]
+    },
+    {
+     "type": "button",
+     "id": "mc-go-poll",
+     "position": [
+      3,
+      0
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Go/No-Go poll",
+     "icon": "checklist",
+     "style": "filled",
+     "tint": "#FFB000",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_go_poll",
+       "phase": "OMS-2"
+      }
+     }
+    },
+    {
+     "type": "button",
+     "id": "mc-hold",
+     "position": [
+      3,
+      2
+     ],
+     "span": [
+      1,
+      2
+     ],
+     "label": "Call hold",
+     "icon": "pause.circle.fill",
+     "style": "outlined",
+     "tint": "#FF4A3D",
+     "haptic": "heavy",
+     "action": {
+      "method": "meshsocket",
+      "mode": "broadcast",
+      "event": "broadcast_request",
+      "payload": {
+       "msg_type": "mission_control_countdown_hold",
+       "hold": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "title": "Loop",
+   "icon": "headphones",
+   "grid": {
+    "columns": 1,
+    "rows": 1,
+    "mode": "flow"
+   },
+   "children": [
+    {
+     "type": "chat",
+     "id": "mc-flight-loop",
+     "position": [
+      0,
+      0
+     ],
+     "span": [
+      1,
+      1
+     ],
+     "label": "Flight loop · CAPCOM",
+     "config": {
+      "target": "mission-control-hub",
+      "showTypingIndicators": true,
+      "showReadReceipts": true,
+      "allowReactions": true,
+      "allowReplies": true,
+      "allowImages": false,
+      "allowClear": false,
+      "historyCount": 200,
+      "tint": "#FFB000"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1285 @@
+{
+  "name": "Film Set Coordinator",
+  "headerTitle": "STARLITE · DAY 18",
+  "version": 1,
+  "accentColor": "#FFB347",
+  "description": "A 2nd-AD / script-supervisor companion for a feature shoot: live slate and take counter, a searchable shot list, a swipeable call sheet with storyboard frames, and the crew radio log.",
+  "difficulty": "advanced",
+  "appearance": {
+    "colorScheme": "dark",
+    "statusBarStyle": "light"
+  },
+  "keepAwake": true,
+  "theme": {
+    "accentColor": "#FFB347",
+    "accentGradient": [
+      "#FF8A3D",
+      "#FFD27A"
+    ],
+    "fontDesign": "monospaced",
+    "labelFontSize": 12,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "cornerRadius": 14,
+    "cardPadding": 12,
+    "borderWidth": 0.5,
+    "tabBarTint": "#FFB347",
+    "pageBackgroundGradient": [
+      "#0B0907",
+      "#16110C",
+      "#1F1710"
+    ],
+    "surfacePrimary": "#FFE9C814",
+    "surfaceSecondary": "#FFE9C80C",
+    "surfaceTertiary": "#FFE9C806",
+    "borderColor": "#FFB34733",
+    "foregroundColor": "#F5EFE6",
+    "secondaryColor": "#C9B79C",
+    "tertiaryColor": "#7D6F5C",
+    "toggle": {
+      "trackActiveColor": "#FFB347"
+    },
+    "segmented": {
+      "selectedColor": "#FFB347",
+      "selectedTextColor": "#1A1208"
+    }
+  },
+  "tabs": [
+    {
+      "title": "Slate",
+      "icon": "movieclapper",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "symbol",
+          "id": "slate-clapper",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "systemName": "movieclapper.fill",
+          "label": "Stage 4 · Unit A",
+          "tint": "#FFB347",
+          "symbolConfig": {
+            "renderingMode": "palette",
+            "palette": [
+              "#FFB347",
+              "#F5EFE6"
+            ],
+            "weight": "semibold",
+            "effect": "pulse",
+            "effectOptions": [
+              "byLayer"
+            ],
+            "loop": "periodic",
+            "loopDelay": 2.0,
+            "tapEffect": "bounce",
+            "triggers": [
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "film_set_marker"
+                },
+                "effect": "bounce"
+              },
+              {
+                "event": "broadcast",
+                "filter": {
+                  "msg_type": "film_set_cut"
+                },
+                "effect": "wiggle"
+              }
+            ]
+          },
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_marker",
+              "scene": "42A",
+              "take": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "slate-scene-take",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "film",
+          "style": "headline",
+          "text": "SC 42A · TK 7",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_slate"
+              },
+              "valuePath": "slate_text"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "slate-roll",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "camera.aperture",
+          "style": "mono",
+          "text": "A017 · B009 · SR 112",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_slate"
+              },
+              "valuePath": "rolls_text"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "slate-camera-state",
+          "position": [
+            2,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Camera",
+          "style": "badge",
+          "statusColors": {
+            "rolling": "#FF3B30",
+            "speed": "#FF9F0A",
+            "cut": "#8E8E93",
+            "reset": "#5AC8FA",
+            "lighting": "#FFD60A"
+          },
+          "defaultValue": "reset",
+          "pulse": true,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_camera"
+              },
+              "valuePath": "state"
+            }
+          ]
+        },
+        {
+          "type": "stepper",
+          "id": "slate-take",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Take",
+          "icon": "number",
+          "min": 1,
+          "max": 60,
+          "step": 1,
+          "defaultValue": 7,
+          "haptic": "light",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_slate"
+              },
+              "valuePath": "take"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_take_set",
+              "scene": "42A",
+              "take": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "segmentedControl",
+          "id": "slate-camera-unit",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "options": [
+            "A",
+            "B",
+            "C",
+            "ALL"
+          ],
+          "defaultValue": "A",
+          "style": "pills",
+          "haptic": "selection",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_slate"
+              },
+              "valuePath": "camera"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_camera_select",
+              "camera": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "group",
+          "id": "slate-marks",
+          "label": "Take marks · SC 42A",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 3,
+            "rows": 3
+          },
+          "children": [
+            {
+              "type": "button",
+              "id": "mark-circle",
+              "position": [
+                0,
+                0
+              ],
+              "label": "Circle",
+              "icon": "checkmark.circle.fill",
+              "style": "tinted",
+              "tint": "#34C759",
+              "haptic": "success",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_take_mark",
+                  "scene": "42A",
+                  "mark": "circle"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "mark-ng",
+              "position": [
+                0,
+                1
+              ],
+              "label": "NG",
+              "icon": "xmark.octagon.fill",
+              "style": "tinted",
+              "tint": "#FF453A",
+              "haptic": "error",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_take_mark",
+                  "scene": "42A",
+                  "mark": "no_good"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "id": "mark-hold",
+              "position": [
+                0,
+                2
+              ],
+              "label": "Hold",
+              "icon": "pause.circle.fill",
+              "style": "tinted",
+              "tint": "#FF9F0A",
+              "haptic": "warning",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_take_mark",
+                  "scene": "42A",
+                  "mark": "hold"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "slate-mos",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "MOS (no sound)",
+              "icon": "speaker.slash.fill",
+              "defaultValue": false,
+              "haptic": "light",
+              "sync": [
+                {
+                  "method": "meshsocket",
+                  "type": "listen",
+                  "event": "broadcast",
+                  "filter": {
+                    "msg_type": "film_set_slate"
+                  },
+                  "valuePath": "mos"
+                }
+              ],
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_mos",
+                  "on": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "toggle",
+              "id": "slate-vfx",
+              "position": [
+                1,
+                2
+              ],
+              "label": "VFX plate",
+              "icon": "sparkles",
+              "defaultValue": true,
+              "haptic": "light",
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_vfx_plate",
+                  "on": "{{value}}"
+                }
+              }
+            },
+            {
+              "type": "textInput",
+              "id": "slate-note",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "placeholder": "Script note for TK 7…",
+              "icon": "pencil.line",
+              "sendButton": true,
+              "clearOnSubmit": true,
+              "action": {
+                "method": "meshsocket",
+                "mode": "broadcast",
+                "event": "broadcast_request",
+                "payload": {
+                  "msg_type": "film_set_take_note",
+                  "scene": "42A",
+                  "note": "{{value}}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "slate-roll-btn",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Roll sound + camera",
+          "icon": "record.circle",
+          "style": "filled",
+          "tint": "#FF3B30",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_roll",
+              "camera": "all"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "slate-cut-btn",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cut",
+          "icon": "scissors",
+          "style": "outlined",
+          "haptic": "heavy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_cut",
+              "scene": "42A"
+            }
+          }
+        },
+        {
+          "type": "label",
+          "id": "slate-mos-banner",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "icon": "exclamationmark.triangle.fill",
+          "style": "caption",
+          "align": "center",
+          "tint": "#FF9F0A",
+          "text": "MOS take — no sync sound, sticks optional. Tail-slate with fingers.",
+          "visible": {
+            "when": "slate-mos",
+            "operator": "eq",
+            "value": true
+          }
+        }
+      ]
+    },
+    {
+      "title": "Shots",
+      "icon": "list.bullet.rectangle",
+      "grid": {
+        "columns": 4,
+        "rows": 11
+      },
+      "children": [
+        {
+          "type": "cardList",
+          "id": "shot-list",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Shot list · Day 18",
+          "defaultValue": "{\"nodes\": [{\"id\": \"sh-42a-a\", \"label\": \"42A \\u00b7 WIDE \\u00b7 Mara enters diner, 24mm dolly\", \"group\": \"shooting\", \"icon\": \"video.fill\"}, {\"id\": \"sh-42a-b\", \"label\": \"42A \\u00b7 MCU Mara \\u00b7 50mm, rain on glass\", \"group\": \"shooting\", \"icon\": \"camera.fill\"}, {\"id\": \"sh-42b-a\", \"label\": \"42B \\u00b7 OTS Dex \\u2192 Mara \\u00b7 75mm\", \"group\": \"up next\", \"icon\": \"person.2.fill\"}, {\"id\": \"sh-42b-b\", \"label\": \"42B \\u00b7 CU Dex reaction \\u00b7 100mm macro\", \"group\": \"up next\", \"icon\": \"eye.fill\"}, {\"id\": \"sh-42c\", \"label\": \"42C \\u00b7 INSERT coffee cup, overcrank 48fps\", \"group\": \"up next\", \"icon\": \"cup.and.saucer.fill\"}, {\"id\": \"sh-43-a\", \"label\": \"43 \\u00b7 EXT diner lot \\u00b7 crane down, night rain\", \"group\": \"up next\", \"icon\": \"cloud.rain.fill\"}, {\"id\": \"sh-44-a\", \"label\": \"44 \\u00b7 Steadicam walk & talk, 18mm\", \"group\": \"up next\", \"icon\": \"figure.walk\"}, {\"id\": \"sh-41-a\", \"label\": \"41 \\u00b7 Booth two-shot \\u00b7 circled TK 4\", \"group\": \"wrapped\", \"icon\": \"checkmark.seal.fill\"}, {\"id\": \"sh-41-b\", \"label\": \"41 \\u00b7 CU waitress \\u00b7 circled TK 2, 6\", \"group\": \"wrapped\", \"icon\": \"checkmark.seal.fill\"}, {\"id\": \"sh-40-a\", \"label\": \"40 \\u00b7 Neon sign plate \\u00b7 VFX\", \"group\": \"wrapped\", \"icon\": \"sparkles\"}, {\"id\": \"sh-45\", \"label\": \"45 \\u00b7 Car interior process \\u00b7 moved to Day 19\", \"group\": \"dropped\", \"icon\": \"calendar.badge.minus\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_shots"
+              },
+              "valuePath": "graph"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "shots-day-progress",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Setups done",
+          "icon": "film.stack",
+          "min": 0,
+          "max": 23,
+          "defaultValue": 14,
+          "tint": "#FFB347",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_progress"
+              },
+              "valuePath": "setups_done"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "shots-count",
+          "position": [
+            6,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "list.number",
+          "style": "headline",
+          "text": "14 of 23 setups",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_progress"
+              },
+              "valuePath": "summary"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "shots-wrap-eta",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "icon": "clock.badge.checkmark",
+          "style": "default",
+          "text": "Est. wrap 19:40",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_progress"
+              },
+              "valuePath": "wrap_eta"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "shots-schedule",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "−25 min",
+          "style": "badge",
+          "statusColors": {
+            "ahead": "#34C759",
+            "on_time": "#5AC8FA",
+            "behind": "#FF9F0A",
+            "meal_penalty": "#FF3B30"
+          },
+          "defaultValue": "behind",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_progress"
+              },
+              "valuePath": "schedule_state"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "shots-pace",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Setups per hour · since 07:00 call",
+          "tint": "#FFB347",
+          "sparklineFill": true,
+          "sparklinePoints": 24,
+          "defaultValue": [
+            0,
+            1,
+            2,
+            2,
+            3,
+            1,
+            2,
+            0,
+            1,
+            2,
+            3,
+            2
+          ],
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_progress"
+              },
+              "valuePath": "pace"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Call Sheet",
+      "icon": "doc.text.image",
+      "grid": {
+        "columns": 4,
+        "rows": 10
+      },
+      "children": [
+        {
+          "type": "carousel",
+          "id": "call-sheet",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "carouselMode": "deck",
+          "indicator": "bars",
+          "loop": true,
+          "defaultValue": 0,
+          "containerAnimation": {
+            "profile": "smooth",
+            "deckVisibleCount": 3,
+            "deckOffsetStep": 14,
+            "deckRotation": 2
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_callsheet"
+              },
+              "valuePath": "page"
+            }
+          ],
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_callsheet_view",
+              "page": "{{value}}"
+            }
+          },
+          "panels": [
+            {
+              "type": "group",
+              "id": "cs-day",
+              "label": "Day 18 of 32 · Thu 24 Sep",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 1,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "id": "cs-day-l0",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "icon": "film",
+                  "style": "headline",
+                  "text": "\"Last Call at the Starlite\" · Unit A"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-day-l1",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "icon": "clock.fill",
+                  "style": "default",
+                  "text": "Crew call 07:00 · Shooting call 08:15"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-day-l2",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "icon": "sunset.fill",
+                  "style": "default",
+                  "text": "Sunset 19:02 · Rain FX 21:00–23:30"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-day-l3",
+                  "position": [
+                    3,
+                    0
+                  ],
+                  "icon": "cross.case.fill",
+                  "style": "caption",
+                  "text": "Nearest hospital: St. Vincent's · 6 min"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "cs-cast",
+              "label": "Cast calls",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 1,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "id": "cs-cast-l0",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "icon": "person.fill",
+                  "style": "default",
+                  "text": "1 · Mara (J. Okoye) · P/U 06:15 · Set 08:00"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-cast-l1",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "icon": "person.fill",
+                  "style": "default",
+                  "text": "2 · Dex (R. Salas) · P/U 07:30 · Set 09:15"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-cast-l2",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "icon": "person.fill",
+                  "style": "default",
+                  "text": "7 · Waitress (L. Moreau) · Set 10:30"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-cast-l3",
+                  "position": [
+                    3,
+                    0
+                  ],
+                  "icon": "person.3.fill",
+                  "style": "caption",
+                  "text": "BG: 14 diner patrons · holding in Stage 2"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "cs-locs",
+              "label": "Locations",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 1,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "id": "cs-locs-l0",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "icon": "building.2.fill",
+                  "style": "default",
+                  "text": "Stage 4 · Starlite Diner INT (sc 40–42)"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-locs-l1",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "icon": "car.fill",
+                  "style": "default",
+                  "text": "Lot C · Diner EXT night (sc 43)"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-locs-l2",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "icon": "mappin.and.ellipse",
+                  "style": "default",
+                  "text": "Basecamp: Gate 3 · Crew park Lot F"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-locs-l3",
+                  "position": [
+                    3,
+                    0
+                  ],
+                  "icon": "antenna.radiowaves.left.and.right",
+                  "style": "caption",
+                  "text": "Radio Ch 1 Prod · Ch 2 Cam · Ch 3 Grip/Elec"
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "cs-notes",
+              "label": "Department notes",
+              "position": [
+                0,
+                0
+              ],
+              "grid": {
+                "columns": 1,
+                "rows": 4
+              },
+              "children": [
+                {
+                  "type": "label",
+                  "id": "cs-notes-l0",
+                  "position": [
+                    0,
+                    0
+                  ],
+                  "icon": "camera.fill",
+                  "style": "default",
+                  "text": "CAM: 2nd unit Techno crane arrives 16:00"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-notes-l1",
+                  "position": [
+                    1,
+                    0
+                  ],
+                  "icon": "cloud.rain.fill",
+                  "style": "default",
+                  "text": "SFX: rain towers tested 14:00, wet-down 20:30"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-notes-l2",
+                  "position": [
+                    2,
+                    0
+                  ],
+                  "icon": "cup.and.saucer.fill",
+                  "style": "default",
+                  "text": "ART: hero coffee cups ×6 — continuity"
+                },
+                {
+                  "type": "label",
+                  "id": "cs-notes-l3",
+                  "position": [
+                    3,
+                    0
+                  ],
+                  "icon": "fork.knife",
+                  "style": "caption",
+                  "text": "Lunch 13:30 · 30 min walk-away"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "id": "storyboard-frame",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "systemName": "photo.artframe",
+          "url": "https://picsum.photos/seed/starlite-42a/900/500",
+          "aspectRatio": "fill",
+          "style": "rounded",
+          "imageCornerRadius": 14,
+          "label": "Storyboard · 42A frame 3",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_storyboard"
+              },
+              "valuePath": "frame_url"
+            }
+          ]
+        },
+        {
+          "type": "segmentedControl",
+          "id": "storyboard-panel",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "optionLabels": [
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5"
+          ],
+          "defaultValue": "3",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_storyboard_select",
+              "scene": "42A",
+              "frame": "{{value}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Radio",
+      "icon": "antenna.radiowaves.left.and.right",
+      "grid": {
+        "columns": 4,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "radio-channel",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "options": [
+            "1",
+            "2",
+            "3",
+            "5"
+          ],
+          "optionLabels": [
+            "Prod",
+            "Cam",
+            "G/E",
+            "Locs"
+          ],
+          "defaultValue": "1",
+          "haptic": "selection",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_channel",
+              "channel": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "logConsole",
+          "id": "radio-log",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Crew radio log",
+          "maxLines": 400,
+          "showTimestamps": false,
+          "fontSize": 11,
+          "controlHeight": 320,
+          "autoScroll": true,
+          "tint": "#FFB347",
+          "logColors": {
+            "error": "#FF453A",
+            "warn": "#FF9F0A",
+            "info": "#F5EFE6"
+          },
+          "defaultValue": "[{\"level\": \"info\", \"message\": \"07:02 [Ch1] AD Kim: Crew call, breakfast at basecamp till 07:30\"}, {\"level\": \"info\", \"message\": \"08:14 [Ch1] AD Kim: Rehearsal, 42A, lock it up\"}, {\"level\": \"warn\", \"message\": \"08:40 [Ch3] Gaffer: Genny 2 down, swapping to house power\"}, {\"level\": \"info\", \"message\": \"08:52 [Ch2] 1st AC: A-cam reloaded, roll A017\"}, {\"level\": \"info\", \"message\": \"09:06 [Ch1] AD Kim: Picture's up \\u2014 rolling\"}, {\"level\": \"error\", \"message\": \"09:07 [Ch1] Sound: HOLD \\u2014 plane overhead\"}, {\"level\": \"info\", \"message\": \"09:09 [Ch1] AD Kim: Back to one, reset\"}, {\"level\": \"warn\", \"message\": \"09:31 [Ch5] Locations: Neighbor complaint, Lot C generator\"}, {\"level\": \"info\", \"message\": \"09:44 [Ch1] Script: 42A TK 6 circled\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "film_set_radio"
+              },
+              "valuePath": "line"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "radio-send",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "placeholder": "Log a radio call…",
+          "icon": "mic.fill",
+          "sendButton": true,
+          "clearOnSubmit": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_call",
+              "channel": "1",
+              "message": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "radio-lock-up",
+          "position": [
+            8,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Lock it up",
+          "icon": "lock.fill",
+          "style": "tinted",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_call",
+              "channel": "1",
+              "message": "Lock it up"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "radio-last-looks",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Last looks",
+          "icon": "eyebrow",
+          "style": "tinted",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_call",
+              "channel": "1",
+              "message": "Last looks"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "radio-back-to-one",
+          "position": [
+            9,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Back to one",
+          "icon": "arrow.uturn.backward",
+          "style": "outlined",
+          "haptic": "light",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_call",
+              "channel": "1",
+              "message": "Back to one"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "radio-wrap",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "That's a wrap",
+          "icon": "flag.checkered",
+          "style": "filled",
+          "tint": "#34C759",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "film_set_radio_call",
+              "channel": "1",
+              "message": "That's a wrap"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

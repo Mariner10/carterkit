@@ -1,0 +1,42 @@
+{
+  "name": "Conformance",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "square.grid.2x2",
+      "grid": {
+        "columns": 4,
+        "rows": 8
+      },
+      "children": [
+        {
+          "type": "button",
+          "id": "a",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Go"
+        },
+        {
+          "type": "button",
+          "id": "b",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Go"
+        }
+      ]
+    }
+  ]
+}

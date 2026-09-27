@@ -1,0 +1,1667 @@
+{
+  "name": "Field Research Expedition",
+  "id": "field-research-kaskawulsh",
+  "version": 1,
+  "headerTitle": "KASKAWULSH · FIELD",
+  "accentColor": "#9BD35A",
+  "description": "Glacier-margin biodiversity expedition kit: the handset streams GPS, motion and barometer to camp while the team logs samples on a live map, reads a drill-down species treemap, drags progress on the expedition gantt and talks on a channel chat.",
+  "difficulty": "expert",
+  "keepAwake": true,
+  "batchPublishers": true,
+  "state": {
+    "sync": true,
+    "authority": "field-research-hub",
+    "acks": true,
+    "ackTimeoutMs": 3000
+  },
+  "publishers": [
+    {
+      "sensor": "location",
+      "interval": 15
+    },
+    {
+      "sensor": "barometer",
+      "interval": 10
+    },
+    {
+      "sensor": "motion",
+      "interval": 2
+    },
+    {
+      "sensor": "device",
+      "interval": 60
+    }
+  ],
+  "sources": {
+    "meteo": {
+      "type": "http",
+      "baseURL": "https://api.open-meteo.com",
+      "interval": 900
+    }
+  },
+  "appearance": {
+    "colorScheme": "dark",
+    "showHeader": true,
+    "statusBarStyle": "light",
+    "header": {
+      "style": "color",
+      "dark": [
+        "#10160F",
+        "#18221A"
+      ],
+      "light": [
+        "#10160F",
+        "#18221A"
+      ]
+    }
+  },
+  "theme": {
+    "accentColor": "#9BD35A",
+    "accentGradient": [
+      "#9BD35A",
+      "#E8A53A"
+    ],
+    "fontDesign": "serif",
+    "cornerRadius": 4,
+    "borderWidth": 1,
+    "cardPadding": 12,
+    "controlPadding": 8,
+    "labelFontSize": 11,
+    "valueFontSize": 15,
+    "valueFontWeight": "semibold",
+    "blurEnabled": false,
+    "pageBackgroundGradient": [
+      "#0C110C",
+      "#141C14",
+      "#1B2419"
+    ],
+    "surfacePrimary": "#E9E1C80D",
+    "surfaceSecondary": "#E9E1C808",
+    "surfaceTertiary": "#E9E1C805",
+    "foregroundColor": "#EDE6D0",
+    "secondaryColor": "#B8B394",
+    "tertiaryColor": "#7C8577",
+    "borderColor": "#9BD35A2E",
+    "tabBarBackground": "#0C110CF2",
+    "tabBarTint": "#9BD35A",
+    "toggle": {
+      "trackActiveColor": "#9BD35A",
+      "knobColor": "#EDE6D0",
+      "knobShadow": false
+    },
+    "slider": {
+      "trackActiveColor": "#E8A53A",
+      "thumbColor": "#EDE6D0"
+    },
+    "stepper": {
+      "buttonColor": "#9BD35A26",
+      "iconColor": "#9BD35A"
+    },
+    "segmented": {
+      "trackColor": "#9BD35A14",
+      "selectedColor": "#9BD35A",
+      "textColor": "#B8B394",
+      "selectedTextColor": "#0C110C"
+    },
+    "progressBar": {
+      "trackColor": "#9BD35A1A",
+      "trackActiveColor": "#9BD35A"
+    }
+  },
+  "glance": {
+    "title": "Kaskawulsh",
+    "icon": "mountain.2.fill",
+    "tint": "#9BD35A",
+    "hero": "fr-samples-ring",
+    "slots": [
+      "fr-link",
+      "fr-cold-chain",
+      "fr-dewar"
+    ],
+    "liveActivity": true,
+    "live": {
+      "tier": "fresh",
+      "activity": {
+        "stale": 300
+      }
+    },
+    "controls": [
+      {
+        "id": "checkin",
+        "kind": "button",
+        "label": "Check in",
+        "icon": "checkmark.seal.fill",
+        "control": "fr-checkin"
+      },
+      {
+        "id": "beacon",
+        "kind": "toggle",
+        "label": "Beacon",
+        "control": "fr-beacon",
+        "on": {
+          "label": "Beacon on",
+          "icon": "dot.radiowaves.left.and.right",
+          "tint": "#9BD35A"
+        },
+        "off": {
+          "label": "Beacon off",
+          "icon": "antenna.radiowaves.left.and.right.slash"
+        }
+      }
+    ],
+    "widgets": [
+      {
+        "id": "expedition",
+        "title": "Expedition",
+        "icon": "mountain.2.fill",
+        "families": [
+          "systemSmall",
+          "systemMedium",
+          "accessoryRectangular"
+        ],
+        "scene": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "fr-samples-ring"
+              },
+              {
+                "tile": "light",
+                "control": "fr-link"
+              }
+            ],
+            [
+              {
+                "tile": "light",
+                "control": "fr-cold-chain"
+              },
+              {
+                "tile": "value",
+                "control": "fr-dewar"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "fr-checkin"
+              },
+              {
+                "tile": "toggle",
+                "control": "fr-beacon"
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    "island": {
+      "compactLeading": {
+        "tile": "icon",
+        "effect": "bounce"
+      },
+      "compactTrailing": {
+        "tile": "ring",
+        "control": "fr-samples-ring"
+      },
+      "minimal": {
+        "tile": "light",
+        "control": "fr-link"
+      },
+      "expanded": {
+        "leading": {
+          "tile": "icon"
+        },
+        "trailing": {
+          "tile": "freshness"
+        },
+        "center": {
+          "tile": "value",
+          "control": "fr-last-sample"
+        },
+        "bottom": {
+          "rows": [
+            [
+              {
+                "tile": "ring",
+                "control": "fr-samples-ring"
+              },
+              {
+                "tile": "light",
+                "control": "fr-cold-chain"
+              },
+              {
+                "tile": "value",
+                "control": "fr-dewar"
+              }
+            ],
+            [
+              {
+                "tile": "button",
+                "control": "fr-checkin"
+              },
+              {
+                "tile": "toggle",
+                "control": "fr-beacon"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Field",
+      "icon": "location.north.circle.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 17
+      },
+      "children": [
+        {
+          "type": "statusLight",
+          "id": "fr-link",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Iridium uplink",
+          "style": "badge",
+          "size": "default",
+          "pulse": true,
+          "statusColors": {
+            "online": "#9BD35A",
+            "degraded": "#E8A53A",
+            "offline": "#D9534A",
+            "stowed": "#7C8577"
+          },
+          "defaultValue": "online",
+          "animation": "smooth",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_status"
+              },
+              "valuePath": "link"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-sol",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Expedition day",
+          "style": "headline",
+          "align": "trailing",
+          "defaultValue": "Day 9 · Kaskawulsh camp",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_status"
+              },
+              "valuePath": "day_label"
+            }
+          ]
+        },
+        {
+          "type": "compass",
+          "id": "fr-compass",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            4,
+            2
+          ],
+          "label": "Bearing",
+          "defaultValue": 312,
+          "compassConfig": {
+            "tolerance": 12,
+            "dwell": 1.5,
+            "showCardinals": true,
+            "editable": false,
+            "pucks": [
+              {
+                "id": "base-camp",
+                "label": "Base",
+                "icon": "tent.fill",
+                "tint": "#E8A53A",
+                "bearing": 212,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "field_research_bearing_mark",
+                    "mark": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "cache-c2",
+                "label": "Cache C2",
+                "icon": "shippingbox.fill",
+                "tint": "#9BD35A",
+                "bearing": 48,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "field_research_bearing_mark",
+                    "mark": "{{value}}"
+                  }
+                }
+              },
+              {
+                "id": "transect-t3",
+                "label": "T3",
+                "icon": "flag.fill",
+                "tint": "#6FB7C9",
+                "bearing": 131,
+                "locked": true,
+                "action": {
+                  "method": "meshsocket",
+                  "mode": "broadcast",
+                  "event": "broadcast_request",
+                  "payload": {
+                    "msg_type": "field_research_bearing_mark",
+                    "mark": "{{value}}"
+                  }
+                }
+              }
+            ]
+          },
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "heading"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "fr-pressure",
+          "position": [
+            1,
+            2
+          ],
+          "span": [
+            2,
+            2
+          ],
+          "label": "Station pressure",
+          "min": 70,
+          "max": 90,
+          "step": 0.01,
+          "gaugeStyle": "half",
+          "formatValue": "suffix: kPa",
+          "tint": "#6FB7C9",
+          "defaultValue": 80.62,
+          "animation": "gentle",
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "barometer.pressure"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-alt",
+          "position": [
+            3,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "GPS altitude",
+          "icon": "mountain.2.fill",
+          "style": "large-mono",
+          "formatValue": "suffix: m",
+          "defaultValue": 1871,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "location.altitude"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-climb",
+          "position": [
+            4,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Baro climb",
+          "icon": "arrow.up.right",
+          "style": "mono",
+          "formatValue": "suffix: m",
+          "defaultValue": 142.6,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "barometer.altitude"
+            }
+          ]
+        },
+        {
+          "type": "sparkline",
+          "id": "fr-pressure-trend",
+          "position": [
+            5,
+            0
+          ],
+          "span": [
+            2,
+            4
+          ],
+          "label": "Pressure trend (falling = weather)",
+          "sparklinePoints": 120,
+          "sparklineFill": true,
+          "tint": "#6FB7C9",
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "barometer.pressure"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "fr-battery",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Handset battery",
+          "min": 0,
+          "max": 100,
+          "icon": "battery.75percent",
+          "tint": "#9BD35A",
+          "defaultValue": 74,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "device.battery"
+            }
+          ]
+        },
+        {
+          "type": "gauge",
+          "id": "fr-tilt",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Slope / pitch",
+          "min": -60,
+          "max": 60,
+          "gaugeStyle": "full",
+          "formatValue": "suffix:°",
+          "tint": "#E8A53A",
+          "defaultValue": 17.5,
+          "segments": [
+            {
+              "limit": -30,
+              "color": "#D9534A"
+            },
+            {
+              "limit": 30,
+              "color": "#9BD35A"
+            },
+            {
+              "limit": 60,
+              "color": "#D9534A"
+            }
+          ],
+          "colorBlend": 0.3,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "motion.pitch"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-lat",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Latitude",
+          "style": "mono",
+          "formatValue": "decimal:5",
+          "defaultValue": 60.74213,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "location.latitude"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-lon",
+          "position": [
+            10,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Longitude",
+          "style": "mono",
+          "formatValue": "decimal:5",
+          "defaultValue": -139.13877,
+          "sync": [
+            {
+              "method": "sensor",
+              "sensor": "location.longitude"
+            }
+          ]
+        },
+        {
+          "type": "toggle",
+          "id": "fr-beacon",
+          "position": [
+            11,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Position beacon",
+          "icon": "dot.radiowaves.left.and.right",
+          "defaultValue": true,
+          "animation": "bouncy",
+          "haptic": "medium",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_beacon",
+              "on": "{{value}}"
+            }
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_status"
+              },
+              "valuePath": "beacon"
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "id": "fr-checkin",
+          "position": [
+            11,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Check in",
+          "icon": "checkmark.seal.fill",
+          "style": "filled",
+          "tint": "#9BD35A",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_checkin",
+              "status": "ok"
+            }
+          }
+        },
+        {
+          "type": "toggle",
+          "id": "fr-wx-watch",
+          "position": [
+            12,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Weather watch (Open-Meteo feed)",
+          "icon": "cloud.bolt.rain.fill",
+          "defaultValue": false,
+          "animation": "smooth"
+        },
+        {
+          "type": "group",
+          "id": "fr-wx",
+          "label": "Icefield forecast · 48 h",
+          "position": [
+            13,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "grid": {
+            "columns": 4,
+            "rows": 3
+          },
+          "visible": {
+            "when": "fr-wx-watch",
+            "operator": "eq",
+            "value": true
+          },
+          "children": [
+            {
+              "type": "sparkline",
+              "id": "fr-wx-temp",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                2,
+                4
+              ],
+              "label": "Air temp °C",
+              "sparklinePoints": 48,
+              "sparklineFill": true,
+              "tint": "#E8A53A",
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "meteo",
+                  "path": "/v1/forecast?latitude=60.742&longitude=-139.139&hourly=temperature_2m,wind_speed_10m&current=wind_speed_10m,precipitation&forecast_days=2",
+                  "interval": 900,
+                  "valuePath": "hourly.temperature_2m"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "fr-wx-wind",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Wind now",
+              "style": "mono",
+              "formatValue": "suffix: km/h",
+              "defaultValue": 23.4,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "meteo",
+                  "path": "/v1/forecast?latitude=60.742&longitude=-139.139&hourly=temperature_2m,wind_speed_10m&current=wind_speed_10m,precipitation&forecast_days=2",
+                  "interval": 900,
+                  "valuePath": "current.wind_speed_10m"
+                }
+              ]
+            },
+            {
+              "type": "label",
+              "id": "fr-wx-precip",
+              "position": [
+                2,
+                2
+              ],
+              "span": [
+                1,
+                2
+              ],
+              "label": "Precip now",
+              "style": "mono",
+              "formatValue": "suffix: mm",
+              "defaultValue": 0.2,
+              "sync": [
+                {
+                  "method": "http",
+                  "source": "meteo",
+                  "path": "/v1/forecast?latitude=60.742&longitude=-139.139&hourly=temperature_2m,wind_speed_10m&current=wind_speed_10m,precipitation&forecast_days=2",
+                  "interval": 900,
+                  "valuePath": "current.precipitation"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Samples",
+      "icon": "testtube.2",
+      "grid": {
+        "columns": 4,
+        "rows": 16
+      },
+      "children": [
+        {
+          "type": "segmentedControl",
+          "id": "fr-layer",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "style": "pills",
+          "options": [
+            "all",
+            "soil",
+            "water",
+            "tissue",
+            "ice"
+          ],
+          "optionLabels": [
+            "All",
+            "Soil",
+            "H₂O",
+            "Tissue",
+            "Ice"
+          ],
+          "defaultValue": "all",
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_map_layer",
+              "layer": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "map",
+          "id": "fr-sample-map",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            6,
+            4
+          ],
+          "label": "Kaskawulsh sample sites",
+          "mapStyle": "hybrid",
+          "mapInteractive": true,
+          "mapZoom": 0.04,
+          "tint": "#9BD35A",
+          "defaultValue": "{\"markers\":[{\"coordinate\":[60.7421,-139.1388],\"color\":\"#9BD35A\",\"size\":14,\"label\":\"KS-01\"},{\"coordinate\":[60.7468,-139.1251],\"color\":\"#6FB7C9\",\"size\":14,\"label\":\"KS-02\"},{\"coordinate\":[60.7512,-139.1107],\"color\":\"#9BD35A\",\"size\":14,\"label\":\"KS-03\"},{\"coordinate\":[60.739,-139.1019],\"color\":\"#E8A53A\",\"size\":14,\"label\":\"KS-04\"},{\"coordinate\":[60.7335,-139.1182],\"color\":\"#C9D6DF\",\"size\":14,\"label\":\"KS-05\"},{\"coordinate\":[60.7299,-139.134],\"color\":\"#6FB7C9\",\"size\":14,\"label\":\"KS-06\"},{\"coordinate\":[60.7442,-139.1301],\"color\":\"#E8A53A\",\"size\":20,\"label\":\"You\",\"ripple\":{\"color\":\"#E8A53A\",\"period\":1.6,\"radius\":48}}],\"paths\":[{\"points\":[[60.7421,-139.1388],[60.7468,-139.1251],[60.7512,-139.1107],[60.739,-139.1019],[60.7335,-139.1182]],\"color\":\"#E8A53AAA\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "map"
+            }
+          ]
+        },
+        {
+          "type": "progressRing",
+          "id": "fr-samples-ring",
+          "position": [
+            7,
+            0
+          ],
+          "span": [
+            3,
+            2
+          ],
+          "label": "Samples today",
+          "min": 0,
+          "max": 40,
+          "icon": "testtube.2",
+          "tint": "#9BD35A",
+          "defaultValue": 27,
+          "animation": "bouncy",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "count"
+            }
+          ]
+        },
+        {
+          "type": "statusLight",
+          "id": "fr-cold-chain",
+          "position": [
+            7,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Cold chain",
+          "style": "badge",
+          "statusColors": {
+            "nominal": "#9BD35A",
+            "warming": "#E8A53A",
+            "breach": "#D9534A"
+          },
+          "defaultValue": "nominal",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "cold_chain"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-dewar",
+          "position": [
+            8,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "LN₂ dewar",
+          "icon": "snowflake",
+          "style": "mono",
+          "formatValue": "percent",
+          "defaultValue": 64,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "dewar_pct"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-last-sample",
+          "position": [
+            9,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Last logged",
+          "style": "caption",
+          "defaultValue": "S-0927 · 14:12",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "last"
+            }
+          ]
+        },
+        {
+          "type": "list",
+          "id": "fr-sample-list",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Sample register",
+          "tint": "#E8A53A",
+          "listColumns": [
+            {
+              "key": "id",
+              "label": "ID"
+            },
+            {
+              "key": "kind",
+              "label": "Type"
+            },
+            {
+              "key": "site",
+              "label": "Site"
+            },
+            {
+              "key": "depth",
+              "label": "Depth"
+            },
+            {
+              "key": "by",
+              "label": "By"
+            }
+          ],
+          "defaultValue": "[{\"id\":\"S-0927\",\"kind\":\"soil\",\"site\":\"KS-03\",\"depth\":\"12 cm\",\"by\":\"Okafor\"},{\"id\":\"S-0926\",\"kind\":\"tissue\",\"site\":\"KS-04\",\"depth\":\"\\u2014\",\"by\":\"Lindqvist\"},{\"id\":\"S-0925\",\"kind\":\"water\",\"site\":\"KS-02\",\"depth\":\"0.4 m\",\"by\":\"Tremblay\"},{\"id\":\"S-0924\",\"kind\":\"ice\",\"site\":\"KS-05\",\"depth\":\"1.8 m\",\"by\":\"Okafor\"},{\"id\":\"S-0923\",\"kind\":\"soil\",\"site\":\"KS-01\",\"depth\":\"20 cm\",\"by\":\"Nakamura\"},{\"id\":\"S-0922\",\"kind\":\"water\",\"site\":\"KS-06\",\"depth\":\"0.2 m\",\"by\":\"Tremblay\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_samples"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "fr-sample-note",
+          "position": [
+            14,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "placeholder": "Draft note — substrate, colour, odour…",
+          "icon": "pencil.line",
+          "autocorrect": true,
+          "clearOnSubmit": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_draft",
+              "field": "note",
+              "value": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "stepper",
+          "id": "fr-vials",
+          "position": [
+            15,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Vials",
+          "min": 1,
+          "max": 12,
+          "step": 1,
+          "defaultValue": 3,
+          "animation": "snappy",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_draft",
+              "field": "vials",
+              "value": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "id": "fr-log-sample",
+          "position": [
+            15,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Log at GPS fix",
+          "icon": "mappin.and.ellipse",
+          "style": "filled",
+          "tint": "#E8A53A",
+          "haptic": "success",
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_log_sample",
+              "commit": true
+            }
+          },
+          "longPressAction": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_undo_sample"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "title": "Species",
+      "icon": "leaf.fill",
+      "grid": {
+        "columns": 4,
+        "rows": 14
+      },
+      "children": [
+        {
+          "type": "label",
+          "id": "fr-richness",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Species richness",
+          "style": "large-mono",
+          "defaultValue": 23,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_species"
+              },
+              "valuePath": "richness"
+            }
+          ]
+        },
+        {
+          "type": "label",
+          "id": "fr-shannon",
+          "position": [
+            0,
+            2
+          ],
+          "span": [
+            1,
+            2
+          ],
+          "label": "Shannon H′",
+          "style": "large-mono",
+          "formatValue": "decimal:2",
+          "defaultValue": 2.87,
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_species"
+              },
+              "valuePath": "shannon"
+            }
+          ]
+        },
+        {
+          "type": "treemap",
+          "id": "fr-species",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            5,
+            4
+          ],
+          "label": "Detections by taxon",
+          "tint": "#9BD35A",
+          "formatValue": "suffix: obs",
+          "treemapConfig": {
+            "showLabels": true,
+            "showValues": true,
+            "drillDown": true,
+            "cellGap": 3,
+            "cellCornerRadius": 4,
+            "itemAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "field_research_species_pick",
+                "item": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"items\":[{\"label\":\"Plants\",\"color\":\"#9BD35A\",\"children\":[{\"label\":\"Dryas integrifolia\",\"value\":38},{\"label\":\"Salix polaris\",\"value\":27},{\"label\":\"Saxifraga oppositifolia\",\"value\":19},{\"label\":\"Carex spp.\",\"value\":14}]},{\"label\":\"Lichens\",\"color\":\"#C9D6A3\",\"children\":[{\"label\":\"Rhizocarpon geographicum\",\"value\":31},{\"label\":\"Cladonia rangiferina\",\"value\":22},{\"label\":\"Umbilicaria\",\"value\":9}]},{\"label\":\"Birds\",\"color\":\"#E8A53A\",\"children\":[{\"label\":\"Rock ptarmigan\",\"value\":11},{\"label\":\"Horned lark\",\"value\":7},{\"label\":\"Golden eagle\",\"value\":2}]},{\"label\":\"Mammals\",\"color\":\"#C77B4A\",\"children\":[{\"label\":\"Hoary marmot\",\"value\":9},{\"label\":\"Arctic ground squirrel\",\"value\":14},{\"label\":\"Collared pika\",\"value\":6},{\"label\":\"Dall sheep\",\"value\":4}]},{\"label\":\"Arthropods\",\"color\":\"#6FB7C9\",\"children\":[{\"label\":\"Wolf spiders\",\"value\":17},{\"label\":\"Springtails\",\"value\":24},{\"label\":\"Bumblebees\",\"value\":5}]},{\"label\":\"Ice algae\",\"color\":\"#D98FA6\",\"value\":12}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_species"
+              },
+              "valuePath": "tree"
+            }
+          ]
+        },
+        {
+          "type": "heatmap",
+          "id": "fr-detect-heat",
+          "position": [
+            6,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Detections · transect × hour",
+          "formatValue": "suffix: obs",
+          "heatmapConfig": {
+            "colors": [
+              "#1D2A1F",
+              "#4E6B3A",
+              "#9BD35A",
+              "#E8A53A"
+            ],
+            "showScale": true,
+            "showValues": true,
+            "vMin": 0,
+            "vMax": 12,
+            "cellGap": 3,
+            "cellCorner": 4
+          },
+          "defaultValue": "{\"rows\":[\"T1\",\"T2\",\"T3\",\"T4\",\"T5\"],\"cols\":[\"04\",\"07\",\"10\",\"13\",\"16\",\"19\",\"22\"],\"values\":[[2,6,9,7,5,8,3],[1,4,11,12,6,5,2],[0,3,7,10,9,4,1],[3,8,6,4,4,7,5],[0,1,2,5,3,2,0]]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_species"
+              },
+              "valuePath": "heat"
+            }
+          ]
+        },
+        {
+          "type": "pieChart",
+          "id": "fr-effort",
+          "position": [
+            10,
+            0
+          ],
+          "span": [
+            4,
+            4
+          ],
+          "label": "Survey effort by method",
+          "pieStyle": "donut",
+          "pieConfig": {
+            "centerText": "{{total}} h",
+            "showLegend": true,
+            "percent": true,
+            "explodeSelected": true,
+            "sliceAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "field_research_method_focus",
+                "method": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"slices\":[{\"label\":\"Quadrat\",\"value\":34,\"color\":\"#9BD35A\"},{\"label\":\"Point count\",\"value\":21,\"color\":\"#E8A53A\"},{\"label\":\"Pitfall\",\"value\":18,\"color\":\"#6FB7C9\"},{\"label\":\"Camera trap\",\"value\":15,\"color\":\"#C77B4A\"},{\"label\":\"eDNA\",\"value\":12,\"color\":\"#D98FA6\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_species"
+              },
+              "valuePath": "effort"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Plan",
+      "icon": "calendar.day.timeline.left",
+      "grid": {
+        "columns": 4,
+        "rows": 5,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "gantt",
+          "id": "fr-plan",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Expedition plan · Sep 16 – Oct 2",
+          "tint": "#9BD35A",
+          "ganttConfig": {
+            "editable": true,
+            "step": 0.05,
+            "rowHeight": 28,
+            "barCornerRadius": 3,
+            "showToday": true,
+            "showAxis": true,
+            "showGrid": true,
+            "taskAction": {
+              "method": "meshsocket",
+              "mode": "broadcast",
+              "event": "broadcast_request",
+              "payload": {
+                "msg_type": "field_research_task_progress",
+                "task": "{{value}}"
+              }
+            }
+          },
+          "defaultValue": "{\"tasks\":[{\"name\":\"Fly-in Haines Jct\",\"start\":\"2026-09-16\",\"milestone\":true,\"color\":\"#E8A53A\"},{\"name\":\"Establish camp\",\"start\":\"2026-09-16\",\"end\":\"2026-09-18\",\"progress\":1.0,\"color\":\"#C77B4A\"},{\"name\":\"Transects T1\\u2013T3\",\"start\":\"2026-09-18\",\"end\":\"2026-09-24\",\"progress\":0.85,\"color\":\"#9BD35A\"},{\"name\":\"Ice cores KS-05\",\"start\":\"2026-09-21\",\"end\":\"2026-09-26\",\"progress\":0.45,\"color\":\"#C9D6DF\"},{\"name\":\"eDNA meltwater\",\"start\":\"2026-09-22\",\"end\":\"2026-09-27\",\"progress\":0.3,\"color\":\"#6FB7C9\"},{\"name\":\"Transects T4\\u2013T5\",\"start\":\"2026-09-25\",\"end\":\"2026-09-29\",\"progress\":0.0,\"color\":\"#9BD35A\"},{\"name\":\"Cache C2 resupply\",\"start\":\"2026-09-26\",\"milestone\":true,\"color\":\"#E8A53A\"},{\"name\":\"Break camp\",\"start\":\"2026-09-30\",\"end\":\"2026-10-01\",\"progress\":0.0,\"color\":\"#C77B4A\"},{\"name\":\"Fly-out\",\"start\":\"2026-10-02\",\"milestone\":true,\"color\":\"#D9534A\"}]}",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_plan"
+              },
+              "valuePath": "gantt"
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "id": "fr-teams",
+          "label": "Field teams",
+          "position": [
+            1,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "dynamic": "field_research_teams",
+          "grid": {
+            "columns": 4,
+            "rows": 4,
+            "mode": "flow"
+          },
+          "pulse": {
+            "event": "field_research_teams",
+            "color": "#9BD35A",
+            "direction": "inward"
+          },
+          "children": [
+            {
+              "type": "statusLight",
+              "id": "fr-team-0-st",
+              "position": [
+                0,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "active",
+              "style": "dot",
+              "statusColors": {
+                "active": "#9BD35A",
+                "returning": "#E8A53A",
+                "overdue": "#D9534A",
+                "in camp": "#7C8577"
+              },
+              "defaultValue": "active"
+            },
+            {
+              "type": "label",
+              "id": "fr-team-0-tx",
+              "position": [
+                0,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "style": "mono",
+              "text": "Okafor, Nakamura · T3 km 2.4 · ETA 17:40",
+              "label": "Team Moraine"
+            },
+            {
+              "type": "statusLight",
+              "id": "fr-team-1-st",
+              "position": [
+                1,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "active",
+              "style": "dot",
+              "statusColors": {
+                "active": "#9BD35A",
+                "returning": "#E8A53A",
+                "overdue": "#D9534A",
+                "in camp": "#7C8577"
+              },
+              "defaultValue": "active"
+            },
+            {
+              "type": "label",
+              "id": "fr-team-1-tx",
+              "position": [
+                1,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "style": "mono",
+              "text": "Lindqvist · KS-04 tissue plots",
+              "label": "Team Nunatak"
+            },
+            {
+              "type": "statusLight",
+              "id": "fr-team-2-st",
+              "position": [
+                2,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "returning",
+              "style": "dot",
+              "statusColors": {
+                "active": "#9BD35A",
+                "returning": "#E8A53A",
+                "overdue": "#D9534A",
+                "in camp": "#7C8577"
+              },
+              "defaultValue": "returning"
+            },
+            {
+              "type": "label",
+              "id": "fr-team-2-tx",
+              "position": [
+                2,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "style": "mono",
+              "text": "Tremblay, Roy · KS-06 → camp",
+              "label": "Team Melt"
+            },
+            {
+              "type": "statusLight",
+              "id": "fr-team-3-st",
+              "position": [
+                3,
+                0
+              ],
+              "span": [
+                1,
+                1
+              ],
+              "label": "in camp",
+              "style": "dot",
+              "statusColors": {
+                "active": "#9BD35A",
+                "returning": "#E8A53A",
+                "overdue": "#D9534A",
+                "in camp": "#7C8577"
+              },
+              "defaultValue": "in camp"
+            },
+            {
+              "type": "label",
+              "id": "fr-team-3-tx",
+              "position": [
+                3,
+                1
+              ],
+              "span": [
+                1,
+                3
+              ],
+              "style": "mono",
+              "text": "Dr. Arsenault · lab tent, dewar top-up",
+              "label": "Camp"
+            }
+          ]
+        },
+        {
+          "type": "textInput",
+          "id": "fr-note-input",
+          "position": [
+            2,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Field notebook",
+          "placeholder": "Observation… (queued offline, syncs on uplink)",
+          "icon": "book.closed.fill",
+          "sendButton": true,
+          "minLines": 2,
+          "maxLines": 6,
+          "autocorrect": true,
+          "autocorrectToggle": true,
+          "clearOnSubmit": true,
+          "action": {
+            "method": "meshsocket",
+            "mode": "broadcast",
+            "event": "broadcast_request",
+            "payload": {
+              "msg_type": "field_research_note",
+              "text": "{{value}}"
+            }
+          }
+        },
+        {
+          "type": "list",
+          "id": "fr-notes",
+          "position": [
+            3,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Notebook",
+          "controlHeight": 220,
+          "tint": "#E8A53A",
+          "listColumns": [
+            {
+              "key": "t",
+              "label": "Time"
+            },
+            {
+              "key": "who",
+              "label": "By"
+            },
+            {
+              "key": "text",
+              "label": "Note"
+            }
+          ],
+          "defaultValue": "[{\"t\":\"14:08\",\"who\":\"Okafor\",\"text\":\"KS-03 permafrost table at 41 cm, ice lens visible\"},{\"t\":\"12:51\",\"who\":\"Lindqvist\",\"text\":\"Pika haypile under boulder field, photo P-221\"},{\"t\":\"11:30\",\"who\":\"Tremblay\",\"text\":\"Meltwater turbidity rising after 11:00\"},{\"t\":\"09:14\",\"who\":\"Arsenault\",\"text\":\"Iridium window 18:00\\u201318:20 UTC confirmed\"}]",
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_notes"
+              },
+              "valuePath": "rows"
+            }
+          ]
+        },
+        {
+          "type": "logConsole",
+          "id": "fr-radio-log",
+          "position": [
+            4,
+            0
+          ],
+          "span": [
+            1,
+            4
+          ],
+          "label": "Radio & sensor log",
+          "controlHeight": 200,
+          "maxLines": 300,
+          "showTimestamps": true,
+          "fontSize": 11,
+          "autoScroll": true,
+          "logColors": {
+            "error": "#D9534A",
+            "warn": "#E8A53A",
+            "info": "#9BD35A",
+            "debug": "#7C8577"
+          },
+          "sync": [
+            {
+              "method": "meshsocket",
+              "type": "listen",
+              "event": "broadcast",
+              "filter": {
+                "msg_type": "field_research_log"
+              },
+              "valuePath": "lines"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Radio",
+      "icon": "bubble.left.and.bubble.right.fill",
+      "grid": {
+        "columns": 1,
+        "rows": 1,
+        "mode": "flow"
+      },
+      "children": [
+        {
+          "type": "chat",
+          "id": "fr-team-chat",
+          "position": [
+            0,
+            0
+          ],
+          "span": [
+            1,
+            1
+          ],
+          "label": "Expedition channel",
+          "config": {
+            "showTypingIndicators": true,
+            "showReadReceipts": true,
+            "allowReactions": true,
+            "allowReplies": true,
+            "allowImages": true,
+            "allowClear": false,
+            "historyCount": 50,
+            "tint": "#9BD35A"
+          }
+        }
+      ]
+    }
+  ]
+}
