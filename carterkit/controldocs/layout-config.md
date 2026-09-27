@@ -10,7 +10,13 @@ fields:
   - name: version
     bounds: none
     type: number
-    description: Schema version (required)
+    description: The author's revision label (required; never gates anything — see document-contract)
+  - name: schemaVersion
+    type: number
+    description: Grammar version, optional (absent = 1); set by writers, bumped only when an older app would misread the file
+  - name: extensions
+    type: object
+    description: Reverse-DNS keyed tool data the app preserves and never interprets (64 KB cap; see document-contract)
   - name: headerTitle
     type: string
     description: Title shown in the header bar
@@ -141,7 +147,17 @@ Fonts set at the theme level propagate to all controls. Per-control overrides ar
 
 For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-themes** (`toggle`, `slider`, `stepper`, `segmented`, `progressBar`), and a live theme builder, see [[theming]].
 
+## Document contract
+
+`schemaVersion` vs `version`, the `extensions` block, reserved keys, provenance,
+the sectioned form, the limits table and the asset rule are defined once in
+[[document-contract]]. In short: `version` is your revision label and never gates
+anything; `schemaVersion` (optional, absent = 1) names the grammar; put tool data
+in `extensions`, not in new top-level keys.
+
 ## Identity
+
+Full rules (layout id = installation, `renameId`): [[document-contract#Identity]].
 
 Every control and group has an `id`, unique among all of the layout's controls
 and groups (a tab's `children` and, recursively, group `children`). The id is the
@@ -202,6 +218,7 @@ auto-derived glance. Full reference: [[glance]].
 
 ## Related
 
+- [[document-contract]] — versions, extensions, identity, limits, assets
 - [[glance]] — widgets, Dynamic Island, lock screen, Control Center
 - [[sources]] — MQTT/HTTP data sources
 - [[theming]] — Full theme system, light/dark variants, live builder

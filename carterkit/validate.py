@@ -17,7 +17,10 @@ is reported, not built.
 
 from __future__ import annotations
 
+import json
 import math
+import re
+from pathlib import Path
 from typing import Optional
 from urllib.parse import urlsplit
 
@@ -34,10 +37,13 @@ SHARED_FIELDS = {
     # (not per-control config) — any control may carry them; unused ones are ignored.
     # Mirrors CAR-TER/CAR-TER/Models/ControlDefinition.swift.
     "min", "max", "step", "formatValue", "controlHeight", "hideValue", "pulse",
+    # Tool data (document-contract.md#Extensions): preserved, never interpreted.
+    "extensions",
 }
 GROUP_FIELDS = {
     "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
+    "extensions",
 }
 
 
@@ -45,15 +51,56 @@ def _f(severity: str, kind: str, where: str, detail: str) -> dict:
     return {"severity": severity, "kind": kind, "where": where, "detail": detail}
 
 
-#: Hostile-input caps. The app renders nothing like these; past them a layout is
-#: either broken or crafted, and the lint says so instead of working harder.
+#: The document contract's Limits table (controldocs/document-contract.md#Limits) is
+#: the ONE source for the structural caps: the app's unit tests pin its sanitizer to the
+#: same table, so a layout this lint accepts is a layout the device renders. The
+#: fallback values below only matter if the vendored doc is missing or unparseable.
+_LIMIT_DEFAULTS = {
+    "maxTabs": 24, "maxControls": 2000, "maxNestingDepth": 8, "maxStringBytes": 4096,
+    "maxDataImageBytes": 524288, "maxExtensionsBytes": 65536, "maxPosition": 256,
+    "maxSpan": 64, "maxGridColumns": 64, "maxGridRows": 512, "minTimerSeconds": 0.25,
+    "maxBufferPoints": 5000, "maxWireBytes": 2097152, "maxFileBytes": 8388608,
+}
+
+
+def _load_limits() -> dict:
+    """Parse the `| `name` | value | … |` rows under `## Limits` in the vendored
+    document-contract.md; unknown or missing rows keep their defaults."""
+    limits = dict(_LIMIT_DEFAULTS)
+    try:
+        text = (Path(__file__).parent / "controldocs" / "document-contract.md").read_text("utf-8")
+    except OSError:
+        return limits
+    in_limits = False
+    for line in text.splitlines():
+        if line.startswith("## "):
+            in_limits = line.strip() == "## Limits"
+            continue
+        if not in_limits or not line.startswith("| `"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 2:
+            continue
+        name = cells[0].strip("`")
+        try:
+            value = float(cells[1])
+        except ValueError:
+            continue
+        limits[name] = int(value) if value.is_integer() else value
+    return limits
+
+
+#: Every limit from the contract, by its table name.
+LIMITS = _load_limits()
 #: How many groups/containers may enclose a control (a tab's own children are nesting
 #: 0). ONE number with the app: LayoutLimits.maxNestingDepth, which bounds both its
 #: sanitizer and its renderer (carter-m7s.7) — past it the device refuses a pushed
 #: layout and renders "Nested too deeply" for a stored one.
-MAX_DEPTH = 8
-MAX_CONTROLS = 2000
-MAX_STRING = 4096
+MAX_DEPTH = LIMITS["maxNestingDepth"]
+MAX_CONTROLS = LIMITS["maxControls"]
+MAX_STRING = LIMITS["maxStringBytes"]
+MAX_DATA_IMAGE = LIMITS["maxDataImageBytes"]
+MAX_EXTENSIONS = LIMITS["maxExtensionsBytes"]
 #: URL schemes a layout may point the phone at. `http` is allowed but warned.
 SAFE_URL_SCHEMES = {"https", "mqtt", "mqtts", "ws", "wss"}
 _WARN_URL_SCHEMES = {"http"}
@@ -110,6 +157,7 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     # them (an mqtt/http `source:` must name a declared source). See sources.md.
     sources = _validate_sources_defs(layout, findings)
     _validate_top_level(layout, findings)
+    _validate_contract(layout, findings)
 
     tabs = layout.get("tabs")
     if not isinstance(tabs, list):
@@ -384,29 +432,39 @@ def _scan_tree(layout: dict, findings: list) -> None:
                            "a credential is embedded in the layout — anyone who receives "
                            "this JSON (share, export, MCP readback) receives the secret"))
 
-    stack = [(layout, "root", 0)]
+    stack = [(layout, "root", 0, None)]
     seen_urls = 0
+    blobs = 0
     while stack:
-        node, path, depth = stack.pop()
+        node, path, depth, key = stack.pop()
         if depth > 64:
             findings.append(_f("error", "too_deep", path, "document nests deeper than 64 levels"))
             continue
         if isinstance(node, dict):
             for k, v in node.items():
                 sub = f"{path}.{k}"
+                if k == "extensions":
+                    continue            # opaque tool data; bounded by _validate_extensions
                 if isinstance(v, str) and k in _URL_KEYS and depth > 0 and path != "root.connection":
                     seen_urls += 1
                     if seen_urls <= 500:
                         _check_url(v, sub, findings)
-                stack.append((v, sub, depth + 1))
+                stack.append((v, sub, depth + 1, k))
         elif isinstance(node, list):
             for i, v in enumerate(node):
-                stack.append((v, f"{path}[{i}]", depth + 1))
+                stack.append((v, f"{path}[{i}]", depth + 1, key))
         elif isinstance(node, float):
             if math.isnan(node) or math.isinf(node):
                 findings.append(_f("error", "non_finite", path,
                                    f"{node!r} is not valid JSON — the app's decoder rejects the whole layout"))
         elif isinstance(node, str):
+            blob = _blob_finding(node, key, path) if blobs < 50 else None
+            if blob:
+                blobs += 1
+                findings.append(blob)
+                continue            # one finding per blob, not also long_string
+            if key in ("url", "baseURL") and node[:11].lower() == "data:image/":
+                continue            # the app's own cap for these is MAX_DATA_IMAGE
             if len(node) > MAX_STRING:
                 findings.append(_f("warn", "long_string", path,
                                    f"string is {len(node)} chars (> {MAX_STRING}); the app truncates or chokes"))
@@ -414,6 +472,8 @@ def _scan_tree(layout: dict, findings: list) -> None:
 
 def _check_url(value: str, path: str, findings: list) -> None:
     if not value or "{{" in value:              # templated at runtime; scheme unknown here
+        return
+    if value[:11].lower() == "data:image/":     # the one allowed inline blob (see _blob_finding)
         return
     if value.startswith("/") or "://" not in value and ":" not in value.split("/", 1)[0]:
         return                                  # a relative path against a source baseURL
@@ -481,7 +541,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
     # `depth` is 1 for a tab's own children, so the child's nesting is depth - 1.
     if depth - 1 > MAX_DEPTH:
         findings.append(_f("error", "too_deep", where,
-                           f"groups nest deeper than {MAX_DEPTH} levels — the app cannot render this"))
+                           f"groups nest deeper than {MAX_DEPTH} levels — the app refuses it on "
+                           f"push and renders a stored copy as a 'Nested too deeply' placeholder"))
         return
     sources = sources or {}
     ctype = ch.get("type")
@@ -501,7 +562,9 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
     if ctype == "group":
         for k in ch:
             if k not in GROUP_FIELDS:
-                findings.append(_f("warn", "unknown_field", spot, f"group: unknown field '{k}'"))
+                findings.append(_f("warn", "unknown_field", spot,
+                                   f"group: unknown field '{k}'{_EXT_HINT}"))
+        _validate_extensions(ch.get("extensions"), f"{spot}.extensions", findings)
         sub_children = ch.get("children") or []
         if not isinstance(sub_children, list):
             findings.append(_f("error", "structure", spot, "group 'children' must be an array"))
@@ -521,13 +584,15 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         findings.append(_f("error", "unknown_type", spot, f"unknown control type '{ctype}'"))
         return
 
+    _validate_extensions(ch.get("extensions"), f"{spot}.extensions", findings)
     fields = {f["name"]: f for f in entry.get("fields", [])}
     theme_names = {f["name"] for f in entry.get("themeFields", [])}
     allowed = SHARED_FIELDS | set(fields) | theme_names
 
     for k, v in ch.items():
         if k not in allowed:
-            findings.append(_f("warn", "unknown_field", spot, f"{ctype}: unknown field '{k}'"))
+            findings.append(_f("warn", "unknown_field", spot,
+                               f"{ctype}: unknown field '{k}'{_EXT_HINT}"))
             continue
         fd = fields.get(k)
         if fd and fd.get("type") == "enum" and fd.get("values") and isinstance(v, str):
@@ -710,6 +775,136 @@ def _validate_sources_defs(layout, findings) -> dict:
 
 _ALERT_OPERATORS = {"eq", "neq", "gt", "lt", "gte", "lte"}
 _SENSOR_PIPELINES = {"heading", "motion", "barometer", "device", "audio", "location"}
+
+
+# ── the document contract (controldocs/document-contract.md) ─────────────────
+
+_EXT_HINT = (" — if this is your tool's own data, move it under "
+             "'extensions': {\"<reverse.dns.name>\": {...}} (see document-contract)")
+
+#: Top-level keys the app models or the contract defines. Anything else is a core-key
+#: guess: tolerated by the app, but a later grammar may give that name a meaning.
+TOP_LEVEL_KEYS = {
+    "name", "headerTitle", "version", "accentColor", "appearance", "connection", "tabs",
+    "pollGroups", "dynamicTabs", "theme", "alerts", "state", "id", "glance", "publishers",
+    "batchPublishers", "sources", "sensorSetup", "keepAwake",
+    # document contract
+    "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
+    "placements", "connectivity",
+    # a wire frame's discriminator, when a pushed payload is linted as-is
+    "msg_type",
+}
+#: Reserved for a later grammar — never author them (document-contract.md).
+RESERVED_TOP_LEVEL = {"revision", "attestations"}
+#: The newest grammar this kit understands (1 = inline, 2 = sectioned).
+KNOWN_SCHEMA_VERSION = 2
+_REVERSE_DNS = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$", re.IGNORECASE)
+_FEATURE = re.compile(r"^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)*(@[1-9][0-9]*)?$")
+_PROVENANCE_RELATIONS = {"copy", "package", "remix", "import"}
+_DATA_URL = re.compile(r"^data:[a-z]+/[a-z0-9.+-]+(;[^,]{0,200})?,", re.IGNORECASE)
+_BASE64_RUN = re.compile(r"^[A-Za-z0-9+/_-]+={0,2}$")
+#: A string this long made only of base64 characters is an inline blob, not text.
+_BLOB_MIN = 1024
+
+
+def _validate_extensions(ext, where: str, findings: list) -> None:
+    """`extensions`: an object of reverse-DNS keys, at most MAX_EXTENSIONS bytes of
+    compact JSON — the app refuses (strict) or drops (disk) anything else."""
+    if ext is None:
+        return
+    if not isinstance(ext, dict):
+        findings.append(_f("error", "bad_extensions", where,
+                           "'extensions' must be an object keyed by reverse-DNS tool names"))
+        return
+    try:
+        size = len(json.dumps(ext, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+    except (TypeError, ValueError):
+        size = None
+    if size is None:
+        findings.append(_f("error", "bad_extensions", where, "'extensions' is not valid JSON"))
+    elif size > MAX_EXTENSIONS:
+        findings.append(_f("error", "bad_extensions", where,
+                           f"extensions block is {size} bytes (> {MAX_EXTENSIONS}); the app "
+                           f"refuses it on push and drops it from a stored copy"))
+    for k in ext:
+        if not isinstance(k, str) or not _REVERSE_DNS.match(k):
+            findings.append(_f("warn", "bad_extensions", f"{where}.{k}",
+                               f"extension key '{k}' should be a reverse-DNS tool name "
+                               f"(e.g. 'com.example.tool')"))
+
+
+def _blob_finding(value: str, key, path: str):
+    """An inline binary payload other than a bounded data:image URL in a url field."""
+    if _DATA_URL.match(value[:256]):
+        if value[:11].lower() == "data:image/" and key in ("url", "baseURL"):
+            if len(value.encode("utf-8")) > MAX_DATA_IMAGE:
+                return _f("warn", "inline_blob", path,
+                          f"data:image URL is {len(value)} bytes (> {MAX_DATA_IMAGE}); the app "
+                          f"refuses or truncates it — host the image and link it by https URL")
+            return None
+        return _f("warn", "inline_blob", path,
+                  "inline data: URL — only a data:image URL in a 'url'/'baseURL' field is "
+                  "allowed; host the file and link it by https URL (see document-contract)")
+    if len(value) >= _BLOB_MIN and _BASE64_RUN.match(value):
+        return _f("warn", "inline_blob", path,
+                  f"{len(value)}-char base64 string — documents carry no blobs; host the "
+                  f"file and link it by https URL (see document-contract)")
+    return None
+
+
+def _validate_contract(layout: dict, findings: list) -> None:
+    """The envelope rules: schemaVersion, format, extensions, reserved keys,
+    provenance, requires.features, and core-key guesses at the top level."""
+    sv = layout.get("schemaVersion")
+    if sv is not None:
+        if isinstance(sv, bool) or not isinstance(sv, int) or sv < 1:
+            findings.append(_f("error", "bad_schema_version", "root",
+                               "'schemaVersion' must be a positive integer (omit it for 1)"))
+        elif sv > KNOWN_SCHEMA_VERSION:
+            findings.append(_f("warn", "bad_schema_version", "root",
+                               f"schemaVersion {sv} is newer than this kit knows "
+                               f"({KNOWN_SCHEMA_VERSION}); older apps open it read-only"))
+    sectioned = any(k in layout for k in ("placements", "connectivity")) or (
+        isinstance(layout.get("appearance"), dict) and "controls" in layout["appearance"])
+    if sectioned and sv != 2:
+        findings.append(_f("warn", "bad_schema_version", "root",
+                           "sections (placements / connectivity / appearance.controls) "
+                           "need \"schemaVersion\": 2 so older apps open the file read-only"))
+    fmt = layout.get("format")
+    if fmt is not None and fmt != "carter":
+        findings.append(_f("warn", "bad_top_level", "root", "'format' should be \"carter\""))
+    _validate_extensions(layout.get("extensions"), "root.extensions", findings)
+
+    for k in layout:
+        if k in RESERVED_TOP_LEVEL:
+            findings.append(_f("warn", "reserved_key", f"root.{k}",
+                               f"'{k}' is reserved for a later grammar — don't author it"))
+        elif k not in TOP_LEVEL_KEYS:
+            findings.append(_f("warn", "unknown_field", "root",
+                               f"unknown top-level key '{k}'{_EXT_HINT}"))
+
+    prov = layout.get("provenance")
+    if prov is not None:
+        parents = prov.get("parents") if isinstance(prov, dict) else None
+        if not isinstance(prov, dict) or (parents is not None and not isinstance(parents, list)):
+            findings.append(_f("warn", "bad_provenance", "root.provenance",
+                               "'provenance' should be {\"parents\": [...], \"package\"?: {...}}"))
+        else:
+            for i, p in enumerate(parents or []):
+                rel = p.get("relation") if isinstance(p, dict) else None
+                if not isinstance(p, dict) or not p.get("id") or rel not in _PROVENANCE_RELATIONS:
+                    findings.append(_f("warn", "bad_provenance", f"root.provenance.parents[{i}]",
+                                       f"a parent needs an 'id' and a 'relation' in "
+                                       f"{sorted(_PROVENANCE_RELATIONS)}"))
+
+    req = layout.get("requires")
+    feats = req.get("features") if isinstance(req, dict) else None
+    if isinstance(feats, list):
+        for i, feat in enumerate(feats):
+            if not isinstance(feat, str) or not _FEATURE.match(feat):
+                findings.append(_f("warn", "bad_requires", f"root.requires.features[{i}]",
+                                   f"feature {feat!r} should be 'name' or 'name@N' "
+                                   f"(e.g. 'local.store@2')"))
 
 
 def _validate_top_level(layout, findings):

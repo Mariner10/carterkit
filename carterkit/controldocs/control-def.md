@@ -32,6 +32,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `longPressAction` | [[actions\|ActionDefinition]] | — | Action fired on long-press |
 | `longPressGroup` | [[long-press\|GroupDefinition]] | — | Sub-group popup on long-press |
 | `theme` | object | — | Per-control theme overrides (see below) |
+| `extensions` | object | — | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Style Fields (shared)
 

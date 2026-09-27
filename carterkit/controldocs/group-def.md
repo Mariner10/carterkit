@@ -23,6 +23,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
+| `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Example
 

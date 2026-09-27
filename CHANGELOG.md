@@ -5,6 +5,18 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## Unreleased
 
+### Added
+- **Document contract lint (carter-m7s.6).** `controldocs/document-contract.md` is the
+  one source for versions, `extensions{}`, reserved keys, identity, limits and assets.
+  `validate.LIMITS` (and `MAX_DEPTH` / `MAX_CONTROLS` / `MAX_STRING`) are read from its
+  Limits table. New findings: `bad_extensions` (not an object, over 64 KB, non
+  reverse-DNS key), `inline_blob` (data: URLs other than a bounded data:image `url`,
+  long base64 strings), `bad_schema_version`, `reserved_key` (`revision`,
+  `attestations`), `bad_provenance`, `bad_requires` (`name@N` features). Unknown
+  control/group/top-level keys now suggest moving tool data into `extensions`; the
+  contents of `extensions` are never linted. A data:image URL in `url`/`baseURL` is
+  no longer a `bad_url` error.
+
 ### Changed
 - **Nesting limit matches the app (carter-m7s.7).** `validate.MAX_DEPTH` is now 8 — the
   app's single `LayoutLimits.maxNestingDepth`, shared by its sanitizer and renderer —
