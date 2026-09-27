@@ -15,7 +15,7 @@ fields:
   - name: boxStyle
     type: string
     default: box
-    description: '"box" (box-and-whisker) or "violin" (kernel density body)'
+    description: "'box' (box-and-whisker) or 'violin' (kernel density body)"
   - name: boxPlotConfig
     type: object
     description: Full configuration object (see BoxPlotConfig section)
@@ -74,7 +74,7 @@ fields:
     group: boxPlotConfig
   - name: whiskers
     type: string
-    description: 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)
+    description: "'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)"
     group: boxPlotConfig
   - name: yMax
     bounds: none

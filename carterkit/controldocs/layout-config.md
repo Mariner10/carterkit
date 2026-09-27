@@ -21,7 +21,7 @@ fields:
     description: Reverse-DNS keyed tool data the app preserves and never interprets (64 KB cap; see document-contract)
   - name: requires
     type: object
-    description: The app version and features this layout needs, e.g. {"app": "1.3", "features": ["control.symbol"]}; a soft gate, so an older app still renders what it can and shows one update banner (see Requires and fallback)
+    description: "The app version and features this layout needs, e.g. {'app': '1.3', 'features': ['control.symbol']}; a soft gate, so an older app still renders what it can and shows one update banner (see Requires and fallback)"
   - name: headerTitle
     type: string
     description: Title shown in the header bar
@@ -54,7 +54,7 @@ fields:
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
   - name: liveness
     type: object
-    description: Layout-wide staleness default for sync bindings, e.g. {"staleAfter": 120} (opt-in; see sync)
+    description: "Layout-wide staleness default for sync bindings, e.g. {'staleAfter': 120} (opt-in; see sync)"
   - name: batchPublishers
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)

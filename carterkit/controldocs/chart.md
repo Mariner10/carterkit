@@ -64,7 +64,7 @@ fields:
     step: 10
     type: number
     default: 100
-    description: Rolling window applied to {'append': …} pushes
+    description: "Rolling window applied to {'append': …} pushes"
     group: chartConfig
   - name: negativeColor
     type: color

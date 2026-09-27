@@ -48,7 +48,7 @@ fields:
     group: heatmapConfig
   - name: colors
     type: string[]
-    description: Continuous: 2+ gradient stops. Discrete: the palette (value = index)
+    description: "Continuous: 2+ gradient stops. Discrete: the palette (value = index)"
     group: heatmapConfig
   - name: discrete
     type: bool
@@ -63,7 +63,7 @@ fields:
   - name: editable
     type: bool
     default: false
-    description: Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)
+    description: "Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)"
     group: heatmapConfig
   - name: sendMode
     type: string
