@@ -530,13 +530,18 @@ def _validate_glance(glance: dict, seen_ids: dict, findings: list) -> None:
                                f"{list(LIVE_TIERS)} — the app falls back to 'fresh'"))
 
 
+def _is_placeholder(v) -> bool:
+    """A template slot like "<your-token>" is not a credential (samples ship with it)."""
+    return isinstance(v, str) and len(v) > 2 and v.startswith("<") and v.endswith(">")
+
+
 def _scan_tree(layout: dict, findings: list) -> None:
     """One iterative pass over the whole document for value-level hazards."""
     secret_paths = set()
     conn = layout.get("connection")
     if isinstance(conn, dict):
         for k in ("token", "e2eeKey", "k", "refresh"):
-            if conn.get(k):
+            if conn.get(k) and not _is_placeholder(conn.get(k)):
                 secret_paths.add(f"connection.{k}")
     srcs = layout.get("sources")
     if isinstance(srcs, dict):
@@ -544,12 +549,13 @@ def _scan_tree(layout: dict, findings: list) -> None:
             if not isinstance(src, dict):
                 continue
             for k in ("password", "token", "apiKey"):
-                if src.get(k):
+                if src.get(k) and not _is_placeholder(src.get(k)):
                     secret_paths.add(f"sources.{name}.{k}")
             headers = src.get("headers")
             if isinstance(headers, dict):
                 for hk in headers:
-                    if any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie")):
+                    if any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie")) \
+                            and not _is_placeholder(headers[hk]):
                         secret_paths.add(f"sources.{name}.headers.{hk}")
     for path in sorted(secret_paths):
         findings.append(_f("warn", "embedded_secret", path,
