@@ -13,7 +13,7 @@ fields:
     description: Scope for every non-shared collection (default the layout id, else its name); must match ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$ and cannot be "shared"
   - name: collections
     type: object
-    description: Collection name → { fields, shared?, mirror? }; fields maps a name to one of string number integer bool date json
+    description: Collection name → { fields, shared?, mirror?, singleton?, defaults? }; fields maps a name to one of string number integer bool date json
   - name: views
     type: object
     description: View name → { from, where?, orderBy?, limit? }; a named row set over a collection or another view
@@ -74,6 +74,8 @@ A local store is one more entry in the layout's top-level [[sources]] block:
 | `collections.*.fields` | yes | Map of field name → type (closed set below). Names match `^[a-z][A-Za-z0-9_]{0,63}$`; `id`, `createdAt`, `updatedAt` and `_hlc` are reserved; at most 64 fields. |
 | `collections.*.shared` | no | `true` puts the collection in the device-wide `shared` namespace so other layouts can bind the same rows. |
 | `collections.*.mirror` | no | Reserved for the studio change-notice; stored, not read by the store. |
+| `collections.*.singleton` | no | `true` makes the collection hold exactly one row, id `singleton` (see Singleton collections below). |
+| `collections.*.defaults` | no | Map of declared field → starting value for the singleton row. Allowed only with `singleton: true`; each value must be valid for its field's type, and an undeclared field is rejected. |
 | `views` | no | Map of view name → `{from, where?, orderBy?, limit?}`. `from` is a collection or another view (nesting up to 8 deep, cycles rejected). View names share the collection namespace and may not collide with one. A view never has `groupBy`/`aggregate`: it is a row set, and the binding aggregates it. |
 
 A sync or action with no `source` resolves to the single `local` source, exactly
@@ -125,7 +127,35 @@ A view is a named, reusable row set: `{ "from", "where"?, "orderBy"?, "limit"? }
 `finishedThisYear` over `books`). A binding or a `select` action names a view
 wherever it would name a collection; the binding's own stage (including
 `aggregate`/`groupBy`) is applied on top of the view's rows. Insert, update,
-upsert and delete target collections only, never views.
+upsert, delete and the singleton ops target collections only, never views.
+
+## Singleton collections
+
+A collection declared `"singleton": true` holds **exactly one row** with the
+fixed id `singleton`: a counter, a set of preferences, a "last watered" date.
+There is no row until the first write, which creates it from the collection's
+`defaults` (fields without a default start `null`) and then applies the op.
+
+```json
+{ "collections": {
+  "plant": {
+    "singleton": true,
+    "fields": { "waterings": "integer", "lastWatered": "date", "outside": "bool" },
+    "defaults": { "waterings": 0, "outside": false }
+  }
+} }
+```
+
+- **Write** with the `set`, `increment`, `decrement` and `toggle` ops (below);
+  none of them takes an `id`. `insert`, `update` and `upsert` also work but only
+  with the id `singleton` (an `insert` with no `id` gets it); any other id is
+  rejected. Singleton ops on a collection without `singleton: true` fail.
+- **Read** with an ordinary rows binding: `valuePath: "first.waterings"` (or just
+  `"waterings"`). Before the first write an unfiltered binding (no `where`) still
+  receives the `defaults` as `first`, with `count: 0`, so a label shows its
+  starting value on first launch.
+- Every singleton op is one write transaction and the arithmetic runs inside the
+  store, so rapid taps never lose an update.
 
 ## Query stages
 
@@ -234,7 +264,7 @@ other transport but is rarely useful here.
 ## Ops
 
 An action with `method: "local"` names an `op`, a `collection` and, per op, an
-`id` and/or a `set` object of declared field → value. Tokens are substituted into
+`id`, a `set` object of declared field → value, or a singleton `field` and `by`. Tokens are substituted into
 `set` and `id` first, then values are validated exactly like a delivery (reject,
 never coerce). `set` may not name `id`, `createdAt` or `updatedAt`. A bound
 control refreshes as soon as the write commits.
@@ -246,6 +276,15 @@ control refreshes as soon as the write commits.
 | `upsert` | `id`, `set` | Replace the whole row (fields absent from `set` become `null`), or insert it. |
 | `delete` | `id` | Remove the row; a missing row is a no-op with a console note. Deleting the selected row clears the cursor. |
 | `select` | `id` (or `null`) | Move the collection's selection cursor; no table write. Every binding that used `{{selected}}` for that collection re-delivers. |
+| `set` | `set`; singleton collection | Patch the named fields of the one row, creating it from `defaults` first. Fields not named keep their value. |
+| `increment` | `field`; singleton collection | Add `by` (default 1) to a `number` or `integer` field. The start is the stored value, else the field's default, else 0. An `integer` field takes whole steps only. |
+| `decrement` | `field`; singleton collection | Subtract `by` (default 1); otherwise exactly like `increment`. |
+| `toggle` | `field`; singleton collection | Flip a `bool` field. A field that is still `null` with no default counts as `false`, so the first toggle makes it `true`. |
+
+`by` is a JSON number or an exact token such as `"{{value}}"` that resolves to
+one (a [[stepper]] can send its step); anything else fails. `increment`,
+`decrement` and `toggle` without a `field`, `set` with no fields, or a `field` of
+the wrong type fail like any other write.
 
 Delete is by `id` only: a layout cannot wipe a collection with a `where`. Errors
 surface as a connection-console line and a `failed` pipe (with the reason as its
@@ -356,10 +395,23 @@ Writing, on a control's `action`:
 ]
 ```
 
+A singleton (the `plant` collection above), read by a [[label]] and written by
+buttons and a [[toggle]]:
+
+```json
+[
+  { "method": "local", "collection": "plant", "valuePath": "first.waterings" },
+  { "method": "local", "op": "increment", "collection": "plant", "field": "waterings" },
+  { "method": "local", "op": "decrement", "collection": "plant", "field": "waterings", "by": 2 },
+  { "method": "local", "op": "set", "collection": "plant", "set": { "lastWatered": "{{today}}" } },
+  { "method": "local", "op": "toggle", "collection": "plant", "field": "outside" }
+]
+```
+
 ## Related
 
 - [[sync]] — the inbound binding; `collection` and the stage fields
-- [[actions]] — the outbound op; `op`, `collection`, `id`, `set`
+- [[actions]] — the outbound op; `op`, `collection`, `id`, `set`, `field`, `by`
 - [[sources]] — where the store is declared beside MQTT and HTTP
 - [[list]] — the natural receiver for rows
 - [[chart]] — the natural receiver for grouped results

@@ -40,8 +40,8 @@ fields:
     description: Extra HTTP headers for this action
   - name: op
     type: enum
-    values: [insert, update, upsert, delete, select]
-    description: Local-store operation (local)
+    values: [insert, update, upsert, delete, select, set, increment, decrement, toggle]
+    description: Local-store operation; set/increment/decrement/toggle write a singleton collection (local)
   - name: collection
     type: string
     description: Collection the op targets (local)
@@ -50,7 +50,14 @@ fields:
     description: Record id for update/upsert/delete/select; tokens such as {{selected}} allowed (local)
   - name: set
     type: object
-    description: Declared field → value for insert/update/upsert; supports {{value}} and the store tokens (local)
+    description: Declared field → value for insert/update/upsert and the singleton set op; supports {{value}} and the store tokens (local)
+  - name: field
+    type: string
+    description: Singleton field an increment/decrement (number or integer) or toggle (bool) changes (local)
+  - name: by
+    type: number
+    default: 1
+    description: Step for increment/decrement; a number or an exact token such as {{value}} (local)
 ---
 
 How controls send commands — the outbound half of the **standardized connection
@@ -115,9 +122,17 @@ and an exact-token string keeps its native type, so `"pages": "{{value}}"` from 
 (reject, never coerce); a failure is a console line and a red `Local` pipe, never
 an alert. Delete is by `id` only.
 
+A collection declared `singleton: true` holds exactly one row, and four more ops
+write it without an `id`: `set` patches the named fields, `increment` /
+`decrement` add or subtract `by` (default 1) from a number or integer `field`,
+and `toggle` flips a bool `field`. Each creates the row from the collection's
+`defaults` on its first write.
+
 ```json
 { "method": "local", "op": "update", "collection": "books", "id": "{{selected}}",
   "set": { "rating": "{{value}}" } }
+{ "method": "local", "op": "increment", "collection": "counter", "field": "count" }
+{ "method": "local", "op": "toggle", "collection": "settings", "field": "muted" }
 ```
 
 ## Related
