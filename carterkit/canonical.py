@@ -17,6 +17,13 @@ JCS in short:
   - numbers: IEEE-754 doubles printed as ECMAScript ``Number.prototype.toString``
     (``1e+21``, ``0.000001``, ``1e-7``, ``-0`` → ``0``); NaN/Infinity are errors
   - ``true`` / ``false`` / ``null`` as literals
+  - member names must be unique (I-JSON, RFC 7493): an object with two names that
+    are equal or Unicode canonically equivalent (NFC "é" vs NFD "e\u0301") is
+    rejected with :class:`DuplicateKeyError`. Swift ``String`` keys compare by
+    canonical equivalence, so the app's decoder silently merges such names (keeping
+    the first) where Python would keep both, or the last; refusing them in both is
+    the only way the two digests can agree (carter-9vo). Names and values are
+    otherwise never normalized.
 
 Digest scope (decision carter-m7s.2 Q3): SHA-256 over JCS of the layout with every
 credential removed (the app's ``LayoutRedaction`` wire flavour: ``connection.token``,
@@ -30,10 +37,11 @@ import copy
 import hashlib
 import json
 import math
+import unicodedata
 from typing import Any
 
 __all__ = [
-    "canonical_json", "canonical_bytes", "loads",
+    "canonical_json", "canonical_bytes", "loads", "DuplicateKeyError",
     "strip_credentials", "digest_scope", "content_digest",
     "DIGEST_PREFIX", "CONNECTION_SECRET_KEYS", "SOURCE_SECRET_KEYS",
     "EXCLUDED_TOP_LEVEL_KEYS", "EXCLUDED_EXTENSION_KEYS",
@@ -55,13 +63,41 @@ EXCLUDED_EXTENSION_KEYS = ("editor",)
 
 # ── canonical JSON ───────────────────────────────────────────────────────────
 
+class DuplicateKeyError(ValueError):
+    """An object repeats a member name, exactly or up to Unicode canonical
+    equivalence (see the module docstring)."""
+
+    def __init__(self, key: str):
+        super().__init__(f"canonical JSON object has duplicate or canonically "
+                         f"equivalent member names: {key!r}")
+        self.key = key
+
+
 def _reject_constant(name: str):
     raise ValueError(f"canonical JSON has no {name}")
 
 
+def _check_unique(keys) -> None:
+    """Raise :class:`DuplicateKeyError` if two names are equal after NFC."""
+    seen: set[str] = set()
+    for key in keys:
+        norm = key if key.isascii() else unicodedata.normalize("NFC", key)
+        if norm in seen:
+            raise DuplicateKeyError(key)
+        seen.add(norm)
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict:
+    _check_unique(k for k, _ in pairs)
+    return dict(pairs)
+
+
 def loads(text: str | bytes) -> Any:
-    """Parse JSON text for canonicalization (NaN/Infinity literals are rejected)."""
-    return json.loads(text, parse_constant=_reject_constant)
+    """Parse JSON text for canonicalization. NaN/Infinity literals are rejected, and
+    so are repeated or canonically equivalent member names
+    (:class:`DuplicateKeyError`) — plain ``json.loads`` would keep the last one."""
+    return json.loads(text, parse_constant=_reject_constant,
+                      object_pairs_hook=_unique_object)
 
 
 def _number(x: float | int) -> str:
@@ -146,6 +182,7 @@ def _serialize(value: Any, out: list[str]) -> None:
         for key in value:
             if not isinstance(key, str):
                 raise TypeError(f"canonical JSON object keys must be str, got {type(key).__name__}")
+        _check_unique(value)
         out.append("{")
         for i, key in enumerate(sorted(value, key=_utf16_key)):
             if i:

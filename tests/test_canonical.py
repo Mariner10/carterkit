@@ -88,6 +88,40 @@ def test_golden_digest(case):
     assert re.fullmatch(r"sha256:[0-9a-f]{64}", case["digest"])
 
 
+@pytest.mark.parametrize("case", _fixtures()["reject"], ids=lambda k: k["name"])
+def test_golden_reject(case):
+    """carter-9vo: repeated or canonically equivalent member names are refused by
+    both loads() and content_digest(text); the app refuses the very same inputs."""
+    assert case["error"] == "duplicateKey"
+    with pytest.raises(c.DuplicateKeyError):
+        c.loads(case["input"])
+    with pytest.raises(c.DuplicateKeyError):
+        c.content_digest(case["input"])
+
+
+def test_reject_fixtures_cover_normalization_and_exact():
+    names = {k["name"] for k in _fixtures()["reject"]}
+    assert {"duplicate-key-exact", "duplicate-key-nfc-nfd-raw"} <= names
+
+
+def test_canonical_json_rejects_in_memory_equivalent_keys():
+    """A dict built in Python can hold NFC and NFD spellings as two keys; Swift
+    cannot, so canonicalizing it would diverge from the app."""
+    with pytest.raises(c.DuplicateKeyError):
+        c.canonical_json({"caf\u00e9": 1, "cafe\u0301": 2})
+    with pytest.raises(c.DuplicateKeyError):
+        c.content_digest({"title": "x", "tabs": [{"\u00e9": 1, "e\u0301": 2}]})
+
+
+def test_equivalent_spellings_kept_verbatim_apart():
+    """No normalization: NFC and NFD keys in different objects, and in values,
+    survive byte for byte (and so digest differently)."""
+    out = c.canonical_json(c.loads('{"a": {"e\\u0301": "e\\u0301"}}'))
+    assert out == '{"a":{"e\u0301":"e\u0301"}}'
+    assert c.content_digest({"title": "caf\u00e9"}) != c.content_digest({"title": "cafe\u0301"})
+    assert c.DuplicateKeyError.__mro__[1] is ValueError
+
+
 def test_same_template_different_tokens_same_digest():
     groups = {}
     for case in _fixtures()["digest"]:
