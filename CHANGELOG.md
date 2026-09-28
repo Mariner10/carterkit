@@ -5,6 +5,8 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-09-28
+
 The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that
 live in the app and bind controls to them with plain JSON query stages — no server, no SQL.
 
