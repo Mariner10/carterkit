@@ -32,7 +32,7 @@ SHARED_NAMESPACE = "shared"
 WEEK_STARTS = ("monday", "sunday")
 
 WHERE_OPS = ("eq", "ne", "gt", "gte", "lt", "lte", "in", "contains", "exists")
-AGGREGATE_OPS = ("count", "sum", "avg", "min", "max", "distinct", "first", "last")
+AGGREGATE_OPS = ("count", "sum", "avg", "min", "max", "distinct", "first", "last", "span")
 BUCKET_UNITS = ("day", "week", "month", "year")
 ACTION_OPS = ("insert", "update", "upsert", "delete", "select", "set", "increment", "decrement", "toggle")
 SINGLETON_OPS = ("set", "increment", "decrement", "toggle")
@@ -396,7 +396,11 @@ def _lint_aggregate(a, fields, out, grouped):
     elif isinstance(a, dict):
         op, field = a.get("op"), a.get("field")
         for key in a:
-            if key not in ("op", "field"):
+            if key == "to":
+                if op != "span":
+                    out.append(("error", "aggregate.to is only for span"))
+                    return
+            elif key not in ("op", "field"):
                 out.append(("warn", f"aggregate: unknown key '{key}' is ignored"))
     else:
         out.append(("error", "aggregate must be an op name or {op, field}"))
@@ -426,6 +430,20 @@ def _lint_aggregate(a, fields, out, grouped):
         out.append(("error", f"aggregate: {op} needs a number, string or date field ('{field}' is {ftype})"))
     elif op == "distinct" and ftype == "json":
         out.append(("error", f"aggregate: distinct cannot count a json field ('{field}')"))
+    elif op == "span":
+        # first..last over one or two date fields -> {from, to, count, days, open}
+        if grouped:
+            out.append(("error", "aggregate: span is not a group aggregate"))
+        elif ftype != "date":
+            out.append(("error", f"aggregate: span needs a date field ('{field}' is {ftype})"))
+        to = a.get("to") if isinstance(a, dict) else None
+        if to is not None:
+            if not isinstance(to, str):
+                out.append(("error", "aggregate.to must be a string"))
+            elif fields.get(to) is None:
+                out.append(("error", f"aggregate: unknown field '{to}'"))
+            elif fields.get(to) != "date":
+                out.append(("error", f"aggregate: span.to needs a date field ('{to}' is {fields.get(to)})"))
 
 
 def _lint_order_by(o, fields, out, grouped):

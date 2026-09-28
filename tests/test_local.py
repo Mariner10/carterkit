@@ -393,3 +393,28 @@ def test_singleton_defaults_lint():
     for name, (over, needle) in bad.items():
         details = " | ".join(_details(_singleton_layout(ok, **over)))
         assert needle in details, (name, details)
+
+
+# ── span aggregate (carter-73q2.31) ───────────────────────────────────────────
+
+def test_span_aggregate_lint():
+    f = {"started": "date", "finished": "date", "title": "string", "pages": "integer"}
+    errs = lambda st: [m for sev, m in local.lint_stage(st, f) if sev == "error"]  # noqa: E731
+    assert "span" in local.AGGREGATE_OPS
+    assert errs({"aggregate": {"op": "span", "field": "finished"}}) == []
+    assert errs({"aggregate": {"op": "span", "field": "started", "to": "finished"}}) == []
+    assert errs({"where": {"title": "Dune"}, "aggregate": {"op": "span", "field": "started", "to": "finished"}}) == []
+    assert any("needs a 'field'" in m for m in errs({"aggregate": "span"}))
+    assert any("span needs a date field" in m for m in errs({"aggregate": {"op": "span", "field": "pages"}}))
+    assert any("span.to needs a date field" in m
+               for m in errs({"aggregate": {"op": "span", "field": "started", "to": "title"}}))
+    assert any("unknown field 'nope'" in m for m in errs({"aggregate": {"op": "span", "field": "started", "to": "nope"}}))
+    assert any("only for span" in m for m in errs({"aggregate": {"op": "max", "field": "started", "to": "finished"}}))
+    assert any("not a group aggregate" in m
+               for m in errs({"groupBy": "title", "aggregate": {"op": "span", "field": "started"}}))
+
+
+def test_span_aggregate_in_a_layout_lints_clean():
+    layout = _one_control(sync={"method": "local", "collection": "books",
+                                "aggregate": {"op": "span", "field": "finished"}})
+    assert _errors(layout) == []

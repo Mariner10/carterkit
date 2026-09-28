@@ -196,6 +196,19 @@ Collapses the matched rows to one value. Either the bare string
 | `min` / `max` | `number`/`integer`/`date`/`string` | smallest / largest value |
 | `distinct` | any non-`json` field | number of distinct values |
 | `first` / `last` | any non-`json` field | that field of the first / last row under `orderBy` (default `createdAt`, then `id`) |
+| `span` | a `date` field, plus an optional `to` date field | first..last: `{from, to, count, days, open}` (see below) |
+
+**span.** `{"op": "span", "field": "started", "to": "finished"}` answers "from when
+to when": `from` is the earliest `field`, `to` the latest `to` (or `field` when a row
+has no `to`, or when `to` is omitted), `count` the rows with a `field`, and `days`
+the calendar days from `from` to `to`, counting both ends (`0` for no rows). A row
+with a `field` but an empty `to` is still going: `to` becomes today and `open` is
+`true`. The binding's payload is that object plus `value`, the label text
+("Jan 3 to Sep 20", "Jan 3 to now" when open, `null` for no rows), and `caption`
+("8 months"), so a [[label]] shows the span with no `valuePath`; `valuePath`
+`from` / `to` / `count` / `days` / `caption` read one part. `span` is not a group
+aggregate.
+
 
 ### groupBy
 
@@ -253,6 +266,7 @@ default `valuePath` so the minimal form works with every existing receiver.
 | Stage | Payload | Default `valuePath` | Typical receivers |
 |---|---|---|---|
 | `aggregate`, no `groupBy` | `{"value": 3}` (`null` for `avg` of nothing) | `value` | [[label]], [[gauge]], [[progress-ring]], any scalar control; a [[sparkline]] appends each new value |
+| `aggregate: span` | `{"from": "2026-01-03", "to": "2026-09-20", "count": 12, "days": 261, "open": false, "value": "Jan 3 to Sep 20", "caption": "8 months"}` | `value` | [[label]] (the text), a [[stat-tile]] or second label on `caption` / `days` / `count` |
 | `groupBy` (+ `aggregate`, default `count`) | `{"categories": ["2026-01", "2026-02"], "series": [{"name": "count", "values": [4, 7]}], "rows": [{"key": "2026-01", "value": 4}]}` | whole payload | [[chart]] / [[pie-chart]] / [[heatmap]] read `categories` + `series`; a [[list]] uses `valuePath: "rows"`; a sparkline uses `series.0.values` |
 | rows (no `aggregate`) | `{"rows": [{"id": "…", "createdAt": "…", "updatedAt": "…", "title": "Dune", "pages": 412}], "count": 1, "total": 3, "first": {…} or null}` | `rows` | [[list]] (`listColumns[].key` reads a field), [[log-console]], or a form control naming `first.title` |
 

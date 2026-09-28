@@ -218,7 +218,28 @@ class Store:
                 keys = [(f, not d) for f, d in keys]
             ordered = _sort(rows, keys, id_desc=(op == "last" and "id" not in [f for f, _ in keys]))
             return ordered[0][field] if ordered else None
+        if op == "span":
+            return self._span(rows, field, stage["aggregate"].get("to") or field)
         return _aggregate(rows, op, field)
+
+    def _day(self, v):
+        if len(v) == 10:
+            return dt.date.fromisoformat(v)
+        return parse_instant(v).astimezone(self.tz).date()
+
+    def _span(self, rows, field, to):
+        """first..last (carter-73q2.31): {from, to, count, days, open}. Stored strings
+        compare as SQLite does (lexically); days are calendar days in the zone, inclusive."""
+        starts = [r[field] for r in rows if r.get(field) is not None]
+        if not starts:
+            return {"from": None, "to": None, "count": 0, "days": 0, "open": False}
+        ends = [r.get(to) if r.get(to) is not None else r.get(field) for r in rows]
+        ends = [e for e in ends if e is not None]
+        is_open = to != field and any(r.get(field) is not None and r.get(to) is None for r in rows)
+        start = min(starts)
+        end = calendar_date(self.now, self.tz) if is_open else max(ends)
+        days = max((self._day(end) - self._day(start)).days, 0) + 1
+        return {"from": start, "to": end, "count": len(starts), "days": days, "open": is_open}
 
     # ── groups (§4.3) ───────────────────────────────────────────────────────────
     def _groups(self, rows, stage, fields, base):
