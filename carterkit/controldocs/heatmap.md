@@ -4,8 +4,13 @@ label: Heatmap
 icon: square.grid.3x3.fill
 category: controls
 defaultSpan: [2, 4]
+addIntent: show
+friendlyName: Heat grid
+oneLiner: Colored squares that show how much
+starterPreset: {"label": "Heat grid"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,17 +21,41 @@ fields:
     type: object
     description: Full configuration object (see HeatmapConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Ramp/palette seed color
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for scale/cell values
+  - name: calendar
+    tab: data
+    type: bool
+    default: false
+    description: "Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it"
+    group: heatmapConfig
+  - name: weekStartsOn
+    tab: data
+    type: enum
+    values: [monday, sunday]
+    description: "Calendar week start (default: the bound local source's weekStartsOn, else monday)"
+    group: heatmapConfig
+  - name: weeks
+    tab: data
+    type: number
+    min: 1
+    max: 106
+    step: 1
+    description: Calendar shows only the most recent N weeks (default the whole span, up to 106)
+    group: heatmapConfig
   - name: cellAction
+    tab: action
     type: object
     description: cellAction
     group: heatmapConfig
   - name: cellCorner
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -35,6 +64,7 @@ fields:
     description: Cell corner rounding
     group: heatmapConfig
   - name: cellGap
+    tab: style
     min: 0
     max: 40
     step: 1
@@ -43,10 +73,12 @@ fields:
     description: Gap between cells
     group: heatmapConfig
   - name: cellShape
+    tab: style
     type: string
     description: square or circle (circle reads as dot-matrix/LED)
     group: heatmapConfig
   - name: colors
+    tab: style
     type: string[]
     description: "Continuous: 2+ gradient stops. Discrete: the palette (value = index)"
     group: heatmapConfig
@@ -66,6 +98,7 @@ fields:
     description: "Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)"
     group: heatmapConfig
   - name: sendMode
+    tab: action
     type: string
     description: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
     group: heatmapConfig
@@ -180,6 +213,43 @@ Inherits all [[control-def|shared fields]]. Key fields:
 
 If `cellAction` is omitted, edits fall back to the control's own `action`.
 
+### Calendar
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `calendar` | bool | `false` | Activity calendar (GitHub style): a day-keyed payload laid out as 7 weekday rows × week columns |
+| `weekStartsOn` | string | source's, else `"monday"` | `"monday"` or `"sunday"`: the top row of each column |
+| `weeks` | number | whole span (max 106) | Show only the most recent N weeks |
+
+Calendar mode reads a **day-keyed** payload instead of a matrix, so a local store
+feeds it directly with `groupBy {…, bucket: "day"}` (the groups shape
+`{categories, series, rows:[{key, value}]}`). A bare `{"2026-01-03": 2, …}` object
+or `[{"date": "2026-01-03", "value": 2}, …]` also works; date-time keys use their
+first 10 characters, non-date keys (the `null` bucket) are skipped, duplicates add up.
+
+- Days run from the first key to the last, **zero-filled**; slots before the first
+  day and after the last day in their week stay blank.
+- Cells are square. When the span does not fit the width (8pt minimum cells), the
+  **oldest weeks drop off**; the most recent day is always shown.
+- Month labels sit over the week holding the 1st; weekday labels on rows 2, 4, 6.
+- Color: a day at or below `vMin` (default 0) gets the empty color (`colors[0]`, else a
+  faint neutral); others ramp across `colors[1…]` (default the tint) up to `vMax`
+  (default the busiest day). `showScale` adds a "Less … More" swatch row.
+- Tap a day to show its date and value beside the label; tap again to clear.
+  Calendar mode is read-only (`editable` is ignored). VoiceOver reads a summary
+  ("41 active days from … to …, most on …").
+
+Reading days from a book log (every day between `started` and `finished`):
+
+```json
+{
+  "type": "heatmap", "id": "reading-days", "label": "Reading days",
+  "heatmapConfig": { "calendar": true },
+  "sync": [{ "method": "local", "collection": "books",
+             "groupBy": { "range": ["started", "finished"], "bucket": "day" } }]
+}
+```
+
 ## Sync Payload Structure
 
 A dense matrix plus optional axis labels — natural JSON or an encoded string.
@@ -257,6 +327,19 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
 }
 ```
 
+### Activity calendar (day-keyed)
+```json
+{
+  "type": "heatmap",
+  "id": "reading-calendar",
+  "position": [0, 0],
+  "span": [2, 4],
+  "label": "Reading days",
+  "heatmapConfig": { "calendar": true, "weekStartsOn": "monday", "showScale": true },
+  "defaultValue": "{\"2026-01-03\":1,\"2026-01-04\":1,\"2026-01-05\":2,\"2026-01-06\":2,\"2026-02-27\":1,\"2026-02-28\":1,\"2026-03-01\":1,\"2026-03-02\":1,\"2026-03-13\":1,\"2026-03-14\":1,\"2026-03-15\":1}"
+}
+```
+
 ## Behavior
 - Dataset pushes animate cell colors; edits render instantly (a local draft holds until the next push)
 - Tap cycles: discrete `(value + 1) % palette.count`, continuous `0 ↔ vMax`
@@ -266,7 +349,7 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
 
 ## Notes
 - Ragged rows render (short rows read as 0) and are padded rectangular on first edit
-- A GitHub-style activity calendar is a 7-row continuous heatmap with week columns
+- A GitHub-style activity calendar is `calendar: true` fed by day keys (see Calendar); the app builds the 7-row × week grid
 - A step sequencer is an editable discrete grid where the server plays column-by-column
 
 ## Related
