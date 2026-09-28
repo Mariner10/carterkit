@@ -12,6 +12,7 @@ fields:
     type: string
     description: "MQTT broker address: mqtt://host[:port] or mqtts://host[:port]"
   - name: baseURL
+    tab: advanced
     type: string
     description: HTTP base URL relative sync/action paths resolve against
   - name: username
@@ -21,6 +22,7 @@ fields:
     type: string
     description: MQTT password
   - name: clientId
+    tab: advanced
     type: string
     description: MQTT client id (auto-generated when omitted)
   - name: headers

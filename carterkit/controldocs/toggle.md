@@ -4,48 +4,70 @@ label: Toggle
 icon: switch.2
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Switch
+oneLiner: Turns something on or off
+addRank: 2
+starterPreset: {"label": "Switch"}
 fields:
   - name: animation
+    title: Motion
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: label
+    title: Title
     type: string
     description: Toggle label text
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol
   - name: style
+    title: Look
+    tab: style
     type: enum
     values: [switch, button, icon-toggle]
     default: switch
     description: Display style
   - name: defaultValue
+    title: Initial on/off state
     type: bool
     default: false
     description: Initial on/off state
   - name: onIcon
+    title: Symbol when on
     styles: [button, icon-toggle]
     type: string
     description: SF Symbol when on (button and icon-toggle styles)
   - name: offIcon
+    title: Symbol when off
     styles: [button, icon-toggle]
     type: string
     description: SF Symbol when off (button and icon-toggle styles)
   - name: tint
+    title: Color when on
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color when on
   - name: hideBackground
+    title: No background card
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: haptic
+    title: Vibration on tap
+    tab: action
     type: enum
     values: [light, medium, heavy, rigid, success, warning, error, selection]
     default: rigid
     description: Default haptic on toggle
   - name: trackLength
+    title: Track length
+    tab: style
     styles: [switch]
     type: number
     min: 31
@@ -54,6 +76,8 @@ fields:
     default: 51
     description: Track extent tip-to-tip along its path (pt)
   - name: trackCurvature
+    title: Track curve
+    tab: style
     styles: [switch]
     type: number
     min: -180
@@ -62,6 +86,8 @@ fields:
     default: 0
     description: Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more)
   - name: trackRadius
+    title: Track roundness
+    tab: style
     styles: [switch]
     type: number
     min: 0
@@ -70,6 +96,8 @@ fields:
     default: 15.5
     description: Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below)
   - name: knobRadius
+    title: Knob roundness
+    tab: style
     styles: [switch]
     type: number
     min: 0
@@ -79,6 +107,7 @@ fields:
     description: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -86,6 +115,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -93,18 +123,22 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -112,15 +146,18 @@ themeFields:
     default: 12
     description: Label text size
   - name: trackColor
+    title: Track color
     styles: [switch]
     type: color
     default: #39393D
     description: Track background color
   - name: trackActiveColor
+    title: Track color when on
     type: color
     default: #667eea
     description: Track active/on color
   - name: trackRadius
+    title: Track roundness
     styles: [switch]
     min: 0
     max: 30
@@ -129,6 +166,7 @@ themeFields:
     default: 15.5
     description: Track corner radius
   - name: trackHeight
+    title: Track height
     styles: [switch]
     min: 16
     max: 60
@@ -137,6 +175,7 @@ themeFields:
     default: 31
     description: Track height
   - name: trackWidth
+    title: Track width
     styles: [switch]
     min: 30
     max: 100
@@ -145,11 +184,13 @@ themeFields:
     default: 51
     description: Track width
   - name: knobColor
+    title: Knob color
     styles: [switch]
     type: color
     default: #FFFFFF
     description: Knob fill color
   - name: knobRadius
+    title: Knob roundness
     styles: [switch]
     min: 0
     max: 30
@@ -158,6 +199,7 @@ themeFields:
     default: 13.5
     description: Knob corner radius
   - name: knobShadow
+    title: Knob shadow
     styles: [switch]
     type: bool
     default: true

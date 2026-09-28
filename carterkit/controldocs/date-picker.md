@@ -4,8 +4,14 @@ label: Date Picker
 icon: calendar
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Date & time
+oneLiner: Pick a day or a time
+addRank: 8
+starterPreset: {"label": "When","datePickerMode": "date"}
 fields:
   - name: datePickerStyle
+    tab: style
     type: enum
     values: [compact, wheel, graphical]
     default: compact
@@ -25,6 +31,7 @@ fields:
     type: string
     description: Display label
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color
@@ -32,6 +39,7 @@ fields:
     type: string
     description: Initial ISO 8601 date string
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection

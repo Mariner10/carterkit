@@ -4,72 +4,100 @@ label: Slider
 icon: slider.horizontal.3
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Slider
+oneLiner: Slide to pick a number
+addRank: 3
+starterPreset: {"label": "Slider","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
+    title: Motion
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: min
+    title: Lowest value
     bounds: none
     type: number
     default: 0
     description: Minimum value
   - name: max
+    title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value
   - name: step
+    title: Step size
     bounds: none
     type: number
     default: 1
     description: Detent spacing measured from min; zero or negative allows continuous values
   - name: continuous
+    title: Send while dragging
     type: bool
     default: true
     description: Send actions while dragging; false previews locally and sends once on release
   - name: hideValue
+    title: Hide the number
     type: bool
     default: false
     description: Hide numeric readouts in every slider style; keep the label and interaction
   - name: label
+    title: Title
     type: string
     description: Header label
   - name: defaultValue
+    title: Starting value
     bounds: none
     type: number
     description: Initial value
   - name: tint
+    title: Color
+    tab: style
     type: color
     default: "#667eea"
     description: Track fill color
   - name: style
+    title: Look
+    tab: style
     type: enum
     values: [default, scrubber, radial]
     default: default
     description: Display style
   - name: formatValue
+    title: Number format
+    simple: hide
+    tab: data
     type: enum
     values: [decimal, time, percent, none]
     default: decimal
     description: Value display format
   - name: minIcon
+    title: Symbol at low end
     styles: [default]
     type: string
     description: SF Symbol at minimum end
   - name: maxIcon
+    title: Symbol at high end
     styles: [default]
     type: string
     description: SF Symbol at maximum end
   - name: hideLabel
+    title: Hide the title
     type: bool
     default: false
     description: Hide the header
   - name: hideBackground
+    title: No background card
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: arcAngle
+    title: Arc length
+    tab: style
     styles: [radial]
     min: 1
     max: 360
@@ -78,6 +106,8 @@ fields:
     default: 270
     description: Arc sweep in degrees (radial style only)
   - name: arcRotation
+    title: Arc turn
+    tab: style
     styles: [radial]
     min: -180
     max: 180
@@ -86,6 +116,8 @@ fields:
     default: 0
     description: Arc start rotation (radial style only)
   - name: arcThickness
+    title: Arc thickness
+    tab: style
     styles: [radial]
     min: 1
     max: 40
@@ -95,6 +127,7 @@ fields:
     description: Track stroke width (radial style only)
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -102,6 +135,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -109,22 +143,27 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -132,10 +171,12 @@ themeFields:
     default: 12
     description: Label text size
   - name: trackColor
+    title: Track color
     type: color
     default: #39393D
     description: Track background color
   - name: trackHeight
+    title: Track height
     styles: [default]
     min: 4
     max: 60
@@ -144,11 +185,13 @@ themeFields:
     default: 31
     description: Track height
   - name: thumbColor
+    title: Handle color
     styles: [default]
     type: color
     default: #FFFFFF
     description: Thumb fill color
   - name: thumbRadius
+    title: Handle roundness
     styles: [default]
     min: 0
     max: 30
@@ -157,6 +200,7 @@ themeFields:
     default: 14
     description: Thumb corner radius
   - name: thumbSize
+    title: Handle size
     styles: [default]
     min: 12
     max: 50
@@ -165,6 +209,7 @@ themeFields:
     default: 28
     description: Thumb diameter
   - name: thumbShadow
+    title: Handle shadow
     styles: [default]
     type: bool
     default: true

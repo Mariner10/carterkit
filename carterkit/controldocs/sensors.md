@@ -5,6 +5,7 @@ icon: gyroscope
 category: system
 fields:
   - name: method
+    tab: advanced
     type: string
     description: Set to "sensor" on a sync entry to bind local hardware
   - name: sensor

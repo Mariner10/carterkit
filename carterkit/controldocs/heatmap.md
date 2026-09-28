@@ -4,8 +4,13 @@ label: Heatmap
 icon: square.grid.3x3.fill
 category: controls
 defaultSpan: [2, 4]
+addIntent: show
+friendlyName: Heat grid
+oneLiner: Colored squares that show how much
+starterPreset: {"label": "Heat grid"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,17 +21,21 @@ fields:
     type: object
     description: Full configuration object (see HeatmapConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Ramp/palette seed color
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for scale/cell values
   - name: cellAction
+    tab: action
     type: object
     description: cellAction
     group: heatmapConfig
   - name: cellCorner
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -35,6 +44,7 @@ fields:
     description: Cell corner rounding
     group: heatmapConfig
   - name: cellGap
+    tab: style
     min: 0
     max: 40
     step: 1
@@ -43,10 +53,12 @@ fields:
     description: Gap between cells
     group: heatmapConfig
   - name: cellShape
+    tab: style
     type: string
     description: square or circle (circle reads as dot-matrix/LED)
     group: heatmapConfig
   - name: colors
+    tab: style
     type: string[]
     description: "Continuous: 2+ gradient stops. Discrete: the palette (value = index)"
     group: heatmapConfig
@@ -66,6 +78,7 @@ fields:
     description: "Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)"
     group: heatmapConfig
   - name: sendMode
+    tab: action
     type: string
     description: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
     group: heatmapConfig

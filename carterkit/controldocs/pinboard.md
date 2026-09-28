@@ -4,8 +4,13 @@ label: Pinboard
 icon: mappin.and.ellipse
 category: input
 defaultSpan: [10, 4]
+addIntent: change
+friendlyName: Pin board
+oneLiner: Pin things onto a picture
+starterPreset: {"label": "Pin board"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -42,11 +47,13 @@ fields:
     description: Header for the option area
     group: pinboardConfig
   - name: hidePalette
+    tab: style
     type: bool
     default: false
     description: Hide the option area (surfaces whose markers all start placed)
     group: pinboardConfig
   - name: events
+    tab: advanced
     type: object
     description: events
     group: pinboardConfig

@@ -4,8 +4,13 @@ label: Chord
 icon: circle.hexagonpath.fill
 category: controls
 defaultSpan: [3, 3]
+addIntent: show
+friendlyName: Connections
+oneLiner: How things connect to each other
+starterPreset: {"label": "Connections"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,17 +21,21 @@ fields:
     type: object
     description: Full configuration object (see ChordConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-group color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for group totals
   - name: arcAction
+    tab: action
     type: object
     description: arcAction
     group: chordConfig
   - name: colors
+    tab: style
     type: string[]
     description: Group color cycle (payload colors wins)
     group: chordConfig
@@ -39,6 +48,7 @@ fields:
     description: Degrees of breathing room between arcs
     group: chordConfig
   - name: ribbonOpacity
+    tab: style
     min: 0
     max: 1
     step: 0.05

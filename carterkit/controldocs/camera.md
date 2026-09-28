@@ -4,6 +4,10 @@ label: Camera
 icon: camera.viewfinder
 category: controls
 defaultSpan: [2, 2]
+addIntent: change
+friendlyName: Scanner
+oneLiner: Scan a barcode or QR code
+starterPreset: {"label": "Scan","scan": ["barcode"]}
 fields:
   - name: label
     type: string
@@ -16,11 +20,13 @@ fields:
     type: array
     description: "Barcode filter (qr, ean13, code128, …). Omit for all supported"
   - name: sendMode
+    tab: action
     type: enum
     values: [auto, tap]
     default: auto
     description: "auto sends every stabilized detection; tap sends only items the user taps"
   - name: debounce
+    tab: action
     min: 0
     max: 30
     step: 1

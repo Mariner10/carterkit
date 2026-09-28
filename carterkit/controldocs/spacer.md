@@ -4,6 +4,11 @@ label: Spacer
 icon: square.dashed
 category: layout
 defaultSpan: [1, 1]
+addIntent: organize
+friendlyName: Space
+oneLiner: An empty gap
+addRank: 2
+starterPreset: {}
 fields:
 ---
 

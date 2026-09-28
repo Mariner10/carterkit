@@ -5,9 +5,11 @@ icon: dot.radiowaves.left.and.right
 category: system
 fields:
   - name: event
+    tab: advanced
     type: string
     description: Server event that fires the pulse
   - name: color
+    tab: style
     type: color
     default: "#34C759"
     description: Ring colour
@@ -36,6 +38,7 @@ fields:
     default: gentle
     description: Easing preset — springy presets overshoot
   - name: filter
+    tab: advanced
     type: object
     description: "Optional payload match, e.g. { 'device': 'thunk-app' }"
 ---

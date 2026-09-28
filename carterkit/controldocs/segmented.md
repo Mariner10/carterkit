@@ -4,8 +4,14 @@ label: Segmented Control
 icon: rectangle.split.3x1
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Choice
+oneLiner: Pick one of a few options
+addRank: 6
+starterPreset: {"options": ["One","Two","Three"]}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -22,11 +28,13 @@ fields:
     type: array
     description: SF Symbols parallel to options
   - name: style
+    tab: style
     type: enum
     values: [default, pills]
     default: default
     description: System segmented or capsule pills
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent for pills style
@@ -34,6 +42,7 @@ fields:
     type: string
     description: Initially selected option
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection

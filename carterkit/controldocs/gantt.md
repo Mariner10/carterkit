@@ -4,8 +4,13 @@ label: Gantt
 icon: chart.bar.doc.horizontal
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Timeline
+oneLiner: Tasks laid out over time
+starterPreset: {"label": "Timeline"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,10 +21,12 @@ fields:
     type: object
     description: Full configuration object (see GanttConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-task color and palette seed
   - name: barCornerRadius
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -28,6 +35,7 @@ fields:
     description: Bar corner rounding
     group: ganttConfig
   - name: colors
+    tab: style
     type: string[]
     description: Per-task color cycle (task color wins)
     group: ganttConfig
@@ -78,6 +86,7 @@ fields:
     description: Progress snap while dragging
     group: ganttConfig
   - name: taskAction
+    tab: action
     type: object
     description: taskAction
     group: ganttConfig

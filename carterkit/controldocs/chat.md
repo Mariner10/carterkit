@@ -4,6 +4,10 @@ label: Chat
 icon: bubble.left.and.bubble.right.fill
 category: controls
 defaultSpan: [4, 4]
+addIntent: show
+friendlyName: Chat
+oneLiner: Messages back and forth
+starterPreset: {"label": "Chat"}
 fields:
   - name: label
     type: string
@@ -51,6 +55,7 @@ fields:
     description: target
     group: config
   - name: tint
+    tab: style
     type: color
     description: tint
     group: config
