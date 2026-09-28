@@ -209,6 +209,21 @@ def test_source_lint_errors(source_patch, needle):
     assert any(needle in d for d in errs), errs
 
 
+@pytest.mark.parametrize("fname", ["count", "total", "rows", "first"])
+def test_field_named_like_rows_metadata_warns_not_errors(fname):
+    # carter-6n09: the declared field wins a bare valuePath; metadata moves to $<name>.
+    lay = _one_control(sync=bind.local("tally", value_path=fname),
+                       collections={"tally": {"fields": {fname: "integer"}, "singleton": True}})
+    found = [f for f in validate.validate_layout(lay, CAT) if f["kind"] == "bad_sources"]
+    assert any(f"field '{fname}' shadows" in f["detail"] and f"'${fname}'" in f["detail"] for f in found), found
+    assert all(f["severity"] == "warn" for f in found), found
+
+
+def test_ordinary_field_names_do_not_warn_about_shadowing():
+    lay = _one_control(sync=bind.local("books", aggregate="count"))
+    assert not [f for f in validate.validate_layout(lay, CAT) if "shadows" in f.get("detail", "")]
+
+
 def test_view_nesting_cap():
     views = {"v0": {"from": "books"}}
     for i in range(1, 9):

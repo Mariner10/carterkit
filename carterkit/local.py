@@ -29,6 +29,10 @@ FIELD_TYPES = ("string", "number", "integer", "bool", "date", "json")
 RESERVED_FIELDS = {"id": "string", "createdAt": "date", "updatedAt": "date"}
 RESERVED_NAMES = set(RESERVED_FIELDS) | {"_hlc"}
 SHARED_NAMESPACE = "shared"
+# Keys a rows result carries beside the rows themselves. A declared field of the same
+# name wins a bare valuePath (it reads first.<field>); the metadata stays reachable
+# as $rows / $count / $total / $first (carter-6n09).
+ROWS_PAYLOAD_KEYS = ("rows", "count", "total", "first")
 WEEK_STARTS = ("monday", "sunday")
 
 WHERE_OPS = ("eq", "ne", "gt", "gte", "lt", "lte", "in", "contains", "exists")
@@ -144,6 +148,10 @@ def _lint_collections(colls, out, schema):
                 out.append(("error", f"collection {cname}.{fname}: unknown type {ftype!r}; use one of {list(FIELD_TYPES)}"))
                 continue
             clean[fname] = ftype
+            if fname in ROWS_PAYLOAD_KEYS:
+                out.append(("warn", f"collection {cname}: field '{fname}' shadows the rows result's '{fname}' — "
+                                    f"valuePath '{fname}' reads this field (first.{fname}); use '${fname}' "
+                                    f"for the result's {fname}"))
         schema["collections"][cname] = clean
         if cdef.get("singleton") is True:
             schema["singletons"].append(cname)

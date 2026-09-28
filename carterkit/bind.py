@@ -161,7 +161,9 @@ def local(collection: str, *, where: dict | None = None, group_by=None, aggregat
     stage — `where` (JSON operator object), `group_by` (field name or
     ``{"field", "bucket"|"width"}``), `aggregate` (``"count"`` or ``{"op", "field"}``),
     `order_by` (``"title"`` / ``"-finished"`` or a list), `limit` (1..1000). Leave
-    `value_path` empty for the store's default (`value` / whole payload / `rows`);
+    `value_path` empty for the store's default (`value` / whole payload / `rows`); a
+    declared field name reads the first row, and wins over the rows result's
+    `rows`/`count`/`total`/`first` — spell those `$count` etc. when a field shadows them;
     `source` names the store when the layout declares several."""
     s: dict = {"method": "local", "collection": collection}
     if where is not None:

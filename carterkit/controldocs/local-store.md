@@ -227,7 +227,17 @@ Rows are flat: the declared fields sit beside `id`, `createdAt` and `updatedAt`.
 `count` is the rows delivered, `total` the rows in the collection or view. A
 `valuePath` that starts with a declared field is shorthand for `first.<field>`,
 so `{"where": {"id": "{{selected}}"}, "valuePath": "title"}` fills a [[text-input]]
-with the selected row's title. When nothing matches, `first` is `null` and the
+with the selected row's title.
+
+A declared field wins over the payload keys: if a collection declares a field
+named `count`, `total`, `rows` or `first`, the bare `valuePath` (`"count"`) reads
+that field off the first row, not the payload's value. The payload keys are always
+reachable by a `$` spelling that no field can take: `$rows`, `$count`, `$total`
+and `$first` (`"$count"` is the row count, `"$first.title"` the first row's
+title). Without a colliding field, `"count"` and `"$count"` mean the same thing.
+The lint and the app console warn about a field that shadows a payload key.
+
+When nothing matches, `first` is `null` and the
 control keeps its last value. `filter` applies to the payload object as on every
 other transport but is rarely useful here.
 
