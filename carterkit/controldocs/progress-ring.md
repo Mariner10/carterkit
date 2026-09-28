@@ -11,46 +11,56 @@ addRank: 4
 starterPreset: {"label": "Progress","min": 0,"max": 100,"progressStyle": "ring"}
 fields:
   - name: animation
+    title: Motion
     tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: min
+    title: Lowest value
     bounds: none
     type: number
     default: 0
     description: Minimum value (0%)
   - name: max
+    title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value (100%)
   - name: progressStyle
+    title: Shape
     tab: style
     type: enum
     values: [ring, bar]
     default: ring
     description: Circular ring or linear bar
   - name: tint
+    title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Fill color
   - name: label
+    title: Title
     type: string
     description: Center text (ring) or header text (bar)
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol in center (ring only)
   - name: hideValue
+    title: Hide the number
     type: bool
     default: false
     description: Show just the arc — hide the center value
   - name: unit
+    title: Unit
     type: string
     description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally."
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -58,6 +68,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -65,26 +76,32 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -92,6 +109,7 @@ themeFields:
     default: 1
     description: Border width
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

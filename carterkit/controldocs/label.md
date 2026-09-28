@@ -12,59 +12,74 @@ starterPreset: {"label": "Text","text": "Hello"}
 starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]
 fields:
   - name: text
+    title: Text
     type: string
     description: Static display text (overridden by sync)
   - name: label
+    title: Other text
     type: string
     description: Alternative to text
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol before text
   - name: style
+    title: Look
     tab: style
     type: enum
     values: [default, headline, title, caption, mono, large-mono, terminal]
     default: default
     description: Text style variant (terminal = ANSI terminal renderer)
   - name: tint
+    title: Color
     tab: style
     type: color
     default: "#FFFFFF"
     description: Text and icon color
   - name: align
+    title: Alignment
     tab: style
     type: enum
     values: [leading, center, trailing]
     default: leading
     description: Text alignment
   - name: unit
+    title: Unit
     type: string
     description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally."
   - name: scrollable
+    title: Scrolling log
     type: bool
     default: false
     description: Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight)
   - name: formatValue
+    title: Number format
+    simple: hide
     tab: data
     type: string
     description: Value display format (see formatValue table; relative / relative:day show a date as time-since)
   - name: placeholder
+    title: Text before any value
     type: string
     description: Shown by a relative-date label with no date yet (default "Never")
   - name: valueMap
+    title: Words for values
     tab: data
     type: object
     description: Incoming value → display text ("default" catches the rest)
   - name: iconMap
+    title: Symbols for values
     tab: data
     type: object
     description: Incoming value → SF Symbol name
   - name: colorMap
+    title: Colors for values
     tab: data
     type: object
     description: Incoming value → hex tint
 themeFields:
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -72,6 +87,7 @@ themeFields:
     default: 8
     description: Internal padding
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color

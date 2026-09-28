@@ -10,30 +10,37 @@ oneLiner: Rows of information
 starterPreset: {"label": "Table"}
 fields:
   - name: label
+    title: Title
     type: string
     description: Header label
   - name: listColumns
+    title: Columns
     type: array
     description: "Column definitions: [{key, label, format}]"
   - name: tint
+    title: Header color
     tab: style
     type: color
     default: "#FFFFFF"
     description: Header text color
   - name: hideLabel
+    title: Hide the title
     type: bool
     default: false
     description: Hide header label
   - name: hideBackground
+    title: No background card
     tab: style
     type: bool
     default: false
     description: Remove glass card background
   - name: defaultValue
+    title: Starting rows
     type: object[]
     description: Seed rows shown before the first sync (the same row objects a sync delivers)
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -41,6 +48,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -48,18 +56,22 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5

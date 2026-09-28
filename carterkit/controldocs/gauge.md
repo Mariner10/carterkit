@@ -11,30 +11,36 @@ addRank: 3
 starterPreset: {"label": "Dial","min": 0,"max": 100}
 fields:
   - name: animation
+    title: Motion
     tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: min
+    title: Lowest value
     default: 0
     bounds: none
     type: number
     description: Minimum value
   - name: max
+    title: Highest value
     default: 100
     bounds: none
     type: number
     description: Maximum value
   - name: gaugeStyle
+    title: Shape
     tab: style
     type: enum
     values: [half, full]
     default: half
     description: "Shorthand: half = 180° arc, full = 360° circle"
   - name: segments
+    title: Color zones
     type: array
     description: Color zone breakpoints [{limit, color}]
   - name: colorBlend
+    title: Zone blending
     tab: style
     min: 0
     max: 1
@@ -43,22 +49,27 @@ fields:
     default: 0
     description: "How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments."
   - name: tint
+    title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Primary arc fill color (when no segments)
   - name: label
+    title: Title
     type: string
     description: Text below the gauge
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol in the center
   - name: step
+    title: Decimal places
     bounds: none
     type: number
     default: 1
     description: Determines decimal formatting of center value
   - name: arcAngle
+    title: Arc length
     tab: style
     min: 1
     max: 360
@@ -67,6 +78,7 @@ fields:
     default: 180
     description: Arc sweep in degrees (1-360)
   - name: arcRotation
+    title: Arc turn
     tab: style
     min: -180
     max: 180
@@ -75,6 +87,7 @@ fields:
     default: 0
     description: Rotates the arc start position in degrees
   - name: arcThickness
+    title: Arc thickness
     tab: style
     min: 1
     max: 40
@@ -83,14 +96,17 @@ fields:
     default: auto
     description: Arc stroke width in points. Omit to auto-scale with the gauge's size.
   - name: hideValue
+    title: Hide the number
     type: bool
     default: false
     description: Show just the arc — hide the center value
   - name: unit
+    title: Unit
     type: string
     description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally."
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -98,6 +114,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -105,26 +122,32 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -132,6 +155,7 @@ themeFields:
     default: 1
     description: Border width
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
