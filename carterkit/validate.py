@@ -24,6 +24,7 @@ from urllib.parse import urlsplit
 from . import grid as gridmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 from .conditions import check_condition
+from .forms import check_form, stray_form_keys
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
@@ -35,10 +36,13 @@ SHARED_FIELDS = {
     # (not per-control config) — any control may carry them; unused ones are ignored.
     # Mirrors CAR-TER/CAR-TER/Models/ControlDefinition.swift.
     "min", "max", "step", "formatValue", "controlHeight", "hideValue", "pulse",
+    # Forms (carter-c1n.20): a submit button's role, an input's draft field name.
+    "role", "field",
 }
 GROUP_FIELDS = {
     "type", "id", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "enabled", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
+    "form",
 }
 
 
@@ -503,7 +507,8 @@ def _grid_findings(children, cols, rows, where, findings, mode=None):
                            f"{', '.join(str(i) for i in ids)}: {issue['detail']}"))
 
 
-def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=1, counter=None):
+def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=1, counter=None,
+                    in_form=False):
     if not isinstance(ch, dict):
         findings.append(_f("error", "structure", where, "child must be an object"))
         return
@@ -547,9 +552,14 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         cols, rows = _grid_dims(g, spot, findings)
         _grid_findings(sub_children, cols, rows, spot, findings,
                        g.get("mode") if isinstance(g, dict) else None)
+        if "form" in ch:
+            check_form(ch, spot, findings)
         for sub in sub_children:
-            _validate_child(sub, catalog, spot, findings, seen_ids, sources, depth + 1, counter)
+            _validate_child(sub, catalog, spot, findings, seen_ids, sources, depth + 1, counter,
+                            in_form=in_form or "form" in ch)
         return
+
+    stray_form_keys(ch, in_form, spot, findings)
 
     if not ctype:
         return

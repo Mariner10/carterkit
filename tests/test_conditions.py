@@ -66,9 +66,17 @@ def test_legacy_leaf_is_clean_and_unknown_operator_is_error():
 
 def test_reserved_refs_warn():
     findings: list[dict] = []
-    check_condition({"ref": {"derive": "form.f.valid"}, "value": True}, "c", findings)
+    check_condition({"ref": {"derive": "watts"}, "value": True}, "c", findings)
     assert [f["kind"] for f in findings] == ["reserved_ref"]
     assert findings[0]["severity"] == "warn"
+
+
+def test_form_cells_are_real_refs():
+    """carter-c1n.20: `field` refs and `form.*` derives read form cells, no warning."""
+    for ref in ({"field": "plantForm.valid"}, {"derive": "form.plantForm.dirty"}):
+        findings: list[dict] = []
+        check_condition({"ref": ref, "value": True}, "c", findings)
+        assert findings == [], ref
 
 
 def test_depth_cap_is_16():

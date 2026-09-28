@@ -12,7 +12,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | Field | Type | Description |
 |-------|------|-------------|
 | `type` | string | Control type. One of: `button`, `toggle`, `slider`, `stepper`, `segmentedControl`, `picker`, `datePicker`, `textInput`, `colorPicker`, `label`, `image`, `gauge`, `sparkline`, `progressRing`, `map`, `graph`, `chart`, `pieChart`, `heatmap`, `radar`, `boxPlot`, `gantt`, `sankey`, `treemap`, `chord`, `chat`, `list`, `statusLight`, `logConsole`, `divider`, `spacer`, `webView`, `joystick`, `qrCode`, `camera` |
-| `id` | string | Unique identifier. Used for value storage, sync targeting, and visibility references |
+| `id` | string | Unique identifier. Used for value storage, sync targeting, and visibility references. Any non-empty string unique among the layout's controls and groups; see [[layout-config#Identity]] |
 | `position` | [row, col] | Zero-indexed grid cell placement |
 
 ## Optional Fields
@@ -20,18 +20,25 @@ Every control — regardless of type — shares the same base fields. A control 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `span` | [rowSpan, colSpan] | `[1, 1]` | Grid cells occupied. `colSpan` sets width; in a 2-D grid `rowSpan` sets height (`rowSpan × rowHeight`). Make a control bigger by spanning more cells. See [[grid-dimensions]]. |
+| `landscape` | `{position, span}` or `{hidden: true}` | — | Where this control sits when an iPhone is on its side; ignored in portrait. Also writable in the document's `placements` section. See [[grid-dimensions#Landscape and iPad]] |
+| `regular` | `{position, span}` or `{hidden: true}` | — | Where this control sits on an iPad-width page. See [[grid-dimensions#Landscape and iPad]] |
 | `controlHeight` | number | — | **Override** the grid-derived height with an exact point value. Rarely needed: in a 2-D grid the cell (`rowSpan × rowHeight`) is the height, and in a `flow` grid shaped controls auto-size to their aspect. Use it to pin a height the grid wouldn't otherwise give. See [[grid-dimensions]]. |
+| `name` | string | — | Readable name the editor shows for this control (e.g. `"Water level"`). Never used for identity or on the wire; omit it and the editor shows `label`, then the type |
 | `label` | string | — | Display label for the control |
-| `defaultValue` | bool/number/string | — | Initial value before sync |
+| `defaultValue` | bool/number/string, or a seed | — | Initial value before sync. Buffer and dataset controls also take a JSON seed; see [[#defaultValue per type]] |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on interaction |
 | `sync` | [[sync\|SyncDefinition]][] | — | Live state listeners |
 | `visible` | [[visibility\|VisibilityCondition]] | — | Show/hide condition |
 | `enabled` | [[visibility\|VisibilityCondition]] | — | Enable/disable condition: false dims the control and ignores touches |
+| `role` | `"submit"` | — | On a [[button]] inside a [[form]] group: pressing it submits the form |
+| `field` | string | the `id` | Inside a [[form]] group: the draft field this input writes |
 | `haptic` | string | varies by type | Haptic feedback profile. See [[haptics]] |
 | `animation` | string or object | varies by type | Animation override. See [[animations]] |
 | `longPressAction` | [[actions\|ActionDefinition]] | — | Action fired on long-press |
 | `longPressGroup` | [[long-press\|GroupDefinition]] | — | Sub-group popup on long-press |
 | `theme` | object | — | Per-control theme overrides (see below) |
+| `extensions` | object | — | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
+| `fallback` | object | — | The control an older app shows instead when it doesn't know this `type` (a control object, or a `group`; may chain up to 4 hops). It takes this control's `id`, `position` and `span`; ignored by an app that knows the type. See [[layout-config#Requires and fallback]] |
 
 ## Style Fields (shared)
 
@@ -55,6 +62,24 @@ Controls store their value as one of three types:
 | Number | `42`, `3.14` | slider, stepper, gauge, progressRing, sparkline |
 | String | `"text"` | label, textInput, segmentedControl, picker, datePicker, colorPicker, image, map, camera (last scanned value) |
 
+### defaultValue per type
+
+`defaultValue` is what a control shows before its first sync, in the shape that sync
+would deliver:
+
+| Control | `defaultValue` |
+|---------|----------------|
+| scalar controls (toggle, slider, stepper, gauge, progressRing, label, picker, …) | a bool, number or string |
+| sparkline | a number, or an **array of numbers** that seeds the series (`[41, 40, 39]`; trimmed to `sparklinePoints`; the readout shows the last point) |
+| list | an **array of row objects**, the rows shown until the first sync |
+| logConsole | an **array of lines** (strings or `{text, level}` objects) |
+| chart, pieChart, heatmap, radar, boxPlot, gantt, sankey, treemap, chord, graph, cardList, sortboard, pinboard, canvas, map | the control's dataset, as JSON (`{"series": […]}`) or as that JSON encoded in a string |
+
+A seed may be at most 4 KB once encoded (the string cap). Saving keeps it exactly as
+written: an array stays an array. A seed on any other control, or
+a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
+"Repaired on load" note: one control's `defaultValue` never stops a layout loading.
+
 ## Value Formatters
 
 `formatValue` formats numeric values for `label`, `gauge`, `progressRing`, `slider`, and `stepper`.
@@ -69,6 +94,8 @@ Controls store their value as one of three types:
 | `bps` | `1500000` | `1.50 Mbps` |
 | `duration` | `3725` | `1h 2m` |
 | `time` | `125` | `2:05` |
+| `relative` | `"2026-09-22T08:15:00Z"` / epoch | `4 days ago`, `In 2 hours` (label + widget slots; a date, not a number) |
+| `relative:day` | `"2026-09-25"` | `Yesterday` — whole local calendar days; no date → `placeholder` (`Never`) |
 
 Numeric readouts preserve positive step precision (for example, `step: 0.01` shows `0.12`, and `step: 0.25` shows `0.25`). Precision is capped at 12 decimal places. Non-finite values display `—`; `none` still hides them. Negative time and duration values use one leading minus sign. Times outside the integer range display seconds in scientific notation instead of failing conversion.
 
@@ -97,6 +124,7 @@ Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfa
 - [[grid-dimensions]] — how `position` / `span` map to size; grid modes
 - [[group-def]] — containers for controls
 - [[layout-config]] — the top-level structure
+- [[layout-config#Requires and fallback]] — `fallback` and `requires` for older apps
 - [[theming]] — Theme system & live theme builder
 - [[appearance]] — App shell appearance (color scheme, header, background)
 - [[actions]] — How `action` and `longPressAction` work
