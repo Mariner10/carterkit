@@ -67,7 +67,18 @@ A closed set. Anything else (including `pattern`/regex) makes the layout fail to
 | `kind` | `integer` \| `number` \| `date` \| `email` \| `url` | the value is not that kind (`date` = `yyyy-MM-dd` or ISO-8601; `url` = http/https with a host; `email` is a structural check) |
 
 An empty optional field is valid; only `required` checks emptiness. An input with an
-error shows a red outline and the message once it has been edited or a submit was refused.
+error shows a red outline and the message on its own line below the control (never over
+the value). It shows once the user commits an edit (a text field loses focus or Return is
+pressed; a stepper steps; an option is picked), or when a submit is refused. Typing alone
+never flashes an error.
+
+A [[stepper]] or [[slider]] field holds what the control shows: a value outside its
+`min`/`max` (a default, a prefilled row) is pinned into range in the draft too.
+
+A submit button gated on `valid` (`"enabled": {"ref": {"field": "<formId>.valid"}, …}`)
+is dimmed while the form is invalid, but a tap on it still reaches the form: the submit
+is refused and every field's error shows. No alert. Leave room for the error line: give
+the form's grid a taller `rowHeight` (the sample uses 76).
 
 ## Cells for conditions
 
@@ -87,7 +98,7 @@ condition (`visible` / `enabled`):
 
 ```json
 { "type": "group", "id": "plantForm", "label": "New plant",
-  "position": [0, 0], "span": [4, 4], "grid": { "columns": 2, "rows": 3 },
+  "position": [0, 0], "span": [5, 4], "grid": { "columns": 2, "rows": 3, "rowHeight": 76 },
   "form": {
     "collection": "plants",
     "fields": {
