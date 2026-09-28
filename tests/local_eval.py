@@ -23,6 +23,14 @@ class UnknownCollection(Exception):
     pass
 
 
+class LimitExceeded(Exception):
+    """The app's `limit` error (a range or fill too wide, carter-73q2.32)."""
+
+
+MAX_RANGE_DAYS = 3660
+MAX_EXPANDED_DAYS = 200_000
+
+
 # ── dates (§2.3) ────────────────────────────────────────────────────────────────
 
 def parse_instant(s: str) -> dt.datetime | None:
@@ -220,6 +228,14 @@ class Store:
             return ordered[0][field] if ordered else None
         if op == "span":
             return self._span(rows, field, stage["aggregate"].get("to") or field)
+        return self._aggregate(rows, stage["aggregate"])
+
+    def _aggregate(self, rows, a):
+        """`_aggregate`, plus distinct over a date bucket (carter-73q2.32)."""
+        op, field = _agg(a)
+        if op == "distinct" and isinstance(a, dict) and "bucket" in a:
+            g = {"field": field, "bucket": a["bucket"]}
+            return len({self._group_key(r[field], g, "date") for r in rows if r.get(field) is not None})
         return _aggregate(rows, op, field)
 
     def _day(self, v):
@@ -245,16 +261,67 @@ class Store:
     def _groups(self, rows, stage, fields, base):
         rows = self._rows(rows, {"where": stage["where"]} if "where" in stage else {}, fields, base)
         g = stage["groupBy"]
-        field = g if isinstance(g, str) else g["field"]
         buckets: dict = {}
-        for r in rows:
-            k = self._group_key(r.get(field), g, fields[field])
-            buckets.setdefault(k, []).append(r)
-        op, afield = _agg(stage.get("aggregate", "count"))
-        groups = [{"key": k, "value": _aggregate(rs, op, afield)} for k, rs in buckets.items()]
+        if isinstance(g, dict) and "range" in g:
+            self._expand_range(rows, g, buckets)
+        else:
+            field = g if isinstance(g, str) else g["field"]
+            for r in rows:
+                k = self._group_key(r.get(field), g, fields[field])
+                buckets.setdefault(k, []).append(r)
+        a = stage.get("aggregate", "count")
+        groups = [{"key": k, "value": self._aggregate(rs, a)} for k, rs in buckets.items()]
+        limit = min(stage.get("limit", L.MAX_GROUPS), L.MAX_GROUPS)
         keys = _order_keys(stage.get("orderBy")) or [("key", False)]
+        fill = g.get("fill") if isinstance(g, dict) else None
+        if fill:
+            groups = self._fill(groups, g, fill, _agg(a)[0])
         groups = _sort(groups, keys, tiebreak=None)
-        return groups[:min(stage.get("limit", L.MAX_GROUPS), L.MAX_GROUPS)]
+        return groups[:limit]
+
+    # ── range buckets + fill (carter-73q2.32) ────────────────────────────────────
+    def _expand_range(self, rows, g, buckets):
+        start_f, end_f = g["range"]
+        today = calendar_date(self.now, self.tz)
+        spans, total = [], 0
+        for r in rows:
+            if r.get(start_f) is None:
+                continue
+            a = self._day(r[start_f])
+            b = self._day(r[end_f] if r.get(end_f) is not None else today)
+            width = max((b - a).days, 0) + 1
+            if width > MAX_RANGE_DAYS:
+                raise LimitExceeded(f"range: a row spans more than {MAX_RANGE_DAYS} days")
+            total += width
+            spans.append((r, a, width))
+        if total > MAX_EXPANDED_DAYS:
+            raise LimitExceeded(f"range: rows expand to more than {MAX_EXPANDED_DAYS} days")
+        for r, a, width in spans:
+            keys = {self._group_key((a + dt.timedelta(days=i)).isoformat(), g, "date") for i in range(width)}
+            for k in keys:
+                buckets.setdefault(k, []).append(r)
+
+    def _fill_key(self, raw, unit):
+        if raw is None:
+            return None
+        if raw.startswith("{{") and raw.endswith("}}"):
+            raw = self.token(raw[2:-2], None)
+        return self._group_key(normalize_date(raw), {"bucket": unit}, "date")
+
+    def _fill(self, groups, g, fill, op):
+        unit = g["bucket"]
+        window = fill if isinstance(fill, dict) else {}
+        lo, hi = self._fill_key(window.get("from"), unit), self._fill_key(window.get("to"), unit)
+        if lo is not None and hi is not None:
+            _bucket_keys(lo, hi, unit)                       # a fixed window must fit
+        present = {x["key"]: x["value"] for x in groups if x["key"] is not None}
+        ordered = sorted(present)
+        start = lo if lo is not None else (ordered[0] if ordered else None)
+        end = hi if hi is not None else (ordered[-1] if ordered else None)
+        if start is None or end is None:
+            return []
+        zero = 0 if op in ("count", "sum", "distinct") else None
+        return [{"key": k, "value": present.get(k, zero)} for k in _bucket_keys(start, end, unit)]
 
     def _group_key(self, v, g, ftype):
         if v is None or isinstance(g, str):
@@ -278,6 +345,26 @@ class Store:
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
+
+def _next_key(key, unit):
+    if unit == "year":
+        return f"{int(key) + 1:04d}"
+    if unit == "month":
+        y, m = map(int, key.split("-"))
+        return f"{y + 1:04d}-01" if m == 12 else f"{y:04d}-{m + 1:02d}"
+    step = 7 if unit == "week" else 1
+    return (dt.date.fromisoformat(key) + dt.timedelta(days=step)).isoformat()
+
+
+def _bucket_keys(start, end, unit):
+    out, k = [], start
+    while k <= end:
+        out.append(k)
+        if len(out) > L.MAX_GROUPS:
+            raise LimitExceeded(f"fill spans more than {L.MAX_GROUPS} buckets")
+        k = _next_key(k, unit)
+    return out
+
 
 def _order_keys(o):
     if o is None:

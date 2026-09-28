@@ -322,6 +322,10 @@ def test_fixture_parity(path):
             if exp.get("error") != "invalid-stage":
                 failures.append(f"{tag}: evaluator raised {e}")
             continue
+        except E.LimitExceeded as e:
+            if exp.get("error") != "limit":
+                failures.append(f"{tag}: evaluator raised limit: {e}")
+            continue
         except E.UnknownCollection:
             if exp.get("error") != "unknown-collection":
                 failures.append(f"{tag}: evaluator: unknown collection")
@@ -417,4 +421,42 @@ def test_span_aggregate_lint():
 def test_span_aggregate_in_a_layout_lints_clean():
     layout = _one_control(sync={"method": "local", "collection": "books",
                                 "aggregate": {"op": "span", "field": "finished"}})
+    assert _errors(layout) == []
+
+
+# ── range buckets, fill, distinct over a bucket (carter-73q2.32) ──────────────
+
+def test_range_fill_and_distinct_bucket_lint():
+    f = {"started": "date", "finished": "date", "title": "string", "pages": "integer"}
+    errs = lambda st: [m for sev, m in local.lint_stage(st, f) if sev == "error"]  # noqa: E731
+    ok = [
+        {"groupBy": {"range": ["started", "finished"], "bucket": "day"}},
+        {"groupBy": {"range": ["started", "finished"], "bucket": "week", "fill": True},
+         "aggregate": {"op": "sum", "field": "pages"}},
+        {"groupBy": {"field": "finished", "bucket": "month", "fill": {"from": "{{startOfYear}}", "to": "{{today}}"}}},
+        {"groupBy": {"field": "finished", "bucket": "day", "fill": False}},
+        {"aggregate": {"op": "distinct", "field": "finished", "bucket": "day"}},
+        {"groupBy": {"field": "finished", "bucket": "month"},
+         "aggregate": {"op": "distinct", "field": "finished", "bucket": "day"}},
+    ]
+    for st in ok:
+        assert errs(st) == [], st
+    bad = {
+        "range must be [fromField, toField]": {"groupBy": {"range": ["started"], "bucket": "day"}},
+        "range needs a bucket": {"groupBy": {"range": ["started", "finished"]}},
+        "range needs date fields": {"groupBy": {"range": ["title", "finished"], "bucket": "day"}},
+        "range replaces field": {"groupBy": {"range": ["started", "finished"], "field": "started", "bucket": "day"}},
+        "fill needs a date bucket": {"groupBy": {"field": "pages", "width": 10, "fill": True}},
+        "fill: unknown key": {"groupBy": {"field": "finished", "bucket": "day", "fill": {"since": "2026-01-01"}}},
+        "{{selected}} is not a date": {"groupBy": {"field": "finished", "bucket": "day", "fill": {"from": "{{selected}}"}}},
+        "bucket is only for distinct": {"aggregate": {"op": "sum", "field": "pages", "bucket": "day"}},
+        "distinct bucket needs a date field": {"aggregate": {"op": "distinct", "field": "pages", "bucket": "day"}},
+    }
+    for needle, st in bad.items():
+        assert any(needle in m for m in errs(st)), (needle, errs(st))
+
+
+def test_range_groupby_in_a_layout_lints_clean():
+    layout = _one_control(sync={"method": "local", "collection": "books",
+                                "groupBy": {"range": ["finished", "finished"], "bucket": "day", "fill": True}})
     assert _errors(layout) == []

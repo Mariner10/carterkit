@@ -194,7 +194,7 @@ Collapses the matched rows to one value. Either the bare string
 | `sum` | `number`/`integer` | total; `0` for no rows |
 | `avg` | `number`/`integer` | mean; `null` for no rows |
 | `min` / `max` | `number`/`integer`/`date`/`string` | smallest / largest value |
-| `distinct` | any non-`json` field | number of distinct values |
+| `distinct` | any non-`json` field | number of distinct values; with `"bucket": "day"` (`week`/`month`/`year`) on a `date` field, the number of distinct buckets, e.g. days with any entry |
 | `first` / `last` | any non-`json` field | that field of the first / last row under `orderBy` (default `createdAt`, then `id`) |
 | `span` | a `date` field, plus an optional `to` date field | first..last: `{from, to, count, days, open}` (see below) |
 
@@ -213,7 +213,7 @@ aggregate.
 ### groupBy
 
 Buckets the matched rows and (with `aggregate`, default `count`) produces one
-value per bucket. Three forms:
+value per bucket. Four forms:
 
 - `"groupBy": "genre"` — exact values of a field.
 - `"groupBy": {"field": "finished", "bucket": "month"}` — a `date` field by
@@ -223,8 +223,37 @@ value per bucket. Three forms:
   lands in the `null` bucket, listed last.
 - `"groupBy": {"field": "pages", "width": 100}` — a `number`/`integer` field into
   ranges; the key is the bucket's lower edge as a number.
+- `"groupBy": {"range": ["started", "finished"], "bucket": "day"}` — a row counts
+  in **every** bucket its `started`..`finished` span touches (once per bucket, so a
+  ten-day book adds 1 to each of ten days, or 1 to its one month). An empty
+  `finished` means still going: the span runs to today. A row with no `started` is
+  left out; a `finished` before `started` counts the start bucket only. One row may
+  span at most 3660 days and all rows together 200000 row-days, or the query fails
+  with a `limit` error. Keys are the same as a date bucket.
 
-`bucket` and `width` are exclusive. A grouped query returns at most 500 groups.
+`bucket` and `width` are exclusive; `range` replaces `field`. A grouped query
+returns at most 500 groups.
+
+**fill.** A date bucket or a range may add `"fill"` so charts and calendars show
+empty buckets: `"fill": true` adds every missing bucket between the first and last
+key; `"fill": {"from": "{{startOfYear}}", "to": "{{today}}"}` fills that window
+and drops keys outside it (either end may be left out: it defaults to the first
+or last key). `from`/`to` are dates, instants or the period tokens (`{{today}}`,
+`{{now}}`, `{{startOfWeek}}`, `{{startOfMonth}}`, `{{startOfYear}}`). A filled
+bucket's value is `0` for `count`/`sum`/`distinct` and `null` for `avg`/`min`/`max`;
+the `null`-date bucket is dropped. `orderBy` and `limit` apply after the fill. A fill
+of more than 500 buckets is a `limit` error. The payload shape is unchanged.
+
+```json
+[
+  {"groupBy": {"range": ["started", "finished"], "bucket": "day", "fill": {"from": "{{startOfYear}}", "to": "{{today}}"}}},
+  {"groupBy": {"field": "finished", "bucket": "month", "fill": true}, "aggregate": {"op": "sum", "field": "pages"}},
+  {"where": {"date": {"gte": "{{startOfMonth}}"}}, "aggregate": {"op": "distinct", "field": "date", "bucket": "day"}}
+]
+```
+
+The first is a reading-days calendar for this year, the second pages per month
+with empty months as `0`, the third "sessions this month" (days with any entry).
 
 ### orderBy and limit
 

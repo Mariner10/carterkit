@@ -362,6 +362,11 @@ def _lint_group_by(g, fields, out):
             out.append(("error", f"groupBy: cannot group by json field '{g}'"))
     elif isinstance(g, dict):
         field, unit, width = g.get("field"), g.get("bucket"), g.get("width")
+        if "fill" in g:
+            _lint_fill(g["fill"], unit, out)
+        if "range" in g:
+            _lint_range(g, fields, out)
+            return
         if not isinstance(field, str):
             out.append(("error", "groupBy.field must be a string"))
             return
@@ -369,10 +374,10 @@ def _lint_group_by(g, fields, out):
             out.append(("error", "groupBy: bucket and width are exclusive"))
             return
         for key in g:
-            if key not in ("field", "bucket", "width"):
+            if key not in ("field", "bucket", "width", "fill"):
                 out.append(("warn", f"groupBy: unknown key '{key}' is ignored"))
     else:
-        out.append(("error", "groupBy must be a field name or {field, bucket|width}"))
+        out.append(("error", "groupBy must be a field name, {field, bucket|width} or {range, bucket}"))
         return
     ftype = fields.get(field)
     if ftype is None:
@@ -390,6 +395,48 @@ def _lint_group_by(g, fields, out):
             out.append(("error", f"groupBy.width needs a numeric field ('{field}' is {ftype})"))
 
 
+def _lint_range(g, fields, out):
+    """`{"range": [from, to], "bucket"}`: every bucket a row's span touches (carter-73q2.32)."""
+    ends, unit = g.get("range"), g.get("bucket")
+    if "field" in g or "width" in g:
+        out.append(("error", "groupBy: range replaces field (and takes no width)"))
+        return
+    for key in g:
+        if key not in ("range", "bucket", "fill"):
+            out.append(("warn", f"groupBy: unknown key '{key}' is ignored"))
+    if not (isinstance(ends, list) and len(ends) == 2 and all(isinstance(e, str) for e in ends)):
+        out.append(("error", "groupBy.range must be [fromField, toField]"))
+        return
+    if unit not in BUCKET_UNITS:
+        out.append(("error", f"groupBy.range needs a bucket: one of {list(BUCKET_UNITS)}"))
+    for name in ends:
+        ftype = fields.get(name)
+        if ftype is None:
+            out.append(("error", f"groupBy: unknown field '{name}'"))
+        elif ftype != "date":
+            out.append(("error", f"groupBy.range needs date fields ('{name}' is {ftype})"))
+
+
+def _lint_fill(fill, unit, out):
+    """`fill: true` or `{from?, to?}` (dates or period tokens) on a date bucket."""
+    if unit is None:
+        out.append(("error", "groupBy.fill needs a date bucket"))
+    if isinstance(fill, bool):
+        return
+    if not isinstance(fill, dict):
+        out.append(("error", "groupBy.fill must be true or {from, to}"))
+        return
+    for key, value in fill.items():
+        if key not in ("from", "to"):
+            out.append(("error", f"groupBy.fill: unknown key '{key}'"))
+        elif not isinstance(value, str):
+            out.append(("error", "groupBy.fill.from/to must be strings"))
+        elif value == "{{selected}}":
+            out.append(("error", "groupBy.fill: {{selected}} is not a date"))
+        elif value.startswith("{{") and value.endswith("}}") and value[2:-2] not in TOKENS:
+            out.append(("error", f"groupBy.fill: unknown token {value}"))
+
+
 def _lint_aggregate(a, fields, out, grouped):
     if isinstance(a, str):
         op, field = a, None
@@ -399,6 +446,10 @@ def _lint_aggregate(a, fields, out, grouped):
             if key == "to":
                 if op != "span":
                     out.append(("error", "aggregate.to is only for span"))
+                    return
+            elif key == "bucket":
+                if op != "distinct":
+                    out.append(("error", "aggregate.bucket is only for distinct"))
                     return
             elif key not in ("op", "field"):
                 out.append(("warn", f"aggregate: unknown key '{key}' is ignored"))
@@ -430,6 +481,12 @@ def _lint_aggregate(a, fields, out, grouped):
         out.append(("error", f"aggregate: {op} needs a number, string or date field ('{field}' is {ftype})"))
     elif op == "distinct" and ftype == "json":
         out.append(("error", f"aggregate: distinct cannot count a json field ('{field}')"))
+    elif op == "distinct" and isinstance(a, dict) and "bucket" in a:
+        # distinct date buckets ("days with any entry", carter-73q2.32)
+        if a["bucket"] not in BUCKET_UNITS:
+            out.append(("error", f"aggregate.bucket: unknown unit {a['bucket']!r}; use one of {list(BUCKET_UNITS)}"))
+        elif ftype != "date":
+            out.append(("error", f"aggregate: distinct bucket needs a date field ('{field}' is {ftype})"))
     elif op == "span":
         # first..last over one or two date fields -> {from, to, count, days, open}
         if grouped:
