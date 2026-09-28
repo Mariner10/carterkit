@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 
 from . import grid as gridmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
+from .secrets_lint import is_placeholder_only, lint_secrets
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
@@ -131,6 +132,7 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
     # them (an mqtt/http `source:` must name a declared source). See sources.md.
     sources = _validate_sources_defs(layout, findings)
     _validate_top_level(layout, findings)
+    lint_secrets(layout, findings)
     _validate_device_shape(layout, findings)
 
     tabs = layout.get("tabs")
@@ -381,17 +383,20 @@ def _scan_tree(layout: dict, findings: list) -> None:
             if not isinstance(src, dict):
                 continue
             for k in ("password", "token", "apiKey"):
-                if src.get(k):
+                if src.get(k) and not is_placeholder_only(src.get(k)):
                     secret_paths.add(f"sources.{name}.{k}")
             headers = src.get("headers")
             if isinstance(headers, dict):
-                for hk in headers:
-                    if any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie")):
+                for hk, hv in headers.items():
+                    if (any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie"))
+                            and not is_placeholder_only(hv)):
                         secret_paths.add(f"sources.{name}.headers.{hk}")
     for path in sorted(secret_paths):
+        fix = ("; write {{secret:name}} and declare it in 'secrets' (the phone keeps the "
+               "value in its Keychain)" if path.startswith("sources.") else "")
         findings.append(_f("warn", "embedded_secret", path,
                            "a credential is embedded in the layout — anyone who receives "
-                           "this JSON (share, export, MCP readback) receives the secret"))
+                           "this JSON (share, export, MCP readback) receives the secret" + fix))
 
     stack = [(layout, "root", 0)]
     seen_urls = 0

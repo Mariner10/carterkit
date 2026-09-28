@@ -19,13 +19,13 @@ fields:
     description: MQTT username
   - name: password
     type: string
-    description: MQTT password
+    description: "MQTT password; write a {{secret:name}} placeholder, not the literal value"
   - name: clientId
     type: string
     description: MQTT client id (auto-generated when omitted)
   - name: headers
     type: object
-    description: Extra HTTP headers sent with every poll/request
+    description: "Extra HTTP headers sent with every poll/request; put credentials in as {{secret:name}}"
   - name: interval
     min: 1
     max: 3600
@@ -53,11 +53,18 @@ just picks the wire.
 ```json
 "sources": {
   "broker": { "type": "mqtt", "url": "mqtt://192.168.1.10:1883",
-              "username": "ha", "password": "secret" },
+              "username": "ha", "password": "{{secret:mqtt_password}}" },
   "api":    { "type": "http", "baseURL": "http://192.168.1.5:8080",
-              "headers": { "Authorization": "Bearer abc" }, "interval": 5 }
-}
+              "headers": { "Authorization": "Bearer {{secret:api_token}}" }, "interval": 5 }
+},
+"secrets": [ { "name": "mqtt_password" }, { "name": "api_token" } ]
 ```
+
+Credentials go in as `{{secret:name}}` placeholders, not literal values: the
+phone fills them in from its Keychain when it dials the broker or sends the
+request, and the JSON never carries them. By default a secret may only be sent
+to the hosts of the layout's declared sources; `secrets[].hosts` changes that
+for one secret. See [[layout-config#Secrets]].
 
 When a layout has exactly **one** source of a kind, sync/action entries may omit
 `source` — it resolves automatically. With several, name the one you mean.
@@ -162,6 +169,9 @@ with its host, cadence or topic count, and state.
   `url` work with no `sources` block at all.
 - Diagnostics (connects, failures, reconnects) land in the connection console
   like MeshSocket's.
+- A request that needs a secret the phone does not have, or may not send to
+  that host, is not sent; the pipe shows `needs secret <name>` or
+  `secret <name> not allowed for host <h>` ([[layout-config#Secrets]]).
 
 ## Related
 

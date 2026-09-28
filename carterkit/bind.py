@@ -14,6 +14,8 @@ server demuxes on that (`Hub.on` does it automatically).
 """
 from __future__ import annotations
 
+import re
+
 #: The only frame types the relay forwards between peers. An action's `event`
 #: must be one of these (or be built by :func:`command`) to go anywhere.
 WIRE_VERBS = ("broadcast_request", "route_msg", "route_msg_noreply")
@@ -151,6 +153,46 @@ def http_request(path: str | None = None, *, url: str | None = None,
     if source is not None:
         a["source"] = source
     return a
+
+
+#: The `{{secret:name}}` token grammar (the app's `TokenContext`): the key is
+#: everything up to the first ``}}``. `secret.name` is the same token.
+SECRET_TOKEN = re.compile(r"\{\{secret[:.](.*?)\}\}")
+_SECRET_NAME = re.compile(r"^[A-Za-z0-9_.\-]+$")
+
+
+def secret(name: str) -> str:
+    """The `{{secret:name}}` placeholder for a credential the phone keeps in its
+    Keychain. Put it where the credential goes (a source's ``headers`` / MQTT
+    ``password``, an action ``payload`` or url path) instead of the literal value,
+    and declare it with ``Layout.secret(name, ...)``. The app fills it in when the
+    request goes out, only for a destination the declaration allows (see
+    layout-config.md#Secrets)::
+
+        ui.source_http("ha", "https://ha.local:8123",
+                       headers={"Authorization": "Bearer " + bind.secret("ha_token")})
+        ui.secret("ha_token", label="Home Assistant token", kind="token")
+    """
+    if not isinstance(name, str) or not _SECRET_NAME.match(name):
+        raise ValueError(f"secret name must be letters, digits, '_', '-' or '.', got {name!r}")
+    return "{{secret:" + name + "}}"
+
+
+def secret_names(value) -> list[str]:
+    """Every `{{secret:name}}` name in a string or JSON tree, first-seen order."""
+    out: list[str] = []
+    stack = [value]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, str):
+            for m in SECRET_TOKEN.finditer(node):
+                if m.group(1) not in out:
+                    out.append(m.group(1))
+        elif isinstance(node, dict):
+            stack.extend(reversed(list(node.values())))
+        elif isinstance(node, list):
+            stack.extend(reversed(node))
+    return out
 
 
 def connection(url: str | None, *, channel: str = "home", name: str = "CAR-TER",

@@ -85,8 +85,23 @@ A string that is *exactly* `"{{value}}"` keeps the value's native type (numbers
 stay numbers, bools stay bools). Over MQTT, a string payload publishes as raw
 bytes (`ON`, not `"ON"`); objects publish as JSON.
 
+`{{secret:name}}` fills in a credential from the phone's Keychain when the
+action is sent, never earlier ([[layout-config#Secrets]]). It works in an HTTP
+action's `url` path/query, `headers` and `payload`, an MQTT action's `payload`,
+and a MeshSocket action's `payload`. Only the text you wrote in the action is
+filled in; a `{{secret:…}}` that arrives inside `{{value}}` is sent as plain
+text. The secret must be allowed at the destination:
+
+- an HTTP or MQTT action goes to its host, which must be a declared source's
+  host or listed in the secret's `hosts`. An absolute `url` on any other host
+  needs `"hosts": ["that.host"]` in the declaration;
+- a MeshSocket action goes to every peer in the room, so the secret needs
+  `"mesh": true`. Without it the action is not sent and the console logs
+  `secret <name> not allowed for the mesh`.
+
 ## Related
 
 - [[control-def]] — every control can have an action
 - [[sources]] — MQTT/HTTP source declaration
+- [[layout-config#Secrets]] — `{{secret:name}}` and where a secret may be sent
 - [[long-press]] — alternate action on long press

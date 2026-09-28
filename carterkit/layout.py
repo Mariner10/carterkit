@@ -419,6 +419,39 @@ class Layout:
         self._buf.layout.setdefault("sources", {})[name] = src
         return self
 
+    # ─── secrets ({{secret:name}} credentials the phone keeps in its Keychain) ──
+    def secret(self, name: str, *, label: str = None, kind: str = None,
+               hosts: list = None, mesh: bool = None) -> str:
+        """Declare a credential a ``{{secret:name}}`` placeholder refers to and return
+        that placeholder. The layout carries only the name; the value lives in the
+        phone's Keychain and is filled in when a request goes out. By default the
+        secret may only be sent to the hosts of the layout's declared sources;
+        ``hosts`` replaces that set (list any host an action ``url`` names), and
+        ``mesh=True`` also allows it in a MeshSocket action payload, which every peer
+        in the room reads. ``kind`` is ``token``, ``password`` or ``apiKey``.
+        Re-declaring a name replaces it. See layout-config.md#Secrets::
+
+            key = ui.secret("ha_token", label="Home Assistant token", kind="token")
+            ui.source_http("ha", "https://ha.local:8123",
+                           headers={"Authorization": f"Bearer {key}"})
+        """
+        placeholder = _bind.secret(name)            # validates the name
+        decl: dict = {"name": name}
+        if label is not None:
+            decl["label"] = label
+        if kind is not None:
+            decl["kind"] = kind
+        if hosts is not None:
+            if isinstance(hosts, str) or not all(isinstance(h, str) and h for h in hosts):
+                raise ValueError("hosts must be a list of host names, e.g. ['api.example.com']")
+            decl["hosts"] = list(hosts)
+        if mesh is not None:
+            decl["mesh"] = bool(mesh)
+        decls = [d for d in self._buf.layout.get("secrets", []) if d.get("name") != name]
+        decls.append(decl)
+        self._buf.layout["secrets"] = decls
+        return placeholder
+
     # ─── publishers (stream this device's sensors over the connection) ──────────
     def publisher(self, sensor: str, *, interval: float = None) -> "Layout":
         """Stream a device [[sensors]] pipeline over the layout's connection, so a hub

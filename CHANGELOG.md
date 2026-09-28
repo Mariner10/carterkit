@@ -3,6 +3,22 @@
 All notable changes to **carterkit** are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+- `Layout.secret(name, label=, kind=, hosts=, mesh=)` declares a `secrets[]` entry and
+  returns its `{{secret:name}}` placeholder; `bind.secret(name)` builds the placeholder
+  alone (carter-7gve; app side carter-hlkg).
+- `validate_layout` checks `secrets[]` (`bad_secrets`) and the app's destination
+  policy: `secret_host` (a request whose host the secret may not reach, e.g. an action
+  `url` on an undeclared host), `secret_mesh` (a MeshSocket action carrying a secret
+  without `mesh: true`), `secret_in_url` (placeholder in a URL host/port),
+  `secret_not_filled` (placeholder where the app never fills it), plus
+  `secret_undeclared` / `secret_unused` infos. `embedded_secret` no longer fires on a
+  `{{secret:…}}` placeholder, suggests one for a literal, and now also covers
+  credential headers on actions and syncs.
+- Vendored ControlDocs: `layout-config` gains the `secrets` field and a Secrets section;
+  `sources` / `actions` document `{{secret:name}}`.
+
 ## [0.13.1] — 2026-09-27
 
 ### Changed
