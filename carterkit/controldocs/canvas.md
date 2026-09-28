@@ -4,8 +4,13 @@ label: Canvas
 icon: square.on.square.dashed
 category: input
 defaultSpan: [10, 4]
+addIntent: change
+friendlyName: Free canvas
+oneLiner: Place things anywhere on a surface
+starterPreset: {"label": "Canvas"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -58,6 +63,7 @@ fields:
     description: The hosted controls with their normalized frames (see Config)
     group: canvasConfig
   - name: events
+    tab: advanced
     type: object
     description: pickup / place / layout actions fired as cards are lifted and dropped
     group: canvasConfig

@@ -4,8 +4,13 @@ label: Pie Chart
 icon: chart.pie.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Pie
+oneLiner: Parts of a whole
+starterPreset: {"label": "Pie"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -13,6 +18,7 @@ fields:
     type: string
     description: Label under the chart
   - name: pieStyle
+    tab: style
     type: enum
     values: [pie, donut, wheel, menu]
     default: pie
@@ -21,10 +27,12 @@ fields:
     type: object
     description: Full configuration object (see PieConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-slice color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for slice/center values
   - name: centerText
@@ -32,10 +40,12 @@ fields:
     description: Donut center text; {{total}} interpolates the slice sum
     group: pieConfig
   - name: colors
+    tab: style
     type: string[]
     description: Slice color cycle (per-slice color wins)
     group: pieConfig
   - name: donutRatio
+    tab: style
     min: 0
     max: 0.85
     step: 0.05
@@ -66,6 +76,7 @@ fields:
     description: Append each slice's value to its label
     group: pieConfig
   - name: sliceAction
+    tab: action
     type: object
     description: sliceAction
     group: pieConfig

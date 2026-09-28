@@ -4,8 +4,13 @@ label: Sankey
 icon: arrow.triangle.branch
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Flows
+oneLiner: Where amounts flow from and to
+starterPreset: {"label": "Flows"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,17 +21,21 @@ fields:
     type: object
     description: Full configuration object (see SankeyConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-node color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for node throughput values
   - name: colors
+    tab: style
     type: string[]
     description: Node color cycle (per-node color wins)
     group: sankeyConfig
   - name: linkOpacity
+    tab: style
     min: 0
     max: 1
     step: 0.05
@@ -35,10 +44,12 @@ fields:
     description: Ribbon opacity (selection brightens involved ribbons)
     group: sankeyConfig
   - name: nodeAction
+    tab: action
     type: object
     description: nodeAction
     group: sankeyConfig
   - name: nodeSpacing
+    tab: style
     min: 0
     max: 40
     step: 1
@@ -47,6 +58,7 @@ fields:
     description: Minimum vertical gap between nodes in a column
     group: sankeyConfig
   - name: nodeWidth
+    tab: style
     min: 1
     max: 40
     step: 1

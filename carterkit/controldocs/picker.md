@@ -4,8 +4,14 @@ label: Picker
 icon: list.bullet
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Menu
+oneLiner: Pick one from a list
+addRank: 7
+starterPreset: {"label": "Menu","options": ["One","Two","Three"]}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -22,6 +28,7 @@ fields:
     type: array
     description: Available choices (string array)
   - name: pickerStyle
+    tab: style
     type: enum
     values: [menu, wheel, inline]
     default: menu
@@ -30,6 +37,7 @@ fields:
     type: string
     description: Display label
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color
@@ -37,6 +45,7 @@ fields:
     type: string
     description: Initially selected option
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection

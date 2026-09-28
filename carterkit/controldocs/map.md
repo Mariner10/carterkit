@@ -3,9 +3,14 @@ type: map
 label: Map
 icon: map.fill
 category: controls
-defaultSpan: [3, 4]
+defaultSpan: [4, 4]
+addIntent: show
+friendlyName: Map
+oneLiner: A place on a map
+starterPreset: {"label": "Map","mapStyle": "standard"}
 fields:
   - name: mapStyle
+    tab: style
     type: enum
     values: [standard, satellite, hybrid, globe]
     default: standard
@@ -24,6 +29,7 @@ fields:
     type: string
     description: Header label above the map
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Default marker color (used when a marker carries none)

@@ -5,15 +5,18 @@ icon: arrow.triangle.2.circlepath
 category: system
 fields:
   - name: method
+    tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, sensor, local)
   - name: type
     type: string
     description: Sync direction (listen)
   - name: event
+    tab: advanced
     type: string
     description: MeshSocket frame type to match (meshsocket). Server broadcasts arrive as "broadcast" (demux with filter.msg_type); any other name only matches frames routed to this device by route_msg_noreply
   - name: filter
+    tab: advanced
     type: object
     description: Key-value pairs to match incoming messages
   - name: staleAfter
@@ -23,15 +26,18 @@ fields:
     type: number
     description: Seconds after the last source arrival before the value counts as stale (opt-in; 0 opts out; overrides the layout's liveness.staleAfter)
   - name: timestampPath
+    tab: advanced
     type: string
     description: Dot path to epoch seconds or ISO-8601 in the frame; age runs from that timestamp instead of receipt time
   - name: valuePath
+    tab: advanced
     type: string
     description: Dot-notation path to extract value
   - name: source
     type: string
     description: Named entry in the layout's sources (mqtt/http/local)
   - name: topic
+    tab: advanced
     type: string
     description: MQTT topic filter to subscribe (mqtt; supports +/#)
   - name: url

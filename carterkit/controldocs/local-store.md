@@ -9,6 +9,7 @@ fields:
     values: [local]
     description: Must be "local" — declared inside the layout's sources block
   - name: namespace
+    tab: advanced
     type: string
     description: Scope for every non-shared collection (default the layout id, else its name); must match ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$ and cannot be "shared"
   - name: collections

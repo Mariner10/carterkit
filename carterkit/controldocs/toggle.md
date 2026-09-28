@@ -4,8 +4,14 @@ label: Toggle
 icon: switch.2
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Switch
+oneLiner: Turns something on or off
+addRank: 2
+starterPreset: {"label": "Switch"}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -16,6 +22,7 @@ fields:
     type: string
     description: SF Symbol
   - name: style
+    tab: style
     type: enum
     values: [switch, button, icon-toggle]
     default: switch
@@ -33,19 +40,23 @@ fields:
     type: string
     description: SF Symbol when off (button and icon-toggle styles)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color when on
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, rigid, success, warning, error, selection]
     default: rigid
     description: Default haptic on toggle
   - name: trackLength
+    tab: style
     styles: [switch]
     type: number
     min: 31
@@ -54,6 +65,7 @@ fields:
     default: 51
     description: Track extent tip-to-tip along its path (pt)
   - name: trackCurvature
+    tab: style
     styles: [switch]
     type: number
     min: -180
@@ -62,6 +74,7 @@ fields:
     default: 0
     description: Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more)
   - name: trackRadius
+    tab: style
     styles: [switch]
     type: number
     min: 0
@@ -70,6 +83,7 @@ fields:
     default: 15.5
     description: Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below)
   - name: knobRadius
+    tab: style
     styles: [switch]
     type: number
     min: 0

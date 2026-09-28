@@ -4,8 +4,13 @@ label: Treemap
 icon: rectangle.3.group.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Blocks
+oneLiner: Sizes compared as blocks
+starterPreset: {"label": "Blocks"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,13 +21,16 @@ fields:
     type: object
     description: Full configuration object (see TreemapConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-item color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for item values
   - name: cellCornerRadius
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -31,6 +39,7 @@ fields:
     description: Cell corner rounding
     group: treemapConfig
   - name: cellGap
+    tab: style
     min: 0
     max: 40
     step: 1
@@ -39,6 +48,7 @@ fields:
     description: Gap between cells
     group: treemapConfig
   - name: colors
+    tab: style
     type: string[]
     description: Item color cycle (per-item color wins)
     group: treemapConfig
@@ -48,6 +58,7 @@ fields:
     description: Tap a parent to zoom into its children
     group: treemapConfig
   - name: itemAction
+    tab: action
     type: object
     description: itemAction
     group: treemapConfig

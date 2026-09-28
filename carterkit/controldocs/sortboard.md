@@ -4,8 +4,13 @@ label: Sortboard
 icon: rectangle.3.group.fill
 category: input
 defaultSpan: [10, 4]
+addIntent: change
+friendlyName: Sort board
+oneLiner: Drag cards between columns
+starterPreset: {"label": "Board"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -30,6 +35,7 @@ fields:
     description: Header for the option area
     group: sortboardConfig
   - name: hidePalette
+    tab: style
     type: bool
     default: false
     description: Hide the option area (server-seeded boards where items start placed)
@@ -43,6 +49,7 @@ fields:
     description: How many zone columns to lay out
     group: sortboardConfig
   - name: events
+    tab: advanced
     type: object
     description: events
     group: sortboardConfig

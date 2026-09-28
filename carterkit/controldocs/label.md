@@ -4,6 +4,12 @@ label: Label
 icon: textformat
 category: controls
 defaultSpan: [1, 2]
+addIntent: show
+friendlyName: Text
+oneLiner: A line of text, or a value with a caption
+addRank: 1
+starterPreset: {"label": "Text","text": "Hello"}
+starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]
 fields:
   - name: text
     type: string
@@ -15,15 +21,18 @@ fields:
     type: string
     description: SF Symbol before text
   - name: style
+    tab: style
     type: enum
     values: [default, headline, title, caption, mono, large-mono, terminal]
     default: default
     description: Text style variant (terminal = ANSI terminal renderer)
   - name: tint
+    tab: style
     type: color
     default: "#FFFFFF"
     description: Text and icon color
   - name: align
+    tab: style
     type: enum
     values: [leading, center, trailing]
     default: leading
@@ -36,18 +45,22 @@ fields:
     default: false
     description: Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight)
   - name: formatValue
+    tab: data
     type: string
     description: Value display format (see formatValue table; relative / relative:day show a date as time-since)
   - name: placeholder
     type: string
     description: Shown by a relative-date label with no date yet (default "Never")
   - name: valueMap
+    tab: data
     type: object
     description: Incoming value → display text ("default" catches the rest)
   - name: iconMap
+    tab: data
     type: object
     description: Incoming value → SF Symbol name
   - name: colorMap
+    tab: data
     type: object
     description: Incoming value → hex tint
 themeFields:

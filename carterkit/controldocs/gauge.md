@@ -4,8 +4,14 @@ label: Gauge
 icon: gauge.medium
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Dial
+oneLiner: A number on a dial, from low to high
+addRank: 3
+starterPreset: {"label": "Dial","min": 0,"max": 100}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -20,6 +26,7 @@ fields:
     type: number
     description: Maximum value
   - name: gaugeStyle
+    tab: style
     type: enum
     values: [half, full]
     default: half
@@ -28,6 +35,7 @@ fields:
     type: array
     description: Color zone breakpoints [{limit, color}]
   - name: colorBlend
+    tab: style
     min: 0
     max: 1
     step: 0.05
@@ -35,6 +43,7 @@ fields:
     default: 0
     description: "How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments."
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Primary arc fill color (when no segments)
@@ -50,6 +59,7 @@ fields:
     default: 1
     description: Determines decimal formatting of center value
   - name: arcAngle
+    tab: style
     min: 1
     max: 360
     step: 1
@@ -57,6 +67,7 @@ fields:
     default: 180
     description: Arc sweep in degrees (1-360)
   - name: arcRotation
+    tab: style
     min: -180
     max: 180
     step: 1
@@ -64,6 +75,7 @@ fields:
     default: 0
     description: Rotates the arc start position in degrees
   - name: arcThickness
+    tab: style
     min: 1
     max: 40
     step: 1

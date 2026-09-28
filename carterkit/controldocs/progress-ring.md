@@ -4,8 +4,14 @@ label: Progress Ring
 icon: circle.dashed
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Ring
+oneLiner: How far along something is
+addRank: 4
+starterPreset: {"label": "Progress","min": 0,"max": 100,"progressStyle": "ring"}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -20,11 +26,13 @@ fields:
     default: 100
     description: Maximum value (100%)
   - name: progressStyle
+    tab: style
     type: enum
     values: [ring, bar]
     default: ring
     description: Circular ring or linear bar
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Fill color

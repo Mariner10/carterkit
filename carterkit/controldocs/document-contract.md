@@ -5,6 +5,7 @@ icon: doc.badge.gearshape
 category: models
 fields:
   - name: schemaVersion
+    tab: advanced
     min: 1
     max: 2
     type: number
@@ -18,9 +19,11 @@ fields:
     type: string
     description: Always the string carter; written on export only, never required
   - name: extensions
+    tab: advanced
     type: object
     description: Reverse-DNS keyed tool data, top level and per control/group; preserved, never interpreted, 64 KB cap
   - name: provenance
+    tab: advanced
     type: object
     description: Where this document came from (immediate parents, package)
   - name: requires

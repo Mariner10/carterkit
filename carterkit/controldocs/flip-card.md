@@ -4,6 +4,11 @@ label: Flip Card
 icon: rectangle.portrait.rotate
 category: controls
 defaultSpan: [2, 2]
+addIntent: organize
+friendlyName: Flip card
+oneLiner: "Two sides: tap to flip"
+addRank: 4
+starterPreset: {}
 fields:
   - name: flipTrigger
     type: enum
@@ -19,6 +24,7 @@ fields:
     type: object
     description: The panel groups this container pages through (group defs with children)
   - name: containerAnimation
+    tab: style
     type: object
     description: Transition tuning, e.g. { profile, duration }
   - name: defaultValue

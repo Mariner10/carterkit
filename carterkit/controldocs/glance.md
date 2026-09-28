@@ -14,6 +14,7 @@ fields:
     type: string
     description: SF Symbol glyph for the layout (island leading slot, widget header)
   - name: tint
+    tab: style
     type: string
     description: Hex accent for the surfaces (defaults to accentColor)
   - name: hero

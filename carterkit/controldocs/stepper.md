@@ -4,8 +4,14 @@ label: Stepper
 icon: plus.forwardslash.minus
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Plus / minus
+oneLiner: Count up or down one step at a time
+addRank: 4
+starterPreset: {"label": "Count","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -25,6 +31,7 @@ fields:
     default: 1
     description: Positive increment/decrement amount; zero or negative falls back to 1
   - name: repeatOnHold
+    tab: action
     type: bool
     default: false
     description: Hold plus or minus to repeat steps using the system repeat behavior
@@ -43,6 +50,7 @@ fields:
     type: string
     description: SF Symbol before value
   - name: formatValue
+    tab: data
     type: string
     default: decimal
     description: "Value format: decimal, time, percent"
@@ -51,6 +59,7 @@ fields:
     type: number
     description: Initial value
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: light

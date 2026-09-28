@@ -4,6 +4,11 @@ label: Image
 icon: photo
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Picture
+oneLiner: A photo or an icon
+addRank: 7
+starterPreset: {"systemName": "photo"}
 fields:
   - name: systemName
     type: string
@@ -12,10 +17,12 @@ fields:
     type: string
     description: Static remote image URL
   - name: style
+    tab: style
     type: enum
     values: [rounded, circle]
     description: Visual style variant
   - name: imageCornerRadius
+    tab: style
     min: 0
     max: 60
     step: 1
@@ -26,16 +33,20 @@ fields:
     values: [fit, fill]
     description: "fit (scale to fit) or fill (scale to fill, may crop)"
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: iconMap
+    tab: data
     type: object
     description: Incoming value → SF Symbol name ("default" catches the rest)
   - name: valueMap
+    tab: data
     type: object
     description: Incoming value → image URL
   - name: colorMap
+    tab: data
     type: object
     description: Incoming value → hex tint for the mapped symbol
 themeFields:

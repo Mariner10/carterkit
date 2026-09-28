@@ -4,6 +4,11 @@ label: Button
 icon: hand.tap.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Button
+oneLiner: Tap it to make something happen
+addRank: 1
+starterPreset: {"label": "Button"}
 fields:
   - name: label
     type: string
@@ -13,16 +18,19 @@ fields:
     type: string
     description: SF Symbol shown before label
   - name: style
+    tab: style
     type: enum
     values: [filled, outlined, outline, ghost, tinted, icon-only]
     default: filled
     description: Visual style variant ("outline" and "outlined" are both accepted)
   - name: size
+    tab: style
     type: enum
     values: [compact, default, large]
     default: default
     description: Size variant
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color
@@ -31,21 +39,26 @@ fields:
     default: false
     description: Show icon only
   - name: haptic
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: medium
     description: Haptic feedback on press
   - name: repeatOnHold
+    tab: action
     type: bool
     default: false
     description: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
   - name: valueMap
+    tab: data
     type: object
     description: Synced value → button text ("default" catches the rest)
   - name: iconMap
+    tab: data
     type: object
     description: Synced value → SF Symbol name (swaps with the native replace effect)
   - name: colorMap
+    tab: data
     type: object
     description: Synced value → hex tint
 themeFields:

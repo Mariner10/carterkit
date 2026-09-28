@@ -3,7 +3,12 @@ type: sparkline
 label: Sparkline
 icon: chart.xyaxis.line
 category: controls
-defaultSpan: [1, 2]
+defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Trend line
+oneLiner: A little line that shows how a number changes
+addRank: 5
+starterPreset: {"label": "Trend","sparklinePoints": 60}
 fields:
   - name: sparklinePoints
     min: 5
@@ -13,10 +18,12 @@ fields:
     default: 50
     description: Max data points retained in the buffer
   - name: sparklineFill
+    tab: style
     type: bool
     default: false
     description: Fill the area under the line with a gradient
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Line and fill color

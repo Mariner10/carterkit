@@ -4,6 +4,10 @@ label: Web View
 icon: globe
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Web page
+oneLiner: A web page inside your app
+starterPreset: {"label": "Web page","url": "https://example.com"}
 fields:
   - name: url
     type: string
@@ -26,6 +30,7 @@ fields:
     type: number
     description: Auto-refresh interval in seconds
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass card background

@@ -5,9 +5,11 @@ icon: hand.tap.fill
 category: system
 fields:
   - name: longPressAction
+    tab: action
     type: action
     description: Action fired on long press (no popup)
   - name: longPressGroup
+    tab: action
     type: object
     description: Sub-group popup definition
 ---

@@ -3,7 +3,11 @@ type: list
 label: List
 icon: list.bullet
 category: controls
-defaultSpan: [2, 4]
+defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Table
+oneLiner: Rows of information
+starterPreset: {"label": "Table"}
 fields:
   - name: label
     type: string
@@ -12,6 +16,7 @@ fields:
     type: array
     description: "Column definitions: [{key, label, format}]"
   - name: tint
+    tab: style
     type: color
     default: "#FFFFFF"
     description: Header text color
@@ -20,6 +25,7 @@ fields:
     default: false
     description: Hide header label
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass card background

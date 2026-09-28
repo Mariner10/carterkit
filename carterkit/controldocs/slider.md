@@ -4,8 +4,14 @@ label: Slider
 icon: slider.horizontal.3
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Slider
+oneLiner: Slide to pick a number
+addRank: 3
+starterPreset: {"label": "Slider","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
@@ -40,15 +46,18 @@ fields:
     type: number
     description: Initial value
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Track fill color
   - name: style
+    tab: style
     type: enum
     values: [default, scrubber, radial]
     default: default
     description: Display style
   - name: formatValue
+    tab: data
     type: enum
     values: [decimal, time, percent, none]
     default: decimal
@@ -66,10 +75,12 @@ fields:
     default: false
     description: Hide the header
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: arcAngle
+    tab: style
     styles: [radial]
     min: 1
     max: 360
@@ -78,6 +89,7 @@ fields:
     default: 270
     description: Arc sweep in degrees (radial style only)
   - name: arcRotation
+    tab: style
     styles: [radial]
     min: -180
     max: 180
@@ -86,6 +98,7 @@ fields:
     default: 0
     description: Arc start rotation (radial style only)
   - name: arcThickness
+    tab: style
     styles: [radial]
     min: 1
     max: 40

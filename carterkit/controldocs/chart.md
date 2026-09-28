@@ -4,8 +4,13 @@ label: Chart
 icon: chart.bar.xaxis
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Chart
+oneLiner: Lines or bars over time
+starterPreset: {"label": "Chart"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,13 +21,16 @@ fields:
     type: object
     description: Full configuration object (see ChartConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-series color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for axis/readout numbers (see control-def)
   - name: barCornerRadius
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -38,10 +46,12 @@ fields:
     description: Bin count for histogram series
     group: chartConfig
   - name: colors
+    tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
     group: chartConfig
   - name: datumAction
+    tab: action
     type: object
     description: datumAction
     group: chartConfig
@@ -51,6 +61,7 @@ fields:
     description: Horizontal bars — categories run down the leading edge
     group: chartConfig
   - name: lineWidth
+    tab: style
     min: 0.5
     max: 12
     step: 0.5
@@ -67,10 +78,12 @@ fields:
     description: "Rolling window applied to {'append': …} pushes"
     group: chartConfig
   - name: negativeColor
+    tab: style
     type: color
     description: Falling waterfall delta
     group: chartConfig
   - name: pointSize
+    tab: style
     min: 2
     max: 20
     step: 1
@@ -79,6 +92,7 @@ fields:
     description: Scatter point / vertex dot diameter
     group: chartConfig
   - name: positiveColor
+    tab: style
     type: color
     description: Rising waterfall delta
     group: chartConfig
@@ -123,6 +137,7 @@ fields:
     description: Stack bar/area series instead of grouping/overlaying
     group: chartConfig
   - name: totalColor
+    tab: style
     type: color
     description: Waterfall running-total bars
     group: chartConfig
