@@ -7,6 +7,14 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **`secrets[]` builder and secrets lint (carter-7gve; app side carter-hlkg).**
+  `Layout.secret(name, label=, kind=, hosts=, mesh=)` declares a `secrets[]` entry and
+  returns its `{{secret:name}}` placeholder; `bind.secret(name)` builds the placeholder
+  alone. `validate_layout` accepts a top-level `secrets` and checks it (`bad_secrets`)
+  plus the app's destination policy: `secret_host`, `secret_mesh`, `secret_in_url`,
+  `secret_not_filled`, and `secret_undeclared` / `secret_unused` infos. `embedded_secret`
+  no longer fires on a `{{secret:…}}` placeholder, suggests one for a literal, and covers
+  credential headers on actions and syncs. Landed onto main by aif-es07n.
 - **Canonical digest parity with the app (carter-9vo, carter-m22z; aif-4hga).**
   `carterkit.canonical` refuses duplicate or canonically equivalent (NFC) member names
   (`DuplicateKeyError`), and `digest_scope` strips inline `http` action/sync headers and

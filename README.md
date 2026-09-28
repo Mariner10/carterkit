@@ -120,6 +120,17 @@ with ui.tab("Home", icon="house"):
     ui.compass("hdg", label="Heading", sensor="heading")   # device sensor, no backend
 ```
 
+Credentials stay out of the JSON: `ui.secret(...)` declares a `{{secret:name}}` the
+phone fills in from its Keychain at request time, only for a host the declaration
+allows (the layout's source hosts by default; `hosts=[...]` replaces that, `mesh=True`
+allows MeshSocket action payloads). `validate_layout` warns (`secret_host`,
+`secret_mesh`, `secret_in_url`, `secret_not_filled`) when a request would be refused.
+
+```python
+token = ui.secret("ha_token", label="Home Assistant token", kind="token")
+ui.source_http("ha", "https://ha.local:8123", headers={"Authorization": f"Bearer {token}"})
+```
+
 `bind.mqtt` / `bind.mqtt_publish` / `bind.http` / `bind.http_request` / `bind.sensor` build
 the sync/action dicts; the validator checks a `source:` names a declared source and that
 mqtt/http bindings carry a topic/path. These are marked **app-direct** in the contract, so a

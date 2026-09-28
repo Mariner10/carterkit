@@ -31,6 +31,7 @@ from . import palette as palettemod
 from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
 from .conditions import check_condition, condition_refs
+from .secrets_lint import is_placeholder_only, lint_secrets
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
@@ -304,6 +305,7 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
         findings.append(_f("error", "bad_section", where, why))
     if sectionsmod.is_sectioned(layout):     # to_inline deep-copies; skip it for inline docs
         layout = sectionsmod.to_inline(layout)
+    lint_secrets(layout, findings)
     _validate_device_shape(layout, findings)
 
     tabs = layout.get("tabs")
@@ -573,18 +575,20 @@ def _scan_tree(layout: dict, findings: list) -> None:
             if not isinstance(src, dict):
                 continue
             for k in ("password", "token", "apiKey"):
-                if src.get(k) and not _is_placeholder(src.get(k)):
+                if src.get(k) and not (_is_placeholder(src.get(k)) or is_placeholder_only(src.get(k))):
                     secret_paths.add(f"sources.{name}.{k}")
             headers = src.get("headers")
             if isinstance(headers, dict):
-                for hk in headers:
-                    if any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie")) \
-                            and not _is_placeholder(headers[hk]):
+                for hk, hv in headers.items():
+                    if (any(w in str(hk).lower() for w in ("authorization", "token", "key", "secret", "cookie"))
+                            and not (_is_placeholder(hv) or is_placeholder_only(hv))):
                         secret_paths.add(f"sources.{name}.headers.{hk}")
     for path in sorted(secret_paths):
+        fix = ("; write {{secret:name}} and declare it in 'secrets' (the phone keeps the "
+               "value in its Keychain)" if path.startswith("sources.") else "")
         findings.append(_f("warn", "embedded_secret", path,
                            "a credential is embedded in the layout — anyone who receives "
-                           "this JSON (share, export, MCP readback) receives the secret"))
+                           "this JSON (share, export, MCP readback) receives the secret" + fix))
 
     stack = [(layout, "root", 0, None)]
     seen_urls = 0
