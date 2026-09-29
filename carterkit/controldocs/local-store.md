@@ -9,11 +9,12 @@ fields:
     values: [local]
     description: Must be "local" — declared inside the layout's sources block
   - name: namespace
+    tab: advanced
     type: string
     description: Scope for every non-shared collection (default the layout id, else its name); must match ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$ and cannot be "shared"
   - name: collections
     type: object
-    description: Collection name → { fields, shared?, mirror?, singleton?, defaults? }; fields maps a name to one of string number integer bool date json
+    description: Collection name → { fields, shared?, mirror?, singleton?, defaults?, order? }; fields maps a name to one of string number integer bool date json, or to { type, label?, unit?, required?, default?, choices?, multiple?, range?, decimals?, labels?, symbol?, display? }
   - name: views
     type: object
     description: View name → { from, where?, orderBy?, limit? }; a named row set over a collection or another view
@@ -71,7 +72,8 @@ A local store is one more entry in the layout's top-level [[sources]] block:
 | `namespace` | no | Scope for every non-shared collection. Defaults to the layout `id`, else its `name`. An explicit value must match `^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$`; the literal `shared` is reserved. A layout with a second `local` source must give it an explicit `namespace`. |
 | `weekStartsOn` | no | `"monday"` (default, ISO weeks) or `"sunday"`. Feeds the `week` bucket and the `{{startOfWeek}}` token. |
 | `collections` | yes | Map of collection name → declaration. Names match `^[a-z][A-Za-z0-9_]{0,47}$`; at most 32 per source. |
-| `collections.*.fields` | yes | Map of field name → type (closed set below). Names match `^[a-z][A-Za-z0-9_]{0,63}$`; `id`, `createdAt`, `updatedAt` and `_hlc` are reserved; at most 64 fields. |
+| `collections.*.fields` | yes | Map of field name → type (closed set below), or → an object `{type, …options}` (see [Field options](#field-options)). Names match `^[a-z][A-Za-z0-9_]{0,63}$`; `id`, `createdAt`, `updatedAt` and `_hlc` are reserved; at most 64 fields. |
+| `collections.*.order` | no | The fields in display order (the order the type builder shows them and an entry form asks them). Each name must be declared, once. Absent = by name. |
 | `collections.*.shared` | no | `true` puts the collection in the device-wide `shared` namespace so other layouts can bind the same rows. |
 | `collections.*.mirror` | no | Reserved for the studio change-notice; stored, not read by the store. |
 | `collections.*.singleton` | no | `true` makes the collection hold exactly one row, id `singleton` (see Singleton collections below). |
@@ -89,7 +91,8 @@ rest of the layout still renders.
 Every record carries three reserved, store-managed fields — `id` (a string,
 1–128 chars of `[A-Za-z0-9_.:-]`, minted by the store unless the action supplies
 one), `createdAt` and `updatedAt` (ISO-8601 UTC instants) — plus the declared
-fields. Every declared field is nullable; a field missing from a write is `null`.
+fields. Every declared field is nullable; a field missing from a write is `null`
+(unless its [options](#field-options) give it a `default` or make it `required`).
 
 | Type | Accepted on write | Delivered as |
 |---|---|---|
@@ -105,6 +108,51 @@ Writes **reject, never coerce**: a `number` given `"42"` fails, a `bool` given
 reserved field fails as a whole (one transaction, all or nothing). The failure
 is a connection-console line and a `failed` pipe, never an alert.
 
+## Field options
+
+A field may be declared as an object instead of a bare type string. The object
+carries the `type` plus any of these options; the plain form stays valid and means
+"no options". Options describe the field for the type builder and entry forms,
+and the store **enforces** `required`, `default`, `choices` and `range` on every
+write.
+
+```json
+"fields": {
+  "when":   { "type": "date", "required": true, "default": "now", "display": "dateTime" },
+  "cups":   { "type": "number", "unit": "cups", "range": [0, 20], "decimals": 1, "default": 1 },
+  "mood":   { "type": "string", "choices": ["Good", "Okay", "Rough"], "display": "choice" },
+  "tags":   { "type": "json", "choices": ["Work", "Home"], "multiple": true },
+  "stars":  { "type": "integer", "display": "rating", "range": [1, 5], "symbol": "star" },
+  "done":   { "type": "bool", "labels": ["Done", "Not yet"] },
+  "place":  { "type": "json", "display": "location" },
+  "note":   "string"
+}
+```
+
+| Option | Fits | Meaning |
+|---|---|---|
+| `label` | any | The friendly name shown for the field ("Last watered"); the key stays a field name. |
+| `required` | any | An insert must give the field a non-null value (after `default` fills it). A `set`/`update` may not null it. |
+| `default` | any | Value an insert (or upsert) writes when the field is absent. Must be valid for the type and the other options. A `date` field may say `"now"` (the write's instant). |
+| `unit` | `number`, `integer` | Free text shown after the value (`ml`, `kg`, `$`), 1-16 characters. |
+| `range` | `number`, `integer` | `[min, max]`; writes outside it are rejected. A rating's scale (default `[1, 5]`). |
+| `decimals` | `number`, `integer` | Decimal places shown, 0-6. |
+| `choices` | `string` (one), `json` with `multiple: true` (many) | The allowed values (1-100, unique). A one-choice field stores the string; a many-choice field stores an array of them. |
+| `multiple` | `json` | With `choices`: the field holds several choices. |
+| `labels` | `bool` | Two words to show for true / false (`["Done", "Not yet"]`). |
+| `symbol` | `display: rating` | SF Symbol name the rating draws (`star`, `heart`, `circle`). |
+| `display` | see below | How the field shows and is entered. |
+
+`display` values and the types they fit: `number`, `duration` (seconds) on
+`number`/`integer`; `text`, `longText`, `photo` on `string`; `toggle` on `bool`;
+`date`, `time`, `dateTime` on `date`; `choice` on `string`/`json` (needs
+`choices`); `rating` on `integer`; `location` on `json` (a `{lat, lon, label?}`
+object, checked on write).
+
+A bad option fails the source with a named error (`collection log: field cups
+range must be [min, max] with min <= max`, `… has unknown option colour`,
+`… default does not fit the field`), like any other schema problem.
+
 ## Dates
 
 A `date` field is stored as text in one of two normalized forms:
@@ -115,10 +163,10 @@ A `date` field is stored as text in one of two normalized forms:
   instant, and never shifts a day when the phone travels.
 
 Both forms compare and sort correctly with `gt`/`gte`/`lt`/`lte` because they
-share the `YYYY-MM-DD` prefix, so a calendar-date token such as
-`{{startOfYear}}` filters an instant column with no conversion. The `{{today}}`
-and `{{startOf…}}` tokens are calendar dates; `{{now}}` is an instant. "Since the
-start of today" is `{"gte": "{{today}}"}` and includes everything written today.
+share the `YYYY-MM-DD` prefix. The `{{today}}` and `{{startOf…}}` tokens name
+the start of a period in the device's zone; `{{now}}` is an instant. "Since the
+start of today" is `{"gte": "{{today}}"}` and includes everything written today,
+including an instant stored at 23:30 local time (see [Tokens](#tokens)).
 
 ## Views
 
@@ -151,7 +199,8 @@ There is no row until the first write, which creates it from the collection's
   with the id `singleton` (an `insert` with no `id` gets it); any other id is
   rejected. Singleton ops on a collection without `singleton: true` fail.
 - **Read** with an ordinary rows binding: `valuePath: "first.waterings"` (or just
-  `"waterings"`). Before the first write an unfiltered binding (no `where`) still
+  `"waterings"`; a field named `count` is read with `"count"` too, see
+  [Delivery shapes](#delivery-shapes)). Before the first write an unfiltered binding (no `where`) still
   receives the `defaults` as `first`, with `count: 0`, so a label shows its
   starting value on first launch.
 - Every singleton op is one write transaction and the arithmetic runs inside the
@@ -240,6 +289,13 @@ bound values, never query text.
 | `{{startOfWeek}}` `{{startOfMonth}}` `{{startOfYear}}` | start of the current period (week per `weekStartsOn`) | calendar date |
 | `{{selected}}` | the collection's selection cursor (see `select` below), or `null` when nothing is selected | string id |
 
+When a `date` field is compared (`eq`/`ne`/`gt`/`gte`/`lt`/`lte`) against
+`{{today}}` or a `{{startOf…}}` token, each stored value is compared in its own
+form: a calendar date against the calendar date, an instant against the local
+period start as a UTC instant (`{{today}}` on 2026-03-15 in New York is
+`2026-03-15T04:00:00.000Z`), so evening items never count as the next day. `in`
+lists and non-date fields use the calendar date.
+
 A `where` that compares against an empty `{{selected}}` matches nothing, so a
 form bound to the selection goes blank on deselect. A time-zone or calendar-day
 change re-evaluates every binding that used a token. In actions, `{{value}}` and
@@ -260,7 +316,17 @@ Rows are flat: the declared fields sit beside `id`, `createdAt` and `updatedAt`.
 `count` is the rows delivered, `total` the rows in the collection or view. A
 `valuePath` that starts with a declared field is shorthand for `first.<field>`,
 so `{"where": {"id": "{{selected}}"}, "valuePath": "title"}` fills a [[text-input]]
-with the selected row's title. When nothing matches, `first` is `null` and the
+with the selected row's title.
+
+A declared field wins over the payload keys: if a collection declares a field
+named `count`, `total`, `rows` or `first`, the bare `valuePath` (`"count"`) reads
+that field off the first row, not the payload's value. The payload keys are always
+reachable by a `$` spelling that no field can take: `$rows`, `$count`, `$total`
+and `$first` (`"$count"` is the row count, `"$first.title"` the first row's
+title). Without a colliding field, `"count"` and `"$count"` mean the same thing.
+The lint and the app console warn about a field that shadows a payload key.
+
+When nothing matches, `first` is `null` and the
 control keeps its last value. `filter` applies to the payload object as on every
 other transport but is rarely useful here.
 
