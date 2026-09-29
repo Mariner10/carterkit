@@ -64,6 +64,24 @@ def _make_field(raw: dict[str, str]) -> dict:
     return field
 
 
+def _parse_look_options(value: str) -> list[dict]:
+    """`lookFormats` / `lookPresets`: keep items with an id, a name and a `set`
+    object (the app skips the rest the same way)."""
+    try:
+        items = json.loads(value)
+    except ValueError:
+        return []
+    if not isinstance(items, list):
+        return []
+    out = []
+    for item in items:
+        if (isinstance(item, dict) and isinstance(item.get("id"), str)
+                and isinstance(item.get("name"), str) and isinstance(item.get("set"), dict)):
+            out.append({"id": item["id"], "name": item["name"],
+                        "symbol": item.get("symbol") or "circle", "set": item["set"]})
+    return out
+
+
 def parse_doc(content: str, node_id: str) -> Optional[dict]:
     """Parse one control doc into {node_id,type,label,icon,category,defaultSpan,
     fields,themeFields,body,examples}. Returns None if it lacks a type+label
@@ -128,6 +146,11 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
                 # supported app. Read by validate's target-app lint (layout-config.md
                 # "Requires and fallback").
                 meta["since"] = value.strip("\"'") or None
+            elif key in ("lookFormats", "lookPresets"):
+                # The editor's Look card chips (carter-73q2.22): one-line JSON
+                # [{"id","name","symbol","set": {field: value | null}}], read with a
+                # stock JSON decoder like the app's ControlDocLoader.
+                meta[key] = _parse_look_options(value)
             elif key == "fields":
                 in_fields = True
                 current_list = meta["fields"]
@@ -249,6 +272,9 @@ def _compact(doc: dict, include_theme: bool = False) -> dict:
         out["themeFields"] = doc["themeFields"]
     if doc.get("examples"):
         out["examples"] = [e["name"] for e in doc["examples"]]
+    for key in ("lookFormats", "lookPresets"):
+        if doc.get(key):
+            out[key] = doc[key]
     return out
 
 

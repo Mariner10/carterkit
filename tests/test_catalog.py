@@ -103,3 +103,39 @@ def test_examples_exclude_non_example_json():
     # it must NOT be captured as an example.
     names = [e["name"] for e in catalog.get_examples(DOCS, "gauge")]
     assert all("segment" not in n.lower() for n in names)
+
+
+# ─── Look card chips (carter-73q2.22) ────────────────────────────────────────
+
+_LOOK_DOC = """---
+type: widget
+label: Widget
+icon: star
+category: controls
+lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}}]
+lookPresets: [{"id": "big","name": "Big","symbol": "textformat.size.larger","set": {"style": "title"}},{"broken": true}]
+fields:
+  - name: formatValue
+    type: string
+---
+# Widget
+"""
+
+
+def test_look_options_parse_like_the_app():
+    from carterkit.catalog import parse_doc, _compact
+    doc = parse_doc(_LOOK_DOC, "widget")
+    assert [o["id"] for o in doc["lookFormats"]] == ["plain", "lastTime"]
+    assert doc["lookFormats"][0]["set"] == {"formatValue": None}
+    assert doc["lookFormats"][1]["set"] == {"formatValue": "relative:day"}
+    assert [o["name"] for o in doc["lookPresets"]] == ["Big"]  # the broken item is skipped
+    compact = _compact(doc)
+    assert compact["lookFormats"] == doc["lookFormats"]
+    assert compact["lookPresets"] == doc["lookPresets"]
+
+
+def test_docs_without_look_options_stay_compact():
+    from carterkit.catalog import parse_doc, _compact
+    doc = parse_doc(_LOOK_DOC.replace("lookFormats", "x-lookFormats").replace("lookPresets", "x-lookPresets"), "widget")
+    assert "lookFormats" not in _compact(doc)
+    assert "lookPresets" not in _compact(doc)
