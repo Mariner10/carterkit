@@ -4,59 +4,81 @@ label: Stepper
 icon: plus.forwardslash.minus
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Plus / minus
+oneLiner: Count up or down one step at a time
+addRank: 4
+starterPreset: {"label": "Count","min": 0,"max": 100,"step": 1}
 fields:
   - name: animation
+    title: Motion
+    tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: min
+    title: Lowest value
     bounds: none
     type: number
     default: 0
     description: Minimum value
   - name: max
+    title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value
   - name: step
+    title: Step size
     bounds: none
     type: number
     default: 1
     description: Positive increment/decrement amount; zero or negative falls back to 1
   - name: repeatOnHold
+    title: Repeat while held
+    tab: action
     type: bool
     default: false
     description: Hold plus or minus to repeat steps using the system repeat behavior
   - name: wraps
+    title: Wrap around at the ends
     type: bool
     default: false
     description: Step past an endpoint to cycle to the opposite endpoint
   - name: hideValue
+    title: Hide the number
     type: bool
     default: false
     description: Hide the numeric readout; keep the buttons, label, and spoken value
   - name: label
+    title: Title
     type: string
     description: Display label
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol before value
   - name: formatValue
+    title: Number format
+    tab: data
     type: string
     default: decimal
     description: "Value format: decimal, time, percent"
   - name: defaultValue
+    title: Starting value
     bounds: none
     type: number
     description: Initial value
   - name: haptic
+    title: Vibration on tap
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: light
     description: Default haptic on step
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -64,6 +86,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -71,18 +94,22 @@ themeFields:
     default: 8
     description: Internal padding
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -90,6 +117,7 @@ themeFields:
     default: 12
     description: Label text size
   - name: valueFontSize
+    title: Number text size
     min: 8
     max: 28
     step: 1
@@ -97,10 +125,12 @@ themeFields:
     default: 14
     description: Value text size
   - name: buttonColor
+    title: Button color
     type: color
     default: #667eea
     description: Button fill color
   - name: buttonRadius
+    title: Button roundness
     min: 0
     max: 30
     step: 1
@@ -108,6 +138,7 @@ themeFields:
     default: 8
     description: Button corner radius
   - name: buttonSize
+    title: Button size
     min: 12
     max: 50
     step: 1
@@ -115,6 +146,7 @@ themeFields:
     default: 32
     description: Button diameter
   - name: iconColor
+    title: Symbol color
     type: color
     default: #FFFFFF
     description: Button icon color

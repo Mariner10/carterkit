@@ -4,52 +4,77 @@ label: Button
 icon: hand.tap.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Button
+oneLiner: Tap it to make something happen
+addRank: 1
+starterPreset: {"label": "Button"}
 fields:
   - name: label
+    title: Title
     type: string
     default: "Button"
     description: Button text
   - name: icon
+    title: Symbol
     type: string
     description: SF Symbol shown before label
   - name: style
+    title: Look
+    tab: style
     type: enum
     values: [filled, outlined, outline, ghost, tinted, icon-only]
     default: filled
     description: Visual style variant ("outline" and "outlined" are both accepted)
   - name: size
+    title: Size
+    tab: style
     type: enum
     values: [compact, default, large]
     default: default
     description: Size variant
   - name: tint
+    title: Color
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color
   - name: hideLabel
+    title: Symbol only
     type: bool
     default: false
     description: Show icon only
   - name: haptic
+    title: Vibration on tap
+    tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: medium
     description: Haptic feedback on press
   - name: repeatOnHold
+    title: Repeat while held
+    tab: action
     type: bool
     default: false
     description: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
   - name: valueMap
+    title: Words for values
+    tab: data
     type: object
     description: Synced value → button text ("default" catches the rest)
   - name: iconMap
+    title: Symbols for values
+    tab: data
     type: object
     description: Synced value → SF Symbol name (swaps with the native replace effect)
   - name: colorMap
+    title: Colors for values
+    tab: data
     type: object
     description: Synced value → hex tint
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -57,6 +82,7 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -64,18 +90,22 @@ themeFields:
     default: 8
     description: Internal padding
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5

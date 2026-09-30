@@ -5,21 +5,25 @@ icon: bolt.fill
 category: system
 fields:
   - name: method
+    tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, local)
   - name: mode
     type: string
     description: Send mode (broadcast = fire and forget, request = await a reply; only route_msg replies) — meshsocket only
   - name: event
+    tab: advanced
     type: string
     description: MeshSocket frame type, sent verbatim — must be a relay verb (broadcast_request, route_msg, route_msg_noreply); the command name goes in payload.msg_type
   - name: payload
+    tab: advanced
     type: object
     description: Data to send (supports {{value}} substitution); for broadcast_request include msg_type so servers can demux
   - name: source
     type: string
     description: Named entry in the layout's sources (mqtt/http/local)
   - name: topic
+    tab: advanced
     type: string
     description: MQTT topic to publish to
   - name: retain
@@ -33,6 +37,7 @@ fields:
     type: string
     description: Path against the source's baseURL (http)
   - name: httpMethod
+    tab: advanced
     type: string
     description: HTTP verb (default POST with a payload, GET without)
   - name: headers

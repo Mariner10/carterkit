@@ -4,15 +4,22 @@ label: Divider
 icon: minus
 category: layout
 defaultSpan: [1, 4]
+addIntent: organize
+friendlyName: Divider
+oneLiner: A line between sections
+addRank: 1
+starterPreset: {"label": "Section"}
 fields:
   - name: label
     type: string
     description: Optional section label centered on the divider
   - name: tint
+    tab: style
     type: color
     default: "#FFFFFF"
     description: Line color
   - name: style
+    tab: style
     type: enum
     values: [line, dashed]
     default: line

@@ -4,6 +4,11 @@ label: Symbol
 icon: cloud.bolt.rain.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Symbol
+oneLiner: An icon that can animate
+addRank: 8
+starterPreset: {"systemName": "star.fill","label": "Symbol"}
 fields:
   - name: systemName
     type: string
@@ -16,29 +21,36 @@ fields:
     default: false
     description: Hide the caption
   - name: tint
+    tab: style
     type: color
     description: Glyph colour (monochrome/hierarchical; palette primary)
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: iconMap
+    tab: data
     type: object
     description: Incoming value → SF Symbol name ("default" catches the rest)
   - name: colorMap
+    tab: data
     type: object
     description: Incoming value → hex tint
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on tap (default light)
   - name: renderingMode
+    tab: style
     type: enum
     values: [monochrome, hierarchical, palette, multicolor]
     default: monochrome
     description: SF rendering mode — multicolor uses the symbol's own colours
     group: symbolConfig
   - name: palette
+    tab: style
     type: array
     description: Hex colour per layer (primary, secondary, tertiary) for palette rendering
     group: symbolConfig
@@ -49,6 +61,7 @@ fields:
     description: Glyph weight
     group: symbolConfig
   - name: variant
+    tab: style
     type: enum
     values: [none, fill, circle, square, rectangle, slash]
     default: none
@@ -68,6 +81,7 @@ fields:
     description: Native symbol effect or custom rain, snow, sparkle animation
     group: symbolConfig
   - name: particleColor
+    tab: style
     type: color
     description: Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor)
     group: symbolConfig
@@ -139,11 +153,13 @@ fields:
     description: Numeric value at which the variable layers are full
     group: symbolConfig
   - name: transition
+    tab: style
     type: enum
     values: [replace, replace.downUp, replace.upUp, replace.offUp, replace.magic, none]
     description: How a glyph change animates (default replace; none when the value is numeric)
     group: symbolConfig
   - name: tapEffect
+    tab: style
     type: enum
     values: [none, bounce, pulse, variableColor, wiggle, rotate, breathe]
     default: none

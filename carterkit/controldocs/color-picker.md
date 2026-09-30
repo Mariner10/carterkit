@@ -4,6 +4,10 @@ label: Color Picker
 icon: paintpalette.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: change
+friendlyName: Color
+oneLiner: Pick a color
+starterPreset: {"label": "Color"}
 fields:
   - name: label
     type: string

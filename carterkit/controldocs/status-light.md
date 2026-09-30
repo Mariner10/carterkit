@@ -4,24 +4,33 @@ label: Status Light
 icon: circle.fill
 category: controls
 defaultSpan: [1, 1]
+addIntent: show
+friendlyName: Status dot
+oneLiner: "A colored dot: OK, busy, or off"
+addRank: 6
+starterPreset: {"label": "Status"}
 fields:
   - name: label
     type: string
     description: Text beside the indicator
   - name: tint
+    tab: style
     type: color
     default: "#34C759"
     description: Default indicator color
   - name: statusColors
+    tab: style
     type: object
     description: "Map state strings to hex colors: {\"online\": \"#34C759\", \"offline\": \"#FF3B30\"}"
     summary: Colors for each status
   - name: size
+    tab: style
     type: enum
     values: [small, default, large]
     default: default
     description: "Indicator size: small (8pt), default (12pt), large (18pt)"
   - name: style
+    tab: style
     type: enum
     values: [dot, badge]
     default: dot

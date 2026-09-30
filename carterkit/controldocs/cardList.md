@@ -4,6 +4,10 @@ label: Card List
 icon: list.bullet.rectangle.fill
 category: display
 defaultSpan: [4, 4]
+addIntent: show
+friendlyName: Cards
+oneLiner: A stack of cards
+starterPreset: {}
 fields:
 ---
 

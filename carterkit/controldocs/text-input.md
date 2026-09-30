@@ -4,6 +4,11 @@ label: Text Input
 icon: character.cursor.ibeam
 category: controls
 defaultSpan: [1, 2]
+addIntent: change
+friendlyName: Text box
+oneLiner: Type something in
+addRank: 5
+starterPreset: {"label": "Text box","placeholder": "Type here"}
 fields:
   - name: placeholder
     type: string
@@ -18,6 +23,7 @@ fields:
     type: string
     description: Initial text
   - name: style
+    tab: style
     type: enum
     values: [default, search, multiline]
     default: default
@@ -53,14 +59,17 @@ fields:
     values: [ascii, default, url, email, numbers]
     description: Keyboard type
   - name: clearOnSubmit
+    tab: action
     type: bool
     default: false
     description: Clear the field after the return-key submit
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass background

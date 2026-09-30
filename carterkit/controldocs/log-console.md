@@ -4,11 +4,16 @@ label: Log Console
 icon: terminal.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Log
+oneLiner: Lines of messages as they arrive
+starterPreset: {"label": "Log"}
 fields:
   - name: label
     type: string
     description: Header label
   - name: style
+    tab: style
     type: enum
     values: [default, transparent]
     default: default
@@ -25,6 +30,7 @@ fields:
     default: true
     description: Prefix each line with timestamp
   - name: fontSize
+    tab: style
     min: 8
     max: 28
     step: 1
@@ -42,10 +48,12 @@ fields:
     type: number
     description: "Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span."
   - name: logColors
+    tab: style
     type: object
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
     summary: Colors for each kind of message
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Accent color

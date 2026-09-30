@@ -4,8 +4,13 @@ label: Radar
 icon: hexagon.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: Radar
+oneLiner: Several scores on one shape
+starterPreset: {"label": "Radar"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -16,13 +21,16 @@ fields:
     type: object
     description: Full configuration object (see RadarConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-series color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for vertex values
   - name: colors
+    tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
     group: radarConfig
@@ -37,6 +45,7 @@ fields:
     description: Drag the **first** series' vertices along their axes
     group: radarConfig
   - name: fillOpacity
+    tab: style
     min: 0
     max: 1
     step: 0.05

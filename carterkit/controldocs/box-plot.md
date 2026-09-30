@@ -4,8 +4,13 @@ label: Box Plot
 icon: align.vertical.center
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Spread
+oneLiner: How a set of numbers spreads out
+starterPreset: {"label": "Spread"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -13,6 +18,7 @@ fields:
     type: string
     description: Header label above the plot
   - name: boxStyle
+    tab: style
     type: string
     default: box
     description: "'box' (box-and-whisker) or 'violin' (kernel density body)"
@@ -20,17 +26,21 @@ fields:
     type: object
     description: Full configuration object (see BoxPlotConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: First-category color and palette seed
   - name: formatValue
+    tab: data
     type: string
     description: Formatter for axis/readout numbers
   - name: boxAction
+    tab: action
     type: object
     description: boxAction
     group: boxPlotConfig
   - name: boxWidth
+    tab: style
     min: 0
     max: 1
     step: 0.05
@@ -39,6 +49,7 @@ fields:
     description: Box width as a fraction of the category slot
     group: boxPlotConfig
   - name: colors
+    tab: style
     type: string[]
     description: Per-category color cycle
     group: boxPlotConfig

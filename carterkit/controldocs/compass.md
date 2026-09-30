@@ -4,8 +4,13 @@ label: Compass
 icon: location.north.circle.fill
 category: input
 defaultSpan: [7, 3]
+addIntent: change
+friendlyName: Action ring
+oneLiner: Turn a ring to pick an action
+starterPreset: {"label": "Ring"}
 fields:
   - name: haptic
+    tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
@@ -41,6 +46,7 @@ fields:
     description: Draw N/E/S/W ticks
     group: compassConfig
   - name: cardinalSize
+    tab: style
     min: 8
     max: 40
     step: 1
@@ -49,6 +55,7 @@ fields:
     description: Cardinal glyph point size
     group: compassConfig
   - name: cardinalColor
+    tab: style
     type: color
     description: "E/S/W cardinal color (default secondary grey; N always follows tint)"
     group: compassConfig
@@ -58,6 +65,7 @@ fields:
     description: Allow dragging pucks to re-bearing them
     group: compassConfig
   - name: events
+    tab: advanced
     type: object
     description: events
     group: compassConfig

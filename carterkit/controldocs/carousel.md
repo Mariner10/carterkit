@@ -4,6 +4,11 @@ label: Carousel
 icon: rectangle.stack
 category: controls
 defaultSpan: [3, 2]
+addIntent: organize
+friendlyName: Pages
+oneLiner: Swipe between pages
+addRank: 3
+starterPreset: {}
 fields:
   - name: carouselMode
     type: enum
@@ -30,6 +35,7 @@ fields:
     type: object
     description: The panel groups this container pages through (group defs with children)
   - name: containerAnimation
+    tab: style
     type: object
     description: Transition tuning, e.g. { profile, duration }
     summary: How the pages animate when switching

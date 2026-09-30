@@ -4,15 +4,21 @@ label: Joystick
 icon: dpad.fill
 category: controls
 defaultSpan: [2, 2]
+addIntent: change
+friendlyName: Joystick
+oneLiner: Steer with your thumb
+starterPreset: {"label": "Joystick"}
 fields:
   - name: label
     type: string
     description: Header label
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Stick and track color
   - name: style
+    tab: style
     type: enum
     values: [analog, dpad]
     default: analog
@@ -29,6 +35,7 @@ fields:
     default: false
     description: Stick stays where released instead of snapping to center
   - name: sendRate
+    tab: action
     min: 0.1
     max: 10
     step: 0.1

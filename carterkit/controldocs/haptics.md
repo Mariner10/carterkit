@@ -5,6 +5,7 @@ icon: waveform
 category: system
 fields:
   - name: haptic
+    tab: action
     type: string
     description: Haptic profile name
 ---

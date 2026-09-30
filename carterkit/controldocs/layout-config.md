@@ -12,11 +12,13 @@ fields:
     type: number
     description: The author's revision label (required; never gates anything — see document-contract)
   - name: schemaVersion
+    tab: advanced
     min: 1
     max: 2
     type: number
     description: Grammar version, optional (absent = 1); set by writers, bumped only when an older app would misread the file
   - name: extensions
+    tab: advanced
     type: object
     description: Reverse-DNS keyed tool data the app preserves and never interprets (64 KB cap; see document-contract)
   - name: requires
@@ -26,6 +28,7 @@ fields:
     type: string
     description: Title shown in the header bar
   - name: accentColor
+    tab: style
     type: string
     description: Hex accent for the layout's library card, switcher and glance fallback (e.g. "#5AC8FA"); controls use theme.accentColor (see theming#Cascade)
   - name: appearance
@@ -35,15 +38,18 @@ fields:
     type: object
     description: Visual theme (colors, fonts, spacing, palette tokens)
   - name: connection
+    tab: advanced
     type: object
     description: WebSocket connection config
   - name: tabs
     type: object[]
     description: Tab page definitions (required)
   - name: pollGroups
+    tab: advanced
     type: object
     description: Periodic polling configuration
   - name: dynamicTabs
+    tab: advanced
     type: object[]
     description: Runtime-injected tabs
   - name: sources
@@ -56,6 +62,7 @@ fields:
     type: object
     description: "Layout-wide staleness default for sync bindings, e.g. {'staleAfter': 120} (opt-in; see sync)"
   - name: batchPublishers
+    tab: advanced
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
   - name: glance
@@ -228,7 +235,10 @@ the oldest supported app) with no usable `fallback` is reported as
 Full rules (layout id = installation, `renameId`): [[document-contract#Identity]].
 
 Every control and group has an `id`, unique among all of the layout's controls
-and groups (a tab's `children` and, recursively, group `children`). The id is the
+and groups (a tab's `children` and, recursively, group `children`, container
+`panels[].children` and `longPressGroup.children`; a panel's or popup's own `id`
+is local to its host). A dynamic deck or tab pushed at runtime follows the same
+rule and may not reuse one of the layout's ids: the app refuses such a deck. The id is the
 stable key for stored values, `sync` targeting, visibility references and edits —
 never parse it and never show it to people. Tabs may carry an optional `id` too;
 without one the tab's `title` is its id, so give a tab an `id` before renaming it.

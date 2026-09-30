@@ -4,6 +4,10 @@ label: QR Code
 icon: qrcode
 category: controls
 defaultSpan: [2, 2]
+addIntent: show
+friendlyName: QR code
+oneLiner: A code a phone camera can scan
+starterPreset: {"label": "QR code","text": "https://example.com"}
 fields:
   - name: label
     type: string
@@ -13,6 +17,7 @@ fields:
     description: Static content to encode (overridden by sync)
     summary: Content to encode until a connected value is available
   - name: tint
+    tab: style
     type: color
     default: "#FFFFFF"
     description: QR code foreground color
@@ -22,6 +27,7 @@ fields:
     default: M
     description: Error correction level
   - name: hideBackground
+    tab: style
     type: bool
     default: false
     description: Remove glass card background

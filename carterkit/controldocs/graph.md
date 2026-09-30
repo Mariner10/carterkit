@@ -4,6 +4,10 @@ label: Graph
 icon: circle.grid.cross.fill
 category: controls
 defaultSpan: [3, 4]
+addIntent: show
+friendlyName: Network
+oneLiner: Dots joined by lines
+starterPreset: {"label": "Network"}
 fields:
   - name: label
     type: string
@@ -12,6 +16,7 @@ fields:
     type: object
     description: Full configuration object (see GraphConfig section)
   - name: tint
+    tab: style
     type: color
     default: "#667eea"
     description: Fallback node color
@@ -22,6 +27,7 @@ fields:
     description: How strongly connected nodes pull together
     group: graphConfig
   - name: backgroundColor
+    tab: style
     type: color
     description: Graph canvas background
     group: graphConfig
@@ -49,6 +55,7 @@ fields:
     description: Allow dragging individual nodes
     group: graphConfig
   - name: edgeColor
+    tab: style
     type: color
     description: Default edge line color
     group: graphConfig
@@ -58,6 +65,7 @@ fields:
     description: Use curved (quadratic) edges instead of straight
     group: graphConfig
   - name: edgeOpacity
+    tab: style
     min: 0
     max: 1
     step: 0.05
@@ -66,6 +74,7 @@ fields:
     description: Edge line opacity (0-1)
     group: graphConfig
   - name: edgeWidth
+    tab: style
     min: 0.5
     max: 12
     step: 0.5
@@ -74,15 +83,18 @@ fields:
     description: Edge line width
     group: graphConfig
   - name: glowColor
+    tab: style
     type: color
     description: Glow color
     group: graphConfig
   - name: glowEnabled
+    tab: style
     type: bool
     default: true
     description: Node glow effect
     group: graphConfig
   - name: glowRadius
+    tab: style
     min: 0
     max: 30
     step: 1
@@ -91,6 +103,7 @@ fields:
     description: Glow blur radius
     group: graphConfig
   - name: groupColors
+    tab: style
     type: object
     description: groupColors
     group: graphConfig
@@ -100,10 +113,12 @@ fields:
     description: Allow pan and zoom
     group: graphConfig
   - name: labelColor
+    tab: style
     type: color
     description: Label text color
     group: graphConfig
   - name: labelOffset
+    tab: style
     min: 0
     max: 40
     step: 1
@@ -112,6 +127,7 @@ fields:
     description: Distance from node center to label
     group: graphConfig
   - name: labelSize
+    tab: style
     min: 8
     max: 24
     step: 1
@@ -120,10 +136,12 @@ fields:
     description: Label font size
     group: graphConfig
   - name: nodeAction
+    tab: action
     type: object
     description: nodeAction
     group: graphConfig
   - name: nodeBorderColor
+    tab: style
     type: color
     description: Border stroke color
     group: graphConfig
@@ -136,14 +154,17 @@ fields:
     description: Border stroke width around nodes
     group: graphConfig
   - name: nodeColor
+    tab: style
     type: color
     description: Default node fill color (hex)
     group: graphConfig
   - name: nodeHighlightColor
+    tab: style
     type: color
     description: Color when node is active/selected
     group: graphConfig
   - name: nodeSize
+    tab: style
     min: 2
     max: 40
     step: 1
@@ -152,6 +173,7 @@ fields:
     description: Base node radius in points
     group: graphConfig
   - name: particleColor
+    tab: style
     type: color
     description: (Reserved) Particle color
     group: graphConfig
