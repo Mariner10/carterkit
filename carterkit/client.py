@@ -22,6 +22,7 @@ import logging
 import os
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -413,6 +414,8 @@ def persist_refresh_secret(path, secret):
 #: queued command drained after a reconnect still hits the seen-set.
 CMD_DEDUPE_MAX = 1024
 CMD_DEDUPE_TTL = 900.0
+#: Seconds a dirty seen-set waits before its (coalesced, off-loop) save.
+CMD_DEDUPE_SAVE_DELAY = 0.5
 
 
 def cmd_dedupe_path_for(credential_path):
@@ -430,21 +433,42 @@ class CommandDedupe:
     A bounded LRU (`max_entries`, oldest evicted) of `{cmd_id: (ts, ok)}` where `ok`
     is the outcome that was acked (True/False) or None when acks are off. Entries
     older than `ttl` seconds are forgotten. `clock` is injectable (wall-clock seconds,
-    so persisted timestamps survive a restart). With a `path`, every `record` rewrites
-    the JSON file atomically at mode 0600; a missing path or any IO error leaves it
-    memory-only (logged once) — never raises into dispatch."""
+    so persisted timestamps survive a restart). With a `path` the set is persisted as
+    JSON, replaced atomically at mode 0600; a missing path or any IO error leaves it
+    memory-only (logged once) — never raises into dispatch.
+
+    Saving never blocks the event loop: called from a running loop, `record` only
+    marks the set dirty and schedules one coalesced write `save_delay` seconds later,
+    serialized and fsynced on a worker thread (`asyncio.to_thread`), so a burst of
+    commands (a slider drag with a `_cmd` per move) costs one write per window rather
+    than one per frame. Outside a loop (or with `save_delay=None`) `record` saves
+    synchronously. `flush()` / `aflush()` write any pending change now; a pending save
+    cancelled at loop shutdown writes synchronously before it goes. A hard kill can
+    lose at most the last `save_delay` seconds of records (those commands could run
+    once more after a restart).
+
+    This is at-most-once delivery for honest re-delivery, NOT replay protection: ids
+    are forgotten after `ttl` seconds or once `max_entries` newer ids push them out, so
+    a frame replayed outside that window runs again. Authenticity/replay defence is the
+    E2EE layer's job (sealed envelopes are replay- and freshness-checked)."""
 
     _MISSING = object()
 
     def __init__(self, path=None, *, max_entries=CMD_DEDUPE_MAX, ttl=CMD_DEDUPE_TTL,
-                 clock=time.time):
+                 clock=time.time, save_delay=CMD_DEDUPE_SAVE_DELAY):
         self.path = os.fspath(path) if path else None
         self.max_entries = max(1, int(max_entries))
         self.ttl = float(ttl)
+        self.save_delay = None if save_delay is None else max(0.0, float(save_delay))
         self._clock = clock
         self._seen = OrderedDict()
         self._inflight = set()
         self._warned = False
+        self._dirty = False
+        self._gen = 0              # bumped per snapshot; a write only lands if newer
+        self._written_gen = 0
+        self._write_lock = threading.Lock()
+        self._save_task = None
 
     def _expire(self, now):
         cutoff = now - self.ttl
@@ -483,7 +507,65 @@ class CommandDedupe:
         self._expire(now)
         while len(self._seen) > self.max_entries:
             self._seen.popitem(last=False)
-        self.save()
+        self._dirty = True
+        self._schedule_save()
+
+    def _schedule_save(self):
+        if not self.path:
+            self._dirty = False
+            return
+        if self.save_delay is None:
+            self.save()
+            return
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.save()                     # no loop: nothing to block, write now
+            return
+        if self._save_task is None or self._save_task.done():
+            self._save_task = loop.create_task(self._deferred_save())
+
+    async def _deferred_save(self):
+        """Coalesce records for `save_delay`, then write off-loop; repeat while dirty."""
+        try:
+            while True:
+                await asyncio.sleep(self.save_delay)
+                if not (self._dirty and self.path):
+                    return
+                gen, doc = self._snapshot()
+                await asyncio.to_thread(self._write, gen, doc)
+        except asyncio.CancelledError:
+            # Cancelled by loop shutdown (not by flush/aflush, which detach us
+            # first): write the tail synchronously rather than drop it.
+            if self._save_task is asyncio.current_task() and self._dirty:
+                self.save()
+            raise
+
+    def _snapshot(self):
+        self._dirty = False
+        self._gen += 1
+        return self._gen, {"v": 1, "seen": [[k, ts, ok] for k, (ts, ok) in self._seen.items()]}
+
+    def flush(self):
+        """Write any pending change now (synchronously) and cancel the deferred save."""
+        task, self._save_task = self._save_task, None
+        if task is not None and not task.done():
+            task.cancel()
+        if self._dirty:
+            self.save()
+
+    async def aflush(self):
+        """Write any pending change now, off the event loop."""
+        task, self._save_task = self._save_task, None
+        if task is not None and not task.done():
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        if self._dirty and self.path:
+            gen, doc = self._snapshot()
+            await asyncio.to_thread(self._write, gen, doc)
 
     def _warn(self, what, exc):
         if not self._warned:
@@ -518,29 +600,40 @@ class CommandDedupe:
             self._seen[cmd_id] = (float(ts), ok)
 
     def save(self):
-        """Atomically rewrite the file at 0600. Errors switch to memory-only."""
+        """Atomically rewrite the file at 0600 now, on the calling thread. Errors switch
+        to memory-only."""
         if not self.path:
+            self._dirty = False
             return
-        doc = {"v": 1, "seen": [[k, ts, ok] for k, (ts, ok) in self._seen.items()]}
-        tmp = None
-        try:
-            directory = os.path.dirname(os.path.abspath(self.path)) or "."
-            fd, tmp = tempfile.mkstemp(prefix=".cmd-seen-", suffix=".json.tmp", dir=directory)
-            with os.fdopen(fd, "w") as f:
-                json.dump(doc, f)
-                f.flush()
-                os.fsync(f.fileno())
-            os.chmod(tmp, 0o600)
-            os.replace(tmp, self.path)
-        except OSError as exc:
-            if tmp is not None:
-                try:
-                    os.unlink(tmp)
-                except OSError:
-                    pass
-            self._warn("write", exc)
-            self.path = None
+        gen, doc = self._snapshot()
+        self._write(gen, doc)
 
+    def _write(self, gen, doc):
+        """Serialize + fsync + replace; runs on a worker thread for deferred saves.
+        A snapshot older than one already written is skipped."""
+        with self._write_lock:
+            path = self.path
+            if not path or gen <= self._written_gen:
+                return
+            tmp = None
+            try:
+                directory = os.path.dirname(os.path.abspath(path)) or "."
+                fd, tmp = tempfile.mkstemp(prefix=".cmd-seen-", suffix=".json.tmp", dir=directory)
+                with os.fdopen(fd, "w") as f:
+                    json.dump(doc, f)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.chmod(tmp, 0o600)
+                os.replace(tmp, path)
+                self._written_gen = gen
+            except OSError as exc:
+                if tmp is not None:
+                    try:
+                        os.unlink(tmp)
+                    except OSError:
+                        pass
+                self._warn("write", exc)
+                self.path = None
 
 class CarterClient:
     def __init__(self, gateway_url, token, channel, role="device", name="hub", e2ee_key=None,
@@ -550,7 +643,8 @@ class CarterClient:
                  allow_insecure_validator=False, max_inflight=DEFAULT_MAX_INFLIGHT,
                  rate_per_type=DEFAULT_RATE_PER_TYPE, credential_path=None,
                  cmd_dedupe_path=None, cmd_dedupe_ttl=CMD_DEDUPE_TTL,
-                 cmd_dedupe_max=CMD_DEDUPE_MAX, cmd_dedupe_clock=time.time):
+                 cmd_dedupe_max=CMD_DEDUPE_MAX, cmd_dedupe_clock=time.time,
+                 cmd_dedupe_save_delay=CMD_DEDUPE_SAVE_DELAY):
         """`strict_e2ee=True` (default) drops every non-envelope frame from a peer while
         an E2EE session exists; `False` passes them through with one warning per
         msg_type (debugging aid only). `allow_insecure_validator` permits an http:// validator on loopback
@@ -563,7 +657,10 @@ class CarterClient:
         `_cmd`-stamped command broadcasts are deduplicated (see `CommandDedupe`): the
         seen-set persists to `cmd_dedupe_path`, by default
         `<dir>/.<credential>.cmd-seen.json` beside `credential_path`, so a restarted
-        hub never re-runs a replayed command. With neither path it is memory-only."""
+        hub never re-runs a replayed command. With neither path it is memory-only.
+        Saves are coalesced and written off the event loop `cmd_dedupe_save_delay`
+        seconds after a record (None = write synchronously on every record); `close()`
+        flushes. The TTL/LRU window makes this re-delivery dedupe, not replay protection."""
         if MeshSocket is None:
             raise ImportError("MeshSocket is unavailable; run `pip install meshsocket`. "
                               "(notify_http does not need it.)")
@@ -626,7 +723,8 @@ class CarterClient:
         # outbox drains, replays after a hub restart). Active with or without acks.
         self._cmd_dedupe = CommandDedupe(
             cmd_dedupe_path or cmd_dedupe_path_for(credential_path),
-            max_entries=cmd_dedupe_max, ttl=cmd_dedupe_ttl, clock=cmd_dedupe_clock)
+            max_entries=cmd_dedupe_max, ttl=cmd_dedupe_ttl, clock=cmd_dedupe_clock,
+            save_delay=cmd_dedupe_save_delay)
         self._cmd_dedupe.load()
         # Notification action-button plumbing: per-send callbacks keyed by
         # (notifId, actionId), plus an optional catch-all. Fed by the app's flat
@@ -1306,6 +1404,7 @@ class CarterClient:
         if self._refresh_task is not None:
             self._refresh_task.cancel()
             self._refresh_task = None
+        await self._cmd_dedupe.aflush()
         await self._sock.stop()
 
     async def __aenter__(self):

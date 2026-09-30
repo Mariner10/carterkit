@@ -1087,3 +1087,92 @@ def test_dedupe_corrupt_or_missing_file_does_not_crash(tmp_path):
     c2.on_broadcast(lambda d: True)
     asyncio.run(c2._dispatch_broadcast(_cmd("c-1")))             # dir missing: memory-only
     assert c2._cmd_dedupe.seen("c-1")
+
+
+# --- seen-set save is coalesced and off the event loop (carter-65m) ------------
+
+def _count_writes(monkeypatch, c):
+    import threading
+    calls = []
+    orig = c._cmd_dedupe._write
+
+    def spy(gen, doc):
+        calls.append((threading.current_thread() is threading.main_thread(), len(doc["seen"])))
+        return orig(gen, doc)
+
+    monkeypatch.setattr(c._cmd_dedupe, "_write", spy)
+    return calls
+
+
+def test_dedupe_burst_is_one_off_loop_write(tmp_path, monkeypatch):
+    path = tmp_path / "s.json"
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(path), cmd_dedupe_save_delay=0.05)
+        writes = _count_writes(monkeypatch, c)
+        c.on_broadcast(lambda d: True)
+        c.enable_command_acks()
+        for i in range(50):                                      # slider drag, _cmd per move
+            await c._dispatch_broadcast(_cmd(f"c-{i}"))
+        assert writes == [] and not path.exists()                # nothing written on the loop
+        await asyncio.sleep(0.2)
+        assert writes == [(False, 50)]                           # one coalesced worker-thread write
+        await c._dispatch_broadcast(_cmd("c-50"))
+        await asyncio.sleep(0.2)
+        return writes
+
+    writes = asyncio.run(run())
+    assert writes == [(False, 50), (False, 51)]
+    assert len(json.loads(path.read_text())["seen"]) == 51
+
+
+def test_dedupe_close_flushes_pending_save(tmp_path):
+    path = tmp_path / "s.json"
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(path), cmd_dedupe_save_delay=60)
+        c.on_broadcast(lambda d: True)
+        await c._dispatch_broadcast(_cmd("c-1"))
+        assert not path.exists()
+        await c.close()
+        assert [r[0] for r in json.loads(path.read_text())["seen"]] == ["c-1"]
+        assert c._cmd_dedupe._save_task is None
+
+    asyncio.run(run())
+
+
+def test_dedupe_loop_shutdown_writes_pending_tail(tmp_path):
+    path = str(tmp_path / "s.json")
+
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=path, cmd_dedupe_save_delay=60)
+        c.on_broadcast(lambda d: True)
+        await c._dispatch_broadcast(_cmd("c-1"))                 # never closed
+
+    asyncio.run(run())                                           # pending save cancelled -> written
+    c2 = _client(key=None, cmd_dedupe_path=path)
+    assert c2._cmd_dedupe.seen("c-1")
+
+
+def test_dedupe_save_delay_none_writes_every_record(tmp_path, monkeypatch):
+    async def run():
+        c = _client(key=None, cmd_dedupe_path=str(tmp_path / "s.json"),
+                    cmd_dedupe_save_delay=None)
+        writes = _count_writes(monkeypatch, c)
+        c.on_broadcast(lambda d: True)
+        await c._dispatch_broadcast(_cmd("c-1"))
+        await c._dispatch_broadcast(_cmd("c-2"))
+        return writes
+
+    assert asyncio.run(run()) == [(True, 1), (True, 2)]
+
+
+def test_dedupe_stale_snapshot_never_overwrites_newer(tmp_path):
+    from carterkit import CommandDedupe
+    path = tmp_path / "s.json"
+    d = CommandDedupe(str(path))
+    d.record("a", True)                                          # no loop: sync save
+    old = d._snapshot()
+    d.record("b", True)
+    d._write(*old)                                               # late worker write loses
+    assert [r[0] for r in json.loads(path.read_text())["seen"]] == ["a", "b"]

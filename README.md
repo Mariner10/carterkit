@@ -166,6 +166,9 @@ that handled the frame; anything else stays silent so the control reverts. Every
 also dedupes `_cmd` ids — a re-delivered or replayed command never runs twice and gets
 the first ack again. The seen-set is saved beside the device.json credential (or
 `cmd_dedupe_path=`), so it survives a restart; token-only hubs keep it in memory.
+Saves are batched and written off the event loop (`cmd_dedupe_save_delay=`, 0.5 s), so a
+slider drag doesn't stall the hub; `close()` flushes. The window is 900 s / the newest
+1024 ids — this is re-delivery dedupe, **not** replay protection (E2EE rooms handle that).
 
 **Prefer a declarative style?** A class veneer compiles to the *same* layout — ids come
 from attribute names, tabs/groups are nested classes (great for fixed dashboards; the flat

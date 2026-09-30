@@ -5,6 +5,21 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+- `CommandDedupe` no longer rewrites + fsyncs the `_cmd` seen-set on the event loop for
+  every recorded command. Inside a running loop a record marks the set dirty and one
+  coalesced save runs `save_delay` seconds later (default 0.5 s, `CMD_DEDUPE_SAVE_DELAY`)
+  on a worker thread via `asyncio.to_thread`; a burst (slider drag, `_cmd` per move) is
+  one write per window. New `CarterClient(cmd_dedupe_save_delay=)` (None = old
+  synchronous save per record); `CommandDedupe.flush()` / `aflush()`;
+  `CarterClient.close()` flushes, and a save pending at loop shutdown is written
+  synchronously. A hard kill can lose the last `save_delay` seconds of records.
+
+### Documentation
+- The TTL+LRU dedupe (900 s / 1024 ids) is at-most-once for honest re-delivery, **not**
+  replay protection: a frame replayed outside that window runs again. Replay defence is
+  the E2EE layer's (sealed envelopes are replay- and freshness-checked).
+
 ## [0.14.0] — 2026-09-28
 
 The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that
