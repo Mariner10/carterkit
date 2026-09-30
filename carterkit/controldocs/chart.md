@@ -285,7 +285,7 @@ Shorthands: `{"values": [1, 2, 3]}` or a bare `[1, 2, 3]` render one anonymous s
 | `name` | string | no | Legend name + `append` routing key |
 | `type` | string | no | `bar` (default), `line`, `area`, `scatter`, `histogram`, `waterfall` — mix the cartesian four freely |
 | `color` | string | no | Series color (hex) |
-| `values` | number[] | no* | Y values at implicit x = 0, 1, 2, … (aligned with `categories`). For `histogram`: the **raw samples** to bin. For `waterfall`: the **signed deltas** |
+| `values` | number[] | no* | Y values at implicit x = 0, 1, 2, … (aligned with `categories`); a `null` is a gap (no bar or point; a line bridges it). For `histogram`: the **raw samples** to bin. For `waterfall`: the **signed deltas** |
 | `points` | [x, y][] | no* | Explicit pairs for scatter / unevenly sampled series |
 | `sizes` | number[] | no | Per-point size multipliers (bubble scatter) |
 | `totals` | number[] | no | Waterfall only: indices drawn as running totals from zero (their value is ignored) |

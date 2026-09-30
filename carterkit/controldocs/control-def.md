@@ -30,6 +30,8 @@ Every control — regardless of type — shares the same base fields. A control 
 | `sync` | [[sync\|SyncDefinition]][] | — | Live state listeners |
 | `visible` | [[visibility\|VisibilityCondition]] | — | Show/hide condition |
 | `enabled` | [[visibility\|VisibilityCondition]] | — | Enable/disable condition: false dims the control and ignores touches |
+| `role` | `"submit"` | — | On a [[button]] inside a [[form]] group: pressing it submits the form |
+| `field` | string | the `id` | Inside a [[form]] group: the draft field this input writes |
 | `haptic` | string | varies by type | Haptic feedback profile. See [[haptics]] |
 | `animation` | string or object | varies by type | Animation override. See [[animations]] |
 | `longPressAction` | [[actions\|ActionDefinition]] | — | Action fired on long-press |
@@ -94,6 +96,8 @@ a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
 | `time` | `125` | `2:05` |
 | `relative` | `"2026-09-22T08:15:00Z"` / epoch | `4 days ago`, `In 2 hours` (label + widget slots; a date, not a number) |
 | `relative:day` | `"2026-09-25"` | `Yesterday` — whole local calendar days; no date → `placeholder` (`Never`) |
+| `date` | `"2026-09-25"` | `Sep 25, 2026` — the date itself (label); no date → `placeholder` |
+| `date:time` | `"2026-09-25T14:03:00Z"` | `Sep 25, 2026 at 2:03 PM` (label) |
 
 Numeric readouts preserve positive step precision (for example, `step: 0.01` shows `0.12`, and `step: 0.25` shows `0.25`). Precision is capped at 12 decimal places. Non-finite values display `—`; `none` still hides them. Negative time and duration values use one leading minus sign. Times outside the integer range display seconds in scientific notation instead of failing conversion.
 
@@ -117,6 +121,22 @@ The `theme` object overrides theme values for a single control. It accepts the s
 ```
 
 Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfacePrimary`, `borderColor`, `borderWidth`, `cornerRadius`, `controlPadding`, `fontFamily`, `fontDesign`, `labelFontSize`, `valueFontSize`. Toggle/slider/progress controls also accept `trackColor`, `trackActiveColor`, `thumbColor`, `knobColor`, etc. See each control's **Theme Overrides** table for its specific keys, and [[theming]] for the full system.
+
+## Look card formats and presets (doc frontmatter)
+
+A control doc may declare two optional one-line JSON lists that the editor's
+**Look** card turns into chips. Neither is a layout field: they are named sets of
+ordinary field writes.
+
+- `lookFormats`: how the value shows (Text: Plain / Number / Last time / Date;
+  Dial: Dial / Ring / Bar).
+- `lookPresets`: 2 to 4 named looks ("Headline", "Big number", "Quiet").
+
+Each item is `{"id", "name", "symbol", "set"}`: `symbol` is an SF Symbol name (never
+an emoji), `set` maps field names to the values the chip writes, and `null` removes
+the field (back to the doc default). A `set` may change `type` between
+interchangeable controls (Dial's **Bar** turns a gauge into a `progressRing` bar).
+A chip shows as chosen when the control already carries every value in its `set`.
 
 ## Related
 - [[grid-dimensions]] — how `position` / `span` map to size; grid modes

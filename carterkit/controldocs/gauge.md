@@ -9,6 +9,8 @@ friendlyName: Dial
 oneLiner: A number on a dial, from low to high
 addRank: 3
 starterPreset: {"label": "Dial","min": 0,"max": 100}
+lookFormats: [{"id": "dial","name": "Dial","symbol": "gauge.medium","set": {"type": "gauge","gaugeStyle": "half","arcAngle": null}},{"id": "ring","name": "Ring","symbol": "circle.circle","set": {"type": "gauge","gaugeStyle": "full","arcAngle": null}},{"id": "bar","name": "Bar","symbol": "chart.bar.fill","set": {"type": "progressRing","progressStyle": "bar"}}]
+lookPresets: [{"id": "standard","name": "Standard","symbol": "gauge.medium","set": {"arcThickness": null,"hideValue": null}},{"id": "bold","name": "Bold","symbol": "circle.lefthalf.filled","set": {"arcThickness": 16,"hideValue": null}},{"id": "quiet","name": "Quiet","symbol": "eye.slash","set": {"hideValue": true}}]
 fields:
   - name: animation
     title: Motion

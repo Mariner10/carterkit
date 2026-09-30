@@ -9,6 +9,7 @@ friendlyName: Trend line
 oneLiner: A little line that shows how a number changes
 addRank: 5
 starterPreset: {"label": "Trend","sparklinePoints": 60}
+lookPresets: [{"id": "line","name": "Line","symbol": "chart.xyaxis.line","set": {"sparklineFill": null}},{"id": "filled","name": "Filled","symbol": "chart.line.uptrend.xyaxis","set": {"sparklineFill": true}}]
 fields:
   - name: sparklinePoints
     min: 5

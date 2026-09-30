@@ -9,7 +9,7 @@ fields:
     description: Legacy leaf — the control ID to watch (same as ref.control)
   - name: ref
     type: object
-    description: "Leaf subject — exactly one of {control: id} or {selected: collection}; field and derive are reserved"
+    description: "Leaf subject — exactly one of {control: id}, {selected: collection}, {field: formId.cell} or {derive: form.formId.cell}"
   - name: operator
     type: string
     description: Comparison operator (eq, ne, gt, gte, lt, lte, in, exists; aliases neq, is, isNot). Omitted = eq
@@ -69,7 +69,8 @@ Combine leaves with `all`, `any` and `not` (nest them freely, up to 16 levels):
 |-----|-------|-------|
 | `{"control": "<id>"}` | that control's current value | same as `"when": "<id>"` |
 | `{"selected": "<collection>"}` | the selected record id of a local collection or view | set by a `local` action with `op: "select"`; null when nothing is selected |
-| `{"field": "…"}`, `{"derive": "…"}` | reserved | forms and derive are not in this app version: a condition that uses them is always false |
+| `{"field": "<formId>.<cell>"}` | a [[form]] cell: `valid`, `dirty`, `<field>`, `<field>.error` | e.g. a Save button `enabled` on `{"field": "plantForm.valid"}` |
+| `{"derive": "form.<formId>.<cell>"}` | the same form cell | any other `derive` is reserved: a condition that uses it is always false |
 
 ## Operators
 

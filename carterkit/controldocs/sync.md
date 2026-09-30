@@ -51,7 +51,7 @@ fields:
     max: 3600
     step: 1
     type: number
-    description: Poll interval in seconds (http)
+    description: Poll interval in seconds (http); 0 fetches once when the layout opens
   - name: collection
     type: string
     description: Collection or view name in the local source (local, required)

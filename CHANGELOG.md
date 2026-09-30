@@ -5,6 +5,14 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-09-30
+
+- Sync the app's control docs and feature catalog, including forms, stat tiles,
+  local field options, shared stores, and computed fields.
+- Validate bounded computed expressions and reject writes to computed fields.
+- Match the app's form validator vocabulary and parameter types.
+- Accept HTTP `interval: 0` for one fetch when a layout opens.
+
 ## [0.14.0] — 2026-09-28
 
 The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that

@@ -10,6 +10,8 @@ oneLiner: A line of text, or a value with a caption
 addRank: 1
 starterPreset: {"label": "Text","text": "Hello"}
 starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]
+lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "number","name": "Number","symbol": "number","set": {"formatValue": "decimal"}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
+lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
 fields:
   - name: text
     title: Text
@@ -160,7 +162,16 @@ The same three fields work on [[image]], where `valueMap` maps to an image URL.
 | `"suffix:X"` | `"72°F"` | Append custom suffix (e.g., `"suffix:°F"`) |
 | `"relative"` | `"4 days ago"`, `"in 2 hours"` | A **date** shown as time-since / time-until — see [[#Relative dates]] |
 | `"relative:day"` | `"Today"`, `"Yesterday"`, `"4 days ago"` | Whole local calendar days |
+| `"date"` | `"Sep 26, 2026"` | A **date** shown as the date itself (locale medium style); no date → `placeholder` |
+| `"date:time"` | `"Sep 26, 2026 at 2:03 PM"` | The date and the time |
 | `"none"` | (hidden) | No value display |
+
+## Look formats
+
+In the editor's Look card, Text offers four **Format** chips, declared in this doc's
+`lookFormats` frontmatter: **Plain** (no `formatValue`), **Number** (`"decimal"`),
+**Last time** (`"relative:day"`) and **Date** (`"date"`). A chip only writes
+`formatValue`; everything else stays as authored.
 
 ## Relative dates
 

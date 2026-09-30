@@ -117,15 +117,17 @@ and the store **enforces** `required`, `default`, `choices` and `range` on every
 write.
 
 ```json
-"fields": {
-  "when":   { "type": "date", "required": true, "default": "now", "display": "dateTime" },
-  "cups":   { "type": "number", "unit": "cups", "range": [0, 20], "decimals": 1, "default": 1 },
-  "mood":   { "type": "string", "choices": ["Good", "Okay", "Rough"], "display": "choice" },
-  "tags":   { "type": "json", "choices": ["Work", "Home"], "multiple": true },
-  "stars":  { "type": "integer", "display": "rating", "range": [1, 5], "symbol": "star" },
-  "done":   { "type": "bool", "labels": ["Done", "Not yet"] },
-  "place":  { "type": "json", "display": "location" },
-  "note":   "string"
+{
+  "fields": {
+    "when":   { "type": "date", "required": true, "default": "now", "display": "dateTime" },
+    "cups":   { "type": "number", "unit": "cups", "range": [0, 20], "decimals": 1, "default": 1 },
+    "mood":   { "type": "string", "choices": ["Good", "Okay", "Rough"], "display": "choice" },
+    "tags":   { "type": "json", "choices": ["Work", "Home"], "multiple": true },
+    "stars":  { "type": "integer", "display": "rating", "range": [1, 5], "symbol": "star" },
+    "done":   { "type": "bool", "labels": ["Done", "Not yet"] },
+    "place":  { "type": "json", "display": "location" },
+    "note":   "string"
+  }
 }
 ```
 
@@ -142,6 +144,7 @@ write.
 | `labels` | `bool` | Two words to show for true / false (`["Done", "Not yet"]`). |
 | `symbol` | `display: rating` | SF Symbol name the rating draws (`star`, `heart`, `circle`). |
 | `display` | see below | How the field shows and is entered. |
+| `compute` | `number`, `integer` | A formula over the entry's own fields, worked out on every save (see [Computed fields](#computed-fields)). |
 
 `display` values and the types they fit: `number`, `duration` (seconds) on
 `number`/`integer`; `text`, `longText`, `photo` on `string`; `toggle` on `bool`;
@@ -152,6 +155,46 @@ object, checked on write).
 A bad option fails the source with a named error (`collection log: field cups
 range must be [min, max] with min <= max`, `… has unknown option colour`,
 `… default does not fit the field`), like any other schema problem.
+
+### Computed fields
+
+A `number` or `integer` field may carry `compute`: a small formula over the
+entry's **own** fields, worked out every time the entry is saved (insert,
+upsert, `set`/`update`, a singleton `set`/`increment`, a widget or Siri write)
+and stored like any other field. Every query stage can then filter, sort, group
+and aggregate it, so "workout volume per week" is a plain `sum`:
+
+```json
+{
+  "fields": {
+    "sets":   "integer",
+    "reps":   "integer",
+    "weight": { "type": "number", "unit": "kg" },
+    "when":   { "type": "date", "default": "now" },
+    "volume": { "type": "number", "unit": "kg", "compute": { "mul": [ {"field": "sets"}, {"field": "reps"}, {"field": "weight"} ] } }
+  }
+}
+```
+
+| Formula | Result |
+|---|---|
+| `{"add" \| "sub" \| "mul" \| "div": [a, b, …]}` | 2-8 inputs, left to right. |
+| `{"since": {"of": {"field": "planted"}, "unit": "days"}}` | Time from a date field to the moment of the save. |
+| `{"until": {"of": {"field": "due"}, "unit": "days"}}` | Time from the save to a date field. |
+
+An input is `{"field": name}` or a plain number; ops nest up to 4 deep. `unit`
+is `seconds`, `minutes`, `hours`, `days` (default) or `weeks`. The arithmetic
+inputs must be `number`, `integer` or `bool` fields, a `since`/`until` input a
+`date` field. When an input is empty, a division is by zero or the result is
+not finite, the computed field stores `null`. An `integer` result is rounded.
+`since`/`until` are fixed at the save: they do not tick afterwards.
+
+A computed field is never written directly: a write or increment naming it is
+rejected (`volume is computed from other fields; leave it out`). It may not be
+`required`, have a `default`, read itself, read another computed field, or read
+an undeclared field; each is a named schema error (`… field volume compute
+reads undeclared field weigth`). Adding or changing a formula re-works the
+stored value of every existing row when the layout loads.
 
 ## Dates
 
@@ -208,7 +251,7 @@ There is no row until the first write, which creates it from the collection's
 
 ## Query stages
 
-A binding's query is the object `{ where?, groupBy?, aggregate?, orderBy?, limit? }`
+A binding's query is the object `{ where?, groupBy?, aggregate?, having?, orderBy?, limit? }`
 written directly on the [[sync]] entry beside `collection`. Each stage is JSON;
 field names must be declared on the collection (or be `id`, `createdAt`,
 `updatedAt`), and values are matched by type — a mismatch is simply "no match",
@@ -243,13 +286,25 @@ Collapses the matched rows to one value. Either the bare string
 | `sum` | `number`/`integer` | total; `0` for no rows |
 | `avg` | `number`/`integer` | mean; `null` for no rows |
 | `min` / `max` | `number`/`integer`/`date`/`string` | smallest / largest value |
-| `distinct` | any non-`json` field | number of distinct values |
+| `distinct` | any non-`json` field | number of distinct values; with `"bucket": "day"` (`week`/`month`/`year`) on a `date` field, the number of distinct buckets, e.g. days with any entry |
 | `first` / `last` | any non-`json` field | that field of the first / last row under `orderBy` (default `createdAt`, then `id`) |
+| `span` | a `date` field, plus an optional `to` date field | first..last: `{from, to, count, days, open}` (see below) |
+
+**span.** `{"op": "span", "field": "started", "to": "finished"}` answers "from when
+to when": `from` is the earliest `field`, `to` the latest `to` (or `field` when a row
+has no `to`, or when `to` is omitted), `count` the rows with a `field`, and `days`
+the calendar days from `from` to `to`, counting both ends (`0` for no rows). A row
+with a `field` but an empty `to` is still going: `to` becomes today and `open` is
+`true`. The binding's payload is that object plus `value`, the label text
+("Jan 3 to Sep 20", "Jan 3 to now" when open, `null` for no rows), and `caption`
+("8 months"), so a [[label]] shows the span with no `valuePath`; `valuePath`
+`from` / `to` / `count` / `days` / `caption` read one part. `span` is not a group
+aggregate.
 
 ### groupBy
 
 Buckets the matched rows and (with `aggregate`, default `count`) produces one
-value per bucket. Three forms:
+value per bucket. Four forms:
 
 - `"groupBy": "genre"` — exact values of a field.
 - `"groupBy": {"field": "finished", "bucket": "month"}` — a `date` field by
@@ -259,8 +314,68 @@ value per bucket. Three forms:
   lands in the `null` bucket, listed last.
 - `"groupBy": {"field": "pages", "width": 100}` — a `number`/`integer` field into
   ranges; the key is the bucket's lower edge as a number.
+- `"groupBy": {"range": ["started", "finished"], "bucket": "day"}` — a row counts
+  in **every** bucket its `started`..`finished` span touches (once per bucket, so a
+  ten-day book adds 1 to each of ten days, or 1 to its one month). An empty
+  `finished` means still going: the span runs to today. A row with no `started` is
+  left out; a `finished` before `started` counts the start bucket only. One row may
+  span at most 3660 days and all rows together 200000 row-days, or the query fails
+  with a `limit` error. Keys are the same as a date bucket.
 
-`bucket` and `width` are exclusive. A grouped query returns at most 500 groups.
+`bucket` and `width` are exclusive; `range` replaces `field`. A grouped query
+returns at most 500 groups.
+
+**fill.** A date bucket or a range may add `"fill"` so charts and calendars show
+empty buckets: `"fill": true` adds every missing bucket between the first and last
+key; `"fill": {"from": "{{startOfYear}}", "to": "{{today}}"}` fills that window
+and drops keys outside it (either end may be left out: it defaults to the first
+or last key). `from`/`to` are dates, instants or the period tokens (`{{today}}`,
+`{{now}}`, `{{startOfWeek}}`, `{{startOfMonth}}`, `{{startOfYear}}`). A filled
+bucket's value is `0` for `count`/`sum`/`distinct` and `null` for `avg`/`min`/`max`;
+the `null`-date bucket is dropped. `orderBy` and `limit` apply after the fill. A fill
+of more than 500 buckets is a `limit` error. The payload shape is unchanged.
+
+```json
+[
+  {"groupBy": {"range": ["started", "finished"], "bucket": "day", "fill": {"from": "{{startOfYear}}", "to": "{{today}}"}}},
+  {"groupBy": {"field": "finished", "bucket": "month", "fill": true}, "aggregate": {"op": "sum", "field": "pages"}},
+  {"where": {"date": {"gte": "{{startOfMonth}}"}}, "aggregate": {"op": "distinct", "field": "date", "bucket": "day"}}
+]
+```
+
+The first is a reading-days calendar for this year, the second pages per month
+with empty months as `0`, the third "sessions this month" (days with any entry).
+
+**Two levels (series).** `"groupBy": [<primary>, "<field>"]` groups by the primary
+(a field, a date bucket or a width, optionally filled) **and** by a second declared
+field, giving one chart series per value of that field: "heaviest set per week, one
+line per exercise". The result is a full grid: every category crossed with every
+series, an empty cell carrying `0` (`count`/`sum`/`distinct`) or `null`
+(`avg`/`min`/`max`; the [[chart]] draws it as a gap). Series come in ascending order,
+at most 12 (the first 12; the rest are left out whole); `limit` caps the categories and `orderBy` may name `key` only. A `range`
+groupBy takes no series.
+
+```json
+{"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "aggregate": {"op": "max", "field": "weight"}}
+```
+
+### having
+
+`having` filters the **aggregated groups** with the `where` operators. Its leaves
+name `value` (the group's aggregate) or `key` (the group key); `and`/`or` nest as in
+`where`. Besides the tokens, a comparison value may be `{"daysAgo": N}`: the local
+calendar date N days before today, for a date `value` (a `max` or `min` of a date
+field). With a series, `having` drops single cells: a dropped cell (and an empty
+one) is `null`, a gap, for every aggregate. `having` needs a `groupBy`, and
+does not combine with `fill` or a `range` groupBy.
+
+```json
+{"groupBy": "plant", "aggregate": {"op": "max", "field": "when"}, "having": {"value": {"lt": {"daysAgo": 7}}}}
+```
+
+Plants whose last watering is more than seven days ago; the result re-runs when the
+day changes. `{"groupBy": "genre", "having": {"value": {"gte": 3}}}` keeps the genres
+with three or more books.
 
 ### orderBy and limit
 
@@ -309,7 +424,9 @@ default `valuePath` so the minimal form works with every existing receiver.
 | Stage | Payload | Default `valuePath` | Typical receivers |
 |---|---|---|---|
 | `aggregate`, no `groupBy` | `{"value": 3}` (`null` for `avg` of nothing) | `value` | [[label]], [[gauge]], [[progress-ring]], any scalar control; a [[sparkline]] appends each new value |
+| `aggregate: span` | `{"from": "2026-01-03", "to": "2026-09-20", "count": 12, "days": 261, "open": false, "value": "Jan 3 to Sep 20", "caption": "8 months"}` | `value` | [[label]] (the text), a [[stat-tile]] or second label on `caption` / `days` / `count` |
 | `groupBy` (+ `aggregate`, default `count`) | `{"categories": ["2026-01", "2026-02"], "series": [{"name": "count", "values": [4, 7]}], "rows": [{"key": "2026-01", "value": 4}]}` | whole payload | [[chart]] / [[pie-chart]] / [[heatmap]] read `categories` + `series`; a [[list]] uses `valuePath: "rows"`; a sparkline uses `series.0.values` |
+| two-level `groupBy` | `{"categories": ["2026-09-07", "2026-09-14"], "series": [{"name": "bench", "values": [70, null]}, {"name": "squat", "values": [110, 120]}], "rows": [{"key": "2026-09-07", "series": "bench", "value": 70}]}` | whole payload | [[chart]] (one bar group or line per series) |
 | rows (no `aggregate`) | `{"rows": [{"id": "…", "createdAt": "…", "updatedAt": "…", "title": "Dune", "pages": 412}], "count": 1, "total": 3, "first": {…} or null}` | `rows` | [[list]] (`listColumns[].key` reads a field), [[log-console]], or a form control naming `first.title` |
 
 Rows are flat: the declared fields sit beside `id`, `createdAt` and `updatedAt`.
@@ -364,8 +481,13 @@ sees only `{op, collection}` of a local action, never the values written.
 
 Records belong to the user, not the layout. Deleting or replacing a layout —
 including every studio re-push — never drops a table; a re-imported layout with the
-same `namespace` re-attaches to its rows. Changing a field's type is refused (the
-source shows a `failed` pipe) rather than silently converting data. Adding a field
+same `namespace` re-attaches to its rows. Changing a field's type in a pushed or
+hand-edited layout is refused (the source shows a `failed` pipe) rather than silently
+converting data; in the app, **Edit type** converts the rows instead: it shows a dry
+run over the real entries ("38 of 42 entries convert…"), keeps a copy of the old field
+for a lossy change, and saves a snapshot of the collection first that can be restored
+for 30 days. A field's key never changes, so renaming it (its `label`) touches no row
+and no binding. Adding a field
 adds a nullable column; removing one from the declaration leaves the column in
 place, hidden. The selection cursor persists across relaunch. Records, the cursor
 and query results are never part of the layout document, so a `.carter` export,
@@ -386,14 +508,14 @@ only a local source has no socket, so the header dot takes the pipe's colour.
 | Collections per source | 32 |
 | Fields per collection | 64 |
 | Rows per collection | 50 000 (an insert past the cap fails) |
-| Groups per grouped query | 500 |
+| Groups per grouped query | 500 (a two-level groupBy: 500 categories × 12 series) |
 | `limit` | 1 … 1000 |
 | `where` | depth 8, 32 leaves, 64 members per `in` |
 | View nesting | 8 deep |
 | `id` | 1–128 chars of `[A-Za-z0-9_.:-]` |
 
 Not a stage: no computed fields, no joins across collections, no expressions,
-no `having`, no projections (rows always deliver every declared field). Anything
+no projections (rows always deliver every declared field). Anything
 beyond this is a bridge's job.
 
 ## Examples

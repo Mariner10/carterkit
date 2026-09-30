@@ -633,6 +633,8 @@ def _check_object_bounds(node: dict, path: str, findings: list) -> None:
             v = node[k]
             if not (_is_num(v) and v == v):
                 continue
+            if k == "interval" and v == 0 and (node.get("method") == "http" or node.get("type") == "http"):
+                continue  # HTTP fetches once when opened; no repeating timer.
             if k in _OFF_TIMER_KEYS and v == 0:
                 continue  # documented 0 = off (carousel autoAdvance, web webRefreshInterval)
             floor = _timer_floor(k, path)
@@ -731,6 +733,40 @@ def _grid_findings(children, cols, rows, where, findings, mode=None):
                            f"{', '.join(str(i) for i in ids)}: {issue['detail']}"))
 
 
+def _validate_form(form, spot, findings):
+    def error(message):
+        findings.append(_f("error", "bad_form", spot, message))
+    if not isinstance(form, dict):
+        error("form must be an object")
+        return
+    fields = form.get("fields")
+    if fields is None:
+        return
+    if not isinstance(fields, dict):
+        error("form.fields must be an object")
+        return
+    allowed = {"required", "min", "max", "minLength", "maxLength", "oneOf", "kind"}
+    for field, rules in fields.items():
+        if not isinstance(rules, dict):
+            error(f"form field {field}: rules must be an object")
+            continue
+        for key, value in rules.items():
+            if key not in allowed:
+                error(f"form field {field}: unknown validator {key}")
+            elif value is None:
+                continue
+            elif key == "kind" and value not in ("integer", "number", "date", "email", "url"):
+                error(f"form field {field}: unknown kind {value!r}")
+            elif key == "required" and not isinstance(value, bool):
+                error(f"form field {field}: required must be true or false")
+            elif key in ("min", "max") and (not isinstance(value, (int, float)) or isinstance(value, bool)):
+                error(f"form field {field}: {key} must be a number")
+            elif key in ("minLength", "maxLength") and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
+                error(f"form field {field}: {key} must be a nonnegative integer")
+            elif key == "oneOf" and not isinstance(value, list):
+                error(f"form field {field}: oneOf must be an array")
+
+
 def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=1, counter=None):
     if not isinstance(ch, dict):
         findings.append(_f("error", "structure", where, "child must be an object"))
@@ -773,6 +809,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
                 findings.append(_f("warn", "unknown_field", spot,
                                    f"group: unknown field '{k}'{_EXT_HINT}"))
         _validate_extensions(ch.get("extensions"), f"{spot}.extensions", findings)
+        if ch.get("form") is not None:
+            _validate_form(ch["form"], spot, findings)
         sub_children = ch.get("children") or []
         if not isinstance(sub_children, list):
             findings.append(_f("error", "structure", spot, "group 'children' must be an array"))

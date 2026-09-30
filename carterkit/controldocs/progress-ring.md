@@ -9,6 +9,8 @@ friendlyName: Ring
 oneLiner: How far along something is
 addRank: 4
 starterPreset: {"label": "Progress","min": 0,"max": 100,"progressStyle": "ring"}
+lookFormats: [{"id": "dial","name": "Dial","symbol": "gauge.medium","set": {"type": "gauge","gaugeStyle": "half"}},{"id": "ring","name": "Ring","symbol": "circle.circle","set": {"type": "progressRing","progressStyle": "ring"}},{"id": "bar","name": "Bar","symbol": "chart.bar.fill","set": {"type": "progressRing","progressStyle": "bar"}}]
+lookPresets: [{"id": "standard","name": "Standard","symbol": "circle.circle","set": {"hideValue": null}},{"id": "quiet","name": "Quiet","symbol": "eye.slash","set": {"hideValue": true}}]
 fields:
   - name: animation
     title: Motion

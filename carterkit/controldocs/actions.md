@@ -143,6 +143,20 @@ A string that is *exactly* `"{{value}}"` keeps the value's native type (numbers
 stay numbers, bools stay bools). Over MQTT, a string payload publishes as raw
 bytes (`ON`, not `"ON"`); objects publish as JSON.
 
+`{{secret:name}}` fills in a credential from the phone's Keychain when the
+action is sent, never earlier ([[layout-config#Secrets]]). It works in an HTTP
+action's `url` path/query, `headers` and `payload`, an MQTT action's `payload`,
+and a MeshSocket action's `payload`. Only the text you wrote in the action is
+filled in; a `{{secret:…}}` that arrives inside `{{value}}` is sent as plain
+text. The secret must be allowed at the destination:
+
+- an HTTP or MQTT action goes to its host, which must be a declared source's
+  host or listed in the secret's `hosts`. An absolute `url` on any other host
+  needs `"hosts": ["that.host"]` in the declaration;
+- a MeshSocket action goes to every peer in the room, so the secret needs
+  `"mesh": true`. Without it the action is not sent and the console logs
+  `secret <name> not allowed for the mesh`.
+
 ## Local store
 
 With `method: "local"` an action writes the layout's on-device [[local-store]]
@@ -158,11 +172,22 @@ and an exact-token string keeps its native type, so `"pages": "{{value}}"` from 
 (reject, never coerce); a failure is a console line and a red `Local` pipe, never
 an alert. Delete is by `id` only.
 
+A [[form]]'s `submit` action also gets `{{form}}` (the whole draft object) and
+`{{form.<field>}}` (one draft field), on any transport: `"set": "{{form}}"` for a
+local insert/update, `"payload": "{{form}}"` for http or meshsocket.
+
 A collection declared `singleton: true` holds exactly one row, and four more ops
 write it without an `id`: `set` patches the named fields, `increment` /
 `decrement` add or subtract `by` (default 1) from a number or integer `field`,
 and `toggle` flips a bool `field`. Each creates the row from the collection's
 `defaults` on its first write.
+
+These four are what the editor's Action tab writes: its verbs Record time, Add 1,
+Subtract 1 and Set to… compile to `set` with `{"field": "{{now}}"}`, `increment`,
+`decrement` (no `by`) and `set` with one literal field. After any of them lands, the
+app offers a one-level Undo for about five seconds that puts the touched fields back
+to their prior values (a first write goes back to the default, else `null`); the
+restore is an ordinary `set`, so a hand-written layout gets the same toast.
 
 ```json
 { "method": "local", "op": "update", "collection": "books", "id": "{{selected}}",
@@ -175,5 +200,6 @@ and `toggle` flips a bool `field`. Each creates the row from the collection's
 
 - [[control-def]] — every control can have an action
 - [[sources]] — MQTT/HTTP source declaration
+- [[layout-config#Secrets]] — `{{secret:name}}` and where a secret may be sent
 - [[local-store]] — the on-device store `local` actions write
 - [[long-press]] — alternate action on long press

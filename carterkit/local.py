@@ -14,6 +14,7 @@ findings. Nothing here touches the catalog or the network.
 from __future__ import annotations
 
 import re
+from .local_compute import lint_computed
 
 # ── caps (spec §1 settled decisions; LocalQueryLimits / LocalSourceSchema in Swift) ──
 MAX_COLLECTIONS = 32
@@ -152,6 +153,14 @@ def _lint_collections(colls, out, schema):
                 out.append(("error", f"collection {cname}.{fname}: unknown type {ftype!r}; use one of {list(FIELD_TYPES)}"))
                 continue
             clean[fname] = ftype
+        problems, computed = lint_computed(cname, fields, clean)
+        out.extend(problems)
+        if computed:
+            schema.setdefault("computed", {})[cname] = sorted(computed)
+        defaults = cdef.get("defaults")
+        if isinstance(defaults, dict):
+            for field in computed & defaults.keys():
+                out.append(("error", f"collection {cname}: field {field} is computed, so it can't have a default"))
         schema["collections"][cname] = clean
         if cdef.get("singleton") is True:
             schema["singletons"].append(cname)
@@ -161,7 +170,7 @@ def _lint_collections(colls, out, schema):
 
 #: Field options beside the type (object-form field declarations, local-store.md).
 FIELD_OPTION_KEYS = ("label", "unit", "required", "default", "choices", "multiple", "range",
-                     "decimals", "labels", "symbol", "display")
+                     "decimals", "labels", "symbol", "display", "compute")
 #: display value -> the stored types it fits (mirrors the app's LocalFieldDisplay).
 FIELD_DISPLAYS = {
     "number": ("number", "integer"), "duration": ("number", "integer"),
@@ -607,6 +616,12 @@ def lint_op(a: dict, schema: dict | None) -> list[tuple[str, str]]:
         elif coll not in (schema.get("collections") or {}):
             out.append(("error", f"unknown collection '{coll}'"))
         fields = fields_for(schema, coll)
+    computed = set((schema or {}).get("computed", {}).get(coll, []))
+    written = set(a["set"]) if op in ("set", "insert", "update", "upsert") and isinstance(a.get("set"), dict) else set()
+    if op in ("increment", "decrement", "toggle") and isinstance(a.get("field"), str):
+        written.add(a["field"])
+    for field in sorted(computed & written):
+        out.append(("error", f"field {field} is computed from other fields; leave it out"))
     singletons = (schema or {}).get("singletons") or []
     if op in SINGLETON_OPS:
         _lint_singleton_op(a, op, coll, schema, fields, singletons, out)

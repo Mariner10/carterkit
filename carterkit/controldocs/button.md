@@ -9,6 +9,7 @@ friendlyName: Button
 oneLiner: Tap it to make something happen
 addRank: 1
 starterPreset: {"label": "Button"}
+lookPresets: [{"id": "filled","name": "Filled","symbol": "capsule.fill","set": {"style": "filled"}},{"id": "outlined","name": "Outlined","symbol": "capsule","set": {"style": "outlined"}},{"id": "tinted","name": "Tinted","symbol": "capsule.lefthalf.filled","set": {"style": "tinted"}},{"id": "iconOnly","name": "Icon only","symbol": "circle.fill","set": {"style": "icon-only"}}]
 fields:
   - name: label
     title: Title

@@ -191,6 +191,9 @@ If `sliceAction` is omitted, taps/landings fall back to the control's own `actio
 }
 ```
 
+A grouped [[local-store]] result (`{"categories": […], "series": [{"values": […]}]}`,
+what `"groupBy": "genre"` delivers) also reads: one slice per category, sized by its value.
+
 ### Slice Fields
 
 | Field | Type | Required | Description |

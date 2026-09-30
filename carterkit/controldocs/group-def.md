@@ -24,6 +24,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
 | `enabled` | [[visibility\|VisibilityCondition]] | no | Enable/disable every child; false dims the group and ignores touches |
+| `form` | [[form]] object | no | Make the group a form: its inputs write a draft, validated, written once by `submit` |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
 | `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
@@ -105,5 +106,6 @@ A group renders as a glass card whose surface, corner radius, border, and paddin
 - [[layout-config]] — the top-level structure
 - [[grid-dimensions]] — Grid sizing
 - [[visibility]] — The `visible` and `enabled` fields
+- [[form]] — Draft, validate, submit
 - [[dynamic-content]] — Runtime injection
 - [[theming]] — Theme & appearance system

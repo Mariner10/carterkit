@@ -9,6 +9,7 @@ friendlyName: Status dot
 oneLiner: "A colored dot: OK, busy, or off"
 addRank: 6
 starterPreset: {"label": "Status"}
+lookPresets: [{"id": "dot","name": "Dot","symbol": "circle.fill","set": {"style": "dot","pulse": null}},{"id": "badge","name": "Badge","symbol": "capsule.fill","set": {"style": "badge","pulse": null}},{"id": "pulsing","name": "Pulsing","symbol": "dot.radiowaves.left.and.right","set": {"style": "dot","pulse": true}}]
 fields:
   - name: label
     type: string
