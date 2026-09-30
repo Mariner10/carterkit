@@ -130,7 +130,7 @@ def _lint_collections(colls, out, schema):
             if flag in cdef and not isinstance(cdef[flag], bool):
                 out.append(("error", f"collection {cname}: '{flag}' must be true or false"))
         for key in cdef:
-            if key not in ("fields", "shared", "mirror", "singleton", "defaults"):
+            if key not in ("fields", "shared", "mirror", "singleton", "defaults", "order"):
                 out.append(("warn", f"collection {cname}: unknown key '{key}' is ignored"))
         clean: dict = {}
         for fname, ftype in fields.items():
@@ -140,7 +140,15 @@ def _lint_collections(colls, out, schema):
             if not FIELD_RE.match(str(fname)):
                 out.append(("error", f"collection {cname}: field name {fname!r} must match ^[a-z][A-Za-z0-9_]{{0,63}}$"))
                 continue
-            if ftype not in FIELD_TYPES:
+            if isinstance(ftype, dict):
+                # Object form: {"type": ..., options} (carter-73q2.28, local-store.md Field options).
+                opts = dict(ftype)
+                ftype = opts.pop("type", None)
+                if ftype not in FIELD_TYPES:
+                    out.append(("error", f"collection {cname}.{fname}: unknown type {ftype!r}; use one of {list(FIELD_TYPES)}"))
+                    continue
+                _lint_field_options(cname, fname, ftype, opts, out)
+            elif ftype not in FIELD_TYPES:
                 out.append(("error", f"collection {cname}.{fname}: unknown type {ftype!r}; use one of {list(FIELD_TYPES)}"))
                 continue
             clean[fname] = ftype
@@ -148,6 +156,134 @@ def _lint_collections(colls, out, schema):
         if cdef.get("singleton") is True:
             schema["singletons"].append(cname)
         _lint_defaults(cname, cdef, clean, out)
+        _lint_order(cname, cdef, fields, out)
+
+
+#: Field options beside the type (object-form field declarations, local-store.md).
+FIELD_OPTION_KEYS = ("label", "unit", "required", "default", "choices", "multiple", "range",
+                     "decimals", "labels", "symbol", "display")
+#: display value -> the stored types it fits (mirrors the app's LocalFieldDisplay).
+FIELD_DISPLAYS = {
+    "number": ("number", "integer"), "duration": ("number", "integer"),
+    "text": ("string",), "longText": ("string",), "photo": ("string",),
+    "toggle": ("bool",), "date": ("date",), "time": ("date",), "dateTime": ("date",),
+    "choice": ("string", "json"), "rating": ("integer",), "location": ("json",),
+}
+MAX_CHOICES = 100
+
+
+def _is_num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _lint_field_options(cname, fname, ftype, opts, out):
+    """Validate one object-form field's options the way the app's LocalSourceSchema does;
+    every problem is an error naming the collection, the field and the option."""
+    where = f"collection {cname}.{fname}"
+
+    def err(msg):
+        out.append(("error", f"{where}: {msg}"))
+
+    for key in opts:
+        if key not in FIELD_OPTION_KEYS:
+            err(f"unknown option {key!r}")
+    for key, limit in (("label", 64), ("unit", 16), ("symbol", 64), ("display", 32)):
+        v = opts.get(key)
+        if v is not None and (not isinstance(v, str) or not v.strip() or len(v) > limit):
+            err(f"{key} must be text of 1-{limit} characters")
+    for key in ("required", "multiple"):
+        if opts.get(key) is not None and not isinstance(opts[key], bool):
+            err(f"{key} must be true or false")
+    display = opts.get("display")
+    if isinstance(display, str):
+        if display not in FIELD_DISPLAYS:
+            err(f"unknown display {display!r}; use one of {sorted(FIELD_DISPLAYS)}")
+        elif ftype not in FIELD_DISPLAYS[display]:
+            err(f"display {display!r} does not fit type {ftype}")
+    numeric = ftype in _NUMERIC
+    if opts.get("unit") is not None and not numeric:
+        err("unit needs a number field")
+    dec = opts.get("decimals")
+    if dec is not None:
+        if not _is_num(dec) or float(dec) != int(dec) or not 0 <= dec <= 6:
+            err("decimals must be 0-6")
+        elif not numeric:
+            err("decimals needs a number field")
+    rng = opts.get("range")
+    if rng is not None:
+        if not (isinstance(rng, list) and len(rng) == 2 and all(_is_num(x) for x in rng) and rng[0] <= rng[1]):
+            err("range must be [min, max] with min <= max")
+            rng = None
+        elif not numeric:
+            err("range needs a number field")
+    if rng is None and display == "rating":
+        rng = [1, 5]
+    labels = opts.get("labels")
+    if labels is not None:
+        if not (isinstance(labels, list) and len(labels) == 2 and all(isinstance(x, str) and x for x in labels)):
+            err("labels must be two words")
+        elif ftype != "bool":
+            err("labels needs a yes/no (bool) field")
+    if opts.get("symbol") is not None and display != "rating":
+        err("symbol needs display 'rating'")
+    choices = opts.get("choices")
+    multiple = opts.get("multiple") is True
+    if choices is not None:
+        if not (isinstance(choices, list) and all(isinstance(c, str) and 0 < len(c) <= 64 for c in choices)):
+            err("choices must be a list of text")
+            choices = None
+        elif not 1 <= len(choices) <= MAX_CHOICES:
+            err(f"choices must list 1-{MAX_CHOICES} values")
+        elif len(set(choices)) != len(choices):
+            err("choices lists a value twice")
+        elif ftype != ("json" if multiple else "string"):
+            err("multiple choices need a json field" if multiple else "choices need a string field")
+    elif multiple:
+        err("multiple needs choices")
+    elif display == "choice":
+        err("display 'choice' needs choices")
+    if "default" in opts and opts["default"] is not None:
+        _lint_option_default(opts["default"], ftype, choices if isinstance(choices, list) else None,
+                             multiple, rng, display, err)
+
+
+def _lint_option_default(v, ftype, choices, multiple, rng, display, err):
+    if ftype == "date" and v == "now":
+        return
+    bad = False
+    if ftype == "json":
+        bad = False
+    elif not _literal_matches(v, ftype) or token_name(v) is not None:
+        bad = True
+    elif ftype == "integer" and isinstance(v, float) and not v.is_integer():
+        bad = True
+    elif ftype == "date" and not _valid_date(v):
+        bad = True
+    if not bad and choices is not None:
+        items = v if multiple else [v]
+        bad = not isinstance(items, list) or any(i not in choices for i in items)
+    if not bad and rng is not None and _is_num(v):
+        bad = not rng[0] <= v <= rng[1]
+    if not bad and display == "location":
+        bad = not (isinstance(v, dict) and _is_num(v.get("lat")) and _is_num(v.get("lon"))
+                   and -90 <= v["lat"] <= 90 and -180 <= v["lon"] <= 180)
+    if bad:
+        err(f"default {v!r} does not fit the field")
+
+
+def _lint_order(cname, cdef, fields, out):
+    """`order`: the fields in display order, each declared once."""
+    order = cdef.get("order")
+    if order is None:
+        return
+    if not isinstance(order, list) or not all(isinstance(x, str) for x in order):
+        out.append(("error", f"collection {cname}: 'order' must be a list of field names"))
+        return
+    if len(set(order)) != len(order):
+        out.append(("error", f"collection {cname}: order names a field twice"))
+    for name in order:
+        if name not in fields:
+            out.append(("error", f"collection {cname}: order names undeclared field '{name}'"))
 
 
 def _lint_defaults(cname, cdef, fields, out):
