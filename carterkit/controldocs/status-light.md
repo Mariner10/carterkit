@@ -15,6 +15,7 @@ fields:
   - name: statusColors
     type: object
     description: "Map state strings to hex colors: {\"online\": \"#34C759\", \"offline\": \"#FF3B30\"}"
+    summary: Colors for each status
   - name: size
     type: enum
     values: [small, default, large]

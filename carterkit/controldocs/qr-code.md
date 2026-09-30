@@ -11,6 +11,7 @@ fields:
   - name: text
     type: string
     description: Static content to encode (overridden by sync)
+    summary: Content to encode until a connected value is available
   - name: tint
     type: color
     default: "#FFFFFF"

@@ -25,6 +25,7 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+    summary: How the sections animate when opening or closing
   - name: defaultValue
     min: -1
     step: 1

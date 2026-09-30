@@ -8,6 +8,7 @@ fields:
   - name: text
     type: string
     description: Static display text (overridden by sync)
+    summary: Text to show until a connected value is available
   - name: label
     type: string
     description: Alternative to text

@@ -32,6 +32,7 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+    summary: How the pages animate when switching
   - name: defaultValue
     min: 0
     step: 1

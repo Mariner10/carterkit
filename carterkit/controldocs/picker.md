@@ -15,6 +15,7 @@ fields:
   - name: optionLabels
     type: array
     description: Display labels parallel to options; actions and sync use the original option values
+    summary: Display names for the choices, in the same order
   - name: placeholder
     type: string
     description: Text shown when no options are available or a picker has no selection

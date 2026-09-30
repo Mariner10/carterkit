@@ -30,6 +30,7 @@ fields:
   - name: centerText
     type: string
     description: Donut center text; {{total}} interpolates the slice sum
+    summary: Text shown in the middle of the donut
     group: pieConfig
   - name: colors
     type: string[]

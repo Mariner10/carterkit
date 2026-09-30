@@ -124,6 +124,7 @@ fields:
     type: string
     default: always
     description: "always | truthy | a state word the synced value must equal"
+    summary: When the symbol effect should play
     group: symbolConfig
   - name: variableMin
     type: number
@@ -151,6 +152,7 @@ fields:
   - name: triggers
     type: array
     description: "Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]"
+    summary: Events that play the symbol effect once
     group: symbolConfig
 themeFields:
   - name: cornerRadius

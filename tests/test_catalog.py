@@ -42,6 +42,16 @@ def test_unquoted_hex_default_survives():
     assert surface["default"] == "#FFFFFF0F"
 
 
+def test_simple_summary_preserves_technical_description():
+    doc = catalog.parse_all(DOCS)["label"]
+    text = _field(doc, "text")
+    assert text["summary"] == "Text to show until a connected value is available"
+    assert text["description"] == "Static display text (overridden by sync)"
+    field = next(f for f in catalog.build_catalog(DOCS)["label"]["fields"] if f["name"] == "text")
+    assert field["summary"] == text["summary"]
+    assert field["description"] == text["description"]
+
+
 def test_default_span_parsed():
     docs = catalog.parse_all(DOCS)
     assert docs["gauge"]["defaultSpan"] == [2, 2]

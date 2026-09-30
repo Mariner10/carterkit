@@ -65,6 +65,7 @@ fields:
     type: number
     default: 100
     description: "Rolling window applied to {'append': …} pushes"
+    summary: Maximum number of recent points to keep
     group: chartConfig
   - name: negativeColor
     type: color

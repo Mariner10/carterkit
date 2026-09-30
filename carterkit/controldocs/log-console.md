@@ -44,6 +44,7 @@ fields:
   - name: logColors
     type: object
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
+    summary: Colors for each kind of message
   - name: tint
     type: color
     default: "#667eea"
@@ -51,6 +52,7 @@ fields:
   - name: defaultValue
     type: array
     description: Seed lines shown before the first sync (strings, or objects with text and level)
+    summary: Starting messages shown until new ones arrive
 themeFields:
   - name: cornerRadius
     min: 0

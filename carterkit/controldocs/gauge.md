@@ -27,6 +27,7 @@ fields:
   - name: segments
     type: array
     description: Color zone breakpoints [{limit, color}]
+    summary: Colors for different ranges of values
   - name: colorBlend
     min: 0
     max: 1

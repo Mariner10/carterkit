@@ -21,6 +21,7 @@ fields:
   - name: containerAnimation
     type: object
     description: Transition tuning, e.g. { profile, duration }
+    summary: How the card animates when flipping
   - name: defaultValue
     min: 0
     step: 1

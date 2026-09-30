@@ -11,6 +11,7 @@ fields:
   - name: listColumns
     type: array
     description: "Column definitions: [{key, label, format}]"
+    summary: Which columns to show and how to display them
   - name: tint
     type: color
     default: "#FFFFFF"
@@ -26,6 +27,7 @@ fields:
   - name: defaultValue
     type: object[]
     description: Seed rows shown before the first sync (the same row objects a sync delivers)
+    summary: Starting rows shown until new data arrives
 themeFields:
   - name: cornerRadius
     min: 0

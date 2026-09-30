@@ -31,6 +31,7 @@ fields:
     type: bool
     default: false
     description: Long-press lifts a card; drags emit place/layout and round-trip the synced value
+    summary: Touch and hold a card to move it
     group: canvasConfig
   - name: showGrid
     type: bool

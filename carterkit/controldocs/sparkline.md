@@ -26,6 +26,7 @@ fields:
   - name: defaultValue
     type: array
     description: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
+    summary: Starting readings shown until new ones arrive
 themeFields:
   - name: cornerRadius
     min: 0
