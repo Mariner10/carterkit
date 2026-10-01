@@ -103,3 +103,25 @@ def test_examples_exclude_non_example_json():
     # it must NOT be captured as an example.
     names = [e["name"] for e in catalog.get_examples(DOCS, "gauge")]
     assert all("segment" not in n.lower() for n in names)
+
+
+def test_add_intent_keys_parsed_and_exposed():
+    """App bead carter-m7s.18: every placeable doc carries the Add-sheet keys, and
+    no starterPreset is wired (sync/action) — the seed a lay user's new control
+    is built from must never point at somebody's server."""
+    docs = catalog.parse_all(DOCS)
+    placeable = [d for d in docs.values() if d["category"] in catalog.PLACEABLE_CATEGORIES]
+    assert placeable
+    for d in placeable:
+        assert d["addIntent"] in ("show", "change", "organize"), d["type"]
+        assert d["friendlyName"], d["type"]
+        assert isinstance(d["starterPreset"], dict), d["type"]
+        assert not {"sync", "action"} & set(d["starterPreset"]), d["type"]
+        for v in d["starterVariants"]:
+            assert not {"sync", "action"} & set(v["preset"]), d["type"]
+    label = docs["label"]
+    assert label["addRank"] == 1
+    assert label["starterVariants"][0]["friendlyName"] == "Last time"
+    cat = catalog.build_catalog(DOCS)
+    assert cat["button"]["starterPreset"] == {"label": "Button"}
+    assert cat["button"]["addIntent"] == "change"
