@@ -1,0 +1,23 @@
+{
+  "name": "filter-null-value-key-absent",
+  "note": "A null filter value does not match an absent key.",
+  "frame": {
+    "v": 2
+  },
+  "filter": {
+    "tag": null
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": false,
+    "filterMisses": [
+      {
+        "key": "tag",
+        "expected": null,
+        "present": false,
+        "near": false
+      }
+    ]
+  }
+}

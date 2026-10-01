@@ -1,0 +1,13 @@
+{
+  "name": "filter-null-means-no-filter",
+  "note": "filter: null decodes to no filter.",
+  "frame": {
+    "v": 4
+  },
+  "filter": null,
+  "valuePath": "v",
+  "expect": {
+    "outcome": "delivered",
+    "value": 4
+  }
+}

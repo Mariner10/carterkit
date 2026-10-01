@@ -1,0 +1,12 @@
+{
+  "name": "plain-delivered",
+  "note": "Top-level key, number value.",
+  "frame": {
+    "cpu": 42
+  },
+  "valuePath": "cpu",
+  "expect": {
+    "outcome": "delivered",
+    "value": 42
+  }
+}

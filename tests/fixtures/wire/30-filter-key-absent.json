@@ -1,0 +1,23 @@
+{
+  "name": "filter-key-absent",
+  "note": "A filter key the frame lacks is a miss (not near).",
+  "frame": {
+    "cpu": 3
+  },
+  "filter": {
+    "msg_type": "telemetry"
+  },
+  "valuePath": "cpu",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": false,
+    "filterMisses": [
+      {
+        "key": "msg_type",
+        "expected": "telemetry",
+        "present": false,
+        "near": false
+      }
+    ]
+  }
+}

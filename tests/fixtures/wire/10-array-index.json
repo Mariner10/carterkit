@@ -1,0 +1,16 @@
+{
+  "name": "array-index",
+  "note": "Numeric segment indexes an array.",
+  "frame": {
+    "list": [
+      10,
+      20,
+      30
+    ]
+  },
+  "valuePath": "list.1",
+  "expect": {
+    "outcome": "delivered",
+    "value": 20
+  }
+}

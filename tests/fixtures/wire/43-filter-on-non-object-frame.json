@@ -1,0 +1,24 @@
+{
+  "name": "filter-on-non-object-frame",
+  "note": "A non-object frame never matches a filter.",
+  "frame": [
+    1,
+    2
+  ],
+  "filter": {
+    "msg_type": "t"
+  },
+  "valuePath": "0",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": false,
+    "filterMisses": [
+      {
+        "key": "msg_type",
+        "expected": "t",
+        "present": false,
+        "near": false
+      }
+    ]
+  }
+}

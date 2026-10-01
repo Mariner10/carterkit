@@ -1,0 +1,13 @@
+{
+  "name": "null-value-type-miss",
+  "note": "Resolved null can't render.",
+  "frame": {
+    "v": null
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "type_miss",
+    "typeMiss": "null",
+    "value": null
+  }
+}

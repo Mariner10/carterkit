@@ -1,0 +1,14 @@
+{
+  "name": "double-dot-dropped",
+  "note": "a..b == a.b: Swift split drops empty segments.",
+  "frame": {
+    "a": {
+      "b": 3
+    }
+  },
+  "valuePath": "a..b",
+  "expect": {
+    "outcome": "delivered",
+    "value": 3
+  }
+}

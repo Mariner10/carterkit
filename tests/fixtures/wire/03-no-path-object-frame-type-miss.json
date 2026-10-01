@@ -1,0 +1,17 @@
+{
+  "name": "no-path-object-frame-type-miss",
+  "note": "No valuePath on a scalar control: an object frame can't render.",
+  "frame": {
+    "cpu": 1
+  },
+  "expect": {
+    "outcome": "type_miss",
+    "typeMiss": "object",
+    "value": {
+      "cpu": 1
+    },
+    "logSource": {
+      "cpu": 1
+    }
+  }
+}

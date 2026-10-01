@@ -1,0 +1,9 @@
+{
+  "name": "no-path-whole-frame-scalar",
+  "note": "No valuePath: the whole frame is the value; a string frame renders.",
+  "frame": "online",
+  "expect": {
+    "outcome": "delivered",
+    "value": "online"
+  }
+}

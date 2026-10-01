@@ -1,0 +1,22 @@
+{
+  "name": "filter-nested-value-equal",
+  "note": "Nested filter values compare whole-value (1 == 1.0 inside).",
+  "frame": {
+    "src": {
+      "id": 1.0,
+      "kind": "a"
+    },
+    "v": 9
+  },
+  "filter": {
+    "src": {
+      "kind": "a",
+      "id": 1
+    }
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "delivered",
+    "value": 9
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "array-index-minus-zero",
+  "note": "Int(\"-0\") == 0, which passes i >= 0: index 0.",
+  "frame": {
+    "list": [
+      10,
+      20
+    ]
+  },
+  "valuePath": "list.-0",
+  "expect": {
+    "outcome": "delivered",
+    "value": 10
+  }
+}

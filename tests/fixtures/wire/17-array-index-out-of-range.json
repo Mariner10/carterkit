@@ -1,0 +1,19 @@
+{
+  "name": "array-index-out-of-range",
+  "note": "Index past the end.",
+  "frame": {
+    "list": [
+      10,
+      20
+    ]
+  },
+  "valuePath": "list.2",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "2",
+      "index": 1,
+      "reason": "out_of_range"
+    }
+  }
+}

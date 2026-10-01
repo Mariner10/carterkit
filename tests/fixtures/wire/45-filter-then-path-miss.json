@@ -1,0 +1,20 @@
+{
+  "name": "filter-then-path-miss",
+  "note": "Filter passes, then the path fails.",
+  "frame": {
+    "msg_type": "t",
+    "data": {}
+  },
+  "filter": {
+    "msg_type": "t"
+  },
+  "valuePath": "data.cpu",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "cpu",
+      "index": 1,
+      "reason": "missing_key"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "filter-dotted-key-is-top-level",
+  "note": "Filter keys are top-level only: \"a.b\" is a literal key.",
+  "frame": {
+    "a": {
+      "b": 1
+    },
+    "v": 9
+  },
+  "filter": {
+    "a.b": 1
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": false,
+    "filterMisses": [
+      {
+        "key": "a.b",
+        "expected": 1,
+        "present": false,
+        "near": false
+      }
+    ]
+  }
+}

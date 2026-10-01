@@ -1,0 +1,10 @@
+{
+  "name": "empty-path-whole-frame",
+  "note": "valuePath \"\" is the same as no path.",
+  "frame": 7,
+  "valuePath": "",
+  "expect": {
+    "outcome": "delivered",
+    "value": 7
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "filter-array-order-matters",
+  "note": "Arrays compare in order.",
+  "frame": {
+    "tags": [
+      "b",
+      "a"
+    ],
+    "v": 9
+  },
+  "filter": {
+    "tags": [
+      "a",
+      "b"
+    ]
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "tags",
+        "expected": [
+          "a",
+          "b"
+        ],
+        "present": true,
+        "near": true,
+        "actual": [
+          "b",
+          "a"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "nested-object-path",
+  "note": "Dotted path into nested objects.",
+  "frame": {
+    "sensors": {
+      "temp": {
+        "c": 21.5
+      }
+    }
+  },
+  "valuePath": "sensors.temp.c",
+  "expect": {
+    "outcome": "delivered",
+    "value": 21.5
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "array-index-non-ascii-digit",
+  "note": "Int(\"١\") (Arabic-Indic one) is nil: ASCII digits only.",
+  "frame": {
+    "list": [
+      10,
+      20
+    ]
+  },
+  "valuePath": "list.١",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "١",
+      "index": 1,
+      "reason": "bad_index"
+    }
+  }
+}

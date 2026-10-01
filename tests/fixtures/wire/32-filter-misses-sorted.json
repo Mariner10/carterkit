@@ -1,0 +1,39 @@
+{
+  "name": "filter-misses-sorted",
+  "note": "Failing keys are reported sorted by key.",
+  "frame": {
+    "z": 1,
+    "a": 1
+  },
+  "filter": {
+    "z": 2,
+    "m": 0,
+    "a": 2
+  },
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "a",
+        "expected": 2,
+        "present": true,
+        "near": true,
+        "actual": 1
+      },
+      {
+        "key": "m",
+        "expected": 0,
+        "present": false,
+        "near": false
+      },
+      {
+        "key": "z",
+        "expected": 2,
+        "present": true,
+        "near": true,
+        "actual": 1
+      }
+    ]
+  }
+}

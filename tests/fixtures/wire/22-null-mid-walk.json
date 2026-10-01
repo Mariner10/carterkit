@@ -1,0 +1,16 @@
+{
+  "name": "null-mid-walk",
+  "note": "null mid-walk fails like any scalar.",
+  "frame": {
+    "a": null
+  },
+  "valuePath": "a.b",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "b",
+      "index": 1,
+      "reason": "not_container"
+    }
+  }
+}

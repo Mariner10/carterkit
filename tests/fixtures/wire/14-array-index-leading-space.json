@@ -1,0 +1,19 @@
+{
+  "name": "array-index-leading-space",
+  "note": "Int(\" 1\") is nil: no whitespace.",
+  "frame": {
+    "list": [
+      10,
+      20
+    ]
+  },
+  "valuePath": "list. 1",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": " 1",
+      "index": 1,
+      "reason": "bad_index"
+    }
+  }
+}

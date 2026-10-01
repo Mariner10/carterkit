@@ -1,0 +1,25 @@
+{
+  "name": "filter-string-not-number",
+  "note": "\"1\" is not 1.",
+  "frame": {
+    "ch": "1",
+    "v": 2
+  },
+  "filter": {
+    "ch": 1
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "ch",
+        "expected": 1,
+        "present": true,
+        "near": true,
+        "actual": "1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "filter-msg-type-unrelated",
+  "note": "An unrelated msg_type is a plain miss, never promoted to near.",
+  "frame": {
+    "msg_type": "weather",
+    "temp": 3,
+    "room": "den"
+  },
+  "filter": {
+    "room": "kitchen",
+    "msg_type": "telemetry"
+  },
+  "valuePath": "temp",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": false,
+    "filterMisses": [
+      {
+        "key": "msg_type",
+        "expected": "telemetry",
+        "present": true,
+        "near": false,
+        "actual": "weather"
+      },
+      {
+        "key": "room",
+        "expected": "kitchen",
+        "present": true,
+        "near": true,
+        "actual": "den"
+      }
+    ]
+  }
+}

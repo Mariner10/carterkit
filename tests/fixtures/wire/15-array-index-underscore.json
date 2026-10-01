@@ -1,0 +1,29 @@
+{
+  "name": "array-index-underscore",
+  "note": "Int(\"1_0\") is nil.",
+  "frame": {
+    "list": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "valuePath": "list.1_0",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "1_0",
+      "index": 1,
+      "reason": "bad_index"
+    }
+  }
+}

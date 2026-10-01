@@ -1,0 +1,23 @@
+{
+  "name": "array-value-type-miss",
+  "note": "Resolved array can't render in a scalar control; logSource takes it.",
+  "frame": {
+    "v": [
+      1,
+      2
+    ]
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "type_miss",
+    "typeMiss": "array",
+    "value": [
+      1,
+      2
+    ],
+    "logSource": [
+      1,
+      2
+    ]
+  }
+}

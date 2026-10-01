@@ -1,0 +1,25 @@
+{
+  "name": "filter-number-not-bool",
+  "note": "0 is not false.",
+  "frame": {
+    "on": false,
+    "v": "x"
+  },
+  "filter": {
+    "on": 0
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "on",
+        "expected": 0,
+        "present": true,
+        "near": true,
+        "actual": false
+      }
+    ]
+  }
+}

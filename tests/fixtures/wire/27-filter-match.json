@@ -1,0 +1,16 @@
+{
+  "name": "filter-match",
+  "note": "All filter keys present and equal.",
+  "frame": {
+    "msg_type": "telemetry",
+    "cpu": 3
+  },
+  "filter": {
+    "msg_type": "telemetry"
+  },
+  "valuePath": "cpu",
+  "expect": {
+    "outcome": "delivered",
+    "value": 3
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "scalar-mid-walk",
+  "note": "A scalar can't be walked into.",
+  "frame": {
+    "a": 5
+  },
+  "valuePath": "a.b",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "b",
+      "index": 1,
+      "reason": "not_container"
+    }
+  }
+}

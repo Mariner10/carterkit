@@ -1,0 +1,25 @@
+{
+  "name": "filter-msg-type-typo",
+  "note": "telemetery vs telemetry: edit distance 1, a near miss.",
+  "frame": {
+    "msg_type": "telemetery",
+    "cpu": 3
+  },
+  "filter": {
+    "msg_type": "telemetry"
+  },
+  "valuePath": "cpu",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "msg_type",
+        "expected": "telemetry",
+        "present": true,
+        "near": true,
+        "actual": "telemetery"
+      }
+    ]
+  }
+}

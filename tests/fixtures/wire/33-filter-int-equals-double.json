@@ -1,0 +1,16 @@
+{
+  "name": "filter-int-equals-double",
+  "note": "Numbers are doubles: 1 == 1.0.",
+  "frame": {
+    "ch": 1.0,
+    "v": "x"
+  },
+  "filter": {
+    "ch": 1
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "delivered",
+    "value": "x"
+  }
+}

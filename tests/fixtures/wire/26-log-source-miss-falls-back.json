@@ -1,0 +1,19 @@
+{
+  "name": "log-source-miss-falls-back",
+  "note": "logEntrySource: a failed walk falls back to the whole frame.",
+  "frame": {
+    "line": "hi"
+  },
+  "valuePath": "nope",
+  "expect": {
+    "outcome": "path_miss",
+    "pathMiss": {
+      "segment": "nope",
+      "index": 0,
+      "reason": "missing_key"
+    },
+    "logSource": {
+      "line": "hi"
+    }
+  }
+}

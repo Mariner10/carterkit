@@ -1,0 +1,12 @@
+{
+  "name": "trailing-dot-dropped",
+  "note": "a. == a.",
+  "frame": {
+    "a": false
+  },
+  "valuePath": "a.",
+  "expect": {
+    "outcome": "delivered",
+    "value": false
+  }
+}

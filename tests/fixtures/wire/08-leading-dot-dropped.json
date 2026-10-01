@@ -1,0 +1,12 @@
+{
+  "name": "leading-dot-dropped",
+  "note": ".a == a.",
+  "frame": {
+    "a": "x"
+  },
+  "valuePath": ".a",
+  "expect": {
+    "outcome": "delivered",
+    "value": "x"
+  }
+}

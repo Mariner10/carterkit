@@ -1,0 +1,27 @@
+{
+  "name": "filter-other-key-differs",
+  "note": "Present key, different value: near.",
+  "frame": {
+    "msg_type": "t",
+    "room": "den",
+    "v": 1
+  },
+  "filter": {
+    "msg_type": "t",
+    "room": "kitchen"
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "room",
+        "expected": "kitchen",
+        "present": true,
+        "near": true,
+        "actual": "den"
+      }
+    ]
+  }
+}

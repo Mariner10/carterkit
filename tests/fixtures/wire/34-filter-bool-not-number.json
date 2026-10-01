@@ -1,0 +1,25 @@
+{
+  "name": "filter-bool-not-number",
+  "note": "true is not 1 (the Python True == 1 trap).",
+  "frame": {
+    "on": 1,
+    "v": "x"
+  },
+  "filter": {
+    "on": true
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "on",
+        "expected": true,
+        "present": true,
+        "near": true,
+        "actual": 1
+      }
+    ]
+  }
+}

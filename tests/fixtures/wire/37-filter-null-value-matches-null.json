@@ -1,0 +1,16 @@
+{
+  "name": "filter-null-value-matches-null",
+  "note": "A null filter value matches a present null.",
+  "frame": {
+    "tag": null,
+    "v": 2
+  },
+  "filter": {
+    "tag": null
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "delivered",
+    "value": 2
+  }
+}

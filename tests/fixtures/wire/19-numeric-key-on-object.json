@@ -1,0 +1,14 @@
+{
+  "name": "numeric-key-on-object",
+  "note": "On an object a numeric-looking segment is a key lookup.",
+  "frame": {
+    "rows": {
+      "0": "zero"
+    }
+  },
+  "valuePath": "rows.0",
+  "expect": {
+    "outcome": "delivered",
+    "value": "zero"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "filter-empty-object-matches-object",
+  "note": "{} matches any object frame.",
+  "frame": {
+    "v": 4
+  },
+  "filter": {},
+  "valuePath": "v",
+  "expect": {
+    "outcome": "delivered",
+    "value": 4
+  }
+}

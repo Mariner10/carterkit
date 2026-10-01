@@ -1,0 +1,17 @@
+{
+  "name": "log-source-scalar-falls-back",
+  "note": "logEntrySource: a scalar at the path falls back to the whole frame.",
+  "frame": {
+    "line": "hi",
+    "level": "warn"
+  },
+  "valuePath": "line",
+  "expect": {
+    "outcome": "delivered",
+    "value": "hi",
+    "logSource": {
+      "line": "hi",
+      "level": "warn"
+    }
+  }
+}

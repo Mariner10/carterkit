@@ -1,0 +1,35 @@
+{
+  "name": "filter-nested-value-extra-key",
+  "note": "A frame object with an extra key is not equal: no subset matching.",
+  "frame": {
+    "src": {
+      "id": 1,
+      "kind": "a"
+    },
+    "v": 9
+  },
+  "filter": {
+    "src": {
+      "id": 1
+    }
+  },
+  "valuePath": "v",
+  "expect": {
+    "outcome": "filter_miss",
+    "near": true,
+    "filterMisses": [
+      {
+        "key": "src",
+        "expected": {
+          "id": 1
+        },
+        "present": true,
+        "near": true,
+        "actual": {
+          "id": 1,
+          "kind": "a"
+        }
+      }
+    ]
+  }
+}

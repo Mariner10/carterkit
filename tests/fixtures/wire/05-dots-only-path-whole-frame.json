@@ -1,0 +1,10 @@
+{
+  "name": "dots-only-path-whole-frame",
+  "note": "\".\" splits to zero segments: whole frame.",
+  "frame": true,
+  "valuePath": ".",
+  "expect": {
+    "outcome": "delivered",
+    "value": true
+  }
+}
