@@ -5,6 +5,18 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **State-authority boot epoch + hello (carter-bz2.5, T4).** A `CarterClient` mints a
+  per-process `epoch` (UUID hex) and stamps it on every `control_snapshot
+  {to, v, epoch, controls}`. `enable_state_authority()` now also broadcasts a sealed
+  `control_authority_hello {epoch, from}` on connect and after every reconnect (chained
+  onto any existing `on_reconnect_callback`; sent once immediately if already connected).
+  A 1.3 app (T3, carter-5sn.7) orders snapshot versions per epoch and re-requests state
+  when it sees a new hello, so a restarted hub's state reaches phones within a second
+  instead of being dropped until the layout reopens. Older apps ignore both keys. A
+  peer's `control_authority_hello` is protocol plane and never reaches `on_broadcast`.
+
 ## [0.14.0] — 2026-09-28
 
 The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that

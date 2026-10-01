@@ -138,6 +138,113 @@ def test_authority_answers_control_sync_request():
     asyncio.run(run())
 
 
+def test_snapshot_carries_stable_epoch():
+    async def run():
+        c = _room_client()
+        c.set_control_state("x", 1)
+        c.enable_state_authority()
+        peer = E2EESession.group(bytes([1]) * 32)
+        for _ in range(2):
+            await c._sock.handlers["broadcast"](peer.seal({"msg_type": "control_sync_request", "from": "g"}))
+        snaps = [peer.open(p) for (t, p) in c._sock.sent if t == "broadcast_request"]
+        assert [s["v"] for s in snaps] == [1, 2]
+        epoch = snaps[0]["epoch"]
+        assert isinstance(epoch, str) and len(epoch) == 32
+        int(epoch, 16)  # uuid4 hex
+        assert snaps[1]["epoch"] == epoch == c._state_epoch
+
+    asyncio.run(run())
+
+
+def test_two_clients_get_different_epochs():
+    assert _room_client()._state_epoch != _room_client()._state_epoch
+
+
+def test_authority_hello_sent_sealed_on_reconnect():
+    async def run():
+        c = _room_client()
+        c._sock.name = "hub-node"
+        c.enable_state_authority()
+        assert c._sock.sent == []  # not connected yet: nothing sent
+        cb = c._sock.on_reconnect_callback
+        assert cb is not None
+        await cb()   # first identify
+        await cb()   # a reconnect
+        hellos = [p for (t, p) in c._sock.sent if t == "broadcast_request"]
+        assert len(hellos) == 2
+        peer = E2EESession.group(bytes([1]) * 32)
+        for p in hellos:
+            assert E2EESession.is_envelope(p)
+            data = peer.open(p)
+            assert data["msg_type"] == "control_authority_hello"
+            assert data["epoch"] == c._state_epoch
+            assert data["from"] == "hub-node"
+
+    asyncio.run(run())
+
+
+def test_authority_hello_chains_existing_reconnect_callback():
+    async def run():
+        calls = []
+
+        async def prior_async():
+            calls.append("async")
+
+        for prior in (lambda: calls.append("sync"), prior_async):
+            c = _room_client()
+            c._sock.on_reconnect_callback = prior
+            c.enable_state_authority()
+            c.enable_state_authority()  # idempotent: no double hello
+            await c._sock.on_reconnect_callback()
+            assert len([t for (t, _) in c._sock.sent if t == "broadcast_request"]) == 1
+        assert calls == ["sync", "async"]
+
+    asyncio.run(run())
+
+
+def test_authority_hello_sent_immediately_when_already_connected():
+    async def run():
+        c = _room_client()
+        c._sock._connected_event = asyncio.Event()
+        c._sock._connected_event.set()
+        c.enable_state_authority()
+        await c._hello_task
+        peer = E2EESession.group(bytes([1]) * 32)
+        hellos = [peer.open(p) for (t, p) in c._sock.sent if t == "broadcast_request"]
+        assert [h["msg_type"] for h in hellos] == ["control_authority_hello"]
+
+    asyncio.run(run())
+
+
+def test_authority_hello_consumed_not_forwarded():
+    async def run():
+        c = _room_client()
+        got = []
+        c.on_broadcast(lambda d: got.append(d))
+        c.enable_state_authority()
+        peer = E2EESession.group(bytes([1]) * 32)
+        await c._sock.handlers["broadcast"](peer.seal(
+            {"msg_type": "control_authority_hello", "epoch": "e" * 32, "from": "other-hub"}))
+        assert got == []
+        assert c._sock.sent == []  # a peer's hello triggers nothing on a hub
+
+    asyncio.run(run())
+
+
+def test_non_authority_sends_no_hello():
+    async def run():
+        c = _room_client()
+        c.set_control_state("x", 1)
+        assert getattr(c._sock, "on_reconnect_callback", None) is None
+        c._sock._connected_event = asyncio.Event()
+        c._sock._connected_event.set()
+        c.on_broadcast(lambda d: None)
+        await asyncio.sleep(0)
+        assert c._sock.sent == []
+
+    asyncio.run(run())
+
+
 def test_authority_silent_without_state():
     async def run():
         c = _room_client()

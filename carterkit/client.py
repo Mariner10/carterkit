@@ -617,7 +617,12 @@ class CarterClient:
         # a replica's control_sync_request with a snapshot of set_control_state() values.
         self._control_state = {}
         self._state_version = 0
+        # Boot epoch (matches the app's T3): minted once per process and stamped on every
+        # snapshot + hello, so replicas order `v` per epoch and a restarted hub (new epoch,
+        # `v` back at 1) is not dropped as stale.
+        self._state_epoch = uuid.uuid4().hex
         self._is_state_authority = False
+        self._hello_installed = False
         self._broadcast_handler = None
         self._broadcast_registered = False
         self._join_handler = None
@@ -732,8 +737,10 @@ class CarterClient:
     #: Broadcast msg_types that are protocol plane, not app data — consumed by
     #: _dispatch_broadcast and never handed to on_broadcast handlers. command_ack
     #: is app-directed (a hub's reply to a phone), so hubs must not see each
-    #: other's acks as data.
-    _PROTOCOL_BROADCASTS = ("control_sync_request", "control_snapshot", "command_ack")
+    #: other's acks as data. control_authority_hello is a peer authority announcing
+    #: its boot epoch — replicas (the app) act on it; hubs just swallow it.
+    _PROTOCOL_BROADCASTS = ("control_sync_request", "control_snapshot", "command_ack",
+                            "control_authority_hello")
 
     async def _dispatch_broadcast(self, data):
         # A phone publishing with `batchPublishers: true` sends one `sensor_batch`
@@ -853,9 +860,48 @@ class CarterClient:
     def enable_state_authority(self):
         """Declare this hub the source of truth for control state. It will answer replicas'
         control_sync_request broadcasts with a control_snapshot of set_control_state()
-        values — the hub side of the app's Phase 2 designated-authority sync."""
+        values — the hub side of the app's Phase 2 designated-authority sync.
+
+        It also announces its boot epoch with a sealed ``control_authority_hello
+        {epoch, from}`` broadcast on connect and after every reconnect, so phones that
+        never disconnected re-request state from a restarted hub within a second."""
         self._is_state_authority = True
         self._ensure_broadcast_listener()
+        self._install_authority_hello()
+
+    def _install_authority_hello(self):
+        if self._hello_installed:
+            return
+        self._hello_installed = True
+        sock = self._sock
+        previous = getattr(sock, "on_reconnect_callback", None)
+
+        async def on_reconnect():
+            # Chain whatever callback was there before (sync or async), then say hello.
+            if previous is not None:
+                result = previous()
+                if inspect.isawaitable(result):
+                    await result
+            await self._send_authority_hello()
+
+        sock.on_reconnect_callback = on_reconnect
+        # Already connected (authority enabled late): the reconnect hook won't fire
+        # until the next reconnect, so announce once now.
+        event = getattr(sock, "_connected_event", None)
+        if event is not None and event.is_set():
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            if loop is not None:
+                self._hello_task = loop.create_task(self._send_authority_hello())
+
+    async def _send_authority_hello(self):
+        if not self._is_state_authority:
+            return
+        sender = getattr(self._sock, "name", None) or self.name
+        await self.broadcast("control_authority_hello",
+                             {"epoch": self._state_epoch, "from": sender})
 
     async def _answer_control_sync(self, data):
         to = data.get("from")
@@ -863,7 +909,8 @@ class CarterClient:
             return
         self._state_version += 1
         await self.broadcast("control_snapshot",
-                             {"to": to, "v": self._state_version, "controls": dict(self._control_state)})
+                             {"to": to, "v": self._state_version, "epoch": self._state_epoch,
+                              "controls": dict(self._control_state)})
 
     async def broadcast(self, msg_type, data):
         await self.broadcast_frame({**data, "msg_type": msg_type})
