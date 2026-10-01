@@ -20,8 +20,17 @@ import local_eval as E  # noqa: E402
 
 CAT = carterkit.controls(include_theme=True)
 FIXTURE = Path(__file__).parent / "fixtures" / "local-store.json"
-_DEFAULT_A4 = (Path(__file__).resolve().parents[2] / "local-store" / "CAR-TERTests"
-               / "Fixtures" / "local-query")
+_A4_REL = Path("CAR-TER") / "CAR-TERTests" / "Fixtures" / "local-query"
+
+
+def _default_a4():
+    """The app repo's fixtures: walk up from this file to the workspace root that holds
+    the app checkout (`<root>/CAR-TER/...`), so both `<root>/carterkit` and a worktree
+    under `<root>/.worktrees/` find them. None outside the workspace."""
+    for parent in Path(__file__).resolve().parents:
+        if (parent / _A4_REL).is_dir():
+            return parent / _A4_REL
+    return None
 
 
 def _layout():
@@ -288,8 +297,9 @@ def test_contract_lists_local_as_app_direct():
 # ── fixture parity over the app's conformance fixtures ────────────────────────
 
 def _fixture_files():
-    root = Path(os.environ.get("CARTER_LOCAL_FIXTURES") or _DEFAULT_A4)
-    return sorted(glob.glob(str(root / "*.json")))
+    env = os.environ.get("CARTER_LOCAL_FIXTURES")
+    root = Path(env) if env else _default_a4()
+    return sorted(glob.glob(str(root / "*.json"))) if root else []
 
 
 @pytest.mark.parametrize("path", _fixture_files() or [None])

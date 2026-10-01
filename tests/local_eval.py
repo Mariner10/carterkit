@@ -107,6 +107,18 @@ class Store:
             return self.selected.get(base)
         return None
 
+    PERIOD_TOKENS = ("today", "startOfWeek", "startOfMonth", "startOfYear")
+
+    def period_start_instant(self, name):
+        """The zone-local start of a period token as a UTC instant (carter-djx,
+        `TokenContext.periodStartInstant`): instant columns compare against this,
+        calendar-date columns against the date form from `token`."""
+        if name not in self.PERIOD_TOKENS:
+            return None
+        day = dt.date.fromisoformat(self.token(name, None))
+        start = dt.datetime(day.year, day.month, day.day, tzinfo=self.tz)
+        return instant_string(start)
+
     def resolve(self, name):
         """(base collection, [views outermost→innermost]) or UnknownCollection."""
         views = []
@@ -190,6 +202,12 @@ class Store:
         ok, bound = self._bind(v, ftype, base)
         if not ok:
             return False
+        # A period token against a date field (carter-djx): a calendar-date row (10
+        # chars) compares with the date form, a UTC-instant row with the zone-local
+        # period start as an instant — `LocalQueryCompiler`'s CASE on length(col).
+        tok = L.token_name(v)
+        if ftype == "date" and tok in self.PERIOD_TOKENS and have is not None and len(have) != 10:
+            bound = self.period_start_instant(tok)
         if op == "ne":
             return have is None or have != bound        # `IS NOT`: a null row counts
         if bound is None or have is None:
