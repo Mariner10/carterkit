@@ -319,7 +319,8 @@ def run(*, connection=None, timeout=None, out=None) -> int:
         from .hub import Hub
         layout = _pager.build_pager_layout(conn if connection else None)
         async with Hub(layout, connection=conn, name="carter-pager") as hub:
-            pager = _pager.AgentPager(hub, timeout=timeout)
+            pager = _pager.AgentPager(hub, timeout=timeout,
+                                      metrics_path=_pager.DEFAULT_METRICS)
             await pager.start()
             _say(f"carter-pager listening on {pager.socket_path} "
                  f"(auto-deny after {timeout:g}s)", out)
