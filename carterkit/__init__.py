@@ -45,6 +45,7 @@ from .relay import LocalRelay, port_in_use, lan_ip
 from . import bind
 from .controls import build, control
 from .layout import Layout, Fragment, Control, Condition, CompoundCondition
+from .forms import form, rules as form_rules
 from .connection import Connection
 from .hub import Hub, HubError
 from .notifications import notification_action
@@ -123,6 +124,7 @@ __all__ = [
     "surfaces_put_state", "surfaces_publish",
     "glance", "tile", "scene", "widget", "island", "live",
     "cc_toggle", "cc_button", "cc_cycle", "cc_step", "cc_set",
+    "form", "form_rules",
     "LayoutBuffer", "BufferError",
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "device_support_findings", "controldocs_dir",

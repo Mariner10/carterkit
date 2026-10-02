@@ -30,6 +30,8 @@ Every control — regardless of type — shares the same base fields. A control 
 | `sync` | [[sync\|SyncDefinition]][] | — | Live state listeners |
 | `visible` | [[visibility\|VisibilityCondition]] | — | Show/hide condition |
 | `enabled` | [[visibility\|VisibilityCondition]] | — | Enable/disable condition: false dims the control and ignores touches |
+| `role` | `"submit"` | — | On a [[button]] inside a [[form]] group: pressing it submits the form |
+| `field` | string | the `id` | Inside a [[form]] group: the draft field this input writes |
 | `haptic` | string | varies by type | Haptic feedback profile. See [[haptics]] |
 | `animation` | string or object | varies by type | Animation override. See [[animations]] |
 | `longPressAction` | [[actions\|ActionDefinition]] | — | Action fired on long-press |
