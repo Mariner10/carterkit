@@ -325,4 +325,5 @@ the stdlib-only `carterkit.notify_http(...)`.
 [`meshsocket`](https://pypi.org/project/meshsocket/) — the WebSocket mesh transport.
 
 The ControlDocs are vendored from the CAR-TER app repo; refresh them with
-`scripts/sync-controldocs.sh`.
+`scripts/sync-controldocs.sh`, which also refreshes the vendored app feature list
+(`carterkit/app_features.json`) from the same app checkout.

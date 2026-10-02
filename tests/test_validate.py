@@ -596,6 +596,12 @@ def test_known_features_come_from_the_vendored_app_list():
     assert data["features"] and data["app"], "carterkit/app_features.json missing or empty"
     have = known_features()
     # every catalog control is a feature the app reports, and nothing else is a control
-    assert {n[len("control."):] for n in have if n.startswith("control.")} == \
-        set(carterkit.controls())
+    feature_controls = {n[len("control."):] for n in have if n.startswith("control.")}
+    doc_controls = set(carterkit.controls())
+    assert feature_controls == doc_controls, (
+        "carterkit/app_features.json is out of step with the vendored ControlDocs "
+        f"(docs only: {sorted(doc_controls - feature_controls)}, "
+        f"features only: {sorted(feature_controls - doc_controls)}); re-vendor both from "
+        "the same app revision with scripts/sync-controldocs.sh (it also runs "
+        "scripts/sync-app-features.py)")
     assert {"sync.meshsocket", "action.http", "layout.requires"} <= set(have)

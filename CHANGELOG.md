@@ -5,6 +5,10 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+- `scripts/sync-controldocs.sh` now also runs `scripts/sync-app-features.py`, so the
+  vendored docs and `app_features.json` always come from the same app revision; the
+  feature-list test names the controls that are out of step.
+
 ## [0.15.0] — 2026-09-30
 
 - Sync the app's control docs and feature catalog, including forms, stat tiles,
