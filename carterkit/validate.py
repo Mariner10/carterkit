@@ -700,10 +700,11 @@ def _collect_source_refs(children, sources, referenced):
             _collect_source_refs(ch.get("children") or [], sources, referenced)
             continue
         bindings = list(ch.get("sync") or [])
-        for akey in ("action", "longPressAction") + SECONDARY_ACTION_KEYS:
+        for akey in ("action", "longPressAction"):
             a = ch.get(akey)
             if isinstance(a, dict):
                 bindings.append(a)
+        bindings.extend(a for _, a in _secondary_actions(ch))
         for b in bindings:
             if not isinstance(b, dict):
                 continue
@@ -1022,10 +1023,10 @@ def _validate_bindings(ch, ctype, spot, findings, sources=None):
             continue
         _validate_action_entry(a, ctype, akey, spot, findings, sources)
     # Secondary action carriers ride the same rules (SECONDARY_ACTION_KEYS).
-    for akey in SECONDARY_ACTION_KEYS:
-        a = ch.get(akey)
-        if isinstance(a, dict):
-            _validate_action_entry(a, ctype, akey, spot, findings, sources)
+    # ControlDocs nest them in the per-type config (ganttConfig.taskAction,
+    # heatmapConfig.cellAction, ...); the def level is still read for back-compat.
+    for akey, a in _secondary_actions(ch):
+        _validate_action_entry(a, ctype, akey, spot, findings, sources)
 
 
 def _source_ref_findings(binding, method, spot, ctype, what, findings, sources):
@@ -1193,6 +1194,23 @@ def _validate_action_entry(a, ctype, akey, spot, findings, sources):
 SECONDARY_ACTION_KEYS = ("datumAction", "snapshotAction", "nodeAction", "boxAction",
                          "arcAction", "cellAction", "itemAction", "taskAction",
                          "sliceAction")
+
+
+def _secondary_actions(ch):
+    """Yield (label, action) for every secondary action carrier on a control: at the
+    def level (back-compat) and inside every `*Config` dict, where ControlDocs place
+    them (e.g. gantt's ganttConfig.taskAction). Label is the dotted path for findings."""
+    for akey in SECONDARY_ACTION_KEYS:
+        a = ch.get(akey)
+        if isinstance(a, dict):
+            yield akey, a
+    for ckey, cfg in ch.items():
+        if not (isinstance(ckey, str) and ckey.endswith("Config") and isinstance(cfg, dict)):
+            continue
+        for akey in SECONDARY_ACTION_KEYS:
+            a = cfg.get(akey)
+            if isinstance(a, dict):
+                yield f"{ckey}.{akey}", a
 
 
 def _validate_action_wire(a, ctype, akey, spot, findings):

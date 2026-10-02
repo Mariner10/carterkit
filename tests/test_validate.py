@@ -385,6 +385,24 @@ def test_dead_action_covers_every_secondary_carrier():
         assert "dead_action" not in {f["kind"] for f in validate_layout(ok)}, akey
 
 
+# carter-y85y — ControlDocs nest the secondary carriers inside the per-type config
+# (gantt.md: ganttConfig.taskAction), so the lint must look there too.
+def test_dead_action_covers_secondary_carrier_nested_in_config():
+    from carterkit import validate_layout
+    for ctype, ckey, akey in (("gantt", "ganttConfig", "taskAction"),
+                              ("heatmap", "heatmapConfig", "cellAction"),
+                              ("graph", "graphConfig", "nodeAction"),
+                              ("chord", "chordConfig", "arcAction")):
+        lay = _action_layout(ctype, ckey, {akey: {"event": "broadcast",
+                                                  "payload": {"msg_type": "tap"}}})
+        dead = [f for f in validate_layout(lay) if f["kind"] == "dead_action"]
+        assert len(dead) == 1, (ckey, akey)
+        assert f"{ckey}.{akey}" in dead[0]["detail"], dead[0]["detail"]
+        ok = _action_layout(ctype, ckey, {akey: {"event": "broadcast_request",
+                                                 "payload": {"msg_type": "tap"}}})
+        assert "dead_action" not in {f["kind"] for f in validate_layout(ok)}, akey
+
+
 def test_dead_action_remedy_keeps_existing_msg_type():
     from carterkit import validate_layout
     lay = _action_layout("button", "action", {"event": "broadcast",
