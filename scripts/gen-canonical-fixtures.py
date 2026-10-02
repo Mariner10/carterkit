@@ -85,6 +85,34 @@ def _with(base, **patch):
     return doc
 
 
+HTTP_TEMPLATE = _with(
+    TEMPLATE,
+    tabs=[{"title": "Plants", "grid": {"cols": 4, "rows": 6}, "children": [
+        {"id": "water", "type": "button", "label": "Water",
+         "action": {"method": "http", "url": "https://api.example.com/water?plant=fern#now",
+                    "httpMethod": "POST"}},
+        {"id": "chart", "type": "chart",
+         "sync": {"method": "HTTP", "url": "https://api.example.com/history"},
+         "chartConfig": {"datumAction": {"method": "http",
+                                         "url": "https://api.example.com/pick?x=1"}}}]}],
+)
+
+
+def _http(base, headers=None, url=None, datum_url=None, source_url=None):
+    doc = json.loads(json.dumps(base))
+    children = doc["tabs"][0]["children"]
+    if headers is not None:
+        children[0]["action"]["headers"] = headers
+        children[1]["sync"]["headers"] = dict(headers)
+    if url is not None:
+        children[0]["action"]["url"] = url
+    if datum_url is not None:
+        children[1]["chartConfig"]["datumAction"]["url"] = datum_url
+    if source_url is not None:
+        doc["sources"]["weather"]["url"] = source_url
+    return doc
+
+
 DIGEST = [
     ("template-plain", None, TEMPLATE),
     ("template-user-a-token", "same-template",
@@ -100,6 +128,25 @@ DIGEST = [
                                               "digest": "sha256:" + "0" * 64}]},
            attestations=[{"issuer": "carter", "sig": "xyz"}],
            extensions__editor={"zoom": 1.5, "selected": "fern"})),
+    # carter-m22z: inline http headers and URL secrets are outside the digest too.
+    ("http-plain", "same-http-template", HTTP_TEMPLATE),
+    ("http-user-a-inline-secrets", "same-http-template",
+     _http(HTTP_TEMPLATE, headers={"Authorization": "Bearer AAAA"},
+           url="https://user-a:pw-a@api.example.com/water?plant=fern&api_key=AAAA#now",
+           datum_url="https://api.example.com/pick?Token=a1&x=1",
+           source_url="https://api.example.com/v1?appid=AAAA")),
+    ("http-user-b-inline-secrets", "same-http-template",
+     _http(HTTP_TEMPLATE, headers={"X-Key": "BBBB", "Authorization": "Bearer BBBB"},
+           url="https://api.example.com/water?access_token=BBBB&plant=fern#now",
+           datum_url="https://api.example.com/pick?x=1&sig=b2",
+           source_url="https://bob:pw@api.example.com/v1")),
+    ("http-templated-url-secret", None,
+     _http(HTTP_TEMPLATE, url="https://api.example.com/water/{{value}}?plant=fern&api_key=CCCC#now")),
+    ("http-other-method-kept", None,
+     _with(HTTP_TEMPLATE, tabs=[{"title": "Mesh", "children": [
+         {"id": "m", "type": "button", "action": {"method": "meshsocket", "url": "https://x/?token=t",
+                                                  "headers": {"k": "v"}}},
+         {"id": "img", "type": "image", "url": "https://u:p@img.example.com/a.png?key=1"}]}])),
     ("template-extensions-kept", None, _with(TEMPLATE, extensions={"editor": {"z": 1}, "kiosk": {"on": True}})),
     ("template-edited-title", None, _with(TEMPLATE, title="Fern (mine)")),
 ]

@@ -27,7 +27,9 @@ JCS in short:
 
 Digest scope (decision carter-m7s.2 Q3): SHA-256 over JCS of the layout with every
 credential removed (the app's ``LayoutRedaction`` wire flavour: ``connection.token``,
-``connection.e2eeKey``, ``sources.*.{username,password,token,headers}``) and minus
+``connection.e2eeKey``, ``sources.*.{username,password,token,headers}``, userinfo and
+secret query items in ``sources.*.{url,baseURL}``, and in every ``http`` sync/action at
+any depth its ``headers`` plus its ``url``'s userinfo / secret query items) and minus
 ``provenance``, ``attestations`` and ``extensions.editor``. So two people who
 installed the same template with different tokens get the same digest.
 """
@@ -37,13 +39,16 @@ import copy
 import hashlib
 import json
 import math
+import re
 import unicodedata
 from typing import Any
+from urllib.parse import unquote
 
 __all__ = [
     "canonical_json", "canonical_bytes", "loads", "DuplicateKeyError",
     "strip_credentials", "digest_scope", "content_digest",
     "DIGEST_PREFIX", "CONNECTION_SECRET_KEYS", "SOURCE_SECRET_KEYS",
+    "SOURCE_URL_KEYS", "SECRET_QUERY_NAMES", "scrubbed_url",
     "EXCLUDED_TOP_LEVEL_KEYS", "EXCLUDED_EXTENSION_KEYS",
 ]
 
@@ -54,6 +59,13 @@ DIGEST_PREFIX = "sha256:"
 #: Mirrors ``LayoutRedaction.connectionSecretKeys`` / ``sourceSecretKeys`` in the app.
 CONNECTION_SECRET_KEYS = ("token", "e2eeKey")
 SOURCE_SECRET_KEYS = ("username", "password", "token", "headers")
+#: Mirrors ``LayoutRedaction.sourceURLKeys``: source keys whose URL may carry a secret.
+SOURCE_URL_KEYS = ("url", "baseURL")
+#: Mirrors ``LayoutRedaction.secretQueryNames`` (compared case-insensitively).
+SECRET_QUERY_NAMES = frozenset({
+    "api_key", "apikey", "key", "token", "access_token", "auth", "auth_token",
+    "password", "secret", "appid", "sig", "signature",
+})
 
 #: Top-level keys outside the digest (they describe the document, not its content).
 EXCLUDED_TOP_LEVEL_KEYS = ("provenance", "attestations")
@@ -216,6 +228,60 @@ def canonical_bytes(value: Any) -> bytes:
 
 # ── layout digest ────────────────────────────────────────────────────────────
 
+_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.\-]*:")
+
+
+def scrubbed_url(raw: str) -> str:
+    """``raw`` with its userinfo and every secret query item removed (the app's
+    ``LayoutRedaction.scrubbedURL(_:marker: nil)``). The string is edited in place,
+    never rebuilt, so a URL with nothing to scrub (or no scheme) comes back
+    byte-identical."""
+    if not _SCHEME.match(raw):
+        return raw
+    result = raw
+    scheme_end = result.find("://")
+    if scheme_end >= 0:
+        start = scheme_end + 3
+        end = next((i for i in range(start, len(result)) if result[i] in "/?#"), len(result))
+        at = result.rfind("@", start, end)
+        if at >= 0:
+            result = result[:start] + result[at + 1:]
+    frag_start = result.find("#")
+    if frag_start < 0:
+        frag_start = len(result)
+    q = result.find("?", 0, frag_start)
+    if q < 0:
+        return result
+    query = result[q + 1:frag_start]
+    items = query.split("&") if query else []
+    kept = []
+    for item in items:
+        name = item.split("=", 1)[0]
+        if unquote(name).lower() in SECRET_QUERY_NAMES:
+            continue
+        kept.append(item)
+    if len(kept) == len(items):
+        return result
+    return result[:q] + ("?" + "&".join(kept) if kept else "") + result[frag_start:]
+
+
+def _strip_inline_http(node: Any) -> None:
+    """In place: every dict whose ``method`` is ``"http"`` loses ``headers`` and has
+    its ``url`` scrubbed, at any depth (the app's generic inline-http walk)."""
+    if isinstance(node, dict):
+        for value in node.values():
+            _strip_inline_http(value)
+        method = node.get("method")
+        if isinstance(method, str) and method.lower() == "http":
+            if isinstance(node.get("headers"), dict):
+                node.pop("headers")
+            if isinstance(node.get("url"), str):
+                node["url"] = scrubbed_url(node["url"])
+    elif isinstance(node, list):
+        for value in node:
+            _strip_inline_http(value)
+
+
 def strip_credentials(layout: dict) -> dict:
     """A deep copy of ``layout`` with every credential field removed (the app's
     ``LayoutRedaction.strippingCredentials``)."""
@@ -230,6 +296,10 @@ def strip_credentials(layout: dict) -> dict:
             if isinstance(source, dict):
                 for key in SOURCE_SECRET_KEYS:
                     source.pop(key, None)
+                for key in SOURCE_URL_KEYS:
+                    if isinstance(source.get(key), str):
+                        source[key] = scrubbed_url(source[key])
+    _strip_inline_http(out)
     return out
 
 

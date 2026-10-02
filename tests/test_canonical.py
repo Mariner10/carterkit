@@ -167,3 +167,33 @@ def test_no_other_canonical_json_in_carterkit():
         if re.search(r"sort_keys\s*=\s*True|def\s+canonical_json|def\s+layout_hash", text):
             offenders.append(path.name)
     assert offenders == []
+
+
+# ── carter-m22z: inline http secrets match the app's wire scrub ─────────────
+
+@pytest.mark.parametrize("raw,want", [
+    ("https://api.example.com/v1", "https://api.example.com/v1"),
+    ("https://u:p@api.example.com/v1?q=1", "https://api.example.com/v1?q=1"),
+    ("https://api.example.com/v1?API_KEY=x&q=1#f", "https://api.example.com/v1?q=1#f"),
+    ("https://api.example.com/v1?token=x", "https://api.example.com/v1"),
+    ("https://api.example.com/v1?%6Bey=x&q", "https://api.example.com/v1?q"),
+    ("/relative?token=x", "/relative?token=x"),
+    ("https://x/{{value}}?sig=1&a=b", "https://x/{{value}}?a=b"),
+])
+def test_scrubbed_url(raw, want):
+    assert c.scrubbed_url(raw) == want
+
+
+def test_inline_http_secrets_outside_digest_scope():
+    for case in _fixtures()["digest"]:
+        if case.get("group") == "same-http-template":
+            scope = case["scope"]
+            for secret in ("AAAA", "BBBB", "pw-a", "bob", "Token=", "sig=", "headers"):
+                assert secret not in scope, (case["name"], secret)
+
+
+def test_non_http_slots_keep_url_and_headers():
+    layout = {"tabs": [{"children": [
+        {"action": {"method": "meshsocket", "url": "https://x/?token=t", "headers": {"k": "v"}}},
+        {"type": "image", "url": "https://u:p@x/a.png?key=1"}]}]}
+    assert c.digest_scope(layout) == layout
