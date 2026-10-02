@@ -33,10 +33,12 @@ fields:
     tab: data
     type: object
     description: Incoming value → SF Symbol name ("default" catches the rest)
+    summary: Show different symbols for different values
   - name: colorMap
     tab: data
     type: object
     description: Incoming value → hex tint
+    summary: Show different colors for different values
   - name: haptic
     tab: action
     type: enum

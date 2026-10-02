@@ -22,12 +22,14 @@ fields:
     type: number
     default: 0
     description: Minimum value
+    summary: Where the slider starts
   - name: max
     title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value
+    summary: Where the slider ends
   - name: step
     title: Step size
     bounds: none
@@ -162,6 +164,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -184,6 +187,7 @@ themeFields:
     type: number
     default: 31
     description: Track height
+    summary: How thick the bar is
   - name: thumbColor
     title: Handle color
     styles: [default]

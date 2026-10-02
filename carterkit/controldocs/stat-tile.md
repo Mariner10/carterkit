@@ -149,6 +149,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: borderWidth
     title: Border thickness
     min: 0

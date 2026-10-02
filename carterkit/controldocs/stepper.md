@@ -22,12 +22,14 @@ fields:
     type: number
     default: 0
     description: Minimum value
+    summary: The count never goes below this
   - name: max
     title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value
+    summary: The count never goes above this
   - name: step
     title: Step size
     bounds: none
@@ -108,6 +110,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: labelFontSize
     title: Title text size
     min: 8

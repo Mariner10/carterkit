@@ -57,8 +57,17 @@ def _make_field(raw: dict[str, str]) -> dict:
         field["default"] = raw["default"]
     if raw.get("description"):
         field["description"] = raw["description"]
+    if raw.get("title"):
+        # Friendly Simple-mode name ("Lowest value" for `min`), mirrored from the
+        # Swift loader's authoredTitle (carter-1cz0). Absent = the app humanises
+        # the key, so the catalog leaves it out rather than guessing.
+        field["title"] = raw["title"]
     if raw.get("summary"):
         field["summary"] = raw["summary"]
+    if raw.get("simple", "").lower() == "hide":
+        # `simple: hide` — the lay path sets this field, so Simple mode leaves it
+        # off every inspector tab (Swift simpleHidden, carter-1cz0).
+        field["simpleHidden"] = True
     if raw.get("group"):
         # Per-field `group:` nests the field under a config object (e.g.
         # `sortboardConfig`) — mirrored from the Swift loader's makeField.

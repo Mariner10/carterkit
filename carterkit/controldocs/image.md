@@ -41,14 +41,17 @@ fields:
     tab: data
     type: object
     description: Incoming value → SF Symbol name ("default" catches the rest)
+    summary: Show different symbols for different values
   - name: valueMap
     tab: data
     type: object
     description: Incoming value → image URL
+    summary: Show different pictures for different values
   - name: colorMap
     tab: data
     type: object
     description: Incoming value → hex tint for the mapped symbol
+    summary: Show different colors for different values
 themeFields:
   - name: cornerRadius
     min: 0

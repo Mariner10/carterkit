@@ -5,6 +5,11 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+- Catalog fields now carry the ControlDocs `title:` (friendly Simple-mode name) and
+  `simpleHidden: true` (`simple: hide`), so catalog.json and the MCP can show the
+  app's friendly names. Vendored docs gain plain Simple-mode `summary:` help for
+  min/max, value maps, and track/border fields (carter-aect).
+
 ## [0.15.0] — 2026-09-30
 
 - Sync the app's control docs and feature catalog, including forms, stat tiles,

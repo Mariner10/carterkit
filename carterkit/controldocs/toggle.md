@@ -36,6 +36,7 @@ fields:
     type: bool
     default: false
     description: Initial on/off state
+    summary: Whether it starts on or off
   - name: onIcon
     title: Symbol when on
     styles: [button, icon-toggle]
@@ -137,6 +138,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -174,6 +176,7 @@ themeFields:
     type: number
     default: 31
     description: Track height
+    summary: How tall the switch is
   - name: trackWidth
     title: Track width
     styles: [switch]
@@ -183,6 +186,7 @@ themeFields:
     type: number
     default: 51
     description: Track width
+    summary: How wide the switch is
   - name: knobColor
     title: Knob color
     styles: [switch]

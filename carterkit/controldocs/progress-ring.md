@@ -24,12 +24,14 @@ fields:
     type: number
     default: 0
     description: Minimum value (0%)
+    summary: The value that shows an empty ring
   - name: max
     title: Highest value
     bounds: none
     type: number
     default: 100
     description: Maximum value (100%)
+    summary: The value that shows a full ring
   - name: progressStyle
     title: Shape
     tab: style
@@ -102,6 +104,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: borderWidth
     title: Border thickness
     min: 0
