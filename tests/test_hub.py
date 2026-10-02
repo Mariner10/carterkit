@@ -350,3 +350,26 @@ def test_push_tab_warns_and_requires_a_registered_event(caplog):
     assert "dynamic tab 'extra'" in " ".join(r.getMessage() for r in caplog.records)
     with pytest.raises(HubError, match="dynamicTabs"):
         asyncio.run(hub.push_tab("nope", tab))
+
+
+def test_fill_chunks_a_large_deck_into_one_based_parts():
+    ui, temp, target, scenes = _thermostat()
+    hub = _hub(ui)
+    kids = [{"type": "label", "id": f"big-{i}", "position": [0, 0], "text": "x" * 400}
+            for i in range(10)]
+    payload = asyncio.run(hub.fill(scenes, kids, max_bytes=1500))
+    assert payload == {"msg_type": "scenes", "children": kids}
+    frames = [f for verb, f in hub.client._sock.sent if verb == "broadcast_request"]
+    assert len(frames) > 1
+    assert [f["part"] for f in frames] == list(range(1, len(frames) + 1))
+    assert {f["parts"] for f in frames} == {len(frames)}
+    assert len({f["rev"] for f in frames}) == 1
+    assert [c for f in frames for c in f["children"]] == kids
+
+
+def test_fill_small_deck_stays_one_unchunked_frame():
+    ui, temp, target, scenes = _thermostat()
+    hub = _hub(ui)
+    asyncio.run(hub.fill(scenes, [{"type": "label", "id": "one", "position": [0, 0]}]))
+    (verb, frame), = hub.client._sock.sent
+    assert "parts" not in frame and "rev" not in frame

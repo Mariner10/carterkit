@@ -5,6 +5,12 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+- Add `dynamic.chunk_deck()`, which splits a large dynamic-group deck into the
+  1-based `{rev, part, parts}` frames the app reassembles. `Hub.fill()` now sends a
+  deck over `max_bytes` (default 160 KB) in parts instead of one frame the relay
+  would drop.
+- Document the chunked-deck wire contract in the vendored group ControlDoc.
+
 ## [0.15.0] — 2026-09-30
 
 - Sync the app's control docs and feature catalog, including forms, stat tiles,

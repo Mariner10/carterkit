@@ -1,5 +1,9 @@
 """Tests for the dynamic-group traffic lint."""
 
+import json
+
+import pytest
+
 import carterkit
 from carterkit import Layout, Fragment, dynamic
 
@@ -83,3 +87,45 @@ def test_dynamic_tab_payload_id_collision_is_an_error():
     assert ("duplicate_id", "error") in kinds
     assert ("orphan_payload", "warn") not in kinds
     assert fragment_id_findings([{"type": "label", "id": "fresh", "position": [0, 0]}], lay) == []
+
+
+# ── chunk_deck: the {rev, part, parts} wire contract (group-def.md → Chunked decks) ──
+from carterkit.dynamic import chunk_deck  # noqa: E402
+
+
+def _kids(n, pad=300):
+    return [{"type": "label", "id": f"k{i}", "position": [0, 0], "text": "y" * pad} for i in range(n)]
+
+
+def test_chunk_deck_small_deck_is_one_plain_frame():
+    frames = chunk_deck("ev", _kids(2))
+    assert frames == [{"msg_type": "ev", "children": _kids(2)}]
+
+
+def test_chunk_deck_parts_are_one_based_and_reassemble_in_order():
+    kids = _kids(12)
+    frames = chunk_deck("ev", kids, max_bytes=1200)
+    n = len(frames)
+    assert n > 1
+    for i, f in enumerate(frames, start=1):
+        assert f["msg_type"] == "ev" and f["part"] == i and f["parts"] == n
+        assert len(f["rev"].encode()) <= 256
+        assert len(json.dumps(f).encode()) <= 1200
+    assert [c for f in frames for c in f["children"]] == kids
+
+
+def test_chunk_deck_rev_is_stable_for_the_same_deck_and_overridable():
+    a = chunk_deck("ev", _kids(12), max_bytes=1200)
+    b = chunk_deck("ev", _kids(12), max_bytes=1200)
+    assert a[0]["rev"] == b[0]["rev"]
+    c = chunk_deck("ev", _kids(12), max_bytes=1200, rev="r7")
+    assert {f["rev"] for f in c} == {"r7"}
+
+
+def test_chunk_deck_refuses_what_the_app_would_drop():
+    with pytest.raises(ValueError, match="frame budget"):
+        chunk_deck("ev", _kids(2, pad=5000), max_bytes=1200)
+    with pytest.raises(ValueError, match="at most 64"):
+        chunk_deck("ev", _kids(70, pad=900), max_bytes=1200)
+    with pytest.raises(ValueError, match="256"):
+        chunk_deck("ev", _kids(12), max_bytes=1200, rev="r" * 300)

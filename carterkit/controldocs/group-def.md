@@ -65,6 +65,51 @@ When `dynamic` is set, the group's `children` are replaced at runtime by content
 }
 ```
 
+### Chunked decks (`rev`, `part`, `parts`)
+
+The relay drops any websocket frame over its read limit (256 KiB on Connect+,
+and an E2EE room seals and base64-encodes the frame, so it grows by about a
+third on the wire). A server whose deck may come near that size splits it into
+several broadcasts. Each one carries the same `msg_type` plus three extra keys:
+
+| Key | Type | Rule |
+|-----|------|------|
+| `rev` | string | Identifies one deck. Every part of the deck carries the same `rev`; use a new `rev` (a counter, a timestamp, a content hash) for each new deck. At most 256 UTF-8 bytes. |
+| `parts` | integer | Total number of parts, `2`...`64`. A frame with no `parts`, or with `parts` of `1` or less, is a normal single-frame deck. |
+| `part` | integer | This frame's index. **Number parts `1`...`parts` (1-based).** CAR-TER 1.3 and later also accept 0-based `0`...`parts-1`. |
+| `children` | array | This part's slice of the deck: whole child objects. Split between children, never inside one. |
+
+```json
+{ "msg_type": "player_state", "rev": "42", "part": 1, "parts": 2, "children": [ { "type": "label", "id": "dyn-title", "position": [0, 0], "span": [1, 4], "text": "Song" } ] }
+{ "msg_type": "player_state", "rev": "42", "part": 2, "parts": 2, "children": [ { "type": "slider", "id": "dyn-volume", "position": [1, 0], "span": [1, 4], "min": 0, "max": 100 } ] }
+```
+
+How the app puts a deck back together:
+
+- It buffers parts per group. Once it holds `parts` distinct `part` indices for
+  one `rev`, it concatenates the `children` slices in ascending `part` order and
+  applies the result as one deck. Parts can arrive in any order.
+- A frame with a different `rev` or `parts` than the buffered deck throws away
+  the unfinished deck and starts a new one. Only one deck is in flight per group.
+  The newest deck wins, and an abandoned one never renders half-built.
+- The app drops a frame, without logging it, if `parts` is not a whole number
+  from `2` to `64`, if `part` is missing or outside `0`...`parts`, if `rev` is
+  missing, not a string or longer than 256 bytes, or if `children` is not an array.
+- Use one numbering convention for the whole deck. If a sender mixes them (say,
+  `0`, `1` and `2` with `parts: 2`), the deck completes as soon as it has two
+  distinct indices, so it can apply only part of the deck.
+- The app keeps only `msg_type` and `children` from the reassembled deck. Any
+  other top-level keys on the parts are ignored.
+- Use 1-based numbering. Before 1.3, the app reassembled `1`...`parts` only:
+  1.2.5 and 1.2.6 drop part `0`, so a 0-based deck never finishes, and older
+  builds apply the deck without part `0`'s children.
+- Chunking applies to dynamic **groups** only. A [[dynamic-content|dynamic tab]]
+  always arrives as one frame.
+
+`carterkit` builds these frames for you: `carterkit.dynamic.chunk_deck(event,
+children)` returns the frame list (1-based), and `Hub.fill(group, children,
+max_bytes=...)` sends a deck in parts when it is larger than `max_bytes`.
+
 ## Pulse
 
 Set `pulse` to make the group flash a ring whenever a server event arrives —

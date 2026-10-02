@@ -19,7 +19,71 @@ Pure (no I/O); findings share the shape used by `validate` so `format_findings` 
 """
 from __future__ import annotations
 
+import hashlib as _hashlib
+import json as _json
+
+from . import canonical as _canonical
 from . import validate as _validate
+
+# Chunked-deck wire contract (group-def.md → *Chunked decks*). The relay drops frames
+# over 256 KiB, and an E2EE room grows a frame by about a third (seal + base64), so a
+# 160 KB plaintext budget per frame stays under the limit either way.
+DECK_FRAME_BUDGET = 160_000
+MAX_DECK_PARTS = 64          # the app accepts parts 2...64
+MAX_REV_BYTES = 256          # the app drops a rev longer than this
+
+
+def _frame_bytes(frame: dict) -> int:
+    return len(_json.dumps(frame, ensure_ascii=False).encode("utf-8"))
+
+
+def chunk_deck(event: str, children, *, max_bytes: int = DECK_FRAME_BUDGET,
+               rev: str = None) -> list[dict]:
+    """Split a dynamic-group deck into the broadcast frames the app reassembles.
+
+    A deck that fits in `max_bytes` comes back as one plain ``{msg_type, children}``
+    frame. A bigger one is packed, whole children in order, into frames that each carry
+    ``rev`` (same for every part), ``part`` (1-based, ``1``...``parts``) and ``parts``.
+    1-based numbering works on every app version that reassembles decks; 0-based only
+    on 1.3+. `rev` defaults to a hash of the deck's content, so an identical re-push
+    keeps the same rev. Raises ``ValueError`` when one child alone exceeds `max_bytes`,
+    when the deck needs more than 64 parts, or when `rev` is longer than 256 bytes.
+    """
+    kids = list(getattr(children, "children", children) or [])
+    whole = {"msg_type": event, "children": kids}
+    if _frame_bytes(whole) <= max_bytes:
+        return [whole]
+    if rev is None:
+        rev = _hashlib.sha256(_canonical.canonical_bytes(kids)).hexdigest()[:16]
+    rev = str(rev)
+    if len(rev.encode("utf-8")) > MAX_REV_BYTES:
+        raise ValueError(f"rev is {len(rev.encode('utf-8'))} bytes; the app drops a rev over {MAX_REV_BYTES}")
+    # Reserve room for the largest possible part header (part = parts = 64).
+    overhead = _frame_bytes({"msg_type": event, "rev": rev, "part": MAX_DECK_PARTS,
+                             "parts": MAX_DECK_PARTS, "children": []})
+    slices: list[list] = []
+    current: list = []
+    used = overhead
+    for child in kids:
+        size = len(_json.dumps(child, ensure_ascii=False).encode("utf-8")) + 2  # ", " separator
+        if overhead + size > max_bytes:
+            raise ValueError(f"child '{child.get('id', '?') if isinstance(child, dict) else '?'}' "
+                             f"is {size} bytes, over the {max_bytes}-byte frame budget; "
+                             f"a deck can only split between children")
+        if current and used + size > max_bytes:
+            slices.append(current)
+            current, used = [], overhead
+        current.append(child)
+        used += size
+    if current:
+        slices.append(current)
+    if len(slices) == 1:   # only the header estimate pushed it over; send it whole
+        return [whole]
+    if len(slices) > MAX_DECK_PARTS:
+        raise ValueError(f"deck needs {len(slices)} parts; the app accepts at most {MAX_DECK_PARTS}")
+    total = len(slices)
+    return [{"msg_type": event, "rev": rev, "part": i, "parts": total, "children": piece}
+            for i, piece in enumerate(slices, start=1)]
 
 
 def dynamic_groups(layout: dict) -> list[dict]:

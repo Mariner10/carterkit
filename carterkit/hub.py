@@ -321,10 +321,16 @@ class Hub:
         await self.client.broadcast_frame(frame)
         return frame
 
-    async def fill(self, group, children) -> dict:
+    async def fill(self, group, children, *, max_bytes: int = None) -> dict:
         """Replace a dynamic group's children live. `group` is a group handle or id
         (must carry `dynamic="event"`); `children` is a Fragment, a children list,
-        or a prebuilt `{msg_type, children}` payload."""
+        or a prebuilt `{msg_type, children}` payload.
+
+        A deck bigger than `max_bytes` (default `dynamic.DECK_FRAME_BUDGET`, sized to
+        stay under the relay's 256 KiB frame limit even when E2EE-sealed) goes out as
+        1-based `{rev, part, parts}` frames the app reassembles (group-def.md →
+        *Chunked decks*). A prebuilt payload that already carries `parts` is sent
+        as-is. Returns the whole deck payload."""
         g = self._control(group)
         event = g.get("dynamic")
         if not event:
@@ -336,7 +342,17 @@ class Hub:
             kids = getattr(children, "children", children)
             payload = {"msg_type": event, "children": list(kids)}
         self._warn_fragment_ids(payload.get("children"), f"deck for group '{g.get('id')}'")
-        await self.client.broadcast_frame(payload)
+        if "parts" in payload:
+            await self.client.broadcast_frame(payload)
+            return payload
+        from .dynamic import DECK_FRAME_BUDGET, chunk_deck
+        frames = chunk_deck(event, payload.get("children") or [],
+                            max_bytes=DECK_FRAME_BUDGET if max_bytes is None else max_bytes)
+        if len(frames) == 1:
+            await self.client.broadcast_frame(payload)
+        else:
+            for frame in frames:
+                await self.client.broadcast_frame(frame)
         return payload
 
     async def push_tab(self, event: str, tab) -> dict:
