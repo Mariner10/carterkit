@@ -1,0 +1,60 @@
+{
+  "description": "Every stateless op over literals and control refs",
+  "cases": [
+    {"name": "watts", "derive": {"watts": {"mul": [{"control": "volts"}, {"control": "amps"}]}},
+     "inputs": {"volts": 121.5, "amps": 2}, "now": 0, "expected": {"watts": 243}},
+    {"name": "add sum sub", "derive": {
+        "add": {"add": [{"control": "a"}, {"control": "b"}, 1]},
+        "sum": {"sum": [{"control": "a"}, {"control": "b"}]},
+        "sub": {"sub": [{"control": "a"}, {"control": "b"}, 1]}},
+     "inputs": {"a": 6, "b": 3}, "now": 0, "expected": {"add": 10, "sum": 9, "sub": 2}},
+    {"name": "div min max avg", "derive": {
+        "div": {"div": [{"control": "a"}, {"control": "b"}]},
+        "div3": {"div": [100, 4, 5]},
+        "min": {"min": [{"control": "a"}, {"control": "b"}, 4]},
+        "max": {"max": [{"control": "a"}, {"control": "b"}, 4]},
+        "avg": {"avg": [{"control": "a"}, {"control": "b"}]}},
+     "inputs": {"a": 6, "b": 3}, "now": 0,
+     "expected": {"div": 2, "div3": 5, "min": 3, "max": 6, "avg": 4.5}},
+    {"name": "single argument", "derive": {"one": {"add": [7]}, "neg": {"sub": [7]}},
+     "inputs": {}, "now": 0, "expected": {"one": 7, "neg": 7}},
+    {"name": "abs both forms", "derive": {
+        "a": {"abs": {"sub": [{"control": "b"}, {"control": "a"}]}},
+        "b": {"abs": [-2.5]}},
+     "inputs": {"a": 6, "b": 3}, "now": 0, "expected": {"a": 3, "b": 2.5}},
+    {"name": "round", "derive": {
+        "places2": {"round": {"of": {"div": [10, 3]}, "places": 2}},
+        "bare": {"round": {"div": [10, 4]}},
+        "halfUp": {"round": {"of": 2.5}},
+        "halfAwayNeg": {"round": {"of": -2.5}},
+        "zeroPlaces": {"round": {"of": 1234.5678, "places": 0}},
+        "places1": {"round": {"of": 0.25, "places": 1}}},
+     "inputs": {}, "now": 0,
+     "expected": {"places2": 3.33, "bare": 3, "halfUp": 3, "halfAwayNeg": -3,
+                  "zeroPlaces": 1235, "places1": 0.3}},
+    {"name": "clamp", "derive": {
+        "both": {"clamp": {"of": {"control": "a"}, "min": 0, "max": 5}},
+        "minOnly": {"clamp": {"of": -2, "min": {"control": "b"}}},
+        "maxOnly": {"clamp": {"of": 50, "max": 40}},
+        "inside": {"clamp": {"of": 2, "min": 0, "max": 5}}},
+     "inputs": {"a": 6, "b": 3}, "now": 0,
+     "expected": {"both": 5, "minOnly": 3, "maxOnly": 40, "inside": 2}},
+    {"name": "scale", "derive": {
+        "f": {"scale": {"of": 100, "from": [0, 100], "to": [32, 212]}},
+        "f0": {"scale": {"of": {"control": "c"}, "from": [0, 100], "to": [32, 212]}},
+        "unclamped": {"scale": {"of": 150, "from": [0, 100], "to": [0, 1]}},
+        "reversed": {"scale": {"of": 25, "from": [0, 100], "to": [100, 0]}}},
+     "inputs": {"c": 0}, "now": 0,
+     "expected": {"f": 212, "f0": 32, "unclamped": 1.5, "reversed": 75}},
+    {"name": "coalesce passes the value through", "derive": {
+        "n": {"coalesce": [{"control": "gone"}, {"control": "b"}]},
+        "s": {"coalesce": [{"control": "gone"}, {"control": "word"}, 1]},
+        "lit": {"coalesce": [{"control": "gone"}, 9]},
+        "none": {"coalesce": [{"control": "gone"}, {"div": [1, 0]}]}},
+     "inputs": {"b": 3, "word": "hi"}, "now": 0,
+     "expected": {"n": 3, "s": "hi", "lit": 9, "none": null}},
+    {"name": "nested tank percent", "derive": {
+        "tankPct": {"clamp": {"of": {"mul": [{"div": [{"control": "level"}, 180]}, 100]}, "min": 0, "max": 100}}},
+     "inputs": {"level": 90}, "now": 0, "expected": {"tankPct": 50}}
+  ]
+}

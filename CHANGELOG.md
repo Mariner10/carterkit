@@ -267,6 +267,22 @@ Includes the ControlDocs resync, pinned to CAR-TER `master` c7c37539 (`controldo
   `simpleHidden: true` (`simple: hide`), so catalog.json and the MCP can show the
   app's friendly names. Vendored docs gain plain Simple-mode `summary:` help for
   min/max, value maps, and track/border fields (carter-aect).
+- **Derive** (CAR-TER 1.3, ships with the app release): a layout's top-level
+  `derive` block computes values on the phone from other values with a closed JSON
+  op tree (`add` `sub` `mul` `div` `min` `max` `avg` `sum` `coalesce` `abs` `round`
+  `clamp` `scale` `band` `since` `until`, `{"clock": true}`). New `controldocs/derive.md`;
+  `sync.md` gains `method: "derive"` + `from`; `layout-config.md` lists `derive`.
+- `carterkit.derive`: the reference evaluator, matching the app's `LayoutDerive.swift`
+  rule for rule, proven by shared fixtures (`tests/fixtures/derive/`, byte-identical
+  to the app's `CAR-TERTests/Fixtures/derive/`).
+- Authoring: `Layout.derive(id, node)` returns a ref (`.sync` binds a control),
+  `carterkit.derive.ops.*` builds nodes from handles, and `bind.derive(id)` is the
+  sync entry.
+- Validate: a `derive` sync no longer warns about a missing `valuePath`; it needs a
+  `from` naming a declared derive id. The block is checked like the app's decoder
+  (unknown refs, id collisions, cycles including through a binding, caps), and an
+  unknown op or malformed node is an error.
+- The contract and `gen` stubs treat derive syncs as app-direct: no server event.
 
 ### Changed
 

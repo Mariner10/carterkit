@@ -1,0 +1,42 @@
+{
+  "description": "band labels, the clock, since and until",
+  "cases": [
+    {"name": "band", "derive": {
+        "low": {"band": {"of": {"control": "t1"}, "stops": [20, 30], "labels": ["low", "ok", "high"]}},
+        "edge": {"band": {"of": {"control": "t2"}, "stops": [20, 30], "labels": ["low", "ok", "high"]}},
+        "high": {"band": {"of": {"control": "t3"}, "stops": [20, 30], "labels": ["low", "ok", "high"]}},
+        "nil": {"band": {"of": {"control": "gone"}, "stops": [20, 30], "labels": ["low", "ok", "high"]}},
+        "descending": {"band": {"of": 1, "stops": [2, 1], "labels": ["a", "b", "c"]}},
+        "wrongCount": {"band": {"of": 1, "stops": [2], "labels": ["a"]}},
+        "labelNumber": {"add": [{"band": {"of": 5, "stops": [1], "labels": ["7", "8"]}}, 1]}},
+     "inputs": {"t1": 5, "t2": 20, "t3": 31}, "now": 0,
+     "expected": {"low": "low", "edge": "ok", "high": "high", "nil": null,
+                  "descending": null, "wrongCount": null, "labelNumber": 9}},
+    {"name": "clock", "derive": {"now": {"clock": true}, "nowObj": {"clock": {}},
+                                  "later": {"add": [{"clock": true}, 60]}},
+     "inputs": {}, "now": 1000000, "expected": {"now": 1000000, "nowObj": 1000000, "later": 1000060}},
+    {"name": "since and until", "derive": {
+        "days": {"since": {"of": {"control": "born"}, "unit": "days"}},
+        "seconds": {"since": {"control": "born"}},
+        "hours": {"until": {"of": {"control": "due"}, "unit": "hours"}},
+        "past": {"until": {"of": {"control": "born"}, "unit": "days"}},
+        "weeks": {"since": {"of": 395200, "unit": "weeks"}},
+        "minutes": {"since": {"of": 999880, "unit": "minutes"}},
+        "badUnit": {"since": {"of": 1, "unit": "fortnights"}}},
+     "inputs": {"born": 827200, "due": "1970-01-13T13:46:40Z"}, "now": 1000000,
+     "expected": {"days": 2, "seconds": 172800, "hours": 24, "past": -2, "weeks": 1,
+                  "minutes": 2, "badUnit": null}},
+    {"name": "date forms", "derive": {
+        "plainDate": {"until": {"of": {"control": "day"}, "unit": "days"}},
+        "offset": {"since": {"of": {"control": "zoned"}, "unit": "hours"}},
+        "millis": {"since": {"of": {"control": "ms"}, "unit": "seconds"}},
+        "epochString": {"since": {"of": {"control": "epochStr"}}},
+        "notADate": {"since": {"control": "word"}},
+        "boolIsNotADate": {"since": {"control": "flag"}}},
+     "inputs": {"day": "1970-01-21", "zoned": "1970-01-12T15:46:40+02:00",
+                "ms": 200000000000, "epochStr": "999990", "word": "soon", "flag": true},
+     "now": 1000000,
+     "expected": {"plainDate": 8.425925925925926, "offset": 0, "millis": -199000000, "epochString": 10,
+                  "notADate": null, "boolIsNotADate": null}}
+  ]
+}
