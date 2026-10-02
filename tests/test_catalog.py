@@ -52,6 +52,40 @@ def test_simple_summary_preserves_technical_description():
     assert field["description"] == text["description"]
 
 
+def test_friendly_title_and_simple_hide_reach_the_catalog():
+    # carter-1cz0/aect: per-field `title:` and `simple: hide` from the ControlDocs
+    # must survive into the compact catalog (catalog.json) so the MCP/site can
+    # show the same friendly names the app's Simple inspector does.
+    cat = catalog.build_catalog(DOCS, include_theme=True)
+    gmin = next(f for f in cat["gauge"]["fields"] if f["name"] == "min")
+    assert gmin["title"] == "Lowest value"
+    assert gmin["description"] == "Minimum value"
+    assert gmin["summary"] == "Where the dial starts"
+    border = next(f for f in cat["gauge"]["themeFields"] if f["name"] == "borderColor")
+    assert border["title"] == "Border color"
+    fmt = next(f for f in cat["label"]["fields"] if f["name"] == "formatValue")
+    assert fmt.get("simpleHidden") is True
+    assert "simpleHidden" not in gmin
+    # A field with no authored title carries no key (the app humanises it).
+    assert all("title" not in f or f["title"] for f in cat["image"]["fields"])
+
+
+def test_simple_summaries_never_repeat_the_title():
+    # A Simple-mode subtitle that just restates the row title ("Lowest value /
+    # Minimum value") is noise; summary (or description, when no summary) must
+    # say something the title does not.
+    import re
+    def words(s):
+        return {w for w in re.findall(r"[a-z]+", s.lower()) if w not in {"the", "a", "of"}}
+    for t in ["gauge", "toggle", "label", "button", "slider", "list", "progressRing", "stepper"]:
+        doc = catalog.build_catalog(DOCS, types=[t], include_theme=True)[t]
+        for f in doc.get("fields", []) + doc.get("themeFields", []):
+            if not f.get("title"):
+                continue
+            help_text = f.get("summary") or f.get("description", "")
+            assert words(help_text) != words(f["title"]), (t, f["name"], help_text)
+
+
 def test_default_span_parsed():
     docs = catalog.parse_all(DOCS)
     assert docs["gauge"]["defaultSpan"] == [2, 2]

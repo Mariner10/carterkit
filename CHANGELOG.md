@@ -48,6 +48,10 @@ All notable changes to **carterkit** are documented here. This project follows
   `starterVariants`. Matches the app's `CAR-TER/ControlDocs/label.md`.
 - Validate that every control or group inside `children` has a `position`: a missing one is
   an error (`missing_field`), since the app refuses it and the layout fails to decode (aif-eyfa).
+- Catalog fields now carry the ControlDocs `title:` (friendly Simple-mode name) and
+  `simpleHidden: true` (`simple: hide`), so catalog.json and the MCP can show the
+  app's friendly names. Vendored docs gain plain Simple-mode `summary:` help for
+  min/max, value maps, and track/border fields (carter-aect).
 
 ### Changed
 
