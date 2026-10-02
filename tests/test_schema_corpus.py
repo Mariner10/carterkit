@@ -32,11 +32,6 @@ KNOWN_ERRORS = {
     # strict import refuses it, and kit 0.13.0 reports it (conformance parity). The fixture
     # is shared byte-for-byte with the app corpus, so it stays as seeded (kit-next-0.14).
     "schema-v1/library/advanced-film-set.json": {"missing_field"},
-    # Chart Lab's per-element actions (chartConfig.datumAction, pieConfig.sliceAction,
-    # ...) use event 'broadcast', which the relay drops. The lint only began reading
-    # carriers nested in <type>Config in carter-y85y; the shared fixture stays as seeded.
-    "schema-v1/samples/sample-chart-lab.json": {"dead_action"},
-    "schema-v2/samples/sample-chart-lab-sectioned.json": {"dead_action"},
 }
 
 
