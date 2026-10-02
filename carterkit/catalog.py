@@ -13,6 +13,7 @@ Public surface (all pure; `docs_dir` is injected for testability):
     get_examples(docs_dir, control)  -> [{"name", "json"}]
     find_example(docs_dir, control, name) -> {"name", "json"} | None
     resolve_doc(docs_dir, control)   -> doc | None   accepts node_id OR control type
+    resolve_tab(name, group, authored) -> str        inspector tab (content|style|…)
 """
 
 from __future__ import annotations
@@ -49,7 +50,26 @@ def _parse_int_array(value: str) -> Optional[list[int]]:
     return parts or None
 
 
-def _make_field(raw: dict[str, str]) -> dict:
+# The app inspector's tabs, by purpose (carter-m7s.17, Services/InspectorTab.swift).
+INSPECTOR_TABS = ("content", "style", "data", "action", "advanced")
+
+# Wiring keys pinned to Advanced whatever a doc says: Simple mode never shows them.
+ADVANCED_ONLY_KEYS = frozenset(
+    {"id", "configKey", "valuePath", "position", "span", "sync", "action"})
+
+
+def resolve_tab(name: str, group: Optional[str], authored: Optional[str]) -> str:
+    """The inspector tab a field lands on — mirrors `InspectorTab.resolve`.
+    `authored` is the doc's `tab:` value; an unknown value falls back to the group
+    default (`theme` → style, everything else → content)."""
+    if name in ADVANCED_ONLY_KEYS:
+        return "advanced"
+    if authored and authored.lower() in INSPECTOR_TABS:
+        return authored.lower()
+    return "style" if group == "theme" else "content"
+
+
+def _make_field(raw: dict[str, str], list_group: Optional[str] = None) -> dict:
     field: dict = {"name": raw.get("name", ""), "type": raw.get("type", "string")}
     if "values" in raw:
         field["values"] = _parse_str_array(raw["values"])
@@ -63,6 +83,11 @@ def _make_field(raw: dict[str, str]) -> dict:
         # Per-field `group:` nests the field under a config object (e.g.
         # `sortboardConfig`) — mirrored from the Swift loader's makeField.
         field["group"] = raw["group"]
+    # Inspector tab (carter-m7s.17): the authored `tab:` or the group default, the
+    # same answer the app's ControlDocLoader resolves. Swift resolves against
+    # `dict["group"] ?? listGroup`, so a per-field group overrides the theme list.
+    field["tab"] = resolve_tab(field["name"], raw.get("group") or list_group,
+                               raw.get("tab"))
     return field
 
 
@@ -102,7 +127,9 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
     def flush():
         nonlocal current
         if in_fields and current and current_list is not None:
-            current_list.append(_make_field(current))
+            current_list.append(_make_field(
+                current,
+                "theme" if current_list is meta["themeFields"] else None))
         current = {}
 
     for line in front:
@@ -157,7 +184,8 @@ def parse_doc(content: str, node_id: str) -> Optional[dict]:
         if grp not in declared:
             meta["fields"].append(
                 {"name": grp, "type": "object",
-                 "description": "grouped config object (see grouped fields)"})
+                 "description": "grouped config object (see grouped fields)",
+                 "tab": resolve_tab(grp, None, None)})
     meta["body"] = body
     meta["examples"] = extract_examples(body)
     return meta

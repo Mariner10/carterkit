@@ -5,6 +5,11 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+- Every catalog field now carries the app inspector's `tab`
+  (`content|style|data|action|advanced`): the ControlDocs `tab:` or its group
+  default, with wiring keys pinned to `advanced`, so `catalog.json` and the MCP
+  expose it (`catalog.resolve_tab`).
+
 ## [0.15.0] — 2026-09-30
 
 - Sync the app's control docs and feature catalog, including forms, stat tiles,
