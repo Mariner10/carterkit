@@ -9,7 +9,6 @@ friendlyName: Text
 oneLiner: A line of text, or a value with a caption
 addRank: 1
 starterPreset: {"label": "Text","text": "Hello"}
-starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]
 lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "number","name": "Number","symbol": "number","set": {"formatValue": "decimal"}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
 lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
 fields:
@@ -172,6 +171,10 @@ In the editor's Look card, Text offers four **Format** chips, declared in this d
 `lookFormats` frontmatter: **Plain** (no `formatValue`), **Number** (`"decimal"`),
 **Last time** (`"relative:day"`) and **Date** (`"date"`). A chip only writes
 `formatValue`; everything else stays as authored.
+
+"Last time" is a Text format, not a separate control: the Add sheet offers one
+**Text** choice, and showing a remembered time on a Text (Wire › a time value)
+picks the **Last time** format for it, so the Look card shows that chip selected.
 
 ## Relative dates
 
