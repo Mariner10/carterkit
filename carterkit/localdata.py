@@ -39,7 +39,7 @@ ERROR_PROSE = {
     "consent-pending": "the consent sheet is up on the phone; waiting for the owner's tap",
     "denied": "the owner declined, dismissed, or let the consent sheet time out",
     "busy": "another studio approval sheet is up on the phone (provision or local)",
-    "invalid-stage": "the phone's store rejected the stage (where/groupBy/aggregate/orderBy/limit)",
+    "invalid-stage": "the phone's store rejected the stage (where/groupBy/aggregate/having/orderBy/limit)",
     "limit": "a store cap was exceeded (50k rows per collection, 500 groups, 1000 records per upsert)",
     "schema": "the declared local schema failed validation on the phone",
     "remote-source": "that source is not a local store",

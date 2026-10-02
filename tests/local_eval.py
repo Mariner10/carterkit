@@ -182,6 +182,11 @@ class Store:
         return True
 
     def _leaf(self, have, ftype, op, v, base) -> bool:
+        if isinstance(v, dict) and set(v) == {"daysAgo"} \
+                and op in ("eq", "ne", "gt", "gte", "lt", "lte"):
+            if ftype != "date":
+                raise InvalidStage("daysAgo compares a date value")
+            return self._days_ago(have, op, v["daysAgo"])
         if op == "exists":
             return (have is not None) == v
         if op == "contains":
@@ -260,7 +265,14 @@ class Store:
     # ── groups (§4.3) ───────────────────────────────────────────────────────────
     def _groups(self, rows, stage, fields, base):
         rows = self._rows(rows, {"where": stage["where"]} if "where" in stage else {}, fields, base)
-        g = stage["groupBy"]
+        g, series = L.split_group_by(stage["groupBy"])
+        a = stage.get("aggregate", "count")
+        limit = min(stage.get("limit", L.MAX_GROUPS), L.MAX_GROUPS)
+        keys = _order_keys(stage.get("orderBy")) or [("key", False)]
+        fill = g.get("fill") if isinstance(g, dict) else None
+        fill = None if fill is False else fill
+        if series is not None:
+            return self._series_grid(rows, g, series, stage, fields, base, keys, limit, fill)
         buckets: dict = {}
         if isinstance(g, dict) and "range" in g:
             self._expand_range(rows, g, buckets)
@@ -269,15 +281,60 @@ class Store:
             for r in rows:
                 k = self._group_key(r.get(field), g, fields[field])
                 buckets.setdefault(k, []).append(r)
-        a = stage.get("aggregate", "count")
         groups = [{"key": k, "value": self._aggregate(rs, a)} for k, rs in buckets.items()]
-        limit = min(stage.get("limit", L.MAX_GROUPS), L.MAX_GROUPS)
-        keys = _order_keys(stage.get("orderBy")) or [("key", False)]
-        fill = g.get("fill") if isinstance(g, dict) else None
-        if fill:
+        groups = self._having(groups, stage, g, fields, base)
+        if fill is not None:
             groups = self._fill(groups, g, fill, _agg(a)[0])
         groups = _sort(groups, keys, tiebreak=None)
         return groups[:limit]
+
+    # ── two-level groupBy + having (carter-73q2.36) ──────────────────────────────
+    def _having(self, groups, stage, primary, fields, base):
+        """Keep the groups (or series cells) whose `key`/`value` match `having`."""
+        if "having" not in stage:
+            return groups
+        operands = L.having_operands(primary, stage.get("aggregate"), fields)
+        return [x for x in groups if self._match(stage["having"], x, operands, base)]
+
+    def _series_grid(self, rows, g, series, stage, fields, base, keys, limit, fill):
+        """`[primary, series]`: every category x every series key (ascending, the first
+        12), an empty cell 0 (count/sum/distinct) or null; with `having` a removed or
+        empty cell is null for every aggregate (`LocalSeries.grid`)."""
+        a = stage.get("aggregate", "count")
+        field = g if isinstance(g, str) else g["field"]
+        buckets: dict = {}
+        for r in rows:
+            k = self._group_key(r.get(field), g, fields[field])
+            buckets.setdefault((k, r.get(series)), []).append(r)
+        cells = [{"key": k, "series": sk, "value": self._aggregate(rs, a)}
+                 for (k, sk), rs in buckets.items()]
+        cells = self._having(cells, stage, g, fields, base)
+        kept = sorted({c["series"] for c in cells}, key=_series_rank)[:L.MAX_SERIES]
+        cells = [c for c in cells if c["series"] in kept]
+        op = _agg(a)[0]
+        if fill is not None:
+            cats = self._fill([{"key": c["key"], "value": 0} for c in cells], g, fill, op)
+        else:
+            cats = list({c["key"]: None for c in cells})
+            cats = [{"key": k} for k in cats]
+        cats = [x["key"] for x in _sort(cats, keys, tiebreak=None)[:limit]]
+        zero = None if "having" in stage else (0 if op in ("count", "sum", "distinct") else None)
+        value = {(c["key"], c["series"]): c["value"] for c in cells}
+        return [{"key": k, "series": sk, "value": value.get((k, sk), zero)} for k in cats for sk in kept]
+
+    def _days_ago(self, have, op, n):
+        """`{"daysAgo": N}`: the local date N days before today; a stored calendar date
+        compares against the date, an instant against that day's local midnight (UTC)."""
+        if not isinstance(n, (int, float)) or isinstance(n, bool) or n != int(n) \
+                or not 0 <= n <= L.MAX_DAYS_AGO:
+            raise InvalidStage("daysAgo must be 0…36600")
+        day = self.now.astimezone(self.tz).date() - dt.timedelta(days=int(n))
+        if have is None:
+            return op == "ne"                            # `IS NOT`: a null group counts
+        start = dt.datetime(day.year, day.month, day.day, tzinfo=self.tz)
+        bound = day.isoformat() if len(have) == 10 else instant_string(start)
+        return {"eq": have == bound, "ne": have != bound, "gt": have > bound, "gte": have >= bound,
+                "lt": have < bound, "lte": have <= bound}[op]
 
     # ── range buckets + fill (carter-73q2.32) ────────────────────────────────────
     def _expand_range(self, rows, g, buckets):
@@ -385,6 +442,19 @@ def _sort(items, keys, tiebreak="id", id_desc=False):
     return out
 
 
+def _series_rank(v):
+    """Ascending with null last: numbers, then strings, then bools (`LocalSeries.ascending`)."""
+    if v is None:
+        return (4, 0)
+    if isinstance(v, bool):
+        return (2, v)
+    if isinstance(v, (int, float)):
+        return (0, v)
+    if isinstance(v, str):
+        return (1, v)
+    return (3, 0)
+
+
 def _agg(a):
     if isinstance(a, str):
         return a, None
@@ -433,7 +503,8 @@ def compare(result: dict, expected: dict) -> list[str]:
         if len(result["groups"]) != len(want):
             return [f"{len(result['groups'])} groups != {len(want)}: {result['groups']}"]
         for h, w in zip(result["groups"], want):
-            if not same_value(h["key"], w["key"]) or not same_value(h["value"], w["value"]):
+            if not same_value(h["key"], w["key"]) or not same_value(h["value"], w["value"]) \
+                    or ("series" in w and not same_value(h.get("series"), w["series"])):
                 diffs.append(f"group {h} != {w}")
     else:
         if result["ids"] != expected["ids"]:

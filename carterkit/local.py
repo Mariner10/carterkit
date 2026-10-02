@@ -24,6 +24,8 @@ MAX_WHERE_DEPTH = 8
 MAX_WHERE_LEAVES = 32
 MAX_IN_MEMBERS = 64
 MAX_VIEW_DEPTH = 8
+MAX_SERIES = 12            # two-level groupBy: the first 12 series keys (LocalSeries.maxSeries)
+MAX_DAYS_AGO = 36600       # having {"daysAgo": N}: 0 <= N <= 36600 (LocalHaving)
 
 FIELD_TYPES = ("string", "number", "integer", "bool", "date", "json")
 RESERVED_FIELDS = {"id": "string", "createdAt": "date", "updatedAt": "date"}
@@ -49,7 +51,11 @@ _TOKEN_RE = re.compile(r"^\{\{(.+)\}\}$")
 
 __all__ = ["lint_source", "lint_stage", "lint_op", "fields_for", "token_name",
            "FIELD_TYPES", "WHERE_OPS", "AGGREGATE_OPS", "BUCKET_UNITS", "ACTION_OPS",
-           "TOKENS", "RESERVED_FIELDS", "MAX_LIMIT", "MAX_GROUPS"]
+           "TOKENS", "RESERVED_FIELDS", "MAX_LIMIT", "MAX_GROUPS", "MAX_SERIES",
+           "STAGE_KEYS", "split_group_by", "having_operands"]
+
+#: The keys of a query stage (also what `validate` lifts off a `method: local` sync).
+STAGE_KEYS = ("where", "groupBy", "aggregate", "having", "orderBy", "limit")
 
 
 def token_name(value) -> str | None:
@@ -242,25 +248,32 @@ def _literal_matches(value, ftype) -> bool:
 
 
 def lint_stage(stage: dict, fields: dict) -> list[tuple[str, str]]:
-    """Check a binding's query stage `{where?, groupBy?, aggregate?, orderBy?, limit?}`
-    against `fields` ({name: type}, reserved fields included — see `fields_for`)."""
+    """Check a binding's query stage `{where?, groupBy?, aggregate?, having?, orderBy?,
+    limit?}` against `fields` ({name: type}, reserved fields included — see `fields_for`)."""
     out: list[tuple[str, str]] = []
     if not isinstance(stage, dict):
         return [("error", "stage must be an object")]
     for key in stage:
-        if key not in ("where", "groupBy", "aggregate", "orderBy", "limit"):
-            out.append(("warn", f"unknown stage key '{key}' is ignored (no projections, joins or having)"))
+        if key not in STAGE_KEYS:
+            out.append(("warn", f"unknown stage key '{key}' is ignored (no projections or joins)"))
     grouped = "groupBy" in stage
     if "where" in stage:
         leaves = _lint_where(stage["where"], fields, out, "where", depth=1)
         if leaves > MAX_WHERE_LEAVES:
             out.append(("error", f"where has {leaves} leaves; at most {MAX_WHERE_LEAVES}"))
+    primary, series = split_group_by(stage["groupBy"]) if grouped else (None, None)
     if grouped:
         _lint_group_by(stage["groupBy"], fields, out)
     if "aggregate" in stage:
         _lint_aggregate(stage["aggregate"], fields, out, grouped)
+    if "having" in stage:
+        _lint_having(stage, primary, fields, out)
     if "orderBy" in stage:
         _lint_order_by(stage["orderBy"], fields, out, grouped)
+        if series is not None:
+            names = [stage["orderBy"]] if isinstance(stage["orderBy"], str) else stage["orderBy"]
+            if isinstance(names, list) and any(isinstance(n, str) and n.lstrip("-") != "key" for n in names):
+                out.append(("error", "orderBy: a series query orders by 'key' only"))
     if "limit" in stage:
         lim = stage["limit"]
         if isinstance(lim, bool) or not isinstance(lim, int) or not 1 <= lim <= MAX_LIMIT:
@@ -268,8 +281,9 @@ def lint_stage(stage: dict, fields: dict) -> list[tuple[str, str]]:
     return out
 
 
-def _lint_where(node, fields, out, path, depth) -> int:
-    """Returns the leaf count; appends problems. Mirrors `LocalWhere.parse`."""
+def _lint_where(node, fields, out, path, depth, having=False) -> int:
+    """Returns the leaf count; appends problems. Mirrors `LocalWhere.parse`. With
+    `having`, `fields` is `{key, value}` and a value may be `{"daysAgo": N}`."""
     if not isinstance(node, dict):
         out.append(("error", f"{path} must be an object"))
         return 0
@@ -283,11 +297,14 @@ def _lint_where(node, fields, out, path, depth) -> int:
                 out.append(("error", f"{path}.{key} must be an array of where objects"))
                 continue
             for i, sub in enumerate(value):
-                leaves += _lint_where(sub, fields, out, f"{path}.{key}[{i}]", depth + 1)
+                leaves += _lint_where(sub, fields, out, f"{path}.{key}[{i}]", depth + 1, having)
             continue
         ftype = fields.get(key)
         if ftype is None:
-            out.append(("error", f"{path}.{key}: unknown field '{key}' (declare it on the collection)"))
+            if having:
+                out.append(("error", f"{path}.{key}: having compares 'key' or 'value' only (not '{key}')"))
+            else:
+                out.append(("error", f"{path}.{key}: unknown field '{key}' (declare it on the collection)"))
             continue
         if isinstance(value, list):
             out.append(("error", f"{path}.{key}: an array is not a value (use {{\"in\": [...]}})"))
@@ -298,14 +315,14 @@ def _lint_where(node, fields, out, path, depth) -> int:
                 continue
             for op, v in value.items():
                 leaves += 1
-                _lint_leaf(key, ftype, op, v, out, f"{path}.{key}.{op}")
+                _lint_leaf(key, ftype, op, v, out, f"{path}.{key}.{op}", having)
         else:
             leaves += 1
-            _lint_leaf(key, ftype, "eq", value, out, f"{path}.{key}")
+            _lint_leaf(key, ftype, "eq", value, out, f"{path}.{key}", having)
     return leaves
 
 
-def _lint_leaf(field, ftype, op, v, out, path):
+def _lint_leaf(field, ftype, op, v, out, path, having=False):
     if op not in WHERE_OPS:
         out.append(("error", f"{path}: unknown operator '{op}'; use one of {list(WHERE_OPS)}"))
         return
@@ -334,7 +351,20 @@ def _lint_leaf(field, ftype, op, v, out, path):
     if ftype == "bool" and op in ("gt", "gte", "lt", "lte"):
         out.append(("error", f"{path}: bool field '{field}' supports eq/ne only"))
         return
+    if having and isinstance(v, dict) and set(v) == {"daysAgo"}:
+        _lint_days_ago(ftype, v["daysAgo"], out, path)
+        return
     _lint_value(field, ftype, v, out, path)
+
+
+def _lint_days_ago(ftype, n, out, path):
+    """`{"daysAgo": N}`: the local calendar date N days before today (LocalHaving)."""
+    if isinstance(n, bool) or not isinstance(n, (int, float)) or n != int(n) \
+            or not 0 <= n <= MAX_DAYS_AGO:
+        out.append(("error", f"{path}: daysAgo must be a whole number 0…{MAX_DAYS_AGO}"))
+    elif ftype != "date":
+        out.append(("error", f"{path}: daysAgo compares a date value (this one is {ftype}; "
+                             f"use max/min of a date field)"))
 
 
 def _lint_value(field, ftype, v, out, path):
@@ -355,7 +385,57 @@ def _lint_value(field, ftype, v, out, path):
                             f"'matches nothing'"))
 
 
+def split_group_by(g):
+    """`[primary, "seriesField"]` → `(primary, "seriesField")`; any other groupBy →
+    `(g, None)` (carter-73q2.36 two-level grouping)."""
+    if isinstance(g, list) and len(g) == 2 and isinstance(g[1], str):
+        return g[0], g[1]
+    return g, None
+
+
+def having_operands(primary, aggregate, fields) -> dict:
+    """`{"key": type, "value": type}`: what a `having` leaf compares — the group key's
+    type and the aggregate's (`LocalQueryCompiler.groupKeyType` / `aggregateType`)."""
+    if isinstance(primary, str):
+        key = fields.get(primary) or "string"
+    elif isinstance(primary, dict) and "width" in primary and "range" not in primary:
+        key = "number"
+    else:
+        key = "string"                       # a date bucket or range key
+    op, field = ("count", None)
+    if isinstance(aggregate, str):
+        op = aggregate
+    elif isinstance(aggregate, dict):
+        op, field = aggregate.get("op"), aggregate.get("field")
+    if op in ("min", "max", "first", "last"):
+        value = (fields.get(field) if isinstance(field, str) else None) or "string"
+    elif op == "span":
+        value = "date"
+    else:
+        value = "number"
+    return {"key": key, "value": value}
+
+
+def _lint_having(stage, primary, fields, out):
+    """`having`: the `where` grammar over the aggregated groups' `key`/`value` (G7)."""
+    if "groupBy" not in stage:
+        out.append(("error", "having needs a groupBy"))
+        return
+    if isinstance(primary, dict) and "range" in primary:
+        out.append(("error", "having does not combine with a range groupBy"))
+        return
+    if isinstance(primary, dict) and primary.get("fill") not in (None, False):
+        out.append(("error", "having does not combine with fill (a filled bucket would bring "
+                             "back what having removed)"))
+        return
+    operands = having_operands(primary, stage.get("aggregate"), fields)
+    _lint_where(stage["having"], operands, out, "having", depth=1, having=True)
+
+
 def _lint_group_by(g, fields, out):
+    if isinstance(g, list):
+        _lint_series(g, fields, out)
+        return
     if isinstance(g, str):
         field, unit, width = g, None, None
         if fields.get(g) == "json":
@@ -377,7 +457,8 @@ def _lint_group_by(g, fields, out):
             if key not in ("field", "bucket", "width", "fill"):
                 out.append(("warn", f"groupBy: unknown key '{key}' is ignored"))
     else:
-        out.append(("error", "groupBy must be a field name, {field, bucket|width} or {range, bucket}"))
+        out.append(("error", "groupBy must be a field name, {field, bucket|width}, {range, bucket} "
+                             'or [primary, "seriesField"]'))
         return
     ftype = fields.get(field)
     if ftype is None:
@@ -393,6 +474,26 @@ def _lint_group_by(g, fields, out):
             out.append(("error", "groupBy.width must be a number > 0"))
         elif ftype not in _NUMERIC:
             out.append(("error", f"groupBy.width needs a numeric field ('{field}' is {ftype})"))
+
+
+def _lint_series(g, fields, out):
+    """`[primary, "seriesField"]`: a full category x series grid (carter-73q2.36)."""
+    if len(g) != 2 or not isinstance(g[1], str):
+        out.append(("error", 'groupBy as an array must be [primary, "seriesField"]'))
+        return
+    primary, series = g
+    if isinstance(primary, list):
+        out.append(("error", "groupBy nests at most two levels"))
+        return
+    if isinstance(primary, dict) and "range" in primary:
+        out.append(("error", "a range groupBy takes no series"))
+        return
+    _lint_group_by(primary, fields, out)
+    stype = fields.get(series)
+    if stype is None:
+        out.append(("error", f"groupBy: unknown series field '{series}'"))
+    elif stype == "json":
+        out.append(("error", f"groupBy: a series cannot group a json field ('{series}')"))
 
 
 def _lint_range(g, fields, out):

@@ -1155,7 +1155,7 @@ def _validate_local_sync(s, ctype, spot, i, findings, sources):
         findings.append(_f("error", "unknown_collection", spot,
                            f"{what}: '{coll}' is not a collection or view of the local source"))
         return
-    stage = {k: s[k] for k in ("where", "groupBy", "aggregate", "orderBy", "limit") if k in s}
+    stage = {k: s[k] for k in localmod.STAGE_KEYS if k in s}
     _local_problems(localmod.lint_stage(stage, fields), "bad_stage", spot, what, findings)
 
 

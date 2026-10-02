@@ -460,3 +460,172 @@ def test_range_groupby_in_a_layout_lints_clean():
     layout = _one_control(sync={"method": "local", "collection": "books",
                                 "groupBy": {"range": ["finished", "finished"], "bucket": "day", "fill": True}})
     assert _errors(layout) == []
+
+
+# ── two-level groupBy + having (carter-73q2.36) ───────────────────────────────
+
+_SERIES_FIELDS = {"date": "date", "exercise": "string", "weight": "number", "when": "date",
+                  "plant": "string", "value": "integer", "blob": "json"}
+
+
+def _stage_errors(st, fields=_SERIES_FIELDS):
+    return [m for sev, m in local.lint_stage(st, fields) if sev == "error"]
+
+
+def test_series_and_having_lint_clean():
+    ok = [
+        {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "aggregate": {"op": "max", "field": "weight"}},
+        {"groupBy": ["plant", "exercise"], "orderBy": "-key", "limit": 2},
+        {"groupBy": [{"field": "date", "bucket": "week", "fill": True}, "exercise"]},
+        {"groupBy": [{"field": "weight", "width": 1}, "exercise"]},
+        {"groupBy": "plant", "aggregate": {"op": "max", "field": "when"}, "having": {"value": {"lt": {"daysAgo": 7}}}},
+        {"groupBy": "plant", "having": {"value": {"gte": 2}}},
+        {"groupBy": "plant", "aggregate": {"op": "sum", "field": "value"}, "having": {"value": {"gt": 300}}},
+        {"groupBy": "plant", "having": {"key": {"in": ["fern", "basil"]}}, "orderBy": "-value"},
+        {"groupBy": "plant", "having": {"or": [{"key": {"eq": "mint"}}, {"value": {"gt": 1}}]}},
+        {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "having": {"value": {"lt": 2}}},
+        {"groupBy": {"field": "when", "bucket": "day", "fill": False}, "having": {"value": {"gt": 0}}},
+    ]
+    for st in ok:
+        assert _stage_errors(st) == [], (st, _stage_errors(st))
+        assert not any("unknown stage key" in m for _, m in local.lint_stage(st, _SERIES_FIELDS))
+
+
+def test_series_and_having_lint_rejects_what_the_app_rejects():
+    # LocalSeriesTests.testBadArrayGroupByIsRejected + testClosedGrammarRejects…
+    bad = [
+        ({"groupBy": ["plant"]}, 'must be [primary, "seriesField"]'),
+        ({"groupBy": ["plant", "exercise", "date"]}, 'must be [primary, "seriesField"]'),
+        ({"groupBy": [["plant", "exercise"], "date"]}, "nests at most two levels"),
+        ({"groupBy": ["plant", {"field": "exercise"}]}, 'must be [primary, "seriesField"]'),
+        ({"aggregate": "count", "having": {"value": {"gt": 1}}}, "having needs a groupBy"),
+        ({"groupBy": "plant", "having": {"plant": {"eq": "fern"}}}, "compares 'key' or 'value' only"),
+        ({"groupBy": {"field": "when", "bucket": "day", "fill": True}, "having": {"value": {"gt": 0}}},
+         "does not combine with fill"),
+        ({"groupBy": {"field": "when", "bucket": "day", "fill": {}}, "having": {"value": {"gt": 0}}},
+         "does not combine with fill"),
+        ({"groupBy": "plant", "having": {"value": {"gt": {"daysAgo": 7}}}}, "daysAgo compares a date value"),
+        ({"groupBy": "plant", "aggregate": {"op": "max", "field": "when"},
+          "having": {"value": {"lt": {"daysAgo": -1}}}}, "daysAgo must be a whole number"),
+        ({"groupBy": "plant", "aggregate": {"op": "max", "field": "when"},
+          "having": {"value": {"lt": {"daysAgo": 1.5}}}}, "daysAgo must be a whole number"),
+        ({"groupBy": [{"range": ["when", "when"], "bucket": "day"}, "plant"]}, "range groupBy takes no series"),
+        ({"groupBy": {"range": ["when", "when"], "bucket": "day"}, "having": {"value": {"gt": 1}}},
+         "having does not combine with a range"),
+        ({"groupBy": ["plant", "when"], "orderBy": "-value"}, "series query orders by 'key' only"),
+        ({"groupBy": ["plant", "nope"]}, "unknown series field 'nope'"),
+        ({"groupBy": ["plant", "blob"]}, "cannot group a json field"),
+        ({"groupBy": "plant", "having": {"value": {"like": 1}}}, "unknown operator 'like'"),
+    ]
+    for st, needle in bad:
+        errs = _stage_errors(st)
+        assert any(needle in m for m in errs), (st, needle, errs)
+
+
+def test_series_and_having_ride_a_layout_sync():
+    sync = bind.local("books", group_by=[{"field": "finished", "bucket": "month"}, "title"],
+                      aggregate={"op": "max", "field": "pages"})
+    assert _errors(_one_control(sync=sync, ctype="chart")) == []
+    sync = bind.local("books", group_by="title", aggregate={"op": "max", "field": "finished"},
+                      having={"value": {"lt": {"daysAgo": 7}}})
+    assert sync["having"] == {"value": {"lt": {"daysAgo": 7}}}
+    assert _errors(_one_control(sync=sync)) == []
+    lay = _one_control(sync={"method": "local", "collection": "books", "having": {"value": {"gt": 1}}})
+    assert any("having needs a groupBy" in d for d in [f["detail"] for f in _errors(lay)])
+
+
+def _series_store(lifts=(), waterings=()):
+    """LocalSeriesTests' store: today is Monday 2026-09-28 in New York."""
+    return E.Store({
+        "schema": {"type": "local", "namespace": "fixture", "collections": {
+            "lifts": {"fields": {"date": "date", "exercise": "string", "weight": "number"}},
+            "waterings": {"fields": {"when": "date", "plant": "string", "value": "integer"}}}},
+        "timeZone": "America/New_York", "now": "2026-09-28T12:00:00.000Z", "weekStartsOn": "monday",
+        "records": {
+            "lifts": [{"id": i, "fields": {"date": d, "exercise": e, "weight": w}} for i, d, e, w in lifts],
+            "waterings": [{"id": i, "fields": {"when": d, "plant": p, "value": 250}} for i, d, p in waterings]},
+    })
+
+
+_LIFTS = [("a", "2026-09-07", "squat", 100), ("b", "2026-09-09", "squat", 110), ("c", "2026-09-08", "bench", 70),
+          ("d", "2026-09-15", "bench", 75), ("e", "2026-09-22", "squat", 120)]
+_WATERINGS = [("w1", "2026-09-10", "fern"), ("w2", "2026-09-25", "fern"),
+              ("w3", "2026-09-15T14:00:00.000Z", "cactus"), ("w4", "2026-09-21", "basil"),
+              ("w5", "2026-09-21T03:30:00.000Z", "mint")]
+_WEEKLY_MAX = {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "aggregate": {"op": "max", "field": "weight"}}
+
+
+def _cells(res):
+    assert res["shape"] == "groups"
+    fmt = lambda v: "-" if v is None else str(int(v))  # noqa: E731
+    return [f"{g['key']}/{g['series']}={fmt(g['value'])}" for g in res["groups"]]
+
+
+def _keys(res):
+    return [g["key"] for g in res["groups"]]
+
+
+def test_eval_series_grid_matches_the_app():
+    store = _series_store(_LIFTS)
+    assert _cells(store.query("lifts", _WEEKLY_MAX)) == [
+        "2026-09-07/bench=70", "2026-09-07/squat=110", "2026-09-14/bench=75", "2026-09-14/squat=-",
+        "2026-09-21/bench=-", "2026-09-21/squat=120"]
+    st = {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "orderBy": "-key", "limit": 2}
+    assert _cells(store.query("lifts", st)) == [
+        "2026-09-21/bench=0", "2026-09-21/squat=1", "2026-09-14/bench=1", "2026-09-14/squat=0"]
+    filled = _series_store([("a", "2026-09-07", "squat", 100), ("b", "2026-09-08", "bench", 60),
+                            ("c", "2026-09-22", "squat", 105)])
+    st = {"groupBy": [{"field": "date", "bucket": "week", "fill": True}, "exercise"]}
+    assert _cells(filled.query("lifts", st)) == [
+        "2026-09-07/bench=1", "2026-09-07/squat=1", "2026-09-14/bench=0", "2026-09-14/squat=0",
+        "2026-09-21/bench=0", "2026-09-21/squat=1"]
+
+
+def test_eval_having_matches_the_app():
+    store = _series_store(waterings=_WATERINGS)
+    last = {"groupBy": "plant", "aggregate": {"op": "max", "field": "when"}, "having": {"value": {"lt": {"daysAgo": 7}}}}
+    assert _keys(store.query("waterings", last)) == ["cactus", "mint"]
+    last["having"] = {"value": {"lte": {"daysAgo": 7}}}
+    assert _keys(store.query("waterings", last)) == ["basil", "cactus", "mint"]
+    q = lambda st: _keys(store.query("waterings", st))  # noqa: E731
+    assert q({"groupBy": "plant", "having": {"value": {"gte": 2}}}) == ["fern"]
+    assert q({"groupBy": "plant", "aggregate": {"op": "sum", "field": "value"}, "having": {"value": {"gt": 300}}}) == ["fern"]
+    assert q({"groupBy": "plant", "having": {"key": {"in": ["fern", "basil"]}}, "orderBy": "-value"}) == ["fern", "basil"]
+    assert q({"groupBy": "plant", "having": {"or": [{"key": {"eq": "mint"}}, {"value": {"gt": 1}}]}}) == ["fern", "mint"]
+
+
+def test_eval_having_on_series_cells_leaves_gaps():
+    store = _series_store(_LIFTS)
+    st = dict(_WEEKLY_MAX, having={"value": {"gte": 100}})
+    assert _cells(store.query("lifts", st)) == ["2026-09-07/squat=110", "2026-09-21/squat=120"]
+    st = {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "having": {"value": {"lt": 2}}}
+    assert _cells(store.query("lifts", st)) == [
+        "2026-09-07/bench=1", "2026-09-07/squat=-", "2026-09-14/bench=1", "2026-09-14/squat=-",
+        "2026-09-21/bench=-", "2026-09-21/squat=1"]
+    st = {"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "having": {"value": {"gte": 1}},
+          "aggregate": {"op": "sum", "field": "weight"}}
+    assert _cells(store.query("lifts", st)) == [
+        "2026-09-07/bench=70", "2026-09-07/squat=210", "2026-09-14/bench=75", "2026-09-14/squat=-",
+        "2026-09-21/bench=-", "2026-09-21/squat=120"]
+
+
+def test_eval_series_keeps_the_first_twelve_series_whole():
+    lifts = [(f"r{k}-{e}", "2026-09-01", f"s{e:02d}", k) for k in range(40) for e in range(20)]
+    res = _series_store(lifts).query("lifts", {"groupBy": [{"field": "weight", "width": 1}, "exercise"]})
+    series = list(dict.fromkeys(g["series"] for g in res["groups"]))
+    assert series == [f"s{e:02d}" for e in range(12)]
+    assert len({g["key"] for g in res["groups"]}) == 40 and len(res["groups"]) == 40 * 12
+    assert all(g["value"] == 1 for g in res["groups"])
+
+
+def test_eval_rejects_the_closed_grammar_combinations():
+    store = _series_store(_LIFTS, _WATERINGS)
+    for st in [{"aggregate": "count", "having": {"value": {"gt": 1}}},
+               {"groupBy": "plant", "having": {"plant": {"eq": "fern"}}},
+               {"groupBy": {"field": "when", "bucket": "day", "fill": True}, "having": {"value": {"gt": 0}}},
+               {"groupBy": "plant", "having": {"value": {"gt": {"daysAgo": 7}}}},
+               {"groupBy": [{"range": ["when", "when"], "bucket": "day"}, "plant"]},
+               {"groupBy": ["plant", "when"], "orderBy": "-value"},
+               {"groupBy": ["plant", "nope"]}]:
+        with pytest.raises(E.InvalidStage):
+            store.query("waterings", st)

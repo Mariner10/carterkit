@@ -155,12 +155,14 @@ def http_request(path: str | None = None, *, url: str | None = None,
 
 def local(collection: str, *, where: dict | None = None, group_by=None, aggregate=None,
           order_by=None, limit: int | None = None, value_path: str | None = None,
-          source: str | None = None) -> dict:
+          source: str | None = None, having: dict | None = None) -> dict:
     """A `sync` entry that reads the on-device local store (see local-store.md).
     `collection` names a declared collection or view; the other keywords are the query
     stage — `where` (JSON operator object), `group_by` (field name or
-    ``{"field", "bucket"|"width"}``), `aggregate` (``"count"`` or ``{"op", "field"}``),
-    `order_by` (``"title"`` / ``"-finished"`` or a list), `limit` (1..1000). Leave
+    ``{"field", "bucket"|"width"}``, or ``[primary, "seriesField"]`` for one chart series
+    per value of a second field), `aggregate` (``"count"`` or ``{"op", "field"}``),
+    `having` (the `where` operators over the groups' ``key``/``value``, e.g.
+    ``{"value": {"lt": {"daysAgo": 7}}}``), `order_by` (``"title"`` / ``"-finished"`` or a list), `limit` (1..1000). Leave
     `value_path` empty for the store's default (`value` / whole payload / `rows`);
     `source` names the store when the layout declares several."""
     s: dict = {"method": "local", "collection": collection}
@@ -170,6 +172,8 @@ def local(collection: str, *, where: dict | None = None, group_by=None, aggregat
         s["groupBy"] = group_by
     if aggregate is not None:
         s["aggregate"] = aggregate
+    if having is not None:
+        s["having"] = having
     if order_by is not None:
         s["orderBy"] = order_by
     if limit is not None:

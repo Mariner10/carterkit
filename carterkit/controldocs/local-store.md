@@ -9,6 +9,7 @@ fields:
     values: [local]
     description: Must be "local" — declared inside the layout's sources block
   - name: namespace
+    tab: advanced
     type: string
     description: Scope for every non-shared collection (default the layout id, else its name); must match ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$ and cannot be "shared"
   - name: collections
@@ -115,10 +116,10 @@ A `date` field is stored as text in one of two normalized forms:
   instant, and never shifts a day when the phone travels.
 
 Both forms compare and sort correctly with `gt`/`gte`/`lt`/`lte` because they
-share the `YYYY-MM-DD` prefix, so a calendar-date token such as
-`{{startOfYear}}` filters an instant column with no conversion. The `{{today}}`
-and `{{startOf…}}` tokens are calendar dates; `{{now}}` is an instant. "Since the
-start of today" is `{"gte": "{{today}}"}` and includes everything written today.
+share the `YYYY-MM-DD` prefix. The `{{today}}` and `{{startOf…}}` tokens name
+the start of a period in the device's zone; `{{now}}` is an instant. "Since the
+start of today" is `{"gte": "{{today}}"}` and includes everything written today,
+including an instant stored at 23:30 local time (see [Tokens](#tokens)).
 
 ## Views
 
@@ -151,7 +152,8 @@ There is no row until the first write, which creates it from the collection's
   with the id `singleton` (an `insert` with no `id` gets it); any other id is
   rejected. Singleton ops on a collection without `singleton: true` fail.
 - **Read** with an ordinary rows binding: `valuePath: "first.waterings"` (or just
-  `"waterings"`). Before the first write an unfiltered binding (no `where`) still
+  `"waterings"`; a field named `count` is read with `"count"` too, see
+  [Delivery shapes](#delivery-shapes)). Before the first write an unfiltered binding (no `where`) still
   receives the `defaults` as `first`, with `count: 0`, so a label shows its
   starting value on first launch.
 - Every singleton op is one write transaction and the arithmetic runs inside the
@@ -159,7 +161,7 @@ There is no row until the first write, which creates it from the collection's
 
 ## Query stages
 
-A binding's query is the object `{ where?, groupBy?, aggregate?, orderBy?, limit? }`
+A binding's query is the object `{ where?, groupBy?, aggregate?, having?, orderBy?, limit? }`
 written directly on the [[sync]] entry beside `collection`. Each stage is JSON;
 field names must be declared on the collection (or be `id`, `createdAt`,
 `updatedAt`), and values are matched by type — a mismatch is simply "no match",
@@ -209,7 +211,6 @@ with a `field` but an empty `to` is still going: `to` becomes today and `open` i
 `from` / `to` / `count` / `days` / `caption` read one part. `span` is not a group
 aggregate.
 
-
 ### groupBy
 
 Buckets the matched rows and (with `aggregate`, default `count`) produces one
@@ -255,6 +256,37 @@ of more than 500 buckets is a `limit` error. The payload shape is unchanged.
 The first is a reading-days calendar for this year, the second pages per month
 with empty months as `0`, the third "sessions this month" (days with any entry).
 
+**Two levels (series).** `"groupBy": [<primary>, "<field>"]` groups by the primary
+(a field, a date bucket or a width, optionally filled) **and** by a second declared
+field, giving one chart series per value of that field: "heaviest set per week, one
+line per exercise". The result is a full grid: every category crossed with every
+series, an empty cell carrying `0` (`count`/`sum`/`distinct`) or `null`
+(`avg`/`min`/`max`; the [[chart]] draws it as a gap). Series come in ascending order,
+at most 12 (the first 12; the rest are left out whole); `limit` caps the categories and `orderBy` may name `key` only. A `range`
+groupBy takes no series.
+
+```json
+{"groupBy": [{"field": "date", "bucket": "week"}, "exercise"], "aggregate": {"op": "max", "field": "weight"}}
+```
+
+### having
+
+`having` filters the **aggregated groups** with the `where` operators. Its leaves
+name `value` (the group's aggregate) or `key` (the group key); `and`/`or` nest as in
+`where`. Besides the tokens, a comparison value may be `{"daysAgo": N}`: the local
+calendar date N days before today, for a date `value` (a `max` or `min` of a date
+field). With a series, `having` drops single cells: a dropped cell (and an empty
+one) is `null`, a gap, for every aggregate. `having` needs a `groupBy`, and
+does not combine with `fill` or a `range` groupBy.
+
+```json
+{"groupBy": "plant", "aggregate": {"op": "max", "field": "when"}, "having": {"value": {"lt": {"daysAgo": 7}}}}
+```
+
+Plants whose last watering is more than seven days ago; the result re-runs when the
+day changes. `{"groupBy": "genre", "having": {"value": {"gte": 3}}}` keeps the genres
+with three or more books.
+
 ### orderBy and limit
 
 `orderBy` is a string or array of strings: `"title"` ascending, `"-finished"`
@@ -282,6 +314,13 @@ bound values, never query text.
 | `{{startOfWeek}}` `{{startOfMonth}}` `{{startOfYear}}` | start of the current period (week per `weekStartsOn`) | calendar date |
 | `{{selected}}` | the collection's selection cursor (see `select` below), or `null` when nothing is selected | string id |
 
+When a `date` field is compared (`eq`/`ne`/`gt`/`gte`/`lt`/`lte`) against
+`{{today}}` or a `{{startOf…}}` token, each stored value is compared in its own
+form: a calendar date against the calendar date, an instant against the local
+period start as a UTC instant (`{{today}}` on 2026-03-15 in New York is
+`2026-03-15T04:00:00.000Z`), so evening items never count as the next day. `in`
+lists and non-date fields use the calendar date.
+
 A `where` that compares against an empty `{{selected}}` matches nothing, so a
 form bound to the selection goes blank on deselect. A time-zone or calendar-day
 change re-evaluates every binding that used a token. In actions, `{{value}}` and
@@ -297,13 +336,24 @@ default `valuePath` so the minimal form works with every existing receiver.
 | `aggregate`, no `groupBy` | `{"value": 3}` (`null` for `avg` of nothing) | `value` | [[label]], [[gauge]], [[progress-ring]], any scalar control; a [[sparkline]] appends each new value |
 | `aggregate: span` | `{"from": "2026-01-03", "to": "2026-09-20", "count": 12, "days": 261, "open": false, "value": "Jan 3 to Sep 20", "caption": "8 months"}` | `value` | [[label]] (the text), a [[stat-tile]] or second label on `caption` / `days` / `count` |
 | `groupBy` (+ `aggregate`, default `count`) | `{"categories": ["2026-01", "2026-02"], "series": [{"name": "count", "values": [4, 7]}], "rows": [{"key": "2026-01", "value": 4}]}` | whole payload | [[chart]] / [[pie-chart]] / [[heatmap]] read `categories` + `series`; a [[list]] uses `valuePath: "rows"`; a sparkline uses `series.0.values` |
+| two-level `groupBy` | `{"categories": ["2026-09-07", "2026-09-14"], "series": [{"name": "bench", "values": [70, null]}, {"name": "squat", "values": [110, 120]}], "rows": [{"key": "2026-09-07", "series": "bench", "value": 70}]}` | whole payload | [[chart]] (one bar group or line per series) |
 | rows (no `aggregate`) | `{"rows": [{"id": "…", "createdAt": "…", "updatedAt": "…", "title": "Dune", "pages": 412}], "count": 1, "total": 3, "first": {…} or null}` | `rows` | [[list]] (`listColumns[].key` reads a field), [[log-console]], or a form control naming `first.title` |
 
 Rows are flat: the declared fields sit beside `id`, `createdAt` and `updatedAt`.
 `count` is the rows delivered, `total` the rows in the collection or view. A
 `valuePath` that starts with a declared field is shorthand for `first.<field>`,
 so `{"where": {"id": "{{selected}}"}, "valuePath": "title"}` fills a [[text-input]]
-with the selected row's title. When nothing matches, `first` is `null` and the
+with the selected row's title.
+
+A declared field wins over the payload keys: if a collection declares a field
+named `count`, `total`, `rows` or `first`, the bare `valuePath` (`"count"`) reads
+that field off the first row, not the payload's value. The payload keys are always
+reachable by a `$` spelling that no field can take: `$rows`, `$count`, `$total`
+and `$first` (`"$count"` is the row count, `"$first.title"` the first row's
+title). Without a colliding field, `"count"` and `"$count"` mean the same thing.
+The lint and the app console warn about a field that shadows a payload key.
+
+When nothing matches, `first` is `null` and the
 control keeps its last value. `filter` applies to the payload object as on every
 other transport but is rarely useful here.
 
@@ -363,14 +413,14 @@ only a local source has no socket, so the header dot takes the pipe's colour.
 | Collections per source | 32 |
 | Fields per collection | 64 |
 | Rows per collection | 50 000 (an insert past the cap fails) |
-| Groups per grouped query | 500 |
+| Groups per grouped query | 500 (a two-level groupBy: 500 categories × 12 series) |
 | `limit` | 1 … 1000 |
 | `where` | depth 8, 32 leaves, 64 members per `in` |
 | View nesting | 8 deep |
 | `id` | 1–128 chars of `[A-Za-z0-9_.:-]` |
 
 Not a stage: no computed fields, no joins across collections, no expressions,
-no `having`, no projections (rows always deliver every declared field). Anything
+no projections (rows always deliver every declared field). Anything
 beyond this is a bridge's job.
 
 ## Examples

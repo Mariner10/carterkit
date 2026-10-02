@@ -5,6 +5,18 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **Two-level `groupBy` and `having` in the local-store lint (carter-em4n, app
+  carter-73q2.36).** `groupBy: [primary, "seriesField"]` (one chart series per value;
+  a declared non-json field, no `range` primary, `orderBy` `key` only) and
+  `having: {key|value: {…where ops}}` with `{"daysAgo": N}` on a date value (needs a
+  `groupBy`; not with `fill` or a `range` groupBy) now lint instead of warning
+  "unknown stage key". `bind.local(..., having=)`, `local.STAGE_KEYS`,
+  `local.split_group_by`, `local.having_operands`, `local.MAX_SERIES`; the test
+  evaluator (`tests/local_eval.py`) runs the category x series grid and `having`.
+  Re-vendored `local-store.md` + `chart.md` from app master 5ac00c78.
+
 ## [0.14.0] — 2026-09-28
 
 The on-device **local store** (CAR-TER 1.3): layouts can declare typed collections that
