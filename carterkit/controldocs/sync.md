@@ -7,7 +7,7 @@ fields:
   - name: method
     tab: advanced
     type: string
-    description: Transport method (meshsocket, mqtt, http, sensor, local)
+    description: Transport method (meshsocket, mqtt, http, sensor, local, derive)
   - name: type
     type: string
     description: Sync direction (listen)
@@ -73,13 +73,17 @@ fields:
     step: 1
     type: number
     description: Maximum rows or groups delivered, 1–1000 (local)
+  - name: from
+    type: string
+    description: The id of a layout derive entry this control shows (derive)
 ---
 
 How controls receive live state — the **standardized connection block**. The
 same vocabulary (`filter`, `valuePath`, value semantics) applies no matter the
 transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
-`mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware), or
-`local` (the on-device [[local-store]]).
+`mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware),
+`local` (the on-device [[local-store]]), or `derive` (a value the phone
+computes from other values, see [[derive]]).
 
 ## Definition
 
@@ -183,6 +187,24 @@ With `method: "sensor"` a sync entry binds this device's own hardware instead of
 the mesh — `{ "method": "sensor", "sensor": "heading" }` feeds the control the
 compass with no server at all. See [[sensors]] for the catalog and
 [[publishers]] to stream readings to other devices.
+
+## Derived values (derive / from)
+
+With `method: "derive"` a sync entry shows a value the phone computes from the
+layout's top-level `derive` block instead of a wire. `from` names the derive
+entry; nothing else is needed (no `event`, `filter` or `valuePath`):
+
+```json
+"derive": { "watts": { "mul": [ {"control": "volts"}, {"control": "amps"} ] } }
+...
+{ "type": "gauge", "id": "wattsGauge", "min": 0, "max": 1800,
+  "sync": [ { "method": "derive", "from": "watts" } ] }
+```
+
+The value is recomputed whenever an input control's displayed value moves, on
+this device only: derived values never go on the wire, and relay alerts cannot
+see them. `from` must name a declared derive id. See [[derive]] for the ops,
+argument forms and nil rules.
 
 ## Local store
 

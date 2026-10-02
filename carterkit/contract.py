@@ -350,12 +350,14 @@ def extract_contract(layout: dict) -> dict:
             if not isinstance(s, dict):
                 continue
             method = s.get("method", "meshsocket")
-            if method in ("mqtt", "http", "sensor", "local"):
+            if method in ("mqtt", "http", "sensor", "local", "derive"):
                 # App-direct inbound: the app subscribes/polls/reads it itself, no server.
+                # A derive is computed on the phone from other controls (derive.md).
                 app_direct.append({"id": ctrl.get("id"), "type": ctype, "label": label,
                                    "where": where, "direction": "in", "transport": method,
-                                   "address": s.get("topic") or s.get("path") or s.get("url")
-                                              or s.get("sensor") or _local_address(s)})
+                                   "address": (f"derive.{s.get('from')}" if method == "derive"
+                                               else s.get("topic") or s.get("path") or s.get("url")
+                                               or s.get("sensor") or _local_address(s))})
                 continue
             feed = {"id": ctrl.get("id"), "type": ctype, "label": label,
                     "where": where,

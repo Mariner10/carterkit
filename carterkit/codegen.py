@@ -64,8 +64,8 @@ def analyze_layout(layout: dict) -> dict:
         for s in ch.get("sync") or []:
             if not (isinstance(s, dict) and s.get("valuePath")):
                 continue
-            if s.get("method") in ("mqtt", "http", "sensor", "local"):
-                continue          # app-direct (broker/REST/hardware/local store) — no server serves it
+            if s.get("method") in ("mqtt", "http", "sensor", "local", "derive"):
+                continue          # app-direct (broker/REST/hardware/local store/derive) — no server serves it
             emits.setdefault(s.get("event") or "broadcast", set()).add(s["valuePath"])
             if not pushed and (s.get("event") or "broadcast") == "broadcast" and ch.get("id"):
                 pushes.append((ch["id"], s["valuePath"]))

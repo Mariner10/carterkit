@@ -1,0 +1,39 @@
+{
+  "description": "What the app's decoder refuses in a derive block (DeriveGraph.problems), in order",
+  "cases": [
+    {"name": "clean graph", "derive": {
+        "w": {"mul": [{"control": "v"}, {"control": "a"}]},
+        "kw": {"div": [{"derive": "w"}, 1000]}},
+     "controls": ["v", "a", "gauge"], "consumers": {"kw": ["gauge"]}, "problems": []},
+    {"name": "unknown refs and a collision", "derive": {
+        "ok": {"mul": [{"control": "v"}, 2]},
+        "typo": {"add": [{"control": "tmep2"}, 1]},
+        "lost": {"add": [{"derive": "nowhere"}, 1]},
+        "v": {"add": [1, 1]}},
+     "controls": ["v"], "consumers": {},
+     "problems": [["lost", "unknown ref {\"derive\": \"nowhere\"}"],
+                  ["typo", "unknown ref {\"control\": \"tmep2\"}"],
+                  ["v", "derive id \"v\" collides with a control id"]]},
+    {"name": "direct cycle", "derive": {
+        "a": {"add": [{"derive": "b"}, 1]},
+        "b": {"add": [{"derive": "a"}, 1]}},
+     "controls": [], "consumers": {},
+     "problems": [["a", "derive cycle through \"a\""], ["b", "derive cycle through \"b\""]]},
+    {"name": "cycle through a binding", "derive": {
+        "viaBinding": {"add": [{"control": "shows"}, 1]}},
+     "controls": ["shows"], "consumers": {"viaBinding": ["shows"]},
+     "problems": [["viaBinding", "derive cycle through \"viaBinding\""]]},
+    {"name": "unknown ops are not decoder problems", "derive": {
+        "future": {"frobnicate": [{"control": "v"}]}},
+     "controls": ["v"], "consumers": {}, "problems": []},
+    {"name": "too deep", "derive": {
+        "deep": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs":
+                 {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": {"abs": 1}}}}}}}}}}}}}}}}}},
+     "controls": [], "consumers": {},
+     "problems": [["deep", "nests 17 deep (max 16)"]]},
+    {"name": "too many arguments", "derive": {
+        "wide": {"add": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33]}},
+     "controls": [], "consumers": {},
+     "problems": [["wide", "an op has 33 arguments (max 32)"]]}
+  ]
+}

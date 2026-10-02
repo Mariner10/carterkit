@@ -624,6 +624,24 @@ class Layout:
         self._buf.layout["glance"] = block
         return self
 
+    # ─── derive (values computed on the phone) ─────────────────────────────────
+    def derive(self, derive_id: str, node) -> "DeriveRef":
+        """Declare a value the phone computes from other values (see derive.md)::
+
+            from carterkit.derive import ops
+            watts = ui.derive("watts", ops.mul(volts, amps))
+            ui.gauge("w", min=0, max=1800, sync=watts.sync)
+
+        `node` is a derive op tree (a dict or an ``ops.*`` result; control handles
+        and other derive refs are accepted as arguments). Returns a
+        :class:`carterkit.derive.DeriveRef`: an argument for further nodes, and
+        ``.sync`` binds a control to it. Derived values never go on the wire."""
+        from .derive import DeriveRef, arg
+        if not isinstance(derive_id, str) or not derive_id:
+            raise ValueError("derive id must be a non-empty string")
+        self._buf.layout.setdefault("derive", {})[derive_id] = arg(node)
+        return DeriveRef(derive_id)
+
     # ─── keep awake (hold the screen on while this layout is open) ──────────────
     def keep_awake(self, enabled: bool = True) -> "Layout":
         """Ask the app to suppress the iOS auto screen lock while this layout is on

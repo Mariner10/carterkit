@@ -181,6 +181,17 @@ def local(collection: str, *, where: dict | None = None, group_by=None, aggregat
     return s
 
 
+def derive(source) -> dict:
+    """A `sync` entry that shows a value the phone computes from the layout's
+    top-level `derive` block (see derive.md). `source` is the derive id or the
+    ref ``Layout.derive`` returned. No event, filter or valuePath: the value never
+    travels on the wire."""
+    frm = getattr(source, "id", source)
+    if not isinstance(frm, str) or not frm:
+        raise ValueError("bind.derive needs a derive id")
+    return {"method": "derive", "from": frm}
+
+
 def local_op(op: str, collection: str, *, id: str | None = None, set: dict | None = None,
              field: str | None = None, by=None, source: str | None = None) -> dict:
     """An `action` that writes the local store: `op` is insert / update / upsert /

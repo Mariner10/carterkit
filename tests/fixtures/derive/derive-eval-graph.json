@@ -1,0 +1,28 @@
+{
+  "description": "Derive chains, evaluation order, and entries the graph cannot order",
+  "cases": [
+    {"name": "chain through derive refs", "derive": {
+        "avgC": {"avg": [{"control": "t1"}, {"control": "t2"}, {"control": "t3"}]},
+        "avgF": {"scale": {"of": {"derive": "avgC"}, "from": [0, 100], "to": [32, 212]}},
+        "comfort": {"band": {"of": {"derive": "avgF"}, "stops": [64, 76], "labels": ["cold", "ok", "warm"]}},
+        "w": {"mul": [{"control": "v"}, {"control": "a"}]},
+        "kw": {"div": [{"derive": "w"}, 1000]},
+        "kwRounded": {"round": {"of": {"derive": "kw"}, "places": 1}}},
+     "inputs": {"t1": 20, "t2": 21, "t3": 22, "v": 120, "a": 2}, "now": 0,
+     "expected": {"avgC": 21, "avgF": 69.8, "comfort": "ok", "w": 240, "kw": 0.24, "kwRounded": 0.2}},
+    {"name": "a missing input empties the chain", "derive": {
+        "w": {"mul": [{"control": "v"}, {"control": "a"}]},
+        "kw": {"div": [{"derive": "w"}, 1000]},
+        "safe": {"coalesce": [{"derive": "kw"}, 0]}},
+     "inputs": {"v": 120}, "now": 0,
+     "expected": {"w": null, "kw": null, "safe": 0}},
+    {"name": "cycles and missing derive refs never run", "derive": {
+        "loopA": {"add": [{"derive": "loopB"}, 1]},
+        "loopB": {"add": [{"derive": "loopA"}, 1]},
+        "afterLoop": {"add": [{"derive": "loopA"}, 1]},
+        "ghost": {"add": [{"derive": "nowhere"}, 1]},
+        "ok": {"add": [1, 2]}},
+     "inputs": {}, "now": 0,
+     "expected": {"ok": 3}}
+  ]
+}

@@ -59,6 +59,9 @@ fields:
     tab: advanced
     type: object[]
     description: "Credentials the layout's {{secret:name}} placeholders use: name, label, kind, hosts, mesh. Names only; the values live in the phone's Keychain (see Secrets)"
+  - name: derive
+    type: object
+    description: "Values computed on the phone from other values, keyed by id, e.g. {'watts': {'mul': [{'control': 'volts'}, {'control': 'amps'}]}} (see derive)"
   - name: keepAwake
     type: bool
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
@@ -99,6 +102,7 @@ Top-level JSON structure for a CAR-TER remote.
   "tabs": [ ... ],
   "pollGroups": { ... },
   "dynamicTabs": [ ... ],
+  "derive": { "watts": { "mul": [ {"control": "volts"}, {"control": "amps"} ] } },
   "keepAwake": true,
   "liveness": { "staleAfter": 120 },
   "glance": { "hero": "cpu", "liveActivity": true, "controls": [ ... ], "widgets": [ ... ] }
@@ -376,6 +380,14 @@ held or reverted command-ack values, defaults, Studio writes) never refresh the
 clock. See [[sync]] for resolution, arrivals, `timestampPath`, and the sensor
 heartbeat caveat. A malformed block is ignored rather than failing the layout.
 
+## Derive
+
+`derive` computes values on the phone from other values: a closed JSON op tree
+(`add`, `mul`, `avg`, `clamp`, `scale`, `band`, `since`, ...) keyed by id. A
+control shows one with `"sync": [{"method": "derive", "from": "watts"}]`.
+Derived values never go on the wire; every device computes its own. Full
+reference: [[derive]].
+
 ## Glance surfaces
 
 `glance` projects the layout outside the app: Home/Lock Screen widgets, the
@@ -392,6 +404,7 @@ auto-derived glance. Full reference: [[glance]].
 - [[control-def]] `fallback` — what an older app shows for a control it doesn't know
 - [[glance]] — widgets, Dynamic Island, lock screen, Control Center
 - [[sources]] — MQTT/HTTP data sources
+- [[derive]] — values computed on the phone
 - [[theming]] — Full theme system, light/dark variants, live builder
 - [[appearance]] — Color scheme, header, status bar, background image
 - [[group-def]] — containers within tabs

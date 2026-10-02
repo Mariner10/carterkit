@@ -1,0 +1,56 @@
+{
+  "description": "Coercion, nil propagation, non-finite results and unknown ops",
+  "cases": [
+    {"name": "numeric strings and bools coerce", "derive": {
+        "s": {"mul": [{"control": "s"}, 2]},
+        "bools": {"add": [{"control": "on"}, {"control": "on"}, {"control": "off"}]},
+        "neg": {"add": [{"control": "negStr"}, 0]},
+        "exp": {"add": [{"control": "expStr"}, 0]}},
+     "inputs": {"s": " 121.5 ", "on": true, "off": false, "negStr": "-4", "expStr": "1e3"}, "now": 0,
+     "expected": {"s": 243, "bools": 2, "neg": -4, "exp": 1000}},
+    {"name": "unreadable strings are nil", "derive": {
+        "word": {"add": [{"control": "word"}, 1]},
+        "empty": {"add": [{"control": "empty"}, 1]},
+        "inf": {"add": [{"control": "inf"}, 1]},
+        "nan": {"add": [{"control": "nan"}, 1]}},
+     "inputs": {"word": "hi", "empty": "", "inf": "inf", "nan": "nan"}, "now": 0,
+     "expected": {"word": null, "empty": null, "inf": null, "nan": null}},
+    {"name": "nil propagates", "derive": {
+        "missing": {"mul": [{"control": "missing"}, 2]},
+        "avg": {"avg": [1, {"control": "missing"}]},
+        "abs": {"abs": {"control": "missing"}},
+        "round": {"round": {"of": {"control": "missing"}, "places": 1}},
+        "clampBound": {"clamp": {"of": 1, "min": {"control": "missing"}}},
+        "downstream": {"add": [{"derive": "missing"}, 1]}},
+     "inputs": {}, "now": 0,
+     "expected": {"missing": null, "avg": null, "abs": null, "round": null,
+                  "clampBound": null, "downstream": null}},
+    {"name": "division by zero and non-finite are nil", "derive": {
+        "div0": {"div": [1, 0]},
+        "divLater0": {"div": [10, 2, 0]},
+        "upstream": {"add": [{"div": [1, 0]}, 1]},
+        "overflow": {"mul": [1e300, 1e300]},
+        "sumOverflow": {"add": [1e308, 1e308]},
+        "flatScale": {"scale": {"of": 1, "from": [5, 5], "to": [0, 1]}},
+        "zeroOverX": {"div": [0, 5]}},
+     "inputs": {}, "now": 0,
+     "expected": {"div0": null, "divLater0": null, "upstream": null, "overflow": null,
+                  "sumOverflow": null, "flatScale": null, "zeroOverX": 0}},
+    {"name": "unknown ops and malformed shapes fail closed", "derive": {
+        "unknown": {"frobnicate": [1]},
+        "inside": {"add": [{"frobnicate": [1]}, 1]},
+        "twoKeys": {"add": [1], "mul": [2]},
+        "text": "text",
+        "emptyArgs": {"add": []},
+        "badPlaces": {"round": {"of": 1.5, "places": 1.5}},
+        "noBounds": {"clamp": {"of": 1}},
+        "badScale": {"scale": {"of": 1, "from": [0], "to": [0, 1]}},
+        "absTwo": {"abs": [1, 2]},
+        "clockFalse": {"clock": false},
+        "fine": {"add": [1, 1]}},
+     "inputs": {}, "now": 0,
+     "expected": {"unknown": null, "inside": null, "twoKeys": null, "text": null,
+                  "emptyArgs": null, "badPlaces": null, "noBounds": null, "badScale": null,
+                  "absTwo": null, "clockFalse": null, "fine": 2}}
+  ]
+}

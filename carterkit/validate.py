@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import urlsplit
 
+from . import derive as derivemod
 from . import grid as gridmod
 from . import local as localmod
 from . import palette as palettemod
@@ -352,6 +353,8 @@ def _validate_layout(layout: dict, catalog: dict) -> list[dict]:
             findings.append(_f("warn", "unused_source", f"sources.{name}",
                                f"source '{name}' is declared but never referenced by any "
                                f"control binding"))
+
+    _validate_derive(layout, findings)
 
     glance = layout.get("glance")
     if isinstance(glance, dict):
@@ -1036,7 +1039,7 @@ def identity_ids(layout: dict) -> dict[str, str]:
 
 # Transports whose sync/action carry a transport address (topic/path) instead of a
 # MeshSocket `event` — these are APP-side runtimes (see sources.md / sensors.md).
-_ADDRESSED_METHODS = {"mqtt", "http", "sensor", "local"}
+_ADDRESSED_METHODS = {"mqtt", "http", "sensor", "local", "derive"}
 
 
 def _validate_bindings(ch, ctype, spot, findings, sources=None):
@@ -1165,6 +1168,14 @@ def _validate_sync_entry(s, ctype, spot, i, findings, sources):
         return          # valuePath optional
     if method == "local":
         _validate_local_sync(s, ctype, spot, i, findings, sources)
+        return
+    if method == "derive":
+        # Computed on the phone (derive.md): no frame, so no valuePath. Whether `from`
+        # names a declared derive id is checked layout-wide in _validate_derive.
+        frm = s.get("from")
+        if not isinstance(frm, str) or not frm:
+            findings.append(_f("error", "bad_sync", spot,
+                               f"{ctype}.sync[{i}] method 'derive' needs 'from' (a derive id)"))
         return
     # MeshSocket (default): a listen needs a valuePath to extract from the frame.
     if not s.get("valuePath"):
@@ -1362,7 +1373,7 @@ _EXT_HINT = (" — if this is your tool's own data, move it under "
 TOP_LEVEL_KEYS = {
     "name", "headerTitle", "version", "accentColor", "appearance", "connection", "tabs",
     "pollGroups", "dynamicTabs", "theme", "alerts", "state", "id", "glance", "publishers",
-    "batchPublishers", "sources", "sensorSetup", "keepAwake", "liveness",
+    "batchPublishers", "sources", "sensorSetup", "keepAwake", "liveness", "derive",
     # document contract
     "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
     "placements", "styles", "connectivity",
@@ -1504,6 +1515,60 @@ def _validate_contract(layout: dict, findings: list) -> None:
                 findings.append(_f("warn", "bad_requires", f"root.requires.features[{i}]",
                                    f"feature {feat!r} should be 'name' or 'name@N' "
                                    f"(e.g. 'control.gauge' or 'layout.fallback@2')"))
+
+
+def _validate_derive(layout, findings):
+    """The top-level ``derive`` block (derive.md) and every ``method: "derive"`` sync.
+
+    Errors for what the app's decoder refuses (unknown refs, id collisions, cycles
+    including through a binding, caps), for an op or shape this kit does not know
+    (the app would load it and show nothing: fail closed), and for a sync whose
+    ``from`` names no declared derive id."""
+    block = layout.get("derive")
+    if block is not None and not isinstance(block, dict):
+        findings.append(_f("error", "bad_derive", "derive",
+                           "'derive' must be an object of {id: node}"))
+        block = None
+    block = block or {}
+    declared = set(block)
+    # Parse/evaluate recurse; refuse hostile nesting first (an op level is at most
+    # three JSON levels: {"op": {"of": [...]}}).
+    too_deep = [k for k, v in block.items() if derivemod.json_depth(v) > 3 * derivemod.MAX_DEPTH + 2]
+    for nid in too_deep:
+        findings.append(_f("error", "derive_limits", f"derive.{nid}",
+                           f"nests deeper than {derivemod.MAX_DEPTH} ops"))
+    block = {k: v for k, v in block.items() if k not in too_deep}
+    controls = derivemod.layout_controls(layout)
+    control_ids = {c.get("id") for c in controls if isinstance(c.get("id"), str)}
+    consumers = derivemod.consumers(layout)
+
+    for nid, path, raw in derivemod.invalid_paths(block):
+        where = f"derive.{nid}" + (f" (argument {path.lstrip('/').replace('/', '.')})" if path else "")
+        if isinstance(raw, dict) and len(raw) == 1 and next(iter(raw)) not in derivemod.OPS + ("control", "derive", "clock"):
+            findings.append(_f("error", "unknown_derive_op", where,
+                               f"unknown derive op '{next(iter(raw))}' (the app evaluates it to "
+                               f"nothing); ops: {', '.join(derivemod.OPS)}"))
+        else:
+            findings.append(_f("error", "bad_derive", where,
+                               f"unreadable derive node {json.dumps(raw)[:120]} (one op key per "
+                               f"object, or a number; see derive.md)"))
+    for nid, reason in derivemod.problems(block, control_ids, consumers):
+        kind = ("derive_cycle" if "cycle" in reason else
+                "unknown_derive_ref" if "unknown ref" in reason else
+                "duplicate_id" if "collides" in reason else "derive_limits")
+        findings.append(_f("error", kind, f"derive.{nid}" if nid else "derive", reason))
+
+    for ch in controls:
+        sync = ch.get("sync")
+        for i, s in enumerate(sync if isinstance(sync, list) else []):
+            if not (isinstance(s, dict) and s.get("method") == "derive"):
+                continue
+            frm = s.get("from")
+            if isinstance(frm, str) and frm and frm not in declared:
+                findings.append(_f("error", "unknown_derive_ref", str(ch.get("id") or ch.get("type")),
+                                   f"sync[{i}] 'from': '{frm}' is not a declared derive id"
+                                   + (f" (declared: {', '.join(sorted(declared))})" if declared else
+                                      " (the layout has no 'derive' block)")))
 
 
 def _validate_top_level(layout, findings):
