@@ -9,3 +9,7 @@ DEST="$(cd "$(dirname "$0")/.." && pwd)/carterkit/controldocs"
 rm -f "$DEST"/*.md
 cp "$APP_REPO"/*.md "$DEST"/
 echo "vendored $(ls "$DEST"/*.md | wc -l | tr -d ' ') docs into carterkit/controldocs/"
+# SPEC 3a: no emoji in the authoring fields (carter-re2l). Stdlib-only, any python 3.
+PY="${PYTHON:-$(dirname "$0")/../.venv/bin/python}"
+[ -x "$PY" ] || PY="$(command -v python3)"
+"$PY" "$(dirname "$0")/lint-controldocs-emoji.py" "$DEST"
