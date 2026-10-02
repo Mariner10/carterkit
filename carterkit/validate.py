@@ -1211,6 +1211,13 @@ def _secondary_actions(ch):
             a = cfg.get(akey)
             if isinstance(a, dict):
                 yield f"{ckey}.{akey}", a
+    # compass.md: each puck in compassConfig.pucks[] carries its own `action`.
+    pucks = ch.get("compassConfig", {}).get("pucks") if isinstance(ch.get("compassConfig"), dict) else None
+    if isinstance(pucks, list):
+        for i, puck in enumerate(pucks):
+            a = puck.get("action") if isinstance(puck, dict) else None
+            if isinstance(a, dict):
+                yield f"compassConfig.pucks[{i}].action", a
 
 
 def _validate_action_wire(a, ctype, akey, spot, findings):

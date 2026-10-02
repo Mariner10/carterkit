@@ -403,6 +403,21 @@ def test_dead_action_covers_secondary_carrier_nested_in_config():
         assert "dead_action" not in {f["kind"] for f in validate_layout(ok)}, akey
 
 
+# carter-du4t — compass pucks each carry an action in compassConfig.pucks[].action.
+def test_dead_action_covers_compass_puck_actions():
+    from carterkit import validate_layout
+    pucks = [{"id": "a", "bearing": 0, "action": {"event": "broadcast_request",
+                                                  "payload": {"msg_type": "go"}}},
+             {"id": "b", "bearing": 90, "action": {"event": "broadcast",
+                                                   "payload": {"msg_type": "go"}}}]
+    lay = _action_layout("compass", "compassConfig", {"pucks": pucks})
+    dead = [f for f in validate_layout(lay) if f["kind"] == "dead_action"]
+    assert len(dead) == 1, dead
+    assert "compassConfig.pucks[1].action" in dead[0]["detail"], dead[0]["detail"]
+    pucks[1]["action"]["event"] = "broadcast_request"
+    assert "dead_action" not in {f["kind"] for f in validate_layout(lay)}
+
+
 def test_dead_action_remedy_keeps_existing_msg_type():
     from carterkit import validate_layout
     lay = _action_layout("button", "action", {"event": "broadcast",
