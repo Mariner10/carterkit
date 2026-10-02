@@ -3,7 +3,7 @@ type: heatmap
 label: Heatmap
 icon: square.grid.3x3.fill
 category: controls
-defaultSpan: [2, 4]
+defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Heat grid
 oneLiner: Colored squares that show how much

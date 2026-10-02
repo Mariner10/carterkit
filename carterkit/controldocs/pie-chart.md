@@ -3,7 +3,7 @@ type: pieChart
 label: Pie Chart
 icon: chart.pie.fill
 category: controls
-defaultSpan: [2, 2]
+defaultSpan: [3, 3]
 addIntent: show
 friendlyName: Pie
 oneLiner: Parts of a whole
