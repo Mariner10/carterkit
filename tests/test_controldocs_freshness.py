@@ -96,9 +96,20 @@ def test_skips_without_the_sibling_app_repo(monkeypatch, tmp_path):
 SCRIPT = KIT_ROOT / "scripts" / "sync-controldocs.sh"
 
 
-def _check(app_dir):
+def _check(app_dir, ref=None):
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("APP_REF", "CARTER_APP_CONTROLDOCS_REF")}
+    env["APP_REPO"] = str(app_dir)
+    if ref:
+        env["APP_REF"] = ref
     return subprocess.run(["bash", str(SCRIPT), "--check"], capture_output=True, text=True,
-                          env={**os.environ, "APP_REPO": str(app_dir)})
+                          env=env)
+
+
+def _git(repo, *args):
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True,
+                   env={**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+                        "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"})
 
 
 def test_sync_script_check_mode(tmp_path):
@@ -118,3 +129,40 @@ def test_sync_script_check_mode(tmp_path):
     assert "missing from carterkit: zz-new.md" in dirty.stdout
     # --check never touches the vendored copy.
     assert not (VENDORED / "zz-new.md").exists()
+
+
+def test_sync_script_check_reports_kit_only_docs(tmp_path):
+    app = tmp_path / "ControlDocs"
+    app.mkdir()
+    names = sorted(_docs(VENDORED))
+    for name in names[1:]:                      # the app "deleted" the first doc
+        (app / name).write_bytes((VENDORED / name).read_bytes())
+    res = _check(app)
+    assert res.returncode == 1
+    assert res.stdout.strip() == f"only in carterkit:      {names[0]}"
+
+
+def test_check_against_a_git_ref_ignores_the_working_tree(tmp_path):
+    """APP_REF / CARTER_APP_CONTROLDOCS_REF compare a committed app ref, so another
+    session's uncommitted ControlDocs edits in the app checkout don't count."""
+    repo = tmp_path / "app"
+    docs = repo / "CAR-TER" / "ControlDocs"
+    docs.mkdir(parents=True)
+    _git(repo, "init", "-q", "-b", "master")
+    vendored = _docs(VENDORED)
+    for name, data in vendored.items():
+        (docs / name).write_bytes(data)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "docs")
+
+    first = sorted(vendored)[0]
+    (docs / first).write_bytes(b"uncommitted edit\n")   # dirty working tree only
+
+    assert _check(docs).returncode == 1                  # working tree: drift
+    clean = _check(docs, ref="master")                   # committed ref: in sync
+    assert clean.returncode == 0, clean.stdout + clean.stderr
+    assert drift(_app_docs_at_ref(docs, "master"), vendored) == []
+
+    bad = _check(docs, ref="no-such-ref")
+    assert bad.returncode == 2
+    assert "unknown app ref" in bad.stderr
