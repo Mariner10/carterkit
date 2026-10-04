@@ -45,7 +45,7 @@ def chunk_deck(event: str, children, *, max_bytes: int = DECK_FRAME_BUDGET,
     frame. A bigger one is packed, whole children in order, into frames that each carry
     ``rev`` (same for every part), ``part`` (1-based, ``1``...``parts``) and ``parts``.
     1-based numbering works on every app version that reassembles decks; 0-based only
-    on 1.3+. `rev` defaults to a hash of the deck's content, so an identical re-push
+    on 1.2.6+. `rev` defaults to a hash of the deck's content, so an identical re-push
     keeps the same rev. Raises ``ValueError`` when one child alone exceeds `max_bytes`,
     when the deck needs more than 64 parts, or when `rev` is longer than 256 bytes.
     """

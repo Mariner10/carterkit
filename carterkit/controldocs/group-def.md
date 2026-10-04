@@ -75,8 +75,8 @@ several broadcasts. Each one carries the same `msg_type` plus three extra keys:
 | Key | Type | Rule |
 |-----|------|------|
 | `rev` | string | Identifies one deck. Every part of the deck carries the same `rev`; use a new `rev` (a counter, a timestamp, a content hash) for each new deck. At most 256 UTF-8 bytes. |
-| `parts` | integer | Total number of parts, `2`...`64`. A frame with no `parts`, or with `parts` of `1` or less, is a normal single-frame deck. |
-| `part` | integer | This frame's index. **Number parts `1`...`parts` (1-based).** CAR-TER 1.3 and later also accept 0-based `0`...`parts-1`. |
+| `parts` | integer | Total number of parts, `2`...`64`. A frame whose `parts` is missing, not a number (for example a string), or a number of `1` or less is a normal single-frame deck. |
+| `part` | integer | This frame's index. **Number parts `1`...`parts` (1-based).** CAR-TER 1.2.6 and later also accept 0-based `0`...`parts-1`. |
 | `children` | array | This part's slice of the deck: whole child objects. Split between children, never inside one. |
 
 ```json
@@ -100,9 +100,9 @@ How the app puts a deck back together:
   distinct indices, so it can apply only part of the deck.
 - The app keeps only `msg_type` and `children` from the reassembled deck. Any
   other top-level keys on the parts are ignored.
-- Use 1-based numbering. Before 1.3, the app reassembled `1`...`parts` only:
-  1.2.5 and 1.2.6 drop part `0`, so a 0-based deck never finishes, and older
-  builds apply the deck without part `0`'s children.
+- Use 1-based numbering. Before 1.2.6, the app reassembled `1`...`parts` only:
+  1.2.5 drops part `0`, so a 0-based deck never finishes, and older builds
+  apply the deck without part `0`'s children.
 - Chunking applies to dynamic **groups** only. A [[dynamic-content|dynamic tab]]
   always arrives as one frame.
 

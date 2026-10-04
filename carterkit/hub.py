@@ -330,7 +330,10 @@ class Hub:
         stay under the relay's 256 KiB frame limit even when E2EE-sealed) goes out as
         1-based `{rev, part, parts}` frames the app reassembles (group-def.md →
         *Chunked decks*). A prebuilt payload that already carries `parts` is sent
-        as-is. Returns the whole deck payload."""
+        as-is. Extra top-level keys on a prebuilt payload go out on a single frame
+        but are dropped when the deck is chunked (parts carry only `msg_type`,
+        `children`, `rev`, `part`, `parts`); the app ignores them either way.
+        Returns the whole deck payload."""
         g = self._control(group)
         event = g.get("dynamic")
         if not event:
