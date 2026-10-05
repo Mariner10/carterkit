@@ -128,8 +128,12 @@ def test_endpoints_and_push():
             with urllib.request.urlopen(req, timeout=15) as r:
                 for line in r:
                     if line.startswith(b"data: "):
-                        got["evt"] = json.loads(line[6:])
-                        return
+                        evt = json.loads(line[6:])
+                        # the hub may echo the frame as a "broadcast" first (a race
+                        # that shows up on 3.11); wait for the explorer's own push
+                        if evt.get("kind") == "push":
+                            got["evt"] = evt
+                            return
 
         lt = threading.Thread(target=listen)
         lt.start()
