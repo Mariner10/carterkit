@@ -64,9 +64,16 @@ def test_legacy_leaf_is_clean_and_unknown_operator_is_error():
     assert {f["kind"] for f in _errors({"when": "a", "operator": "between", "value": 1})} == {"bad_operator"}
 
 
-def test_reserved_refs_warn():
+def test_field_and_form_derive_refs_resolve():
+    for ref in ({"field": "f.valid"}, {"derive": "form.f.valid"}):
+        findings: list[dict] = []
+        check_condition({"ref": ref, "value": True}, "c", findings)
+        assert findings == []
+
+
+def test_non_form_derive_ref_warns():
     findings: list[dict] = []
-    check_condition({"ref": {"derive": "form.f.valid"}, "value": True}, "c", findings)
+    check_condition({"ref": {"derive": "watts"}, "value": True}, "c", findings)
     assert [f["kind"] for f in findings] == ["reserved_ref"]
     assert findings[0]["severity"] == "warn"
 

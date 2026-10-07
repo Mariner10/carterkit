@@ -599,3 +599,18 @@ def test_known_features_come_from_the_vendored_app_list():
     assert {n[len("control."):] for n in have if n.startswith("control.")} == \
         set(carterkit.controls())
     assert {"sync.meshsocket", "action.http", "layout.requires"} <= set(have)
+
+
+def test_form_derive_and_stattile_seed_are_accepted():
+    layout = _layout([
+        {"type": "group", "id": "g", "position": [0, 0], "span": [2, 2],
+         "form": {"fields": {"n": {"required": True}}},
+         "children": [
+             {"type": "textInput", "id": "t", "position": [0, 0], "field": "n"},
+             {"type": "button", "id": "b", "position": [1, 0], "role": "submit"}]},
+        {"type": "statTile", "id": "s", "position": [0, 2], "defaultValue": [1, 2, 3],
+         "sync": [{"method": "derive", "from": "d"}]}])
+    layout["derive"] = {"d": {"add": [1, 2]}}
+    bad = [f for f in validate.validate_layout(layout, CAT) if f["kind"] in
+           ("unknown_field", "bad_sync", "bad_default_value", "reserved_ref")]
+    assert bad == []

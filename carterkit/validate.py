@@ -44,6 +44,8 @@ SHARED_FIELDS = {
     "min", "max", "step", "formatValue", "controlHeight", "hideValue", "pulse",
     # Per-presentation placement variants (grid-dimensions.md#Landscape and iPad).
     "landscape", "regular",
+    # Form membership: an input's draft-field name, a button's `role: "submit"` (form.md).
+    "field", "role",
     # Tool data (document-contract.md#Extensions): preserved, never interpreted.
     "extensions",
     # What an older app shows when it doesn't know this type (layout-config.md
@@ -54,6 +56,8 @@ GROUP_FIELDS = {
     "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "enabled", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
     "landscape", "regular", "extensions",
+    # A group with a `form` block is a form (form.md).
+    "form",
 }
 
 
@@ -916,7 +920,7 @@ def _validate_default_value(dv, ctype, spot, findings):
     load with a repair note (carter-7vs), so this is a warning."""
     if not isinstance(dv, (list, dict)):
         return
-    if ctype == "sparkline":
+    if ctype in ("sparkline", "statTile"):
         ok = isinstance(dv, list) and any(_is_number(v) for v in dv) \
             and all(v is None or _is_number(v) for v in dv)
         need = "an array of numbers"
@@ -1166,6 +1170,12 @@ def _validate_sync_entry(s, ctype, spot, i, findings, sources):
     if method == "local":
         _validate_local_sync(s, ctype, spot, i, findings, sources)
         return
+    if method == "derive":
+        # Evaluated on the device from the layout's `derive` entry; no wire, no valuePath.
+        if not isinstance(s.get("from"), str) or not s.get("from"):
+            findings.append(_f("warn", "bad_sync", spot,
+                               f"{ctype}.sync[{i}] method 'derive' needs a 'from' naming a layout derive entry"))
+        return
     # MeshSocket (default): a listen needs a valuePath to extract from the frame.
     if not s.get("valuePath"):
         findings.append(_f("warn", "bad_sync", spot,
@@ -1363,6 +1373,8 @@ TOP_LEVEL_KEYS = {
     "name", "headerTitle", "version", "accentColor", "appearance", "connection", "tabs",
     "pollGroups", "dynamicTabs", "theme", "alerts", "state", "id", "glance", "publishers",
     "batchPublishers", "sources", "sensorSetup", "keepAwake", "liveness",
+    # on-device derive graph (D21) and declared secret names (F15)
+    "derive", "secrets",
     # document contract
     "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
     "placements", "styles", "connectivity",

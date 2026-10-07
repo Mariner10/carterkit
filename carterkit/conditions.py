@@ -9,8 +9,8 @@ ControlDocs/visibility.md (the source of truth):
 
 Operators are the one Match grammar (eq ne gt gte lt lte in exists; aliases neq/is/isNot).
 Depth cap 16. A node names exactly one of all/any/not/ref/when; all/any need >= 1 child.
-`field` and `derive` refs are reserved (forms / derive are not on the app yet): they decode
-but make the whole condition false, so the lint warns.
+`field` refs and `derive` refs of the form `form.<formId>.<cell>` resolve (forms shipped,
+carter-c1n.20); any other derive key decodes but makes the whole condition false, so the lint warns.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from __future__ import annotations
 MATCH_OPS = {"eq", "ne", "gt", "gte", "lt", "lte", "in", "exists"}
 MATCH_ALIASES = {"neq": "ne", "is": "eq", "isNot": "ne"}
 REF_KINDS = ("control", "selected", "field", "derive")
-RESERVED_REFS = {"field", "derive"}
+RESERVED_REFS = set()   # `field` and `form.*` derive refs are live (carter-c1n.20)
 SHAPE_KEYS = ("all", "any", "not", "ref", "when")
 MAX_CONDITION_DEPTH = 16
 
@@ -87,7 +87,11 @@ def _check_leaf(cond: dict, shape: str, where: str, findings: list) -> None:
                                f"'ref' needs exactly one of {'/'.join(REF_KINDS)} naming a string key"))
             return
         kind = next(iter(ref))
-        if kind in RESERVED_REFS:
+        if kind == "derive" and not str(ref["derive"]).startswith("form."):
+            findings.append(_f("warn", "reserved_ref", f"{where}.ref",
+                               "only 'form.<formId>.<cell>' derive refs resolve on this build; "
+                               "any other key evaluates false"))
+        elif kind in RESERVED_REFS:
             findings.append(_f("warn", "reserved_ref", f"{where}.ref",
                                f"'{kind}' refs are reserved for a later app version; on this build "
                                f"the whole condition evaluates false"))
