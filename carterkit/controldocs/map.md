@@ -7,6 +7,7 @@ defaultSpan: [4, 4]
 addIntent: show
 friendlyName: Map
 oneLiner: A place on a map
+aliases: [location, gps, pin, geo, route, places]
 starterPreset: {"label": "Map","mapStyle": "standard"}
 fields:
   - name: mapStyle
@@ -83,6 +84,16 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: accentColor
+    title: Accent color
+    type: color
+    default: #667eea
+    description: Accent/tint color
+  - name: surfaceSecondary
+    title: Second background color
+    type: color
+    default: #FFFFFF0A
+    description: Secondary surface fill
 ---
 
 # Map

@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: change
 friendlyName: Date & time
 oneLiner: Pick a day or a time
+aliases: [calendar, time, date, schedule, clock, day]
 addRank: 8
 starterPreset: {"label": "When","datePickerMode": "date"}
 fields:

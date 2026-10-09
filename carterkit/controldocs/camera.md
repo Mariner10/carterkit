@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: change
 friendlyName: Scanner
 oneLiner: Scan a barcode or QR code
+aliases: [photo, picture, scan, capture, video, webcam]
 starterPreset: {"label": "Scan","scan": ["barcode"]}
 fields:
   - name: label
@@ -97,6 +98,27 @@ themeFields:
     type: number
     default: 1
     description: Border width
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: labelFontSize
+    title: Title text size
+    min: 8
+    max: 24
+    step: 1
+    type: number
+    default: 12
+    description: Label text size
+  - name: valueFontSize
+    title: Value text size
+    min: 8
+    max: 48
+    step: 1
+    type: number
+    default: 14
+    description: Value text size
 ---
 
 # Camera

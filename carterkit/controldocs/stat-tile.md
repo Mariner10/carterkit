@@ -7,6 +7,7 @@ defaultSpan: [3, 2]
 addIntent: show
 friendlyName: Stat tile
 oneLiner: A big number, its change, and a faint trend
+aliases: [kpi, metric, stat, number, counter, big number]
 starterPreset: {"label": "Downloads","unit": "today","statTileConfig": {"reference": 1000}}
 fields:
   - name: label

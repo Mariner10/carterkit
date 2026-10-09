@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: show
 friendlyName: QR code
 oneLiner: A code a phone camera can scan
+aliases: [qr, barcode, scan, code, link, share]
 starterPreset: {"label": "QR code","text": "https://example.com"}
 fields:
   - name: label
@@ -72,6 +73,11 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
 ---
 
 # QR Code (display)

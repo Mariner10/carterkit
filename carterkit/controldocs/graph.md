@@ -7,6 +7,7 @@ defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Network
 oneLiner: Dots joined by lines
+aliases: [network, nodes, edges, diagram, relationships, links]
 starterPreset: {"label": "Network"}
 fields:
   - name: label
@@ -251,6 +252,11 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
 ---
 
 # Graph

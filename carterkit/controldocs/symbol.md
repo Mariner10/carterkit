@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: show
 friendlyName: Symbol
 oneLiner: An icon that can animate
+aliases: [icon, sf symbol, glyph, emoji, shape, picture]
 addRank: 8
 starterPreset: {"systemName": "star.fill","label": "Symbol"}
 fields:
@@ -204,6 +205,11 @@ themeFields:
     type: number
     default: 1
     description: Border width
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
 ---
 
 # Symbol

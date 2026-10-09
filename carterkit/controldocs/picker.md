@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: change
 friendlyName: Menu
 oneLiner: Pick one from a list
+aliases: [dropdown, select, menu, choose, options, combo box]
 addRank: 7
 starterPreset: {"label": "Menu","options": ["One","Two","Three"]}
 fields:

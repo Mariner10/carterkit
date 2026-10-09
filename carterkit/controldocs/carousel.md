@@ -7,6 +7,7 @@ defaultSpan: [3, 2]
 addIntent: organize
 friendlyName: Pages
 oneLiner: Swipe between pages
+aliases: [swipe, slider, slideshow, gallery, pager, pages]
 addRank: 3
 starterPreset: {}
 fields:
@@ -62,6 +63,42 @@ themeFields:
     type: number
     default: 12
     description: Panel corner radius
+  - name: blurEnabled
+    title: Frosted glass
+    type: bool
+    default: true
+    description: Blur the card background
+  - name: borderColor
+    title: Border color
+    type: color
+    default: #FFFFFF1A
+    description: Border color
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: cardPadding
+    title: Card spacing
+    min: 0
+    max: 32
+    step: 1
+    type: number
+    default: 12
+    description: Padding inside each panel card
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
 ---
 
 # Carousel

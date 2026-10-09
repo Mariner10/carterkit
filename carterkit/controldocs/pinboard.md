@@ -7,6 +7,7 @@ defaultSpan: [10, 4]
 addIntent: change
 friendlyName: Pin board
 oneLiner: Pin things onto a picture
+aliases: [board, notes, sticky, pins, corkboard, cards]
 starterPreset: {"label": "Pin board"}
 fields:
   - name: haptic

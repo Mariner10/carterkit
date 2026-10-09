@@ -7,6 +7,7 @@ defaultSpan: [10, 4]
 addIntent: change
 friendlyName: Free canvas
 oneLiner: Place things anywhere on a surface
+aliases: [draw, drawing, sketch, paint, shapes, freeform]
 starterPreset: {"label": "Canvas"}
 fields:
   - name: haptic

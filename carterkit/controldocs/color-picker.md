@@ -7,6 +7,7 @@ defaultSpan: [1, 1]
 addIntent: change
 friendlyName: Color
 oneLiner: Pick a color
+aliases: [colour, palette, swatch, hue, rgb, paint]
 starterPreset: {"label": "Color"}
 fields:
   - name: label

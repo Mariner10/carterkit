@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: change
 friendlyName: Text box
 oneLiner: Type something in
+aliases: [text field, input, textbox, entry, type, search box]
 addRank: 5
 starterPreset: {"label": "Text box","placeholder": "Type here"}
 fields:

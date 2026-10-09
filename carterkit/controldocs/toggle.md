@@ -7,6 +7,7 @@ defaultSpan: [1, 1]
 addIntent: change
 friendlyName: Switch
 oneLiner: Turns something on or off
+aliases: [switch, on off, checkbox, enable, flip, boolean]
 addRank: 2
 starterPreset: {"label": "Switch"}
 fields:
@@ -204,6 +205,19 @@ themeFields:
     type: bool
     default: true
     description: Show knob shadow
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
 ---
 
 # Toggle

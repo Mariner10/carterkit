@@ -7,6 +7,7 @@ defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Log
 oneLiner: Lines of messages as they arrive
+aliases: [console, log, terminal, output, messages, tail]
 starterPreset: {"label": "Log"}
 fields:
   - name: label
@@ -106,6 +107,16 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: surfaceSecondary
+    title: Second background color
+    type: color
+    default: #FFFFFF0A
+    description: Secondary surface fill
 ---
 
 # Log Console

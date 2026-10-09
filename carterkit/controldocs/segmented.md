@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: change
 friendlyName: Choice
 oneLiner: Pick one of a few options
+aliases: [tabs, tab bar, choice, options, radio, switcher]
 addRank: 6
 starterPreset: {"options": ["One","Two","Three"]}
 fields:
@@ -109,6 +110,19 @@ themeFields:
     type: color
     default: #FFFFFF
     description: Selected text color
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
 ---
 
 # Segmented Control

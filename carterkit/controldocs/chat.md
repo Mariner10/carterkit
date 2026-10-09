@@ -7,6 +7,7 @@ defaultSpan: [4, 4]
 addIntent: show
 friendlyName: Chat
 oneLiner: Messages back and forth
+aliases: [messages, conversation, assistant, ai, talk, inbox]
 starterPreset: {"label": "Chat"}
 fields:
   - name: label
@@ -97,6 +98,16 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: tertiaryColor
+    title: Faint text color
+    type: color
+    default: #FFFFFF4D
+    description: Tertiary text and ink color
 ---
 
 # Chat

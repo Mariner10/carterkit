@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: change
 friendlyName: Joystick
 oneLiner: Steer with your thumb
+aliases: [stick, pad, direction, steer, drive, gamepad]
 starterPreset: {"label": "Joystick"}
 fields:
   - name: label

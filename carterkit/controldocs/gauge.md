@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: show
 friendlyName: Dial
 oneLiner: A number on a dial, from low to high
+aliases: [dial, meter, speedometer, level, needle, progress]
 addRank: 3
 starterPreset: {"label": "Dial","min": 0,"max": 100}
 lookFormats: [{"id": "dial","name": "Dial","symbol": "gauge.medium","set": {"type": "gauge","gaugeStyle": "half","arcAngle": null}},{"id": "ring","name": "Ring","symbol": "circle.circle","set": {"type": "gauge","gaugeStyle": "full","arcAngle": null}},{"id": "bar","name": "Bar","symbol": "chart.bar.fill","set": {"type": "progressRing","progressStyle": "bar"}}]

@@ -7,6 +7,7 @@ defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Web page
 oneLiner: A web page inside your app
+aliases: [web, browser, webpage, url, site, embed]
 starterPreset: {"label": "Web page","url": "https://example.com"}
 fields:
   - name: url

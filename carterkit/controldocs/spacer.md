@@ -7,6 +7,7 @@ defaultSpan: [1, 1]
 addIntent: organize
 friendlyName: Space
 oneLiner: An empty gap
+aliases: [gap, space, padding, blank, empty, filler]
 addRank: 2
 starterPreset: {}
 fields:

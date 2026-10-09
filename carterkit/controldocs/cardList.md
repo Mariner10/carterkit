@@ -7,6 +7,7 @@ defaultSpan: [4, 4]
 addIntent: show
 friendlyName: Cards
 oneLiner: A stack of cards
+aliases: [cards, feed, tiles, items, results, stack]
 starterPreset: {}
 fields:
 ---

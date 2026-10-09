@@ -7,6 +7,7 @@ defaultSpan: [1, 4]
 addIntent: organize
 friendlyName: Divider
 oneLiner: A line between sections
+aliases: [line, separator, rule, break, split, hr]
 addRank: 1
 starterPreset: {"label": "Section"}
 fields:
@@ -32,6 +33,11 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
 ---
 
 # Divider

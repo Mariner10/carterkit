@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: show
 friendlyName: Picture
 oneLiner: A photo or an icon
+aliases: [picture, photo, icon, logo, thumbnail, img]
 addRank: 7
 starterPreset: {"systemName": "photo"}
 fields:

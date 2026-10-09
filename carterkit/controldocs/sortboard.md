@@ -7,6 +7,7 @@ defaultSpan: [10, 4]
 addIntent: change
 friendlyName: Sort board
 oneLiner: Drag cards between columns
+aliases: [kanban, drag, reorder, sort, buckets, ranking]
 starterPreset: {"label": "Board"}
 fields:
   - name: haptic

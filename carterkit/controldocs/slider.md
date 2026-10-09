@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: change
 friendlyName: Slider
 oneLiner: Slide to pick a number
+aliases: [range, dial, volume, brightness, scrub, level]
 addRank: 3
 starterPreset: {"label": "Slider","min": 0,"max": 100,"step": 1}
 fields:
@@ -214,6 +215,27 @@ themeFields:
     type: bool
     default: true
     description: Show thumb shadow
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
+  - name: trackRadius
+    title: Track roundness
+    min: 0
+    max: 20
+    step: 1
+    type: number
+    default: 2
+    description: Track corner radius
 ---
 
 # Slider

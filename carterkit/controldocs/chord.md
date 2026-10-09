@@ -7,6 +7,7 @@ defaultSpan: [3, 3]
 addIntent: show
 friendlyName: Connections
 oneLiner: How things connect to each other
+aliases: [relationships, connections, circular, flow, matrix]
 starterPreset: {"label": "Connections"}
 fields:
   - name: haptic
@@ -82,6 +83,50 @@ themeFields:
     type: color
     default: #FFFFFF99
     description: Group label color
+  - name: accentColor
+    title: Accent color
+    type: color
+    default: #667eea
+    description: Accent/tint color
+  - name: borderColor
+    title: Border color
+    type: color
+    default: #FFFFFF1A
+    description: Border color
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: controlPadding
+    title: Inner spacing
+    min: 0
+    max: 24
+    step: 1
+    type: number
+    default: 8
+    description: Internal padding
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: labelFontSize
+    title: Title text size
+    min: 8
+    max: 24
+    step: 1
+    type: number
+    default: 12
+    description: Label text size
+  - name: tertiaryColor
+    title: Faint text color
+    type: color
+    default: #FFFFFF4D
+    description: Tertiary text and ink color
 ---
 
 # Chord

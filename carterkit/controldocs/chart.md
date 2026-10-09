@@ -7,6 +7,7 @@ defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Chart
 oneLiner: Lines or bars over time
+aliases: [graph, plot, line chart, bar chart, trend, timeline]
 starterPreset: {"label": "Chart"}
 fields:
   - name: haptic
@@ -182,6 +183,34 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+  - name: accentColor
+    title: Accent color
+    type: color
+    default: #667eea
+    description: Accent/tint color
+  - name: borderColor
+    title: Border color
+    type: color
+    default: #FFFFFF1A
+    description: Border color
+  - name: borderWidth
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
+  - name: foregroundColor
+    title: Text color
+    type: color
+    default: #FFFFFF
+    description: Primary text color
+  - name: tertiaryColor
+    title: Faint text color
+    type: color
+    default: #FFFFFF4D
+    description: Tertiary text and ink color
 ---
 
 # Chart

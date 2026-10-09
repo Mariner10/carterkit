@@ -7,6 +7,7 @@ defaultSpan: [1, 2]
 addIntent: show
 friendlyName: Text
 oneLiner: A line of text, or a value with a caption
+aliases: [text, title, heading, caption, readout, words]
 addRank: 1
 starterPreset: {"label": "Text","text": "Hello"}
 starterVariants: [{"friendlyName": "Last time","oneLiner": "When something last happened, like 4 days ago","addRank": 2,"preset": {"label": "Last time","formatValue": "relative:day","placeholder": "Never"}}]

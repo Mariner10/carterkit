@@ -7,6 +7,7 @@ defaultSpan: [3, 4]
 addIntent: show
 friendlyName: Table
 oneLiner: Rows of information
+aliases: [rows, table, items, entries, feed, menu]
 starterPreset: {"label": "Table"}
 fields:
   - name: label
@@ -80,6 +81,11 @@ themeFields:
     type: number
     default: 1
     description: Border width
+  - name: secondaryColor
+    title: Second text color
+    type: color
+    default: #FFFFFF99
+    description: Secondary text color
 ---
 
 # List

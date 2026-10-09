@@ -7,6 +7,7 @@ defaultSpan: [2, 2]
 addIntent: show
 friendlyName: Trend line
 oneLiner: A little line that shows how a number changes
+aliases: [trend, mini chart, tiny chart, spark, history, line]
 addRank: 5
 starterPreset: {"label": "Trend","sparklinePoints": 60}
 lookPresets: [{"id": "line","name": "Line","symbol": "chart.xyaxis.line","set": {"sparklineFill": null}},{"id": "filled","name": "Filled","symbol": "chart.line.uptrend.xyaxis","set": {"sparklineFill": true}}]

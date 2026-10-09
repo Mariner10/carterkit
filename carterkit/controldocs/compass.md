@@ -7,6 +7,7 @@ defaultSpan: [7, 3]
 addIntent: change
 friendlyName: Action ring
 oneLiner: Turn a ring to pick an action
+aliases: [heading, direction, bearing, north, orientation, navigation]
 starterPreset: {"label": "Ring"}
 fields:
   - name: haptic
