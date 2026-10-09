@@ -1653,6 +1653,12 @@ def _validate_device_shape(layout, findings):
             if not isinstance(ch, dict):
                 continue
             spot = f"{where}/{ch.get('id') or ch.get('type') or '?'}"
+            # The app's LayoutSanitizer refuses a child with no position (strict) and a
+            # layout holding one fails to decode (carter-upj2), so a missing one is an error.
+            if "position" not in ch:
+                findings.append(_f("error", "missing_field", spot,
+                                   "missing 'position' — the app refuses a control or group "
+                                   "inside children without one"))
             check_range(ch, "span", *SPAN_RANGE, "bad_span", spot)
             check_range(ch, "position", *POSITION_RANGE, "bad_position", spot)
             if ch.get("type") == "group":

@@ -40,6 +40,8 @@ All notable changes to **carterkit** are documented here. This project follows
 - **Text drops the "Last time" starter variant (carter-73q2.6 parity).** "Last time" is a Text
   Look format, not a separate Add choice, so `controldocs/label.md` no longer carries
   `starterVariants`. Matches the app's `CAR-TER/ControlDocs/label.md`.
+- Validate that every control or group inside `children` has a `position`: a missing one is
+  an error (`missing_field`), since the app refuses it and the layout fails to decode (aif-eyfa).
 
 ## [0.15.0] — 2026-09-30
 
