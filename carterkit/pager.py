@@ -41,6 +41,11 @@ SUMMARY_MAX = 120          # body text rides APNs in plaintext: keep it short
 AUDIT_MAX = 500            # audit entries kept in memory for the logConsole
 CLOSED_MAX = 1000          # resolved nonces remembered to answer late taps
 LINE_MAX = 64 * 1024       # one request line from the hook
+QUEUE_EVENT = "pager_queue"   # dynamic-group event of the layout's pg-queue
+LOG_MSG_TYPE = "pager_log"    # one broadcast = one appended pg-log line
+DEFAULT_METRICS = DEFAULT_DIR / "metrics.jsonl"
+QUEUE_SHOWN = 4               # paged requests drawn in pg-queue (3 rows each)
+QUEUE_ROWS = 3 * QUEUE_SHOWN + 1   # + one "+N more" row; the app clips beyond grid.rows
 
 # The ONLY accepted decision / actionId spellings. Anything else is ignored.
 _DECISIONS = {"approve": ALLOW, "deny": DENY}
@@ -110,13 +115,14 @@ class PendingStore:
 
 class _Request:
     __slots__ = ("nonce", "agent", "tool", "summary", "created", "deadline",
-                 "state", "future", "timer")
+                 "activated", "state", "future", "timer")
 
     def __init__(self, agent, tool, summary, loop):
         self.nonce = "pg" + uuid.uuid4().hex
         self.agent, self.tool, self.summary = agent, tool, summary
         self.created = time.time()
         self.deadline = None
+        self.activated = None
         self.state = "queued"
         self.future = loop.create_future()
         self.timer = None
@@ -141,7 +147,8 @@ class AgentPager:
     behind it."""
 
     def __init__(self, hub, *, timeout=DEFAULT_TIMEOUT, store_path=None, socket_path=None,
-                 status_msg_type="pager"):
+                 status_msg_type="pager", queue_event=QUEUE_EVENT,
+                 log_msg_type=LOG_MSG_TYPE, metrics_path=None, refresh_interval=15.0):
         if timeout is None or timeout <= 0:
             raise ValueError("timeout must be > 0 (the deadline is what makes it fail closed)")
         self.hub = hub
@@ -150,6 +157,16 @@ class AgentPager:
         self.socket_path = (Path(socket_path).expanduser() if socket_path
                             else (DEFAULT_DIR / "pager.sock").expanduser())
         self.status_msg_type = status_msg_type
+        self.queue_event = queue_event
+        self.log_msg_type = log_msg_type
+        #: One JSON line per decision ``{ts, nonce, agent, tool, decision, source,
+        #: latency, queued, timed_out}``. ``None`` = off (the daemon passes
+        #: ``~/.carter/pager/metrics.jsonl``; tests pass a tmp path).
+        self.metrics_path = Path(metrics_path).expanduser() if metrics_path else None
+        #: While a request is paged, re-push status + queue this often (seconds;
+        #: ``None``/0 = off) — a safety net for a phone that rejoined without its
+        #: sync request reaching us. Idle pagers stay silent.
+        self.refresh_interval = refresh_interval
         self._queues: dict[str, collections.deque] = {}
         self._active: dict[str, _Request] = {}           # nonce -> active request
         self._closed: collections.OrderedDict = collections.OrderedDict()  # nonce -> decision
@@ -165,6 +182,8 @@ class AgentPager:
         if serve_socket:
             await self.serve()
         await self._push_status("started")
+        if self.refresh_interval:
+            self._spawn(self._refresh_loop())
         return self
 
     def wire(self):
@@ -173,6 +192,9 @@ class AgentPager:
             return
         self.hub.on_notif_action(self.handle_notif_action)
         self.hub.on("action", self.handle_action)
+        on_sync = getattr(self.hub, "on_sync_request", None)
+        if callable(on_sync):        # replica (re)joined: re-fill queue + status
+            on_sync(self.handle_sync_request)
         self._wired = True
 
     def restore(self) -> list:
@@ -248,7 +270,8 @@ class AgentPager:
     def _activate(self, req) -> None:
         loop = asyncio.get_running_loop()
         req.state = "waiting"
-        req.deadline = time.time() + self.timeout
+        req.activated = time.time()
+        req.deadline = req.activated + self.timeout
         req.timer = loop.call_later(self.timeout, self._on_deadline, req)
         self._active[req.nonce] = req
         self.store.update(req.nonce, state=req.state, deadline=req.deadline)
@@ -277,6 +300,7 @@ class AgentPager:
         self.store.remove(req.nonce)
         req.future.set_result((decision, reason))
         self._record(req.nonce, req.agent, req.tool, req.summary, decision, reason, source)
+        self._metric(req, decision, source)
         log.info("pager: %s %s %s (%s via %s)", req.agent, req.tool, decision, reason, source)
         self._spawn(self._push_status("resolved", req, decision=decision, reason=reason))
         if queue is not None and not queue:
@@ -375,21 +399,130 @@ class AgentPager:
             }
         return {"status": "waiting" if self._active else "idle", "agents": agents}
 
+    def view(self) -> dict:
+        """The flat display fields the layout's labels read (``view.*``): overall
+        status, the oldest paged request's agent / tool ("step") / clipped summary,
+        and the "+N waiting" rows (one per agent with requests queued behind its
+        active one)."""
+        active = sorted(self._active.values(), key=lambda r: r.activated or 0)
+        head = active[0] if active else None
+        rows = []
+        for agent, queue in self._queues.items():
+            behind = max(0, len(queue) - 1)
+            if behind:
+                rows.append({"id": agent, "agent": agent, "next": queue[1].tool,
+                             "waiting": f"+{behind}"})
+        total = sum(len(q) - 1 for q in self._queues.values() if len(q) > 1)
+        return {
+            "status": "waiting" if active else "idle",
+            "agent": head.agent if head else "—",
+            "step": head.tool if head else "—",
+            "req": (_clip(head.summary, 80) or head.tool) if head else "Nothing waiting",
+            "active": len(active),
+            "waiting": total,
+            "waitingText": f"+{total} waiting" if total else "No one queued",
+            "queue": rows,
+        }
+
+    def queue_children(self) -> list:
+        """The ``pg-queue`` dynamic-group children: per active request a heading,
+        its summary and a Deny/Approve pair whose payload carries the request's
+        literal nonce (``req``) — a button's ``{{value}}`` can't, so the nonce is
+        baked into each pushed button. Ids derive from the nonce, so a re-fill keeps
+        the same controls and a resolved request's buttons disappear. Empty queue =
+        one placeholder label."""
+        from .layout import Fragment
+        active = sorted(self._active.values(), key=lambda r: r.activated or 0)
+        frag = Fragment(cols=4, rows=QUEUE_ROWS)
+        if not active:
+            frag.label("pgq-empty", text="No requests waiting", span=(1, 4))
+            return frag.children
+        for req in active[:QUEUE_SHOWN]:
+            n = req.nonce
+            frag.label(f"{n}-who", text=_clip(f"{req.agent} · {req.tool}", 60),
+                       span=(1, 4))
+            frag.label(f"{n}-what", text=_clip(req.summary, 120) or req.tool,
+                       span=(1, 4))
+            for decision, title, icon, tint in (
+                    ("deny", "Deny", "xmark", "#FF3B30"),
+                    ("approve", "Approve", "checkmark", "#34C759")):
+                frag.button(f"{n}-{decision}", label=title, icon=icon, tint=tint,
+                            span=(1, 2), send="action",
+                            payload={"op": "pager_decide", "decision": decision,
+                                     "req": n})
+        if len(active) > QUEUE_SHOWN:
+            frag.label("pgq-more", span=(1, 4),
+                       text=f"+{len(active) - QUEUE_SHOWN} more paged (answer from "
+                            f"the notification, or approve these first)")
+        return frag.children
+
+    def queue_payload(self) -> dict:
+        """The fill frame for ``pg-queue``: ``{msg_type: <queue_event>, children}``."""
+        return {"msg_type": self.queue_event, "children": self.queue_children()}
+
+    async def fill_queue(self) -> None:
+        try:
+            await self.hub.broadcast(self.queue_event,
+                                     {"children": self.queue_children()})
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # noqa: BLE001 — best-effort, the next change re-fills
+            log.debug("pager: queue fill failed: %s", e)
+
+    async def _refresh_loop(self) -> None:
+        while True:
+            await asyncio.sleep(self.refresh_interval)
+            if self._active:
+                await self._push_status("refresh")
+
+    async def handle_sync_request(self, data=None) -> None:
+        """A layout replica (re)joined: re-push the status labels and re-fill the
+        queue so its buttons carry the live nonces. The audit log is not replayed
+        (logConsole appends; a replay would duplicate lines on a reconnect)."""
+        await self._push_status("sync")
+
     async def _push_status(self, event, req=None, **extra) -> None:
-        frame = {"event": event, **self.status(), **extra}
+        frame = {"event": event, **self.status(), "view": self.view(), **extra}
         if req is not None:
             frame.update(agent=req.agent, tool=req.tool, nonce=req.nonce,
                          deadline=req.deadline)
-        if self._audit:
-            last = self._audit[-1]
-            frame["log"] = {"text": last["text"],
-                            "level": "info" if last["decision"] == ALLOW else "warning"}
         try:
             await self.hub.broadcast(self.status_msg_type, frame)
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001 — status is best-effort
             log.debug("pager: status push failed: %s", e)
+        await self.fill_queue()
+
+    async def _push_log(self, entry) -> None:
+        try:
+            await self.hub.broadcast(self.log_msg_type, {"line": {
+                "text": entry["text"],
+                "level": "info" if entry["decision"] == ALLOW else "warning"}})
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:  # noqa: BLE001
+            log.debug("pager: log push failed: %s", e)
+
+    # ─── metrics ────────────────────────────────────────────────────────────
+    def _metric(self, req, decision, source) -> None:
+        """Append one decision line to ``metrics_path`` (dogfood: decision time
+        and the share of requests that timed out). Never raises."""
+        if self.metrics_path is None:
+            return
+        now = time.time()
+        line = {"ts": round(now, 3), "nonce": req.nonce, "agent": req.agent,
+                "tool": req.tool, "decision": decision, "source": source,
+                "latency": round(now - req.activated, 3) if req.activated else None,
+                "queued": round(now - req.created, 3),
+                "timed_out": source == "deadline"}
+        try:
+            self.metrics_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            fd = os.open(self.metrics_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+            with os.fdopen(fd, "a") as fh:
+                fh.write(json.dumps(line) + "\n")
+        except OSError as e:
+            log.warning("pager: metrics write failed (%s): %s", self.metrics_path, e)
 
     # ─── audit ──────────────────────────────────────────────────────────────
     @property
@@ -410,6 +543,7 @@ class AgentPager:
             "decision": decision, "reason": reason, "source": source,
             "text": f"{time.strftime('%H:%M:%S', time.localtime(ts))} {decision.upper()} "
                     f"{who}: {reason}"})
+        self._spawn(self._push_log(self._audit[-1]))
 
     def _remember(self, nonce, decision) -> None:
         self._closed[nonce] = decision
@@ -534,38 +668,74 @@ def ask_via_socket(agent, tool, summary="", *, socket_path=None, timeout=None):
 PAGER_LAYOUT_ID = "agent-pager"
 
 
-def build_pager_layout(connection=None, *, msg_type="pager") -> dict:
-    """A minimal one-tab "Agents" layout (plain JSON, no code) that shows the
-    pager's status frames: overall status, the waiting agent + tool, and the
-    decision log. Approvals come from the notification's Approve/Deny buttons in
-    phase 0 (an in-app button can't carry the nonce yet — K4/phase 2 add that).
+def build_pager_layout(connection=None, *, msg_type="pager", queue_event=QUEUE_EVENT,
+                       log_msg_type=LOG_MSG_TYPE) -> dict:
+    """The one-tab "Agents" layout the pager drives (plain JSON, standard controls,
+    no code). Top to bottom, one flow column (full width on the iPad too):
+
+    - ``pg-status`` statusLight (idle / waiting) + ``pg-agent``, ``pg-step`` (the
+      tool) and ``pg-req`` (clipped summary) labels — all read the ``msg_type``
+      status frame's ``view.*`` fields;
+    - ``pg-queue``: a dynamic group (``dynamic=queue_event``) the daemon fills with
+      a Deny/Approve pair per paged request, each button's payload carrying that
+      request's literal nonce: ``{msg_type: "action", op: "pager_decide",
+      decision, req}``;
+    - ``pg-waiting``: a list of agents with requests queued behind the paged one
+      ("+N waiting");
+    - ``pg-log``: the decision audit (one ``log_msg_type`` broadcast = one line,
+      ``{line: {text, level}}``).
+
+    ``state.acks`` makes the Hub ack each handled press, so a button shows pending
+    and reverts if no pager answers. No glance/island block (phase 1).
 
     ``connection``: a :class:`~carterkit.connection.Connection` (or anything
     ``Connection.parse`` takes); when given, its app-side ``connection`` block is
     embedded (a Connect+ device token never is — see ``layout_block``)."""
-    def listen(path):
-        return [{"method": "meshsocket", "type": "listen", "event": "broadcast",
-                 "filter": {"msg_type": msg_type}, "valuePath": path}]
+    def listen(path, mt=msg_type):
+        s = {"method": "meshsocket", "type": "listen", "event": "broadcast",
+             "filter": {"msg_type": mt}}
+        if path:
+            s["valuePath"] = path
+        return [s]
 
     children = [
-        {"id": "pg-status", "type": "statusLight", "label": "Pager",
-         "position": [0, 0], "span": [1, 2], "sync": listen("status")},
+        {"id": "pg-status", "type": "statusLight", "label": "Pager", "style": "badge",
+         "defaultValue": "idle",
+         "statusColors": {"idle": "#34C759", "waiting": "#FF9500"},
+         "position": [0, 0], "span": [1, 2], "sync": listen("view.status")},
         {"id": "pg-agent", "type": "label", "label": "Agent", "text": "—",
-         "position": [0, 2], "span": [1, 2], "sync": listen("agent")},
-        {"id": "pg-tool", "type": "label", "label": "Request", "text": "—",
-         "position": [1, 0], "span": [1, 4], "sync": listen("tool")},
+         "position": [0, 2], "span": [1, 2], "sync": listen("view.agent")},
+        {"id": "pg-step", "type": "label", "label": "Tool", "text": "—",
+         "position": [1, 0], "span": [1, 2], "sync": listen("view.step")},
+        {"id": "pg-count", "type": "label", "label": "Queue", "text": "No one queued",
+         "position": [1, 2], "span": [1, 2], "sync": listen("view.waitingText")},
+        {"id": "pg-req", "type": "label", "label": "Request", "text": "Nothing waiting",
+         "position": [2, 0], "span": [1, 4], "sync": listen("view.req")},
+        {"id": "pg-queue", "type": "group", "label": "Requests", "dynamic": queue_event,
+         "position": [3, 0], "span": [1, 4],
+         "grid": {"columns": 4, "rows": QUEUE_ROWS, "mode": "flow"},
+         "children": [{"id": "pgq-empty", "type": "label", "text": "No requests waiting",
+                       "position": [0, 0], "span": [1, 4]}]},
+        {"id": "pg-waiting", "type": "list", "label": "Waiting",
+         "position": [4, 0], "span": [1, 4], "controlHeight": 140,
+         "listColumns": [{"key": "agent", "label": "Agent"},
+                         {"key": "next", "label": "Next"},
+                         {"key": "waiting", "label": "Waiting"}],
+         "sync": listen("view.queue")},
         {"id": "pg-log", "type": "logConsole", "label": "Decisions",
-         "position": [2, 0], "span": [3, 4], "maxLines": 200,
+         "position": [5, 0], "span": [1, 4], "maxLines": 200, "controlHeight": 180,
          "logColors": {"info": "#34C759", "warning": "#FF9500"},
-         "sync": listen("log")},
+         "sync": listen("line", log_msg_type)},
     ]
     layout = {
         "id": PAGER_LAYOUT_ID,
         "name": "Agents",
+        "headerTitle": "Agents",
         "version": 1,
         "state": {"acks": True},
         "tabs": [{"id": "agents", "title": "Agents", "icon": "hand.raised",
-                  "grid": {"columns": 4, "rows": 5}, "children": children}],
+                  "grid": {"columns": 4, "rows": 6, "mode": "flow"},
+                  "children": children}],
     }
     if connection is not None:
         from .connection import Connection
