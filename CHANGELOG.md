@@ -16,6 +16,10 @@ All notable changes to **carterkit** are documented here. This project follows
   when it sees a new hello, so a restarted hub's state reaches phones within a second
   instead of being dropped until the layout reopens. Older apps ignore both keys. A
   peer's `control_authority_hello` is protocol plane and never reaches `on_broadcast`.
+- **Catalog parses the m7s.18 front-matter keys (carter-yo5o).** `addIntent`, `friendlyName`,
+  `oneLiner`, `addRank` and `starterPreset` (plus their variants) are read from ControlDocs
+  front matter. Before this, the catalog silently dropped them, though main's vendored docs
+  already carry them.
 
 ## [0.15.0] — 2026-09-30
 
