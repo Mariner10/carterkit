@@ -20,6 +20,9 @@ All notable changes to **carterkit** are documented here. This project follows
   `oneLiner`, `addRank` and `starterPreset` (plus their variants) are read from ControlDocs
   front matter. Before this, the catalog silently dropped them, though main's vendored docs
   already carry them.
+- **Text drops the "Last time" starter variant (carter-73q2.6 parity).** "Last time" is a Text
+  Look format, not a separate Add choice, so `controldocs/label.md` no longer carries
+  `starterVariants`. Matches the app's `CAR-TER/ControlDocs/label.md`.
 
 ## [0.15.0] — 2026-09-30
 

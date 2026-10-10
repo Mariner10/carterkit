@@ -131,7 +131,7 @@ def test_add_intent_keys_parsed_and_exposed():
             assert not {"sync", "action"} & set(v["preset"]), d["type"]
     label = docs["label"]
     assert label["addRank"] == 1
-    assert label["starterVariants"][0]["friendlyName"] == "Last time"
+    assert label["starterVariants"] == []  # "Last time" is a Text Look format now (carter-73q2.6)
     cat = catalog.build_catalog(DOCS)
     assert cat["button"]["starterPreset"] == {"label": "Button"}
     assert cat["button"]["addIntent"] == "change"
