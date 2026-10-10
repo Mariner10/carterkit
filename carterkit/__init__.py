@@ -54,6 +54,7 @@ from .surfaces import LayoutSurfaces
 from . import canonical
 from .canonical import canonical_json, content_digest
 from . import patch
+from .forms import form, rules as form_rules
 from .patch import PatchError
 
 try:
@@ -110,6 +111,7 @@ def lint_dynamic_traffic(layout: dict, observed, catalog_: dict = None) -> list:
 
 
 __all__ = [
+    "form", "form_rules",
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
     "device_refresh_http", "CarterDeviceRevoked", "CommandDedupe",

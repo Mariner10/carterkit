@@ -283,14 +283,15 @@ class _GridScope:
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
               hide_background=None, mode: str = None, row_height: int = None,
-              name: str = None) -> "GroupHandle":
+              name: str = None, form: dict = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
         broadcast with matching `msg_type` — build that payload with :class:`Fragment`).
         `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
         2-D row unit in points (default 56). `name` is the readable name the app's
-        editor shows (never identity; controls take `name=` the same way)."""
+        editor shows (never identity; controls take `name=` the same way). `form` is a
+        block from :func:`carterkit.form` making the group a form (draft + submit)."""
         gid = self._owner._unique_id(id or "group")
         grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
@@ -310,6 +311,8 @@ class _GridScope:
             g["enabled"] = _cond_dict(enabled)
         if pulse is not None:
             g["pulse"] = pulse
+        if form is not None:
+            g["form"] = form
         if hide_background is not None:
             g["hideBackground"] = hide_background
         self._place(g, position, span)
