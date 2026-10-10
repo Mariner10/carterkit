@@ -614,3 +614,41 @@ def test_form_derive_and_stattile_seed_are_accepted():
     bad = [f for f in validate.validate_layout(layout, CAT) if f["kind"] in
            ("unknown_field", "bad_sync", "bad_default_value", "reserved_ref")]
     assert bad == []
+
+
+def _derive_layout(visible, derive=None, requires=None):
+    lay = _layout([{"type": "label", "id": "l", "position": [0, 0], "text": "x", "visible": visible}])
+    if derive is not None:
+        lay["derive"] = derive
+    if requires:
+        lay["requires"] = {"app": requires}
+    return lay
+
+
+def _dkinds(lay, **kw):
+    return [f["kind"] for f in validate.validate_layout(lay, CAT, **kw)
+            if f["kind"] in ("reserved_ref", "bad_condition")]
+
+
+def test_derive_ref_version_gate():
+    cond = {"ref": {"derive": "watts"}, "operator": "gt", "value": 1}
+    d = {"watts": {"add": [1, 2]}}
+    assert _dkinds(_derive_layout(cond, d)) == ["reserved_ref"]            # default target 1.2.4
+    assert _dkinds(_derive_layout(cond, d), target_app="1.2.9") == ["reserved_ref"]
+    assert _dkinds(_derive_layout(cond, d), target_app="1.3.0") == []
+    assert _dkinds(_derive_layout(cond, d, requires="1.3.0")) == []
+
+
+def test_derive_ref_unknown_id_and_clean_refs():
+    cond = {"ref": {"derive": "nope"}, "value": True}
+    assert _dkinds(_derive_layout(cond, {"watts": {"add": [1, 2]}}), target_app="1.3.0") == ["bad_condition"]
+    assert _dkinds(_derive_layout(cond), target_app="1.3.0") == []         # no derive block: nothing to check
+    for ok in ({"ref": {"derive": "form.f.valid"}, "value": True}, {"ref": {"field": "f.valid"}, "value": True}):
+        assert _dkinds(_derive_layout(ok, {"w": {"add": [1, 2]}})) == []
+
+
+def test_derive_ref_on_group_enabled_warns():
+    lay = _layout([{"type": "group", "id": "g", "position": [0, 0], "span": [2, 2],
+                    "enabled": {"ref": {"derive": "w"}, "value": True},
+                    "children": [{"type": "toggle", "id": "t", "position": [0, 0]}]}])
+    assert _dkinds(lay) == ["reserved_ref"]

@@ -71,11 +71,10 @@ def test_field_and_form_derive_refs_resolve():
         assert findings == []
 
 
-def test_non_form_derive_ref_warns():
+def test_check_condition_leaves_non_form_derive_ref_to_layout_pass():
     findings: list[dict] = []
     check_condition({"ref": {"derive": "watts"}, "value": True}, "c", findings)
-    assert [f["kind"] for f in findings] == ["reserved_ref"]
-    assert findings[0]["severity"] == "warn"
+    assert findings == []
 
 
 def test_depth_cap_is_16():

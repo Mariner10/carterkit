@@ -87,11 +87,8 @@ def _check_leaf(cond: dict, shape: str, where: str, findings: list) -> None:
                                f"'ref' needs exactly one of {'/'.join(REF_KINDS)} naming a string key"))
             return
         kind = next(iter(ref))
-        if kind == "derive" and not str(ref["derive"]).startswith("form."):
-            findings.append(_f("warn", "reserved_ref", f"{where}.ref",
-                               "only 'form.<formId>.<cell>' derive refs resolve on this build; "
-                               "any other key evaluates false"))
-        elif kind in RESERVED_REFS:
+        # derive refs are judged per target app in validate.derive_ref_findings
+        if kind in RESERVED_REFS:
             findings.append(_f("warn", "reserved_ref", f"{where}.ref",
                                f"'{kind}' refs are reserved for a later app version; on this build "
                                f"the whole condition evaluates false"))

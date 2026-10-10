@@ -30,7 +30,7 @@ from . import local as localmod
 from . import palette as palettemod
 from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
-from .conditions import check_condition
+from .conditions import check_condition, condition_refs
 
 # Base/shared properties every control may carry (from the layout schema /
 # ChildDefinition), independent of its type. Type-specific fields come from the catalog.
@@ -206,6 +206,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
             try:
                 extra = fallback_findings(layout, catalog)
                 extra += target_app_findings(layout, catalog, target_app)
+                extra += derive_ref_findings(layout, target_app)
                 extra += requires_feature_findings(layout, catalog)
             except RecursionError:   # hostile nesting: already reported as too_deep above
                 extra = []
@@ -1735,9 +1736,10 @@ def _feature_names(features) -> set:
     return {parse_feature(f)[0] for f in features or () if isinstance(f, str) and f.strip()}
 
 
-def _walk_controls(children, where, out):
+def _walk_controls(children, where, out, groups=False):
     """(control dict, where) for every placed control: tab/group children, container
-    `panels`, `longPressGroup`, and canvas items. Groups recurse, never yield."""
+    `panels`, `longPressGroup`, and canvas items. Groups recurse, never yield
+    (unless `groups`, for callers that read group fields)."""
     if not isinstance(children, list):
         return
     for i, ch in enumerate(children):
@@ -1745,20 +1747,22 @@ def _walk_controls(children, where, out):
             continue
         spot = f"{where}/{ch.get('id') or ch.get('type') or i}"
         if ch.get("type") == "group":
-            _walk_controls(ch.get("children"), spot, out)
+            if groups:
+                out.append((ch, spot))
+            _walk_controls(ch.get("children"), spot, out, groups)
             continue
         out.append((ch, spot))
         for p, panel in enumerate(ch.get("panels") or [] if isinstance(ch.get("panels"), list) else []):
             if isinstance(panel, dict):
-                _walk_controls(panel.get("children"), f"{spot}/panels[{p}]", out)
+                _walk_controls(panel.get("children"), f"{spot}/panels[{p}]", out, groups)
         lpg = ch.get("longPressGroup")
         if isinstance(lpg, dict):
-            _walk_controls(lpg.get("children"), f"{spot}/longPressGroup", out)
+            _walk_controls(lpg.get("children"), f"{spot}/longPressGroup", out, groups)
         canvas = ch.get("canvasConfig")
         items = canvas.get("items") if isinstance(canvas, dict) else None
         for item in items if isinstance(items, list) else []:
             if isinstance(item, dict) and isinstance(item.get("control"), dict):
-                _walk_controls([item["control"]], f"{spot}/canvas", out)
+                _walk_controls([item["control"]], f"{spot}/canvas", out, groups)
 
 
 def _in_canvas(ch: dict, spot: str) -> bool:
@@ -1969,4 +1973,43 @@ def target_app_findings(layout: dict, catalog: dict, target_app: Optional[str] =
                            f"target {target} ({source}), and {why}: that app shows an "
                            f"'Update CAR-TER' placeholder. Add a fallback, or set "
                            f"requires.app to \"{since}\" if older apps don't matter"))
+    return findings
+
+
+#: First app version whose visible/enabled conditions resolve {"ref": {"derive": id}}
+#: (carter-46y; CAR-TER Config/Version.xcconfig MARKETING_VERSION when it landed).
+DERIVE_REF_APP = "1.3.0"
+
+
+def derive_ref_findings(layout: dict, target_app: Optional[str] = None) -> list[dict]:
+    """Warnings for non-'form.*' `{"ref": {"derive": id}}` in visible/enabled conditions:
+    an app older than DERIVE_REF_APP evaluates the whole condition false (`reserved_ref`),
+    and an id that names no top-level `derive` entry (when the layout has a derive block)
+    never resolves (`bad_condition`)."""
+    if not isinstance(layout, dict):
+        return []
+    target, source = effective_target_app(layout, target_app)
+    old = _version_newer(DERIVE_REF_APP, target)
+    block = layout.get("derive")
+    findings = []
+    found: list = []
+    for t, tab in enumerate(layout.get("tabs") if isinstance(layout.get("tabs"), list) else []):
+        if isinstance(tab, dict):
+            _walk_controls(tab.get("children"), f"tabs[{t}]", found, groups=True)
+    for ch, spot in found:
+        for ckey in ("visible", "enabled"):
+            for kind, key in condition_refs(ch.get(ckey)):
+                if kind != "derive" or key.startswith("form."):
+                    continue
+                where = f"{spot}.{ckey}"
+                if old:
+                    findings.append(_f("warn", "reserved_ref", where,
+                                       f"derive ref '{key}' in a condition needs CAR-TER "
+                                       f"{DERIVE_REF_APP}, newer than the target {target} "
+                                       f"({source}): that app evaluates the condition false. "
+                                       f"Set requires.app to \"{DERIVE_REF_APP}\" if older apps don't matter"))
+                if isinstance(block, dict) and key not in block:
+                    findings.append(_f("warn", "bad_condition", where,
+                                       f"derive ref '{key}' names no entry in the layout's "
+                                       f"'derive' block; it never resolves"))
     return findings
