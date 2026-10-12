@@ -29,11 +29,12 @@ The app sends us **aggregate, de-identified usage counts** — numbers only:
 - how many times the app was opened and roughly how long sessions last;
 - how many layouts were loaded, how many tabs they had, and **which kinds of controls** they contain and get tapped (for example "12 button taps, 3 gauges shown") — never a control's name, label, value, or your layout's name;
 - whether a layout talked to your own server, to Connect+, or to an HTTP/MQTT source, and how long the connection lasted — never the address, channel, or room;
+- a verified founder flag, only for founder accounts, so the developer’s own activity can be filtered out;
 - the Connect+ plan name, the app version, the iOS major version, and the device family (iPhone / iPad);
 - the *category* of an error (for example "gateway"), never its text;
 - once a day, iOS's own performance summary for the app — average launch time, time spent hung, peak memory, CPU and network volume — as numbers only, never crash logs or stack traces (separate switch: "Performance summaries").
 
-The app does **not** send a user ID, device ID, advertising ID, push token, account, purchase, IP-derived location, or any content. To stop forged statistics, batches are signed with Apple's App Attest using a key the app creates fresh every day and discards with that day's token; our server checks the signature in the moment and keeps neither the key nor its identifier. Each day the app makes up a random token so we can count how many devices were active that day; it is discarded at midnight and cannot be joined across days. Our server keeps a hashed IP address for at most one hour purely to limit abuse, and does not store it with the counts.
+The app does **not** send a user ID, device ID, advertising ID, push token, account, purchase, IP-derived location, or any content in usage payloads. Founder batches additionally send a Connect+ session credential in an authorization header solely to verify the founder flag. The servers do not retain that credential or its account with telemetry; only a verified true flag is stored. Other batches omit the flag and authorization header. To stop forged statistics, batches are signed with Apple's App Attest using a key the app creates fresh every day and discards with that day's token; our server checks the signature in the moment and keeps neither the key nor its identifier. Each day the app makes up a random token so we can count how many devices were active that day; it is discarded at midnight and cannot be joined across days. Our server keeps a hashed IP address for at most one hour purely to limit abuse, and does not store it with the counts.
 
 **You can turn this off at any time** in Settings → Privacy & Data, which also shows you the exact contents of the last batch the app sent. When it is off the app records and sends nothing.
 
@@ -45,12 +46,12 @@ If you purchase **Connect+** and connect through our hosted relay (`connect.cart
 - Your device's **Apple Push Notification token**, so alerts can be delivered to your device.
 - The **alert rules** you configure (the conditions that trigger a notification).
 
-We do **not** store your name, email address, contacts, or location. We do **not** sell or share this data, and we do **not** use it for advertising. Connect+ data is never combined with the anonymous usage counts above.
+We do **not** store your name, email address, contacts, or location. We do **not** sell or share this data, and we do **not** use it for advertising. Connect+ account identifiers and credentials are not stored with usage counts. The only derived account attribute stored with those counts is the verified founder flag described above.
 
 ## Payments and push notifications
 
 - **Purchases** are handled entirely by **Apple** through the App Store. The app never receives or stores your payment details. We validate Apple's purchase receipt only to confirm your Connect+ entitlement.
-- **Push notifications** are delivered through **Apple's Push Notification service (APNs)**, acting as a processor on our behalf.
+- **Push notifications** are delivered through **Apple's Push Notification service (APNs)**, acting as a processor on our behalf. The app keeps up to 200 recent notifications locally on your device for Layout Info → Notifications. Opening a layout marks its notifications read; you can delete individual notifications or that layout's history there. Notification text is never sent with usage counts.
 
 ## Data retention and deletion
 

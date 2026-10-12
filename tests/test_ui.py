@@ -106,3 +106,21 @@ def test_state_block_and_layout_category_placeables():
                                   "acks": True}
     assert not [f for f in validate_layout(ui.layout)
                 if f.get("severity") == "error"]
+
+
+def test_key_value_control_builder_and_catalog():
+    import carterkit
+    from carterkit import validate
+
+    assert "keyValue" in carterkit.controls()
+    assert "control.keyValue" in validate.known_features()
+    with Layout("KV", cols=4, rows=4) as ui:
+        with ui.tab("Main"):
+            ui.keyValue("info", label="Details", keyValueStyle="chips", columns=2,
+                        rows=[{"key": "cpu", "label": "CPU", "format": "percent"}],
+                        span=(3, 4))
+    kv = _child(ui.layout, "info")
+    assert kv["type"] == "keyValue"
+    assert kv["keyValueStyle"] == "chips" and kv["columns"] == 2
+    assert kv["rows"][0]["key"] == "cpu"
+    assert [f for f in ui.validate() if f["severity"] == "error"] == []

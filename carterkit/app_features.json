@@ -1,6 +1,6 @@
 {
- "app": "app bb3a5a53",
- "source": "derived from DeviceCapabilities.swift + ControlDefinition.swift",
+ "app": "app 362d861b",
+ "source": "CAR-TERTests/Fixtures/device-features.json",
  "features": [
   "action.http",
   "action.meshsocket",
@@ -26,6 +26,7 @@
   "control.heatmap",
   "control.image",
   "control.joystick",
+  "control.keyValue",
   "control.label",
   "control.list",
   "control.logConsole",
@@ -50,8 +51,10 @@
   "control.toggle",
   "control.treemap",
   "control.webView",
+  "layout.derive",
   "layout.fallback",
   "layout.requires",
+  "sync.derive",
   "sync.http",
   "sync.meshsocket",
   "sync.mqtt",

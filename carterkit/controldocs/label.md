@@ -70,16 +70,19 @@ fields:
     tab: data
     type: object
     description: Incoming value → display text ("default" catches the rest)
+    summary: Show different words for different values
   - name: iconMap
     title: Symbols for values
     tab: data
     type: object
     description: Incoming value → SF Symbol name
+    summary: Show different symbols for different values
   - name: colorMap
     title: Colors for values
     tab: data
     type: object
     description: Incoming value → hex tint
+    summary: Show different colors for different values
 themeFields:
   - name: controlPadding
     title: Inner spacing

@@ -119,6 +119,7 @@ _LIMIT_DEFAULTS = {
     "maxSpan": 64, "maxGridColumns": 64, "maxGridRows": 512, "minTimerSeconds": 0.25,
     "minSendRateSeconds": 0.02, "minPublisherIntervalSeconds": 0.05,
     "maxBufferPoints": 5000, "maxWireBytes": 2097152, "maxFileBytes": 8388608,
+    "softDataImageBytes": 65536,
 }
 
 
@@ -670,7 +671,7 @@ RESERVED_ASSET_SCHEME = "asset"
 #: a push; above this the layout still loads but every sync, share and readback carries
 #: the blob. Read from the contract Limits table when it names one; 64 KB is provisional
 #: until measured (ROADMAP pushback 10: soft tiers come from perf measurement).
-SOFT_DATA_IMAGE = LIMITS.get("softDataImageBytes", 65536)
+SOFT_DATA_IMAGE = LIMITS["softDataImageBytes"]
 
 
 def _check_url(value: str, path: str, findings: list) -> None:

@@ -29,7 +29,7 @@ A layout defines **tabs**, each containing a **grid** of controls. Controls rang
 
 ## The Control System
 
-Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **45 control types** across three categories:
+Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **46 control types** across three categories:
 
 ### Input Controls
 Buttons, toggles, sliders, steppers, pickers, date pickers, text inputs, color pickers, and segmented controls. These send user actions to your server. The **camera** control scans QR codes, barcodes, and text live — detections are on the mesh the moment they're seen. Container controls — **carousels**, **flip cards**, and **accordions** — arrange sets of groups into swipeable pages, flippable faces, and collapsible sections.
@@ -41,10 +41,12 @@ Gauges, progress rings, sparklines, labels, images, maps, and graphs. These visu
 
 The **chart pack** blurs the line: [[chart|charts]] (bar/line/area/scatter/histogram/waterfall) with tappable datums, [[pie-chart|pie charts]] that double as spin-to-select wheels and radial menus, [[heatmap|heatmaps]] you can paint like an LED matrix or weekly scheduler, and [[radar|radar profiles]] whose vertices drag like a multi-parameter tuner. The statistical wing goes further: [[box-plot|box/violin plots]] that compute quartiles and densities on-device, [[gantt|gantt timelines]] whose bars drag like progress sliders, [[sankey|sankey flows]] and [[chord|chord matrices]] that spotlight on tap, and [[treemap|treemaps]] with Files-style drill-down. Every one displays live data *and* talks back.
 
+The [[key-value|key–value table]] closes the last shape gap: a feed that returns an *object* rather than an array renders as labeled rows, chips, or cards without unrolling it into one label per key.
+
 ![](control-preview://gauge-demo)
 
 ### Data Flow
-Every control can **sync** with a backend. Input controls fire **actions**; display controls **listen** for incoming data and update automatically. The connection block is standardized: the same `filter`/`valuePath`/`{{value}}` vocabulary works over a MeshSocket server, an **MQTT broker**, a polled **HTTP API** ([[sources]]), or the on-device [[local-store]] — `method` just picks the wire, so you know exactly what a control accepts and emits no matter the backend.
+Every control can **sync** with a backend. Input controls fire **actions**; display controls **listen** for incoming data and update automatically. The connection block is standardized: the same `filter`/`valuePath`/`{{value}}` vocabulary works over a MeshSocket server, an **MQTT broker**, a polled **HTTP API** ([[sources]]), or the on-device [[local-store]] — `method` just picks the wire, so you know exactly what a control accepts and emits no matter the backend. A layout can also [[derive]] values on the phone (watts = volts × amps) from what its controls show, with no server code.
 
 ![](control-preview://sparkline-demo)
 

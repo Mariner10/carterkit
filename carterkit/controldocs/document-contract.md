@@ -173,7 +173,11 @@ doc lists it, the field is ignored there.
 
 `requires` says what a document needs from the app. Features are `name@N`
 strings — a capability name plus an optional version, e.g.
-`"requires": { "features": ["local.store@2", "sensors"] }` (`sensors` = `sensors@1`).
+`"requires": { "features": ["control.symbol", "sync.sensor"] }` (`sync.sensor` =
+`sync.sensor@1`). The names the app speaks come in four families:
+`control.<type>`, `sync.<method>`, `action.<method>`, and `layout.<key>`
+(`layout.requires`, `layout.fallback`, `layout.derive`); `get-device-info` reports the full list as
+`features`. A name the app does not know counts as unmet.
 An app missing a requirement shows one update banner and still renders what it
 can. `requires` is the author's soft gate; `schemaVersion` is the grammar marker
 and decides whether the app may write the file.
@@ -240,6 +244,7 @@ repair in the Layout Hub.
 | `maxNestingDepth` | 8 | Groups/containers enclosing a control (a tab's own children are 0). Deeper content is refused, or trimmed with a "Nested too deeply" placeholder |
 | `maxStringBytes` | 4096 | Any string value |
 | `maxDataImageBytes` | 524288 | A `data:image/…` URL in a `url` / `baseURL` field |
+| `softDataImageBytes` | 65536 | Advisory only: carterkit warns `inline_blob` on a `data:image/…` URL past it; no load refuses it |
 | `maxExtensionsBytes` | 65536 | One `extensions` block, compact UTF-8 JSON |
 | `maxPosition` | 256 | Each `position` coordinate (0…256) |
 | `maxSpan` | 64 | Each `span` value (1…64) |
@@ -262,7 +267,9 @@ repair in the Layout Hub.
 - `backgroundImage.asset` names an image **bundled in the app**; it cannot point
   at a file of your own.
 - The `asset://` URL scheme is **reserved** for a future package asset store.
-  No runner resolves it today and strict loads refuse it — don't author it.
+  No runner resolves it today. Every load accepts it (so an asset store can ship
+  additively), an image pointing at it shows its placeholder, and carterkit warns
+  `reserved_scheme`. Don't author it yet.
 
 ## Related
 

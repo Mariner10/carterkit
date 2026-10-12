@@ -3,7 +3,7 @@ type: radar
 label: Radar
 icon: hexagon.fill
 category: controls
-defaultSpan: [2, 2]
+defaultSpan: [3, 3]
 addIntent: show
 friendlyName: Radar
 oneLiner: Several scores on one shape

@@ -25,12 +25,14 @@ fields:
     bounds: none
     type: number
     description: Minimum value
+    summary: Where the dial starts
   - name: max
     title: Highest value
     default: 100
     bounds: none
     type: number
     description: Maximum value
+    summary: Where the dial fills up
   - name: gaugeStyle
     title: Shape
     tab: style
@@ -150,6 +152,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: borderWidth
     title: Border thickness
     min: 0

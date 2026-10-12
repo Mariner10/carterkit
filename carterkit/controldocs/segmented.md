@@ -32,9 +32,9 @@ fields:
   - name: style
     tab: style
     type: enum
-    values: [default, pills]
+    values: [default, pills, stars]
     default: default
-    description: System segmented or capsule pills
+    description: System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number)
   - name: tint
     tab: style
     type: color

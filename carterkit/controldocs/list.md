@@ -9,7 +9,14 @@ friendlyName: Table
 oneLiner: Rows of information
 aliases: [rows, table, items, entries, feed, menu]
 starterPreset: {"label": "Table"}
+lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
 fields:
+  - name: formatValue
+    title: Date format
+    simple: hide
+    tab: data
+    type: string
+    description: "Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is."
   - name: label
     title: Title
     type: string
@@ -19,6 +26,11 @@ fields:
     type: array
     description: "Column definitions: [{key, label, format}]"
     summary: Which columns to show and how to display them
+  - name: emptyText
+    title: Empty message
+    type: string
+    description: "Line shown when the list has no rows. Default: \"No <label> yet\"."
+    summary: What to show when there are no rows
   - name: tint
     title: Header color
     tab: style
@@ -73,6 +85,7 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -81,11 +94,6 @@ themeFields:
     type: number
     default: 1
     description: Border width
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
 ---
 
 # List
@@ -104,7 +112,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `listColumns` | array | — | Column definitions: `[{key, label, format}]` |
 | `listColumns[].key` | string | required | Field to read from each row. A **dot path** reaches into nested rows — see [[#Column keys]] |
 | `listColumns[].label` | string | required | Column header text |
-| `listColumns[].format` | string | — | Number format applied to numeric cells (same formats as [[label]]) |
+| `listColumns[].format` | string | — | Number format for numeric cells, or a date format (`relative`, `relative:day`, `date`, `date:time`) for date strings / epoch numbers (same formats as [[label]]) |
 | `action` | [[actions\|ActionDefinition]] | — | Fired on a row tap with `{{value}}` = the row's `id` — see [[#Row taps]] |
 | `tint` | color | `"#FFFFFF"` | Header text color |
 | `hideLabel` | bool | `false` | Hide header label |

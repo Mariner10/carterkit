@@ -48,6 +48,7 @@ Every control — regardless of type — shares the same base fields. A control 
 | `tint` | string | `"#667eea"` | Hex color for accents |
 | `style` | string | varies | Style variant (per control type) |
 | `hideLabel` | bool | `false` | Suppress the label |
+| `emptyText` | string | `"No <label> yet"` | list/table: line shown when there are no rows |
 | `hideValue` | bool | `false` | Hide the numeric readout (e.g. a ring/gauge's center value) so the control becomes a pure compact visual that scales to fill its cell. Also hides slider and stepper readouts while preserving interaction and accessibility |
 | `hideBackground` | bool | `false` | Remove the glass card behind the control — it floats on the page and fills its cell. Pairs with `hideValue` for a minimal glyph |
 | `formatValue` | string | — | Number formatter for displayed values (see below) |

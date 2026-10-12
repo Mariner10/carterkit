@@ -7,7 +7,7 @@ fields:
   - name: method
     tab: advanced
     type: string
-    description: Transport method (meshsocket, mqtt, http, sensor, local)
+    description: Transport method (meshsocket, mqtt, http, sensor, local, derive)
   - name: type
     type: string
     description: Sync direction (listen)
@@ -73,13 +73,17 @@ fields:
     step: 1
     type: number
     description: Maximum rows or groups delivered, 1–1000 (local)
+  - name: from
+    type: string
+    description: The id of a layout derive entry this control shows (derive)
 ---
 
 How controls receive live state — the **standardized connection block**. The
 same vocabulary (`filter`, `valuePath`, value semantics) applies no matter the
 transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
-`mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware), or
-`local` (the on-device [[local-store]]).
+`mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware),
+`local` (the on-device [[local-store]]), or `derive` (a value the phone
+computes from other values, see [[derive]]).
 
 ## Definition
 
@@ -184,6 +188,24 @@ the mesh — `{ "method": "sensor", "sensor": "heading" }` feeds the control the
 compass with no server at all. See [[sensors]] for the catalog and
 [[publishers]] to stream readings to other devices.
 
+## Derived values (derive / from)
+
+With `method: "derive"` a sync entry shows a value the phone computes from the
+layout's top-level `derive` block instead of a wire. `from` names the derive
+entry; nothing else is needed (no `event`, `filter` or `valuePath`):
+
+```json
+"derive": { "watts": { "mul": [ {"control": "volts"}, {"control": "amps"} ] } }
+...
+{ "type": "gauge", "id": "wattsGauge", "min": 0, "max": 1800,
+  "sync": [ { "method": "derive", "from": "watts" } ] }
+```
+
+The value is recomputed whenever an input control's displayed value moves, on
+this device only: derived values never go on the wire, and relay alerts cannot
+see them. `from` must name a declared derive id. See [[derive]] for the ops,
+argument forms and nil rules.
+
 ## Local store
 
 With `method: "local"` a sync entry reads the layout's on-device [[local-store]]
@@ -218,14 +240,30 @@ A top-level layout key, not a per-control sync — the app↔server session cont
   reconnect. Servers treat it as the join signal (carterkit
   `on_sync_request`) and the `authority` answers with a `control_snapshot`
   of current values, so a rejoining device renders truth immediately.
+- **Epochs.** `control_snapshot {to, v, epoch, controls}` carries an optional
+  `epoch`: an opaque string the authority mints once per process (a restart = a
+  new epoch). Replicas order `v` per epoch only, so a restarted hub whose counter
+  starts over at 1 is adopted at once, and two hubs on one channel never drop each
+  other's lower counter. A snapshot with no `epoch` is ordered as before (one
+  legacy counter). Every reconnect/`control_sync_request` also resets the ordering.
+- **Authority hello.** On start an authority broadcasts
+  `control_authority_hello {epoch, from}` (`from` = its own name). A replica only
+  honours a hello whose `from` is the layout's configured `state.authority` (exact
+  name, or the bare name inside the account's relay-namespaced name). An unseen
+  epoch from that authority makes the replica send one `control_sync_request` right
+  away, so it gets the restarted hub's real state within a second even if it never
+  disconnected. Hellos from any other sender, repeat hellos for a known epoch, and
+  hellos received by the authority itself are ignored. Hello-triggered requests are
+  rate-limited to one per 3 s; a hello dropped by the limit is not remembered.
 - `acks: true` opts every control action into **ack'd commands**: fired payloads
   are stamped `_cmd` (uuid) + `_from` (sender name); the serving hub answers
   `command_ack {cmd_id, to, ok}` for commands it actually handled (carterkit
   `enable_command_acks`). The control stays optimistically set but *pending* —
   sync updates are held off it — until the ack; on `ok:false` or `ackTimeoutMs`
   (default 2000) expiry it reverts to the last synced value with an error haptic.
-- `control_sync_request` / `control_snapshot` / `command_ack` and the
-  `_cmd`/`_from` stamps are **wire API** — never rename them.
+- `control_sync_request` / `control_snapshot` (incl. its `epoch`) /
+  `control_authority_hello {epoch, from}` / `command_ack` and the `_cmd`/`_from` stamps
+  are **wire API** — never rename them.
 
 ## Notes
 

@@ -3,7 +3,7 @@ type: joystick
 label: Joystick
 icon: dpad.fill
 category: controls
-defaultSpan: [2, 2]
+defaultSpan: [3, 3]
 addIntent: change
 friendlyName: Joystick
 oneLiner: Steer with your thumb

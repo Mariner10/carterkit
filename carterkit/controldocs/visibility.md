@@ -70,7 +70,8 @@ Combine leaves with `all`, `any` and `not` (nest them freely, up to 16 levels):
 | `{"control": "<id>"}` | that control's current value | same as `"when": "<id>"` |
 | `{"selected": "<collection>"}` | the selected record id of a local collection or view | set by a `local` action with `op: "select"`; null when nothing is selected |
 | `{"field": "<formId>.<cell>"}` | a [[form]] cell: `valid`, `dirty`, `<field>`, `<field>.error` | e.g. a Save button `enabled` on `{"field": "plantForm.valid"}` |
-| `{"derive": "form.<formId>.<cell>"}` | the same form cell | any other `derive` is reserved: a condition that uses it is always false |
+| `{"derive": "<id>"}` | a top-level `derive` entry's current value | no value yet (or an unknown id) behaves like a control with no value |
+| `{"derive": "form.<formId>.<cell>"}` | the same form cell as `field` | |
 
 ## Operators
 
@@ -91,7 +92,7 @@ Combine leaves with `all`, `any` and `not` (nest them freely, up to 16 levels):
 
 - A node carries exactly one of `all`, `any`, `not`, `ref`, `when`; `all`/`any` need at
   least one condition. Anything else, or nesting past 16 levels, is refused.
-- Fail-closed: if any leaf uses a reserved ref (or an operator the app can't read), the
+- Fail-closed: if any leaf uses an operator the app can't read, the
   whole condition is false — `visible` hides, `enabled` disables. A `not` can never
   switch something on for an older app.
 

@@ -3,7 +3,7 @@ type: webView
 label: Web View
 icon: globe
 category: controls
-defaultSpan: [3, 4]
+defaultSpan: [4, 4]
 addIntent: show
 friendlyName: Web page
 oneLiner: A web page inside your app

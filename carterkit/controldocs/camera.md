@@ -3,7 +3,7 @@ type: camera
 label: Camera
 icon: camera.viewfinder
 category: controls
-defaultSpan: [2, 2]
+defaultSpan: [3, 4]
 addIntent: change
 friendlyName: Scanner
 oneLiner: Scan a barcode or QR code

@@ -58,7 +58,10 @@ fields:
   - name: secrets
     tab: advanced
     type: object[]
-    description: "Credentials the layout's {{secret:name}} placeholders use: name, label, kind, hosts, mesh. Names only; the values live in the phone's Keychain (see Secrets)"
+    description: "Credentials the layout's {{secret:name}} placeholders use: name, label, kind, hosts, mesh, allowInsecureHTTP. Names only; the values live in the phone's Keychain (see Secrets)"
+  - name: derive
+    type: object
+    description: "Values computed on the phone from other values, keyed by id, e.g. {'watts': {'mul': [{'control': 'volts'}, {'control': 'amps'}]}} (see derive)"
   - name: keepAwake
     type: bool
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
@@ -99,6 +102,7 @@ Top-level JSON structure for a CAR-TER remote.
   "tabs": [ ... ],
   "pollGroups": { ... },
   "dynamicTabs": [ ... ],
+  "derive": { "watts": { "mul": [ {"control": "volts"}, {"control": "amps"} ] } },
   "keepAwake": true,
   "liveness": { "staleAfter": 120 },
   "glance": { "hero": "cpu", "liveActivity": true, "controls": [ ... ], "widgets": [ ... ] }
@@ -193,8 +197,8 @@ keys tell the older app what to do.
 | `features` | string[] | Feature names, each `name` or `name@N` (`N` a positive integer; absent = 1). Met when the app speaks `name` at version `N` or higher |
 
 Feature names: `control.<type>` (e.g. `control.gauge`), `sync.<method>`
-(`meshsocket`, `mqtt`, `http`, `sensor`), `action.<method>` (`meshsocket`, `mqtt`,
-`http`), and `layout.requires` / `layout.fallback`. An unknown name is unmet.
+(`meshsocket`, `mqtt`, `http`, `sensor`, `derive`), `action.<method>` (`meshsocket`, `mqtt`,
+`http`), and `layout.requires` / `layout.fallback` / `layout.derive`. An unknown name is unmet.
 
 `requires` is a **soft gate**. When the app is older than `app`, or lacks a
 feature, the layout still loads: it renders everything it can and shows one
@@ -265,6 +269,7 @@ under this layout and that name. The layout stores only the placeholder.
 | `kind` | string | `token`, `password` or `apiKey`. A hint for how the phone asks; other values still load. |
 | `hosts` | string[] | The only hosts this secret may be sent to. Replaces the default set (below). |
 | `mesh` | bool | Allow this secret in a MeshSocket action payload. Default `false`. |
+| `allowInsecureHTTP` | bool | Allow this secret on a plain `http://` request or a non-TLS `mqtt://` broker (a LAN device with no TLS). Default `false`: such a request is not sent. |
 
 **Where a placeholder works.** The value is filled in at the moment a request
 goes out, and only in the parts of the layout you wrote: an HTTP source's or
@@ -376,6 +381,14 @@ held or reverted command-ack values, defaults, Studio writes) never refresh the
 clock. See [[sync]] for resolution, arrivals, `timestampPath`, and the sensor
 heartbeat caveat. A malformed block is ignored rather than failing the layout.
 
+## Derive
+
+`derive` computes values on the phone from other values: a closed JSON op tree
+(`add`, `mul`, `avg`, `clamp`, `scale`, `band`, `since`, ...) keyed by id. A
+control shows one with `"sync": [{"method": "derive", "from": "watts"}]`.
+Derived values never go on the wire; every device computes its own. Full
+reference: [[derive]].
+
 ## Glance surfaces
 
 `glance` projects the layout outside the app: Home/Lock Screen widgets, the
@@ -392,6 +405,7 @@ auto-derived glance. Full reference: [[glance]].
 - [[control-def]] `fallback` — what an older app shows for a control it doesn't know
 - [[glance]] — widgets, Dynamic Island, lock screen, Control Center
 - [[sources]] — MQTT/HTTP data sources
+- [[derive]] — values computed on the phone
 - [[theming]] — Full theme system, light/dark variants, live builder
 - [[appearance]] — Color scheme, header, status bar, background image
 - [[group-def]] — containers within tabs

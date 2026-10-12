@@ -16,6 +16,7 @@ The live builder above re-themes a small demo layout as you change values — fl
 | `accentColor` | color | `#667eea` | Primary accent (gauges, toggles, highlights) |
 | `accentGradient` | color[] | — | 2+ color accent gradient |
 | `foregroundColor` | color | auto | Primary text (auto: white in dark, black in light) |
+| `onAccent` | color | auto | Text/icon colour drawn ON an accent or tint fill (filled buttons, solid stat-tile bands). Auto: white, or black when white would fall under 3:1 on that fill (so `#FFD60A` gets dark ink, `#0A84FF` white). Set it to force one ink everywhere |
 | `secondaryColor` | color | auto | Secondary text |
 | `tertiaryColor` | color | auto | Tertiary text |
 | `surfacePrimary` | color | auto | Card / control surface |
@@ -59,7 +60,7 @@ Most palettes differ between modes. Put scheme-sensitive colors in `light` / `da
 }
 ```
 
-A `light` / `dark` block accepts: `pageBackground`, `pageBackgroundGradient`, `headerBackground`, `headerBackgroundGradient`, `tabBarBackground`, `tabBarTint`, `surfacePrimary/Secondary/Tertiary`, `foregroundColor`, `secondaryColor`, `tertiaryColor`, `borderColor`, `accentColor`, `accentGradient`.
+A `light` / `dark` block accepts: `pageBackground`, `pageBackgroundGradient`, `headerBackground`, `headerBackgroundGradient`, `tabBarBackground`, `tabBarTint`, `surfacePrimary/Secondary/Tertiary`, `foregroundColor`, `onAccent`, `secondaryColor`, `tertiaryColor`, `borderColor`, `accentColor`, `accentGradient`.
 
 > The whole app stays in lockstep with the device color scheme — see [[appearance]] for `colorScheme`.
 
