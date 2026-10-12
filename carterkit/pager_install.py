@@ -322,6 +322,8 @@ def run(*, connection=None, timeout=None, out=None) -> int:
             pager = _pager.AgentPager(hub, timeout=timeout,
                                       metrics_path=_pager.DEFAULT_METRICS)
             await pager.start()
+            from .pager_poll import EscalationPoller
+            poller = EscalationPoller(hub).start()
             _say(f"carter-pager listening on {pager.socket_path} "
                  f"(auto-deny after {timeout:g}s)", out)
             if conn.kind == "local":
@@ -329,6 +331,7 @@ def run(*, connection=None, timeout=None, out=None) -> int:
             try:
                 await asyncio.Event().wait()
             finally:
+                await poller.stop()
                 await pager.stop()
 
     try:
