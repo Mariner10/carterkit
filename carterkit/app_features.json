@@ -1,5 +1,5 @@
 {
- "app": "app 362d861b",
+ "app": "master 920b7c1c",
  "source": "CAR-TERTests/Fixtures/device-features.json",
  "features": [
   "action.http",

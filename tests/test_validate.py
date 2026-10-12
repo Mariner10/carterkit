@@ -73,6 +73,17 @@ def test_parameterized_enum_ok():
     assert not any(f["kind"] == "bad_enum" for f in findings)
 
 
+def test_segmented_stars_style_is_a_known_value():
+    # carter-089r: segmentedControl style 'stars' (tap-a-star rating) is in the app's
+    # ControlDocs/segmented.md, so it must not be flagged as a bad enum value.
+    layout = _layout([{"type": "segmentedControl", "id": "rate", "position": [0, 0],
+                       "span": [4, 1], "options": ["1", "2", "3", "4", "5"],
+                       "style": "stars"}])
+    findings = validate.validate_layout(layout, CAT)
+    assert not any(f["kind"] == "bad_enum" for f in findings), findings
+    assert not [f for f in findings if f["severity"] == "error"], findings
+
+
 def test_unknown_field_is_warning():
     layout = _layout([{"type": "button", "id": "b", "position": [0, 0],
                        "flooberity": 7}])
