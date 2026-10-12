@@ -203,6 +203,8 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
     control whose catalog `since` is newer than that target, with no usable
     `fallback`, is a `needs_newer_app` warning (see target_app_findings)."""
     try:
+        if _absurdly_deep(layout):
+            return [_f("error", "too_deep", "root", f"groups/containers nest deeper than {MAX_DEPTH} levels — too deep to validate; the app refuses this")]
         findings = _validate_layout(layout, catalog)
         if isinstance(layout, dict):
             try:
@@ -221,6 +223,27 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
         return [_f("error", "internal_error", "root",
                    f"validator failed on this input ({type(e).__name__}: {e}); "
                    f"treat the layout as invalid")]
+
+
+_PREFLIGHT_DEPTH = max(MAX_DEPTH * 8, 64)
+
+
+def _absurdly_deep(layout) -> bool:
+    """Iterative (no recursion) check: do containers nest far past MAX_DEPTH? Such input
+    is refused up front, before the recursive validator can hit the recursion limit."""
+    tabs = layout.get("tabs") if isinstance(layout, dict) else None
+    if not isinstance(tabs, list):
+        return False
+    stack = [(c, 1) for t in tabs if isinstance(t, dict) and isinstance(t.get("children"), list)
+             for c in t["children"]]
+    while stack:
+        node, depth = stack.pop()
+        if not isinstance(node, dict):
+            continue
+        if depth > _PREFLIGHT_DEPTH:
+            return True
+        stack.extend(_hosted(node, depth))
+    return False
 
 
 def _grid_dims(g, where, findings) -> tuple[int, int]:
