@@ -552,7 +552,7 @@ def _surface_map(mapping, name):
     return dict(mapping)
 
 
-def _surface_state_body(layout_id, values, controls, is_connected):
+def _surface_state_body(layout_id, values, controls, is_connected, values_at=None):
     """The `{values, controls, isConnected}` half every surface route shares.
     Omitted keys are left alone server-side; the relay merges onto what it holds."""
     body = {"layoutId": _surface_layout_id(layout_id)}
@@ -564,6 +564,13 @@ def _surface_state_body(layout_id, values, controls, is_connected):
         if not isinstance(is_connected, bool):
             raise ValueError("is_connected must be a bool")
         body["isConnected"] = is_connected
+    if values_at is not None:
+        if not isinstance(values_at, dict) or any(
+                not isinstance(k, str) or not k or isinstance(t, bool)
+                or not isinstance(t, int) or t < 0 for k, t in values_at.items()):
+            raise ValueError("values_at must map control ids to receipt times in "
+                             "unix milliseconds (non-negative ints)")
+        body["valuesAt"] = dict(values_at)
     return body
 
 
@@ -705,7 +712,7 @@ def surfaces_put_state(validator_url, session_jwt, *, layout_id, values=None,
 
 def surfaces_publish(validator_url, session_jwt, *, layout_id, values=None,
                      controls=None, is_connected=None, activity=None, force=False,
-                     timeout=10, _send=None):
+                     values_at=None, timeout=10, _send=None):
     """Merge state AND poke every surface for the layout (POST /surfaces/publish).
 
     One call reaches all three push paths: widget tokens, Control Center control
@@ -735,7 +742,7 @@ def surfaces_publish(validator_url, session_jwt, *, layout_id, values=None,
     when the MERGED state passes 8 KB (the size checked here is only what this
     call sends — the relay holds the rest), and `429` with a `retryAfter` body
     when the account's publish bucket (burst 120, 10/min) is empty."""
-    body = _surface_state_body(layout_id, values, controls, is_connected)
+    body = _surface_state_body(layout_id, values, controls, is_connected, values_at)
     if activity is not None:
         body["activity"] = _surface_activity(activity)
     if force:

@@ -7,6 +7,15 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **`hub.surfaces.keep_live()` keeps glance surfaces live with the app closed (aif-2dy6q.3).**
+  Opt-in: after it, each `hub.push` of a glance-watched control schedules one debounced
+  publish per `every` seconds (default the layout's `glance.live` remote cadence, floor 2 s)
+  with the changed values, per-key `valuesAt` (hub receipt time, unix ms, monotonic) and
+  `isConnected=True`; `stop_live()` / `hub.close()` publishes `isConnected=False` once.
+  `activity_state()` slots now carry `receivedAt` and the resolved `staleAfter` (sync >
+  `liveness` > 3x http poll, the app's order); new `activity_payload()` sets `staleSeconds`
+  from the lead slot. `surfaces_publish`/`publish` accept `values_at`; `send_values_at=False`
+  suits a relay without `valuesAt`. Nothing publishes without `keep_live`.
 - **`null_compare` warning (aif-m12kt).** A `ref` condition leaf comparing to `null` with any
   operator but `exists` never matches under the app's NULL rule; validate now warns and points at
   `exists` true/false.

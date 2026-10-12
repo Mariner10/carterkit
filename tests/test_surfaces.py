@@ -406,3 +406,113 @@ def test_publish_warning_rearms_after_a_surface_is_reached(monkeypatch, caplog):
 ])
 def test_publish_no_tokens_false(monkeypatch, reply):
     assert _publish_with(monkeypatch, [reply])[0]["no_tokens"] is False
+
+
+# ── keep_live: opt-in debounced publishing (aif-2dy6q.3) ─────────────────────
+
+def _fast_sleep(hub):
+    async def sleep(_):
+        await asyncio.sleep(0)
+    hub.surfaces._sleep = sleep
+
+
+def test_no_publish_without_keep_live(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    async def run():
+        await hub.push(temp, 20)
+        await asyncio.sleep(0.01)
+        await hub.close()
+    asyncio.run(run())
+    assert requests == []
+
+
+def test_keep_live_debounces_and_stamps_values_at(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, humidity = make_hub()
+    _fast_sleep(hub)
+    hub.surfaces.keep_live()
+    async def run():
+        await hub.push(temp, 20)
+        await hub.push(temp, 21)
+        await hub.push(humidity, 40)
+        await asyncio.sleep(0.01)
+        await hub.push(temp, 22)
+        await asyncio.sleep(0.01)
+    asyncio.run(run())
+    assert len(requests) == 2
+    first, second = requests[0][2], requests[1][2]
+    assert first["values"] == {"temperature": 21, "humidity": 40}
+    assert first["isConnected"] is True and "activity" not in first
+    assert set(first["valuesAt"]) == {"temperature", "humidity"}
+    assert second["valuesAt"]["temperature"] > first["valuesAt"]["temperature"]
+
+
+def test_values_at_stays_monotonic_when_the_clock_repeats(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    _fast_sleep(hub)
+    hub.surfaces.keep_live()
+    monkeypatch.setattr("carterkit.surfaces.time.time", lambda: 1000.0)
+    async def run():
+        await hub.push(temp, 1)
+        await asyncio.sleep(0.01)
+        await hub.push(temp, 2)
+        await asyncio.sleep(0.01)
+    asyncio.run(run())
+    assert requests[1][2]["valuesAt"]["temperature"] > requests[0][2]["valuesAt"]["temperature"]
+
+
+def test_keep_live_every_defaults_to_layout_cadence_with_a_floor():
+    hub, *_ = make_hub()
+    assert hub.surfaces.keep_live()._live["every"] == 5
+    assert hub.surfaces.keep_live(0.1)._live["every"] == 2.0
+    hub.layout["glance"]["live"] = {"activity": {"remoteCadence": 30}}
+    assert hub.surfaces.keep_live()._live["every"] == 30
+
+
+def test_stop_live_publishes_disconnected_once(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    hub.surfaces.keep_live()
+    async def run():
+        await hub.surfaces.stop_live()
+        await hub.surfaces.stop_live()
+        await hub.close()
+    asyncio.run(run())
+    assert len(requests) == 1 and requests[0][2]["isConnected"] is False
+
+
+def test_send_values_at_false_omits_it(monkeypatch):
+    requests = capture_surfaces(monkeypatch, "surfaces_publish")
+    hub, temp, _, _ = make_hub()
+    _fast_sleep(hub)
+    hub.surfaces.keep_live(send_values_at=False)
+    async def run():
+        await hub.push(temp, 5)
+        await asyncio.sleep(0.01)
+    asyncio.run(run())
+    assert "valuesAt" not in requests[0][2]
+
+
+def test_content_state_slots_carry_received_at_and_stale_after():
+    hub, temp, fan, _ = make_hub()
+    hub.layout["liveness"] = {"staleAfter": 90}
+    hub.layout["tabs"][0]["children"][0]["sync"][0]["staleAfter"] = 30
+    asyncio.run(hub.push(temp, 22))
+    state = hub.surfaces.activity_state()
+    assert state["hero"]["staleAfter"] == 30            # sync beats liveness
+    assert state["hero"]["receivedAt"] < ambient.APPLE_REFERENCE_EPOCH
+    assert state["slots"][0]["staleAfter"] == 90        # layout liveness
+    assert "receivedAt" not in state["slots"][0]        # never pushed
+    payload = hub.surfaces.activity_payload()
+    assert payload["staleSeconds"] == 30                # the lead slot's
+
+
+def test_stale_after_http_poll_is_three_intervals():
+    hub, temp, *_ = make_hub()
+    ctrl = hub.layout["tabs"][0]["children"][0]
+    ctrl["sync"] = [{"method": "http", "interval": 20}]
+    assert hub.surfaces.stale_after(temp) == 60
+    ctrl["sync"][0]["staleAfter"] = 0
+    assert hub.surfaces.stale_after(temp) is None

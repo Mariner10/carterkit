@@ -4,7 +4,9 @@ Use ``hub.surfaces``: no duplicated labels, control IDs, wire types or date epoc
 Remote refresh is explicit so telemetry-rate ``hub.push`` calls never consume
 notification or ActivityKit budgets behind the caller's back.
 """
+import asyncio
 import logging
+import math
 import time
 import re
 
@@ -21,6 +23,17 @@ _KINDS = {"gauge": "gauge", "progressRing": "ring", "statusLight": "light",
           "toggle": "bool", "label": "text", "picker": "text", "segmentedControl": "text"}
 _RANK = {"gauge": 0, "progressRing": 1, "statusLight": 2, "sparkline": 3,
          "slider": 4, "stepper": 5, "toggle": 6, "label": 7, "picker": 7, "segmentedControl": 7}
+
+
+#: `glance.live.activity.remoteCadence` per `live.tier` (seconds); `fresh` is the default.
+_TIER_REMOTE_CADENCE = {"realtime": 2, "fresh": 5, "periodic": 30}
+_MIN_LIVE_EVERY = 2.0  # the relay's Live Activity floor
+_MAX_STALE_AFTER = 86400
+
+
+def _num(v):
+    return v if isinstance(v, (int, float)) and not isinstance(v, bool) \
+        and math.isfinite(v) else None
 
 
 def _label(control):
@@ -47,6 +60,10 @@ class LayoutSurfaces:
     """
     def __init__(self, hub):
         self.hub = hub
+        self._received = {}      # control id -> unix seconds the hub last received it
+        self._live = None        # keep_live state, or None while it is off
+        self._last_ms = {}       # control id -> last valuesAt sent (kept monotonic)
+        self._sleep = asyncio.sleep  # injectable for tests
 
     @property
     def layout_id(self):
@@ -120,6 +137,39 @@ class LayoutSurfaces:
                     slots=[make_slot(cid) for cid in dict.fromkeys(secondary) if cid != hero],
                     values=state_values, controls=controls)
 
+    # ── freshness: the app's own rule, so a hub-driven surface agrees with it ──
+
+    def stale_after(self, target):
+        """Resolved `staleAfter` seconds for a control, or None (never stale).
+
+        Same order as the app: the control's sync `staleAfter`, then the layout's
+        `liveness.staleAfter`, then 3x the poll interval of an `http` sync. 0 opts
+        out; values over a day are clamped."""
+        control = self.hub._control(target)
+        syncs = [e for e in control.get("sync") or [] if isinstance(e, dict)]
+        value = next((_num(e["staleAfter"]) for e in syncs
+                      if _num(e.get("staleAfter")) is not None), None)
+        if value is None:
+            value = _num(((self.hub.layout or {}).get("liveness") or {}).get("staleAfter"))
+        if value is None:
+            polls = [_num(e.get("interval")) for e in syncs if e.get("method") == "http"]
+            polls = [p for p in polls if p]
+            value = 3 * polls[0] if polls else None
+        if value is None or value <= 0:
+            return None
+        return min(value, _MAX_STALE_AFTER)
+
+    def _stamp(self, entry):
+        """Add `receivedAt` (reference-date seconds) and `staleAfter` to a slot."""
+        out = dict(entry)
+        cid = out["controlId"]
+        if cid in self._received:
+            out["receivedAt"] = apple_date(self._received[cid])
+        stale = self.stale_after(cid)
+        if stale is not None:
+            out["staleAfter"] = stale
+        return out
+
     def snapshot(self, values=None, *, is_connected=True):
         """Preview the exact widget/control payload; no network or state mutation."""
         return glance_update(layout_id=self.layout_id, is_connected=is_connected,
@@ -128,9 +178,23 @@ class LayoutSurfaces:
     def activity_state(self, values=None, *, is_connected=True, hero_history=None):
         """Preview ActivityKit content using the correct Apple reference-date epoch."""
         projection = self._projection(values)
-        return content_state(hero=projection["hero"], slots=projection["slots"],
+        hero = projection["hero"]
+        return content_state(hero=self._stamp(hero) if hero else None,
+                             slots=[self._stamp(e) for e in projection["slots"]],
                              is_connected=is_connected, updated_at=apple_date(time.time()),
                              hero_history=hero_history)
+
+    def activity_payload(self, values=None, *, is_connected=True, hero_history=None, **options):
+        """`activity=` argument for :meth:`publish`: :meth:`activity_state` plus
+        `staleSeconds` following the lead slot (hero, else the first slot) so a
+        hub-driven island goes stale by the source's own deadline."""
+        state = self.activity_state(values, is_connected=is_connected,
+                                    hero_history=hero_history)
+        out = {"contentState": state, **options}
+        lead = state.get("hero") or next(iter(state["slots"]), None)
+        if lead and lead.get("staleAfter") and "staleSeconds" not in out:
+            out["staleSeconds"] = max(1, math.ceil(lead["staleAfter"]))
+        return out
 
     async def refresh(self, values=None, *, is_connected=True):
         """Send one best-effort silent refresh for widgets, values and toggles."""
@@ -215,7 +279,7 @@ class LayoutSurfaces:
         return out
 
     async def publish(self, values=None, *, controls=None, is_connected=True,
-                      activity=None, force=False):
+                      activity=None, force=False, values_at=None):
         """Publish this layout's state and poke every surface (POST /surfaces/publish).
 
         ONE call refreshes the widgets, the Control Center controls and the Live
@@ -254,8 +318,90 @@ class LayoutSurfaces:
         result = await self.hub.client._ambient_call(
             surfaces_publish, layout_id=self.layout_id,
             values=self._values_by_id(values), controls=self._controls_by_id(controls),
-            is_connected=is_connected, activity=activity, force=force)
+            is_connected=is_connected, activity=activity, force=force,
+            values_at=values_at)
         return self._flag_no_tokens(result)
+
+    # ── keep_live: opt-in background publishing so surfaces outlive the app ──
+
+    def _remote_cadence(self):
+        live = ((self.hub.layout or {}).get("glance") or {}).get("live") or {}
+        cadence = _num((live.get("activity") or {}).get("remoteCadence"))
+        if cadence is None:
+            cadence = _TIER_REMOTE_CADENCE.get(live.get("tier"), 5)
+        return max(cadence, _MIN_LIVE_EVERY)
+
+    def keep_live(self, every=None, *, activity=False, send_values_at=True):
+        """Opt in: keep the relay's retained surface state current from this hub.
+
+        After this, every ``hub.push`` of a glance-watched control schedules ONE
+        debounced publish per `every` seconds (default: the layout's
+        ``glance.live`` remote cadence; floor 2 s) carrying the changed values,
+        ``valuesAt`` (this hub's receipt time per key, unix ms, monotonic) and
+        ``isConnected=True``. Widgets, Control Center and the Live Activity then
+        keep updating with CAR-TER closed and go stale only when the hub stops.
+        ``activity=True`` also pushes the Live Activity (spends its budget).
+        ``send_values_at=False`` omits ``valuesAt`` for a relay that predates it.
+
+        Without this call nothing is ever published behind your back. Call from
+        a running event loop; :meth:`stop_live` (or ``hub.close()``) ends it and
+        publishes ``isConnected=False`` once."""
+        every = self._remote_cadence() if every is None else max(float(every), _MIN_LIVE_EVERY)
+        self._live = {"every": every, "activity": bool(activity),
+                      "values_at": bool(send_values_at), "pending": {}, "task": None}
+        return self
+
+    def _note_push(self, control, value):
+        cid = control.get("id")
+        if control.get("type") not in _KINDS or not cid:
+            return
+        now = time.time()
+        self._received[cid] = now
+        live = self._live
+        if live is None:
+            return
+        live["pending"][cid] = (value, now)
+        task = live["task"]
+        if task is None or task.done():
+            live["task"] = asyncio.get_running_loop().create_task(self._flush_later(live))
+
+    async def _flush_later(self, live):
+        await self._sleep(live["every"])
+        await self._flush(live)
+
+    async def _flush(self, live, *, is_connected=True):
+        pending, live["pending"] = live["pending"], {}
+        if not pending and is_connected:
+            return None
+        values = {}
+        stamps = {}
+        for cid, (value, at) in pending.items():
+            values[cid] = value
+            ms = int(at * 1000)
+            if cid in self._last_ms:
+                ms = max(ms, self._last_ms[cid] + 1)
+            self._last_ms[cid] = stamps[cid] = ms
+        activity = None
+        if live["activity"]:
+            activity = self.activity_payload(values, is_connected=is_connected)
+        try:
+            return await self.publish(values or None, is_connected=is_connected,
+                                      activity=activity,
+                                      values_at=stamps if live["values_at"] and stamps else None)
+        except Exception:
+            _log.warning("surfaces: keep_live publish failed", exc_info=True)
+            return None
+
+    async def stop_live(self):
+        """Turn :meth:`keep_live` off: ONE final publish with any pending values and
+        ``isConnected=False``. A no-op when keep_live is off."""
+        live, self._live = self._live, None
+        if live is None:
+            return None
+        task = live["task"]
+        if task is not None and not task.done():
+            task.cancel()
+        return await self._flush(live, is_connected=False)
 
     def _flag_no_tokens(self, result):
         if not isinstance(result, dict):

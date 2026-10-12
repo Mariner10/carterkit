@@ -204,6 +204,7 @@ class Hub:
         return self
 
     async def close(self) -> None:
+        await self.surfaces.stop_live()
         await self.client.close()
         if self._relay is not None:
             await self._relay.stop()
@@ -318,6 +319,7 @@ class Hub:
         ctrl = self._control(target)
         frame = self.frame_for(ctrl, value)
         self.client.set_control_state(ctrl.get("id"), value)
+        self.surfaces._note_push(ctrl, value)
         await self.client.broadcast_frame(frame)
         return frame
 
