@@ -183,7 +183,7 @@ One radial control, four personalities. `pieStyle` picks the mode:
 `"pieChart"`
 
 ## Recommended Size
-Square cells — `[2, 2]` minimum, `[3, 3]` for wheels with many slices. The control
+Square cells — `[3, 3]` minimum, larger for wheels with many slices. The control
 keeps itself round.
 
 ## Relevant Fields
@@ -251,7 +251,7 @@ what `"groupBy": "genre"` delivers) also reads: one slice per category, sized by
   "type": "pieChart",
   "id": "power-split",
   "position": [0, 0],
-  "span": [2, 2],
+  "span": [3, 3],
   "label": "Power draw",
   "pieStyle": "donut",
   "pieConfig": { "centerText": "{{total}}W", "showLegend": true, "percent": true },
@@ -282,7 +282,7 @@ what `"groupBy": "genre"` delivers) also reads: one slice per category, sized by
   "type": "pieChart",
   "id": "scene-menu",
   "position": [0, 0],
-  "span": [2, 2],
+  "span": [3, 3],
   "label": "Scenes",
   "pieStyle": "menu",
   "icon": "sparkles",

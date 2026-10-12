@@ -33,6 +33,31 @@ The live builder above re-themes a small demo layout as you change values — fl
 | `labelFontSize` | number | `12` | Label text size |
 | `valueFontSize` | number | `14` | Value text size |
 | `valueFontWeight` | string | `semibold` | Value weight |
+| `readoutFontSize` | number | `17` | Primary readout size (gauge and stat values) |
+| `captionFontSize` | number | `11` | Caption and small-print size |
+| `statusOK` | color | `#34C759` | Success: status light on, good delta, log `success` |
+| `statusWarn` | color | `#FF9500` | Warning: log `warn`, attention states |
+| `statusError` | color | `#FF453A` | Error: status light off, bad delta, log `error` |
+| `statusInfo` | color | `#5AC8FA` | Info: log `info` |
+| `scrimColor` | color | auto | Wash behind chips and overlays (dark: black 35%, light: white 60%) |
+
+Content tokens only: app chrome (`chrome*`, `glassWave`) is not a layout key and stays with the app.
+
+### Shape & Spacing Ladder
+
+Controls draw from a small scale of radii and spacings rather than one-off numbers.
+Every rung is optional. Unset, it derives from the base fields above, so a layout that
+sets only `cornerRadius` or `controlPadding` keeps today's look.
+
+| Field | Type | Default (derived) | Description |
+|-------|------|-------------------|-------------|
+| `compactRadius` | number | `cornerRadius / 3` (`4`) | Small chips, badges, tick marks |
+| `controlRadius` | number | `cornerRadius * 2 / 3` (`8`) | Buttons, fields, inner controls |
+| `cardRadius` | number | `cornerRadius` (`12`) | Cards and group containers |
+| `compactSpacing` | number | `controlPadding / 2` (`4`) | Tight gaps inside a control |
+| `standardSpacing` | number | `controlPadding` (`8`) | Default gap between control parts |
+| `sectionSpacing` | number | `controlPadding * 2` (`16`) | Gap between groups or sections |
+| `emphasizedBorderWidth` | number | `1.5` | The one emphasis stroke beyond `borderWidth` |
 
 Colors are hex strings and may include alpha: `"#RRGGBB"` or `"#RRGGBBAA"`.
 
@@ -60,7 +85,7 @@ Most palettes differ between modes. Put scheme-sensitive colors in `light` / `da
 }
 ```
 
-A `light` / `dark` block accepts: `pageBackground`, `pageBackgroundGradient`, `headerBackground`, `headerBackgroundGradient`, `tabBarBackground`, `tabBarTint`, `surfacePrimary/Secondary/Tertiary`, `foregroundColor`, `onAccent`, `secondaryColor`, `tertiaryColor`, `borderColor`, `accentColor`, `accentGradient`.
+A `light` / `dark` block accepts: `pageBackground`, `pageBackgroundGradient`, `headerBackground`, `headerBackgroundGradient`, `tabBarBackground`, `tabBarTint`, `surfacePrimary/Secondary/Tertiary`, `foregroundColor`, `onAccent`, `secondaryColor`, `tertiaryColor`, `borderColor`, `accentColor`, `accentGradient`, `statusOK`, `statusWarn`, `statusError`, `statusInfo`, `scrimColor`.
 
 > The whole app stays in lockstep with the device color scheme — see [[appearance]] for `colorScheme`.
 

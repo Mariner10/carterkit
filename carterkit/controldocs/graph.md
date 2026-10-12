@@ -267,7 +267,7 @@ An Obsidian-style force-directed graph visualization. Displays nodes and edges w
 `"graph"`
 
 ## Recommended Size
-This control is visually large. Use a span of at least `[3, 4]` (full width, 3 rows) for readability.
+This control is visually large. Use a span of at least `[4, 4]` (full width, 4 rows) for readability.
 
 ## Relevant Fields
 Inherits all [[shared-properties]]. Key fields:
@@ -495,7 +495,7 @@ Or simply a string (the raw markdown), in which case the node's `label` is used 
   "type": "graph",
   "id": "simple-graph",
   "position": [0, 0],
-  "span": [3, 4],
+  "span": [4, 4],
   "label": "Connections",
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "graph_update" }, "valuePath": "data" }]
 }

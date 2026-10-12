@@ -325,7 +325,7 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
   "id": "rack-temps",
   "defaultValue": "{\"rows\":[\"Mon\",\"Tue\",\"Wed\"],\"cols\":[\"00\",\"06\",\"12\",\"18\"],\"values\":[[24,31,62,45],[28,55,81,49],[22,38,74,68]]}",
   "position": [0, 0],
-  "span": [2, 4],
+  "span": [3, 4],
   "label": "Rack temperatures",
   "formatValue": "suffix:°C",
   "heatmapConfig": { "colors": ["#1B2845", "#667eea", "#FF9500", "#FF6B6B"], "showScale": true, "vMin": 20, "vMax": 90 },
@@ -378,7 +378,7 @@ A dense matrix plus optional axis labels — natural JSON or an encoded string.
   "type": "heatmap",
   "id": "reading-calendar",
   "position": [0, 0],
-  "span": [2, 4],
+  "span": [3, 4],
   "label": "Reading days",
   "heatmapConfig": { "calendar": true, "weekStartsOn": "monday", "showScale": true },
   "defaultValue": "{\"2026-01-03\":1,\"2026-01-04\":1,\"2026-01-05\":2,\"2026-01-06\":2,\"2026-02-27\":1,\"2026-02-28\":1,\"2026-03-01\":1,\"2026-03-02\":1,\"2026-03-13\":1,\"2026-03-14\":1,\"2026-03-15\":1}"

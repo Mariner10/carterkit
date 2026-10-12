@@ -46,6 +46,15 @@ All notable changes to **carterkit** are documented here. This project follows
 - Validate that every control or group inside `children` has a `position`: a missing one is
   an error (`missing_field`), since the app refuses it and the layout fails to decode (aif-eyfa).
 
+### Changed
+
+- **Re-vendored ControlDocs from CAR-TER master (carter-p8tk, carter-daaj.6; aif-dd6sj).**
+  The camera, graph, heatmap, joystick, pie-chart and web-view examples raise their spans
+  to cartergeo `TALL_MIN` (carter-p8tk). `theming.md` documents the content theme keys
+  `readoutFontSize`, `captionFontSize`, `statusOK` / `statusWarn` / `statusError` /
+  `statusInfo` and `scrimColor` (carter-daaj.6). The same sync brings master's Shape &
+  Spacing Ladder rows in `theming.md`. Source: CAR-TER `origin/master` c7c37539.
+
 ## [0.15.0] — 2026-09-30
 
 - Sync the app's control docs and feature catalog, including forms, stat tiles,

@@ -105,7 +105,7 @@ Inherits all [[shared-properties]]. Key fields:
   "type": "webView",
   "id": "grafana",
   "position": [0, 0],
-  "span": [3, 4],
+  "span": [4, 4],
   "label": "Metrics Dashboard",
   "url": "https://grafana.local/d/overview?kiosk",
   "webInteractive": true,

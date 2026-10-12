@@ -122,7 +122,7 @@ Inherits all [[shared-properties]]. Key fields:
   "type": "joystick",
   "id": "drive-stick",
   "position": [0, 0],
-  "span": [2, 2],
+  "span": [3, 3],
   "label": "Drive",
   "tint": "#FF2D55",
   "style": "analog",
