@@ -7,6 +7,9 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **`null_compare` warning (aif-m12kt).** A `ref` condition leaf comparing to `null` with any
+  operator but `exists` never matches under the app's NULL rule; validate now warns and points at
+  `exists` true/false.
 - **`surfaces.publish` reports `no_tokens` (carter-2ib0).** The reply gains `no_tokens: True` when
   no widget / Control Center / Live Activity push was sent, pruned or suppressed and there is no
   error (no device registered a token); one warning is logged per layout per process.

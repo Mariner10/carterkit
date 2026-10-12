@@ -105,6 +105,10 @@ def _check_leaf(cond: dict, shape: str, where: str, findings: list) -> None:
         findings.append(_f("warn", "bad_condition", where, "'in' needs an array value; it never matches"))
     elif canon == "exists" and not isinstance(value, bool):
         findings.append(_f("warn", "bad_condition", where, "'exists' needs true/false; it never matches"))
+    if canon is not None and canon != "exists" and value is None and "ref" in cond:
+        findings.append(_f("warn", "null_compare", where,
+                           "comparing to null never matches (NULL rule); use {operator: exists, value: false} "
+                           "for 'no value' and exists true for 'has a value'"))
 
 
 def condition_refs(cond) -> list[tuple[str, str]]:

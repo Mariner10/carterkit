@@ -130,3 +130,24 @@ def test_builder_combinators_and_enabled():
     g = next(c for c in tab if c.get("type") == "group")
     assert g["enabled"] == {"not": {"when": "mode", "operator": "eq", "value": "manual"}}
     assert [f for f in validate.validate_layout(ui.layout, CAT) if f["severity"] == "error"] == []
+
+
+def _null_compare(cond):
+    out: list = []
+    check_condition(cond, "x", out)
+    return [f for f in out if f["kind"] == "null_compare"]
+
+
+REF = {"control": "a"}
+
+
+@pytest.mark.parametrize("op", ["eq", "neq"])
+def test_null_compare_warns(op):
+    found = _null_compare({"ref": REF, "operator": op, "value": None})
+    assert len(found) == 1 and found[0]["severity"] == "warn"
+
+
+def test_exists_and_plain_values_raise_no_null_compare():
+    for v in (True, False):
+        assert not _null_compare({"ref": REF, "operator": "exists", "value": v})
+    assert not _null_compare({"ref": REF, "operator": "eq", "value": "x"})
