@@ -210,6 +210,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
                 extra += target_app_findings(layout, catalog, target_app)
                 extra += derive_ref_findings(layout, target_app)
                 extra += requires_feature_findings(layout, catalog)
+                extra += soft_tier_findings(layout)
             except RecursionError:   # hostile nesting: already reported as too_deep above
                 extra = []
             findings.extend(extra)
@@ -1898,6 +1899,66 @@ def _placed_controls(layout: dict) -> list:
         if isinstance(tab, dict):
             _walk_controls(tab.get("children"), f"tabs[{t}]", found)
     return found
+
+
+#: Advisory size tiers, as the app's LayoutSoftTiers (perf baseline). All `warn`.
+SOFT_TAB_HEAVY = 150
+SOFT_TAB_VERY_HEAVY = 400
+SOFT_NESTING_DEPTH = 4
+SOFT_DOCUMENT_BYTES = 2 * 1024 * 1024
+_SOFT_WEIGHTS = {"group": 1, "map": 2, **{k: 3 for k in (
+    "gauge", "chart", "sparkline", "pieChart", "heatmap", "treemap", "sankey", "radar",
+    "boxPlot", "gantt", "graph", "chord", "progressRing", "compass", "pulse")}}
+
+
+def soft_tier_findings(layout: dict) -> list[dict]:
+    """Advisory (never error) tiers below the hard caps: a tab whose weighted control
+    count is over SOFT_TAB_HEAVY (`tab_heavy`) or SOFT_TAB_VERY_HEAVY (`tab_very_heavy`),
+    groups nested deeper than SOFT_NESTING_DEPTH (`deep_nesting`), and a serialized
+    document over 2 MB (`document_too_large`)."""
+    findings: list = []
+    if not isinstance(layout, dict):
+        return findings
+    try:
+        size = len(json.dumps(layout, ensure_ascii=False).encode("utf-8"))
+    except (TypeError, ValueError):
+        size = 0
+    if size > SOFT_DOCUMENT_BYTES:
+        findings.append(_f("warn", "document_too_large", "$",
+                           f"document is {size} bytes (> {SOFT_DOCUMENT_BYTES}); heavy to push, "
+                           f"parse and render — split it across layouts"))
+    tabs = layout.get("tabs")
+    if not isinstance(tabs, list):
+        return findings
+    for ti, tab in enumerate(tabs):
+        if not isinstance(tab, dict) or not isinstance(tab.get("children"), list):
+            continue
+        where = f"$.tabs[{ti}]"
+        weight = 0
+        deepest = 0
+        stack = [(c, 1) for c in tab["children"]]
+        seen = 0
+        while stack and seen <= MAX_CONTROLS * 2:
+            node, depth = stack.pop()
+            if not isinstance(node, dict):
+                continue
+            seen += 1
+            weight += _SOFT_WEIGHTS.get(node.get("type"), 1)
+            deepest = max(deepest, depth - 1)
+            if depth <= MAX_DEPTH + 2:
+                stack.extend(_hosted(node, depth))
+        if weight > SOFT_TAB_VERY_HEAVY:
+            findings.append(_f("warn", "tab_very_heavy", where,
+                               f"tab weighs {weight} (> {SOFT_TAB_VERY_HEAVY}); expect slow "
+                               f"rendering — split it across tabs"))
+        elif weight > SOFT_TAB_HEAVY:
+            findings.append(_f("warn", "tab_heavy", where,
+                               f"tab weighs {weight} (> {SOFT_TAB_HEAVY}); consider splitting it"))
+        if deepest > SOFT_NESTING_DEPTH:
+            findings.append(_f("warn", "deep_nesting", where,
+                               f"groups nest {deepest} levels (> {SOFT_NESTING_DEPTH}); flatten "
+                               f"for readability and speed"))
+    return findings
 
 
 def fallback_findings(layout: dict, catalog: dict) -> list[dict]:

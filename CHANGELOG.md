@@ -10,6 +10,9 @@ All notable changes to **carterkit** are documented here. This project follows
 - **`surfaces.publish` reports `no_tokens` (carter-2ib0).** The reply gains `no_tokens: True` when
   no widget / Control Center / Live Activity push was sent, pruned or suppressed and there is no
   error (no device registered a token); one warning is logged per layout per process.
+- **Soft size tiers in `validate_layout` (aif-cr7ip; app carter-f0zz).** Advisory warnings
+  `tab_heavy` (weighted count > 150), `tab_very_heavy` (> 400), `deep_nesting` (> 4 levels)
+  and `document_too_large` (> 2 MB); hard caps unchanged.
 - **Secrets lint knows `secrets[].allowInsecureHTTP` (aif-ail1; app carter-4vei, carter-zujb).**
   A secret sent over plain `http://` or a non-TLS `mqtt://` broker gets a `secret_insecure`
   warning unless its declaration sets `allowInsecureHTTP: true`; a non-bool value is
