@@ -7,6 +7,11 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **Canonical digest parity with the app (carter-9vo, carter-m22z; aif-4hga).**
+  `carterkit.canonical` refuses duplicate or canonically equivalent (NFC) member names
+  (`DuplicateKeyError`), and `digest_scope` strips inline `http` action/sync headers and
+  URL userinfo / secret query items like the app's wire scrub. `tests/fixtures/canonical-fixtures.json`
+  is byte-identical to the app's copy (regenerate with `scripts/gen-canonical-fixtures.py`).
 - **State-authority boot epoch + hello (carter-bz2.5, T4).** A `CarterClient` mints a
   per-process `epoch` (UUID hex) and stamps it on every `control_snapshot
   {to, v, epoch, controls}`. `enable_state_authority()` now also broadcasts a sealed

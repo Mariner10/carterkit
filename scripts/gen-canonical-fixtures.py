@@ -142,6 +142,18 @@ DIGEST = [
            source_url="https://bob:pw@api.example.com/v1")),
     ("http-templated-url-secret", None,
      _http(HTTP_TEMPLATE, url="https://api.example.com/water/{{value}}?plant=fern&api_key=CCCC#now")),
+    # carter-m22z odd URLs: two '@', '%40' in userinfo, empty secret value, bare '?', fragment-only '#?'.
+    ("http-userinfo-two-at", "same-http-template",
+     _http(HTTP_TEMPLATE, url="https://user@corp:CCCC@api.example.com/water?plant=fern#now")),
+    ("http-userinfo-pct40", "same-http-template",
+     _http(HTTP_TEMPLATE, url="https://user%40corp:DDDD@api.example.com/water?plant=fern#now")),
+    ("http-empty-secret-value", "same-http-template",
+     _http(HTTP_TEMPLATE, url="https://api.example.com/water?plant=fern&api_key=#now")),
+    ("http-placeholder-header", "same-http-template",
+     _http(HTTP_TEMPLATE, headers={"Authorization": "Bearer {{secret:water_key}}"})),
+    ("http-bare-query", None, _http(HTTP_TEMPLATE, url="https://api.example.com/water?")),
+    ("http-fragment-only-query", None,
+     _http(HTTP_TEMPLATE, url="https://api.example.com/water#?api_key=EEEE")),
     ("http-other-method-kept", None,
      _with(HTTP_TEMPLATE, tabs=[{"title": "Mesh", "children": [
          {"id": "m", "type": "button", "action": {"method": "meshsocket", "url": "https://x/?token=t",
