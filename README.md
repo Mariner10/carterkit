@@ -31,7 +31,9 @@ print(await hub.surfaces.state())     # what a widget pulls when iOS wakes it
 `publish` is one request to the relay, which **retains** the values: a widget iOS
 wakes hours later still renders something, and the relay's own floors coalesce a
 chatty publisher rather than burning the app's push budget (a skipped push comes
-back as `suppressed`, with the state merged either way).
+back as `suppressed`, with the state merged either way). If the phone never opened
+CAR-TER no token is registered: the reply then carries `no_tokens: True` (and one
+warning is logged per layout).
 
 Design the surfaces in the layout, in the same vocabulary as the controls:
 

@@ -4,6 +4,7 @@ Use ``hub.surfaces``: no duplicated labels, control IDs, wire types or date epoc
 Remote refresh is explicit so telemetry-rate ``hub.push`` calls never consume
 notification or ActivityKit budgets behind the caller's back.
 """
+import logging
 import time
 import re
 
@@ -11,6 +12,9 @@ from .ambient import (activity_attributes, apple_date, canonical_layout_id,
                       content_state, glance_update, slot, surfaces_deregister_token,
                       surfaces_get_state, surfaces_publish, surfaces_register_token,
                       _scalar)
+
+_log = logging.getLogger(__name__)
+_warned_no_tokens = set()  # layout ids already warned about, per process
 
 _KINDS = {"gauge": "gauge", "progressRing": "ring", "statusLight": "light",
           "sparkline": "number", "slider": "number", "stepper": "number",
@@ -234,17 +238,42 @@ class LayoutSurfaces:
         controls ≥ 10 s, activity ≥ 2 s) skip the *push* inside a window but still
         merge the state, and report that as `suppressed`; the surface shows the
         newest value at its next wake either way. `force=True` asks for the
-        higher-priority push where the floor allows it — it does not lift it."""
+        higher-priority push where the floor allows it — it does not lift it.
+
+        The reply is the relay's dict plus **`no_tokens`**: True when nothing was
+        pushed, pruned or suppressed and there is no error, i.e. no device has
+        registered a widget / Control Center / Live Activity token (the phone never
+        opened CAR-TER). A warning is logged once per layout per process until a
+        later publish reaches a surface."""
         if activity is True:
             activity = {}
         elif activity == "end":
             activity = {"event": "end"}
         elif activity is False:
             activity = None
-        return await self.hub.client._ambient_call(
+        result = await self.hub.client._ambient_call(
             surfaces_publish, layout_id=self.layout_id,
             values=self._values_by_id(values), controls=self._controls_by_id(controls),
             is_connected=is_connected, activity=activity, force=force)
+        return self._flag_no_tokens(result)
+
+    def _flag_no_tokens(self, result):
+        if not isinstance(result, dict):
+            return result
+        suppressed = result.get("suppressed") or {}
+        no_tokens = (not result.get("widgets") and not result.get("controls")
+                     and not result.get("activity") and not result.get("pruned")
+                     and not any(suppressed.values()) and not result.get("error"))
+        result["no_tokens"] = no_tokens
+        if not no_tokens:
+            if not result.get("error"):
+                _warned_no_tokens.discard(self.layout_id)
+        elif self.layout_id not in _warned_no_tokens:
+            _warned_no_tokens.add(self.layout_id)
+            _log.warning("surfaces: no widget/Control Center/Live Activity token is "
+                         "registered for layout %s; open CAR-TER on the device once so "
+                         "they register", self.layout_id)
+        return result
 
     async def state(self):
         """Read back what the relay holds for this layout (GET /surfaces/state/…).

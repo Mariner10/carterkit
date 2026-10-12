@@ -370,3 +370,39 @@ def test_surfaces_need_a_validator_credential(monkeypatch):
     hub = Hub({"name": "Local", "id": "local", "tabs": []})
     with pytest.raises(CarterNotifyError, match="Add Hub"):
         asyncio.run(hub.surfaces.publish(is_connected=True))
+
+
+def _publish_with(monkeypatch, replies):
+    from carterkit import surfaces as surfaces_module
+    surfaces_module._warned_no_tokens.clear()
+    hub, temp, _, _ = make_hub()
+    it = iter(replies)
+    monkeypatch.setattr(surfaces_module, "surfaces_publish", lambda *a, **kw: dict(next(it)))
+    return [asyncio.run(hub.surfaces.publish({temp: 1})) for _ in replies]
+
+
+_ZERO = {"ok": True, "widgets": 0, "controls": 0, "activity": 0, "pruned": 0,
+         "suppressed": {"widgets": False, "controls": False, "activity": False}}
+
+
+def test_publish_no_tokens_true_and_warns_once(monkeypatch, caplog):
+    with caplog.at_level("WARNING", logger="carterkit.surfaces"):
+        results = _publish_with(monkeypatch, [_ZERO, _ZERO])
+    assert [r["no_tokens"] for r in results] == [True, True]
+    assert len([r for r in caplog.records if "no widget" in r.getMessage()]) == 1
+
+
+def test_publish_warning_rearms_after_a_surface_is_reached(monkeypatch, caplog):
+    with caplog.at_level("WARNING", logger="carterkit.surfaces"):
+        _publish_with(monkeypatch, [_ZERO, {**_ZERO, "widgets": 1}, _ZERO])
+    assert len([r for r in caplog.records if "no widget" in r.getMessage()]) == 2
+
+
+@pytest.mark.parametrize("reply", [
+    {**_ZERO, "widgets": 1},
+    {**_ZERO, "suppressed": {"widgets": True, "controls": False, "activity": False}},
+    {**_ZERO, "pruned": 2},
+    {**_ZERO, "ok": False, "error": "boom"},
+])
+def test_publish_no_tokens_false(monkeypatch, reply):
+    assert _publish_with(monkeypatch, [reply])[0]["no_tokens"] is False

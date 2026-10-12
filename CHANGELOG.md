@@ -7,6 +7,9 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **`surfaces.publish` reports `no_tokens` (carter-2ib0).** The reply gains `no_tokens: True` when
+  no widget / Control Center / Live Activity push was sent, pruned or suppressed and there is no
+  error (no device registered a token); one warning is logged per layout per process.
 - **Secrets lint knows `secrets[].allowInsecureHTTP` (aif-ail1; app carter-4vei, carter-zujb).**
   A secret sent over plain `http://` or a non-TLS `mqtt://` broker gets a `secret_insecure`
   warning unless its declaration sets `allowInsecureHTTP: true`; a non-bool value is
