@@ -99,3 +99,24 @@ def test_deck_with_fresh_ids_is_clean():
 def test_deck_duplicate_inside_its_own_panels_is_an_error():
     errs = _deck_errors([_label("y"), _carousel("c2", _host("p", _label("y")))])
     assert [f["kind"] for f in errs] == ["duplicate_id"]
+
+
+def _canvas(cid, item_id, control):
+    return {"type": "canvas", "id": cid, "position": [0, 3],
+            "canvasConfig": {"items": [{"id": item_id, "control": control}]}}
+
+
+def test_canvas_hosted_control_duplicating_a_grid_id_is_an_error():
+    errs = _errors(_doc(_label("x"), _canvas("cv", "i1", _label("x"))))
+    dups = [f for f in errs if f["kind"] == "duplicate_id"]
+    assert len(dups) == 1 and "canvasConfig.items[0]" in dups[0]["where"]
+
+
+def test_canvas_item_id_stays_local():
+    errs = _errors(_doc(_label("x"), _canvas("cv", "x", _label("y"))))
+    assert [f for f in errs if f["kind"] == "duplicate_id"] == []
+
+
+def test_identity_ids_include_canvas_hosted_controls():
+    ids = validate.identity_ids(_doc(_canvas("cv", "i1", _label("hc"))))
+    assert "hc" in ids and "i1" not in ids

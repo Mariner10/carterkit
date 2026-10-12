@@ -987,6 +987,11 @@ def _hosted_ids(ch, spot, findings, seen_ids):
     popup = ch.get("longPressGroup")
     if isinstance(popup, dict):
         hosts.append((popup.get("children"), f"{spot}/longPressGroup"))
+    cc = ch.get("canvasConfig")
+    items = cc.get("items") if isinstance(cc, dict) else None
+    for i, it in enumerate(items if isinstance(items, list) else []):
+        if isinstance(it, dict) and isinstance(it.get("control"), dict):
+            hosts.append(([it["control"]], f"{spot}/canvasConfig.items[{i}]"))
     for kids, where in hosts:
         if isinstance(kids, list):
             _claim_ids(kids, where, findings, seen_ids)
@@ -1037,6 +1042,10 @@ def identity_ids(layout: dict) -> dict[str, str]:
             popup = ch.get("longPressGroup")
             if isinstance(popup, dict) and isinstance(popup.get("children"), list):
                 walk(popup["children"], f"{spot}/longPressGroup")
+            cc = ch.get("canvasConfig")
+            for i, it in enumerate(cc.get("items") or [] if isinstance(cc, dict) else []):
+                if isinstance(it, dict) and isinstance(it.get("control"), dict):
+                    walk([it["control"]], f"{spot}/canvasConfig.items[{i}]")
 
     for ti, tab in enumerate((layout or {}).get("tabs") or []):
         if isinstance(tab, dict) and isinstance(tab.get("children"), list):
