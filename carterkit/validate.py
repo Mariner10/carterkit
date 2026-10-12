@@ -216,7 +216,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
             findings.extend(extra)
         return findings
     except RecursionError:
-        return [_f("error", "too_deep", "root", "layout nests too deeply to validate")]
+        return [_f("error", "too_deep", "root", f"groups/containers nest deeper than {MAX_DEPTH} levels — too deep to validate; the app refuses this")]
     except Exception as e:                        # pragma: no cover - last resort
         return [_f("error", "internal_error", "root",
                    f"validator failed on this input ({type(e).__name__}: {e}); "

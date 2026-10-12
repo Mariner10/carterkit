@@ -106,6 +106,7 @@ def test_every_container_kind_counts_toward_the_app_depth_limit(kind):
 def test_thirty_deep_canvas_is_too_deep():
     assert _nests_too_deep(_chain("canvas", 30))            # uncounted before carter-7np
     assert _nests_too_deep(_chain("canvas", 3000))          # and never a RecursionError
+    assert _nests_too_deep(_chain("canvas", 10000))
 
 
 def test_http_when_opened_is_zero_without_relaxing_other_timer_floors():
