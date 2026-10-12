@@ -5,21 +5,27 @@
 #
 #   sync-controldocs.sh           copy the app's *.md docs over the vendored set
 #   sync-controldocs.sh --check   change nothing; list drifted files, exit 1 on drift
-#   APP_REF=<ref> sync-controldocs.sh --check   compare against a git ref of the
-#                                 app repo (branch/tag) instead of its working tree
+#                                 The default compares the app repo's COMMITTED master
+#                                 (the kit tracks app trunk), so uncommitted edits in
+#                                 the app checkout never count.
+#   APP_REF=<ref> sync-controldocs.sh --check   compare another git ref (branch/tag);
+#                                 APP_REF= (empty) compares the working tree instead.
+#                                 CARTER_APP_CONTROLDOCS_REF works the same way.
+#                                 A non-git APP_REPO always uses its working tree.
 #
 # Exit codes: 0 in sync / vendored, 1 drift (--check), 2 usage or source not found.
 # tests/test_controldocs_freshness.py runs the same comparison under pytest.
 set -euo pipefail
 APP_REPO="${APP_REPO:-$HOME/Desktop/Programming/Swift/CAR-TER/CAR-TER/CAR-TER/ControlDocs}"
-APP_REF="${APP_REF:-${CARTER_APP_CONTROLDOCS_REF:-}}"
+if [ -n "${APP_REF+x}${CARTER_APP_CONTROLDOCS_REF+x}" ]; then REF_EXPLICIT=1; else REF_EXPLICIT=0; fi
+APP_REF="${APP_REF-${CARTER_APP_CONTROLDOCS_REF-master}}"
 DEST="$(cd "$(dirname "$0")/.." && pwd)/carterkit/controldocs"
 
 CHECK=0
 case "${1:-}" in
   "") ;;
   --check) CHECK=1 ;;
-  -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+  -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
   *) echo "usage: $0 [--check]" >&2; exit 2 ;;
 esac
 
@@ -27,6 +33,10 @@ esac
 
 if [ "$CHECK" = 1 ]; then
   shopt -s nullglob
+  # The default ref (master) only applies to a git checkout; elsewhere use the files.
+  if [ "$REF_EXPLICIT" = 0 ] && ! git -C "$APP_REPO" rev-parse --show-toplevel >/dev/null 2>&1; then
+    APP_REF=""
+  fi
   if [ -n "$APP_REF" ]; then
     # Read the docs straight out of git so the app's working tree (which may hold
     # someone's uncommitted edits) doesn't matter.
@@ -70,7 +80,7 @@ if [ "$CHECK" = 1 ]; then
   exit 0
 fi
 
-[ -z "$APP_REF" ] || { echo "APP_REF only applies to --check" >&2; exit 2; }
+[ "$REF_EXPLICIT" = 0 ] || [ -z "$APP_REF" ] || { echo "APP_REF only applies to --check" >&2; exit 2; }
 rm -f "$DEST"/*.md
 cp "$APP_REPO"/*.md "$DEST"/
 echo "vendored $(ls "$DEST"/*.md | wc -l | tr -d ' ') docs into carterkit/controldocs/"
