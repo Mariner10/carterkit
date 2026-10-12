@@ -76,7 +76,7 @@
             "datumAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_vote",
                 "choice": "{{value}}"
@@ -156,7 +156,7 @@
             "sliceAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_pick",
                 "person": "{{value}}"
@@ -183,7 +183,7 @@
             "sliceAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_scene",
                 "name": "{{value}}"
@@ -295,7 +295,7 @@
             "cellAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_led",
                 "pixel": "{{value}}"
@@ -330,7 +330,7 @@
             "boxAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_region",
                 "stats": "{{value}}"
@@ -429,7 +429,7 @@
             "nodeAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_node",
                 "node": "{{value}}"
@@ -466,7 +466,7 @@
             "arcAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_service",
                 "service": "{{value}}"
@@ -514,7 +514,7 @@
             "taskAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_task",
                 "task": "{{value}}"
@@ -571,7 +571,7 @@
             "itemAction": {
               "method": "meshsocket",
               "mode": "broadcast",
-              "event": "broadcast",
+              "event": "broadcast_request",
               "payload": {
                 "msg_type": "lab_bucket",
                 "item": "{{value}}"

@@ -333,7 +333,7 @@
           "chartConfig": {
             "barCornerRadius": 6,
             "datumAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -377,7 +377,7 @@
           "label": "Spin for on-call",
           "pieConfig": {
             "sliceAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -396,7 +396,7 @@
           "label": "Scene menu",
           "pieConfig": {
             "sliceAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -452,7 +452,7 @@
           "defaultValue": "[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]",
           "heatmapConfig": {
             "cellAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -489,7 +489,7 @@
         {
           "boxPlotConfig": {
             "boxAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -542,7 +542,7 @@
           "label": "Energy flow (kW)",
           "sankeyConfig": {
             "nodeAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -558,7 +558,7 @@
         {
           "chordConfig": {
             "arcAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -588,7 +588,7 @@
           "ganttConfig": {
             "editable": true,
             "taskAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
@@ -619,7 +619,7 @@
           "label": "Storage (tap to drill)",
           "treemapConfig": {
             "itemAction": {
-              "event": "broadcast",
+              "event": "broadcast_request",
               "method": "meshsocket",
               "mode": "broadcast",
               "payload": {
