@@ -20,8 +20,8 @@ DEFAULT_INTERVAL = 120.0
 
 
 def bd_list_json(timeout=60):
-    """Rows of ``bd list --json --all`` (status filter is the selector's job)."""
-    out = subprocess.run(["bd", "list", "--json", "--all", "--limit", "0"],
+    """Rows of ``bd list --json --limit 0``: open beads only (no --all; closed rows are not needed)."""
+    out = subprocess.run(["bd", "list", "--json", "--limit", "0"],
                          capture_output=True, text=True, timeout=timeout, check=True).stdout
     rows = json.loads(out)
     return rows if isinstance(rows, list) else []

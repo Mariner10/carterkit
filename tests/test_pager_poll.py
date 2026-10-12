@@ -66,3 +66,21 @@ def test_failed_push_retried():
     assert run(p.poll_once()) == [] and not p.paged
     hub.fail = False
     assert len(run(p.poll_once())) == 1
+
+
+def test_bd_list_json_omits_all(monkeypatch):
+    import subprocess
+    from carterkit import pager_poll
+    seen = []
+
+    class R:
+        stdout = "[]"
+
+    def fake_run(argv, **kw):
+        seen.append(argv)
+        return R()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    pager_poll.bd_list_json()
+    assert seen[0] == ["bd", "list", "--json", "--limit", "0"]
+    assert "--all" not in seen[0]
