@@ -5,7 +5,9 @@ Mirrors the app's destination policy (`SecretPolicy` in LayoutSecretStore.swift)
 * by default a secret may only be sent to the hosts of the layout's declared
   sources (each http `baseURL` host and mqtt broker host);
 * `secrets[].hosts` replaces that set for one secret;
-* `secrets[].mesh: true` also allows it in a MeshSocket action payload.
+* `secrets[].mesh: true` also allows it in a MeshSocket action payload;
+* a request over plain `http://` or a non-TLS `mqtt://` broker is refused unless the
+  declaration sets `allowInsecureHTTP: true` (carter-4vei, carter-zujb).
 
 The app refuses a request that breaks the rule (the pipe shows
 ``secret x not allowed for host h`` / ``... for the mesh``), so every finding here
@@ -42,6 +44,16 @@ def _host(url) -> str | None:
         return None
 
 
+def _plain_http(url) -> bool:
+    """The app sends anything that is not `https` (scheme compared lower-cased) as plain text."""
+    return isinstance(url, str) and not url.lower().startswith("https://")
+
+
+def _plain_mqtt(url) -> bool:
+    """TLS only for the `mqtts` / `ssl` schemes (DataSourceConfig.mqttEndpoint)."""
+    return isinstance(url, str) and url.split("://", 1)[0] not in ("mqtts", "ssl")
+
+
 def _secret_in_authority(url: str) -> bool:
     """A placeholder in the scheme, host or port: the app refuses to place it."""
     if not SECRET_TOKEN.search(url):
@@ -63,7 +75,7 @@ def _declarations(layout: dict, findings: list) -> dict:
         return decls
     if not isinstance(raw, list):
         findings.append(_f("error", "bad_secrets", "root",
-                           "'secrets' must be an array of {name, label?, kind?, hosts?, mesh?}"))
+                           "'secrets' must be an array of {name, label?, kind?, hosts?, mesh?, allowInsecureHTTP?}"))
         return decls
     for i, d in enumerate(raw):
         where = f"secrets[{i}]"
@@ -103,13 +115,17 @@ def _declarations(layout: dict, findings: list) -> dict:
         mesh = d.get("mesh")
         if mesh is not None and not isinstance(mesh, bool):
             findings.append(_f("error", "bad_secrets", f"{where}.mesh", "'mesh' must be true or false"))
+        insecure = d.get("allowInsecureHTTP")
+        if insecure is not None and not isinstance(insecure, bool):
+            findings.append(_f("error", "bad_secrets", f"{where}.allowInsecureHTTP",
+                               "'allowInsecureHTTP' must be true or false"))
         decls[name] = {"hosts": ({h.lower() for h in hosts} if isinstance(hosts, list) else None),
-                       "mesh": mesh is True}
+                       "mesh": mesh is True, "insecure": insecure is True}
     return decls
 
 
 def _source_hosts(layout: dict) -> dict:
-    """{source name: (kind, host or None)} for http/mqtt sources."""
+    """{source name: (kind, host or None, plain-text transport)} for http/mqtt sources."""
     out: dict = {}
     srcs = layout.get("sources")
     if not isinstance(srcs, dict):
@@ -119,33 +135,38 @@ def _source_hosts(layout: dict) -> dict:
             continue
         kind = sd.get("type")
         if kind == "http":
-            out[name] = (kind, _host(sd.get("baseURL")))
+            out[name] = (kind, _host(sd.get("baseURL")), _plain_http(sd.get("baseURL")))
         elif kind == "mqtt":
-            out[name] = (kind, _host(sd.get("url")))
+            out[name] = (kind, _host(sd.get("url")), _plain_mqtt(sd.get("url")))
     return out
 
 
 def _sole(sources: dict, kind: str) -> str | None:
-    names = [n for n, (k, _) in sources.items() if k == kind]
+    names = [n for n, (k, _, _p) in sources.items() if k == kind]
     return names[0] if len(names) == 1 else None
+
+
+def _host_kind(entry) -> str:
+    return "insecure" if entry[2] else "host"
 
 
 def _binding_destination(b: dict, sources: dict, is_action: bool):
     """Where a sync/action's secrets go: ("host", h), ("mesh", None),
+    ("insecure", h) when the host is reached over plain http / non-TLS mqtt,
     ("unknown", None) when the host can't be worked out statically, or
     ("never", why) when the app does not fill secrets in there at all."""
     method = b.get("method") or "meshsocket"
     if method == "http":
         h = _host(b.get("url"))
         if h:
-            return ("host", h)
+            return ("insecure" if _plain_http(b.get("url")) else "host", h)
         name = b.get("source") or _sole(sources, "http")
         entry = sources.get(name) if isinstance(name, str) else None
-        return ("host", entry[1]) if entry and entry[1] else ("unknown", None)
+        return (_host_kind(entry), entry[1]) if entry and entry[1] else ("unknown", None)
     if method == "mqtt":
         name = b.get("source") or _sole(sources, "mqtt")
         entry = sources.get(name) if isinstance(name, str) else None
-        return ("host", entry[1]) if entry and entry[1] else ("unknown", None)
+        return (_host_kind(entry), entry[1]) if entry and entry[1] else ("unknown", None)
     if method == "meshsocket":
         return ("mesh", None) if is_action else ("never", "a MeshSocket sync")
     return ("never", f"a '{method}' binding")
@@ -161,8 +182,8 @@ def _uses(layout: dict, sources: dict):
             if not isinstance(sd, dict):
                 continue
             covered.add(id(sd))
-            kind, host = sources.get(sname, (None, None))
-            dest = ("host", host) if host else (("never", f"a '{sd.get('type')}' source")
+            kind, host, plain = sources.get(sname, (None, None, False))
+            dest = (("insecure" if plain else "host", host)) if host else (("never", f"a '{sd.get('type')}' source")
                                                 if kind is None else ("unknown", None))
             for n in secret_names(sd):
                 yield n, f"sources.{sname}", dest, sd
@@ -225,10 +246,10 @@ def _literal_action_headers(layout: dict, findings: list) -> None:
 
 def lint_secrets(layout: dict, findings: list) -> None:
     """Append `bad_secrets`, `secret_host`, `secret_mesh`, `secret_in_url`,
-    `secret_not_filled`, `secret_undeclared` and `secret_unused` findings."""
+    `secret_insecure`, `secret_not_filled`, `secret_undeclared` and `secret_unused` findings."""
     decls = _declarations(layout, findings)
     sources = _source_hosts(layout)
-    default_hosts = {h for _, h in sources.values() if h}
+    default_hosts = {h for _, h, _p in sources.values() if h}
     used: set = set()
     undeclared_reported: set = set()
     for name, where, (kind, detail), node in _uses(layout, sources):
@@ -238,7 +259,7 @@ def lint_secrets(layout: dict, findings: list) -> None:
             findings.append(_f("info", "secret_undeclared", where,
                                f"'{{{{secret:{name}}}}}' has no entry in 'secrets'; it still "
                                f"resolves by name under the default rule (source hosts only)"))
-        decl = decls.get(name, {"hosts": None, "mesh": False})
+        decl = decls.get(name, {"hosts": None, "mesh": False, "insecure": False})
         if kind == "never":
             findings.append(_f("warn", "secret_not_filled", where,
                                f"secret '{name}' is not filled in inside {detail}; the phone "
@@ -248,7 +269,7 @@ def lint_secrets(layout: dict, findings: list) -> None:
                                f"secret '{name}' not allowed for the mesh — the action is not "
                                f"sent; set \"mesh\": true on its declaration (every peer in "
                                f"the room can read the payload)"))
-        elif kind == "host":
+        elif kind in ("host", "insecure"):
             allowed = decl["hosts"] if decl["hosts"] is not None else default_hosts
             if detail not in allowed:
                 fix = ("add it to this secret's 'hosts'" if decl["hosts"] is not None
@@ -256,6 +277,11 @@ def lint_secrets(layout: dict, findings: list) -> None:
                 findings.append(_f("warn", "secret_host", where,
                                    f"secret '{name}' not allowed for host {detail} — the request "
                                    f"is not sent; {fix}"))
+            elif kind == "insecure" and not decl["insecure"]:
+                findings.append(_f("warn", "secret_insecure", where,
+                                   f"secret '{name}' not allowed for plain-text transport to "
+                                   f"{detail} — the request is not sent; use https:// or mqtts://, "
+                                   f"or set \"allowInsecureHTTP\": true on its declaration"))
         if isinstance(node, dict):
             for key in ("url", "baseURL", "path"):
                 v = node.get(key)

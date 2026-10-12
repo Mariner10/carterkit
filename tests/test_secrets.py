@@ -128,3 +128,49 @@ def test_declaration_shape_and_unused_undeclared():
     layout = _base(secrets=[{"name": "ha_token"}])
     assert [f for f in _of(layout, "secret_undeclared") if "mqtt_pw" in f["detail"]]
     assert _of(_base(secrets={"name": "x"}), "bad_secrets")[0]["severity"] == "error"
+
+
+def _plain_http_layout(optout):
+    layout = _base()
+    layout["sources"]["ha"]["baseURL"] = "http://ha.local:8123"
+    if optout is not None:
+        layout["secrets"][0]["allowInsecureHTTP"] = optout
+    return layout
+
+
+def test_secret_over_plain_http_warns_without_opt_in():
+    found = _of(_plain_http_layout(None), "secret_insecure")
+    assert found and found[0]["severity"] == "warn" and "ha.local" in found[0]["detail"]
+    assert _of(_plain_http_layout(False), "secret_insecure")
+
+
+def test_secret_over_plain_http_clean_with_opt_in():
+    assert not _of(_plain_http_layout(True), "secret_insecure")
+    assert not _of(_plain_http_layout(True), "bad_secrets")
+
+
+def test_secret_over_plain_mqtt_needs_opt_in():
+    layout = _base()
+    layout["sources"]["broker"]["url"] = "mqtt://broker.local"
+    found = _of(layout, "secret_insecure")
+    assert found and "broker.local" in found[0]["detail"]
+    layout["secrets"][1]["allowInsecureHTTP"] = True
+    assert not _of(layout, "secret_insecure")
+
+
+def test_action_url_plain_http_needs_opt_in():
+    layout = _with_child(_base(), _button({"method": "http", "url": "http://ha.local/x?k={{secret:ha_token}}"}))
+    assert _of(layout, "secret_insecure")
+    layout["secrets"][0]["allowInsecureHTTP"] = True
+    assert not _of(layout, "secret_insecure")
+
+
+def test_allow_insecure_http_must_be_bool():
+    found = _of(_plain_http_layout("yes"), "bad_secrets")
+    assert any(f["severity"] == "error" and "allowInsecureHTTP" in f["where"] for f in found)
+
+
+def test_layout_secret_builder_sets_allow_insecure_http():
+    ui = Layout("S")
+    ui.secret("tok", allow_insecure_http=True)
+    assert ui._buf.layout["secrets"][0]["allowInsecureHTTP"] is True

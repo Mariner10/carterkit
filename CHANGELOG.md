@@ -7,6 +7,10 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- **Secrets lint knows `secrets[].allowInsecureHTTP` (aif-ail1; app carter-4vei, carter-zujb).**
+  A secret sent over plain `http://` or a non-TLS `mqtt://` broker gets a `secret_insecure`
+  warning unless its declaration sets `allowInsecureHTTP: true`; a non-bool value is
+  `bad_secrets`. `Layout.secret(..., allow_insecure_http=)` sets it.
 - **`secrets[]` builder and secrets lint (carter-7gve; app side carter-hlkg).**
   `Layout.secret(name, label=, kind=, hosts=, mesh=)` declares a `secrets[]` entry and
   returns its `{{secret:name}}` placeholder; `bind.secret(name)` builds the placeholder

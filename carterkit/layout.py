@@ -541,14 +541,16 @@ class Layout:
 
     # ─── secrets ({{secret:name}} credentials the phone keeps in its Keychain) ──
     def secret(self, name: str, *, label: str = None, kind: str = None,
-               hosts: list = None, mesh: bool = None) -> str:
+               hosts: list = None, mesh: bool = None,
+               allow_insecure_http: bool = None) -> str:
         """Declare a credential a ``{{secret:name}}`` placeholder refers to and return
         that placeholder. The layout carries only the name; the value lives in the
         phone's Keychain and is filled in when a request goes out. By default the
         secret may only be sent to the hosts of the layout's declared sources;
         ``hosts`` replaces that set (list any host an action ``url`` names), and
         ``mesh=True`` also allows it in a MeshSocket action payload, which every peer
-        in the room reads. ``kind`` is ``token``, ``password`` or ``apiKey``.
+        in the room reads. ``allow_insecure_http=True`` lets it go over plain ``http://``
+        or a non-TLS ``mqtt://`` broker (default: refused). ``kind`` is ``token``, ``password`` or ``apiKey``.
         Re-declaring a name replaces it. See layout-config.md#Secrets::
 
             key = ui.secret("ha_token", label="Home Assistant token", kind="token")
@@ -567,6 +569,8 @@ class Layout:
             decl["hosts"] = list(hosts)
         if mesh is not None:
             decl["mesh"] = bool(mesh)
+        if allow_insecure_http is not None:
+            decl["allowInsecureHTTP"] = bool(allow_insecure_http)
         decls = [d for d in self._buf.layout.get("secrets", []) if d.get("name") != name]
         decls.append(decl)
         self._buf.layout["secrets"] = decls
