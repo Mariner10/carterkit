@@ -130,8 +130,12 @@ def _lint_collections(colls, out, schema):
         for flag in ("shared", "mirror", "singleton"):
             if flag in cdef and not isinstance(cdef[flag], bool):
                 out.append(("error", f"collection {cname}: '{flag}' must be true or false"))
+        if "label" in cdef:
+            lab = cdef["label"]
+            if not isinstance(lab, str) or not lab.strip() or len(lab) > 64:
+                out.append(("error", f"collection {cname}: 'label' must be a non-empty string of at most 64 characters"))
         for key in cdef:
-            if key not in ("fields", "shared", "mirror", "singleton", "defaults", "order"):
+            if key not in ("fields", "shared", "mirror", "singleton", "defaults", "order", "label"):
                 out.append(("warn", f"collection {cname}: unknown key '{key}' is ignored"))
         clean: dict = {}
         for fname, ftype in fields.items():

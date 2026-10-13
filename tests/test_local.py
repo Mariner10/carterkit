@@ -393,3 +393,17 @@ def test_singleton_defaults_lint():
     for name, (over, needle) in bad.items():
         details = " | ".join(_details(_singleton_layout(ok, **over)))
         assert needle in details, (name, details)
+
+
+def test_collection_label_allowed():
+    ok = bind.local_op("toggle", "fern", field="on")
+    lay = _singleton_layout(ok, label="Fern care")
+    assert _errors(lay) == []
+    assert not any("unknown key 'label'" in d for d in _details(lay))
+
+
+def test_collection_label_rejects_bad_values():
+    ok = bind.local_op("toggle", "fern", field="on")
+    for bad in ("", "  ", 5, "x" * 65):
+        details = " | ".join(_details(_singleton_layout(ok, label=bad)))
+        assert "'label' must be a non-empty string" in details, (bad, details)
