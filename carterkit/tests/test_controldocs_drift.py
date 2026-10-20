@@ -1,8 +1,7 @@
 """Vendored ControlDocs must equal the pinned CAR-TER ControlDocs.
 
-``carterkit/controldocs/SOURCE`` pins the CAR-TER repo and a commit SHA (any
-``key: value`` / ``key=value`` / bare-token layout; the first 40-hex token is the
-commit, the first URL or path-like token is the repo). Every file vendored under
+``carterkit/controldocs/SOURCE`` pins the CAR-TER repo, path and a (short or full)
+commit SHA as ``key: value`` lines. Every file vendored under
 ``carterkit/controldocs`` must be byte-identical to the file at that commit, and
 no file may be missing or extra.
 
@@ -12,6 +11,7 @@ Overrides: ``CARTER_APP_REPO`` (local clone of CAR-TER) and
 import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -19,8 +19,7 @@ import pytest
 KIT_ROOT = Path(__file__).resolve().parents[2]
 VENDORED = KIT_ROOT / "carterkit" / "controldocs"
 SOURCE = VENDORED / "SOURCE"
-DOCS_REL = os.environ.get("CARTER_APP_CONTROLDOCS_REL", "CAR-TER/ControlDocs")
-SHA_RE = re.compile(r"\b[0-9a-f]{40}\b")
+SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
 
 def _git(repo, *args):
@@ -28,56 +27,62 @@ def _git(repo, *args):
 
 
 def _parse_source():
-    text = SOURCE.read_text()
-    sha = SHA_RE.search(text)
-    assert sha, "controldocs/SOURCE has no 40-hex commit SHA"
-    repo = None
-    for line in text.splitlines():
+    """Return the SOURCE pin as a dict of ``key: value`` / ``key=value`` pairs."""
+    pin = {}
+    for line in SOURCE.read_text().splitlines():
         line = line.split("#", 1)[0].strip()
-        for tok in re.split(r"[\s=]+", line):
-            if "://" in tok or tok.startswith(("/", "~", "git@")):
-                repo = tok
-                break
-        if repo:
-            break
-    return repo, sha.group(0)
+        m = re.match(r"([A-Za-z_]+)\s*[:=]\s*(.+)$", line)
+        if m:
+            pin[m.group(1).lower()] = m.group(2).strip()
+    commit = pin.get("commit", "")
+    assert SHA_RE.match(commit), f"controldocs/SOURCE commit {commit!r} is not a 7-40 hex SHA"
+    return pin
 
 
-def _local_repo(repo):
-    env = os.environ.get("CARTER_APP_REPO")
-    cands = [env] if env else []
-    if repo and "://" not in repo and not repo.startswith("git@"):
-        cands.append(repo)
+def _resolve(repo, commit):
+    r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", f"{commit}^{{commit}}"],
+                       capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def _find_repo(pin):
+    """Locate a git repo containing the pinned commit; return (top, full_sha) or None."""
+    cands = []
+    if os.environ.get("CARTER_APP_REPO"):
+        cands.append(Path(os.environ["CARTER_APP_REPO"]).expanduser())
     for parent in KIT_ROOT.parents:
-        cands.append(parent / "CAR-TER")
-    for c in cands:
-        p = Path(c).expanduser()
-        if (p / ".git").exists() or p.name.endswith(".git"):
-            return p
+        cands += [parent / "CAR-TER", parent / "CAR-TER-workspace"]
+    for p in cands:
+        if (p / ".git").exists() and _resolve(p, pin["commit"]):
+            top = _git(p, "rev-parse", "--show-toplevel").decode().strip()
+            return top, _resolve(top, pin["commit"])
+    url = pin.get("repo")
+    if url:  # last resort: fetch the pinned repo into a temp bare clone
+        tmp = Path(tempfile.mkdtemp(prefix="controldocs-pin-"))
+        env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+        r = subprocess.run(["git", "clone", "-q", "--bare", url, str(tmp)],
+                           capture_output=True, env=env, timeout=300)
+        if r.returncode == 0 and _resolve(tmp, pin["commit"]):
+            return str(tmp), _resolve(tmp, pin["commit"])
     return None
 
 
-def _pinned_files(repo, sha):
-    top = _git(repo, "rev-parse", "--show-toplevel").decode().strip()
-    candidates = [DOCS_REL, "CAR-TER/CAR-TER/ControlDocs", "ControlDocs"]
-    for rel in dict.fromkeys(candidates):
-        r = subprocess.run(["git", "-C", top, "ls-tree", "-r", "--name-only", f"{sha}:{rel}"],
-                           capture_output=True, text=True)
-        if r.returncode == 0 and r.stdout.strip():
-            return {n: _git(top, "show", f"{sha}:{rel}/{n}") for n in r.stdout.split("\n") if n}
-    pytest.skip(f"no ControlDocs dir at {sha} in {top}")
+def _pinned_files(top, sha, rel):
+    r = subprocess.run(["git", "-C", top, "ls-tree", "-r", "--name-only", f"{sha}:{rel}"],
+                       capture_output=True, text=True)
+    assert r.returncode == 0 and r.stdout.strip(), f"no {rel} at {sha} in {top}"
+    return {n: _git(top, "show", f"{sha}:{rel}/{n}") for n in r.stdout.split("\n") if n}
 
 
 def test_vendored_controldocs_match_pinned_commit():
     assert SOURCE.is_file(), "carterkit/controldocs/SOURCE pin is missing"
-    repo_url, sha = _parse_source()
-    repo = _local_repo(repo_url)
-    if repo is None:
-        pytest.skip("no local CAR-TER checkout (set CARTER_APP_REPO)")
-    if subprocess.run(["git", "-C", str(repo), "cat-file", "-e", f"{sha}^{{commit}}"],
-                      capture_output=True).returncode != 0:
-        pytest.skip(f"pinned commit {sha} not present in {repo}")
-    pinned = _pinned_files(repo, sha)
+    pin = _parse_source()
+    found = _find_repo(pin)
+    if found is None:
+        pytest.skip(f"pinned commit {pin['commit']} not reachable (set CARTER_APP_REPO)")
+    top, sha = found
+    rel = os.environ.get("CARTER_APP_CONTROLDOCS_REL") or pin.get("path", "CAR-TER/ControlDocs")
+    pinned = _pinned_files(top, sha, rel)
     vendored = {p.relative_to(VENDORED).as_posix(): p.read_bytes()
                 for p in VENDORED.rglob("*") if p.is_file() and p.name != "SOURCE"}
     missing = sorted(set(pinned) - set(vendored))
