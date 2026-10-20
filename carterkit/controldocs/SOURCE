@@ -1,0 +1,5 @@
+# ControlDocs source pin (read by carter-cloud sync_controldocs.py)
+repo: http://10.10.10.5:3000/Mariner10/CAR-TER.git
+path: CAR-TER/ControlDocs
+branch: master
+commit: c7c37539
