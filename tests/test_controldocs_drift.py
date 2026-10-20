@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-KIT_ROOT = Path(__file__).resolve().parents[2]
+KIT_ROOT = Path(__file__).resolve().parents[1]
 VENDORED = KIT_ROOT / "carterkit" / "controldocs"
 SOURCE = VENDORED / "SOURCE"
 SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
