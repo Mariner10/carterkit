@@ -5,6 +5,11 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.16.0] — 2026-10-20
+
+Includes the ControlDocs resync, pinned to CAR-TER `master` c7c37539 (`controldocs/SOURCE`;
+`scripts/sync_controldocs.py --check` guards drift). Everything listed below under Added and Changed ships in this release.
+
 ### Added
 
 - **`hub.surfaces.keep_live()` keeps glance surfaces live with the app closed (aif-2dy6q.3).**
