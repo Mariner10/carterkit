@@ -38,7 +38,8 @@ def test_control_factory_unknown_type():
 
 
 def test_builder_doc_comes_from_controldocs():
-    assert build.gauge.__doc__.startswith("# Gauge")
+    doc = build.gauge.__doc__
+    assert "catalog type `gauge`" in doc and "gaugeStyle:" in doc
 
 
 def test_types_listing_nonempty():

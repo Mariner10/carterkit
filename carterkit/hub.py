@@ -151,7 +151,7 @@ class Hub:
 
         hub_name = (name or self.connection.hub
                     or (layout or {}).get("connection", {}).get("hub") or "hub")
-        client_kw = dict(strict_e2ee=strict_e2ee)
+        client_kw: dict = dict(strict_e2ee=strict_e2ee)
         if max_inflight is not None:
             client_kw["max_inflight"] = max_inflight
         if rate_per_type is not None:
@@ -179,7 +179,7 @@ class Hub:
             self.client.enable_state_authority()
         # The layout's `state.acks` opts its controls into ack'd commands — the
         # serving side of that contract is ours to honour automatically.
-        if isinstance((layout or {}).get("state"), dict) and layout["state"].get("acks"):
+        if layout and isinstance(layout.get("state"), dict) and layout["state"].get("acks"):
             self.client.enable_command_acks()
         self.client.on_broadcast(self._dispatch)
         from .surfaces import LayoutSurfaces
@@ -287,6 +287,8 @@ class Hub:
     def validate(self) -> list:
         """Lint this hub's layout against the bundled catalog."""
         import carterkit
+        if self.layout is None:
+            raise HubError("no layout to validate: set hub.layout or pass one to push_layout")
         return carterkit.validate_layout(self.layout)
 
     # ─── drive: server -> controls ───────────────────────────────────────────
@@ -297,8 +299,9 @@ class Hub:
         if isinstance(d, dict):
             return d
         h = getattr(target, "control", None)          # GroupHandle → its Control
-        if isinstance(getattr(h, "ref", None), dict):
-            return h.ref
+        hr = getattr(h, "ref", None)
+        if isinstance(hr, dict):
+            return hr
         if isinstance(target, str):
             try:
                 return self._index[target]
@@ -457,7 +460,7 @@ class Hub:
         # silent (the raw on_broadcast hook is an observer, not a handler).
         handlers = None
         if isinstance(data, dict):
-            handlers = self._demux.get(data.get("msg_type"))
+            handlers = self._demux.get(data.get("msg_type") or "")
         if handlers:
             for fn in handlers:
                 r = fn(data)

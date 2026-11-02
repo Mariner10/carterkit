@@ -48,12 +48,17 @@ bookkeeping come from LayoutBuffer; `.validate()` lints against the bundled cata
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from . import bind as _bind
 from . import controls as _controls
 from . import grid as _grid
 from . import validate as _validate
 from .buffer import LayoutBuffer, BufferError
+from .typed import ScopeControls
+
+if TYPE_CHECKING:
+    from .hub import Hub
 
 _OPS = {"gt": "gt", "ge": "gte", "lt": "lt", "le": "lte"}
 
@@ -209,7 +214,7 @@ def _fallback_spec(fb, label=None, _hops: int = 0) -> dict:
     return out
 
 
-class _GridScope:
+class _GridScope(ScopeControls):
     """A placeable grid (a tab's children, a group's children, or a Fragment).
 
     Control methods resolve off the bundled catalog via attribute access
@@ -282,8 +287,8 @@ class _GridScope:
 
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
-              hide_background=None, mode: str = None, row_height: int = None,
-              name: str = None, form: dict = None) -> "GroupHandle":
+              hide_background=None, mode: str | None = None, row_height: int | None = None,
+              name: str | None = None, form: dict | None = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
@@ -329,6 +334,10 @@ class _GridScope:
         self._children.append(control)
         return self
 
+    def _ctl(self, ctype: str, kw: dict, props: dict) -> Control:
+        """Entry point of the generated typed methods (carterkit/typed.py)."""
+        return self._make(ctype, **{k: v for k, v in kw.items() if v is not None}, **props)
+
     def __getattr__(self, name: str):
         if name.startswith("_"):
             raise AttributeError(name)
@@ -342,7 +351,7 @@ class _GridScope:
         return make
 
 
-class _ScopeProxy:
+class _ScopeProxy(ScopeControls):
     """Shared base for tab/group handles: a context manager that activates its scope,
     forwarding control-method calls to it."""
 
@@ -358,6 +367,10 @@ class _ScopeProxy:
         if self._prev is not None:
             self._layout._scope = self._prev
         return False
+
+    def _ctl(self, ctype: str, kw: dict, props: dict) -> Control:
+        self._layout._scope = self._scope     # keep flat (non-`with`) usage targeting us
+        return self._scope._ctl(ctype, kw, props)
 
     def __getattr__(self, name: str):
         if name.startswith("_"):
@@ -412,10 +425,10 @@ class TabHandle(_ScopeProxy):
         return self._layout.json(indent)
 
 
-class Layout:
-    def __init__(self, name: str = "Layout", *, cols: int = None, rows: int = 6,
-                 columns: int = None, accent: str = "#667eea", id: str = None,
-                 target_app: str = None):
+class Layout(ScopeControls):
+    def __init__(self, name: str = "Layout", *, cols: int | None = None, rows: int = 6,
+                 columns: int | None = None, accent: str = "#667eea", id: str | None = None,
+                 target_app: str | None = None):
         if target_app is not None and not _validate._is_app_version(target_app):
             raise ValueError(f"target_app must be a dotted version like \"1.2.4\", not {target_app!r}")
         # Lint-only: the oldest app validate() warns for (a layout's requires.app wins).
@@ -434,7 +447,7 @@ class Layout:
         self._default_rows = rows
         self._tab_index = 0
         self._first_tab_used = False
-        self._active_hub = None          # set by Hub when this layout is served
+        self._active_hub: Hub | None = None          # set by Hub when this layout is served
         self._scope = self._scope_for_tab(0)
 
     # ─── internals ───────────────────────────────────────────────────────────
@@ -447,7 +460,7 @@ class Layout:
         return self._buf.unique_id(base)
 
     # ─── structure ───────────────────────────────────────────────────────────
-    def connect(self, source: str = None, **identity) -> "Layout":
+    def connect(self, source: str | None = None, **identity) -> "Layout":
         """Attach a `connection` block. `source` is a relay URL (identity kwargs as
         in bind.connection, including `hub=` to name the serving side) — or anything
         `Connection.parse` accepts: a pairing/Add-Device JSON path or dict, an
@@ -462,8 +475,8 @@ class Layout:
         self._buf.layout["connection"] = conn.layout_block(name=name, role=role)
         return self
 
-    def state(self, *, sync: bool = True, authority: str = None,
-              acks: bool = None, ack_timeout_ms: int = None) -> "Layout":
+    def state(self, *, sync: bool = True, authority: str | None = None,
+              acks: bool | None = None, ack_timeout_ms: int | None = None) -> "Layout":
         """Attach the layout `state` block — the app's device-held shared-state
         opt-in. With `sync` on, the app broadcasts a `control_sync_request` when the
         layout loads and on every reconnect (the deterministic join signal servers
@@ -486,8 +499,8 @@ class Layout:
         return self
 
     # ─── data sources (MQTT / HTTP — app-side runtimes, no server code) ─────────
-    def source_mqtt(self, name: str, url: str, *, username: str = None,
-                    password: str = None, client_id: str = None) -> "Layout":
+    def source_mqtt(self, name: str, url: str, *, username: str | None = None,
+                    password: str | None = None, client_id: str | None = None) -> "Layout":
         """Declare an MQTT broker source. Controls bind topics with
         ``bind.mqtt("home/temp")`` (sync) / ``bind.mqtt_publish("home/lamp/set")``
         (action). The app speaks MQTT directly — no server code. See sources.md."""
@@ -501,8 +514,8 @@ class Layout:
         self._buf.layout.setdefault("sources", {})[name] = src
         return self
 
-    def source_http(self, name: str, base_url: str, *, headers: dict = None,
-                    interval: float = None) -> "Layout":
+    def source_http(self, name: str, base_url: str, *, headers: dict | None = None,
+                    interval: float | None = None) -> "Layout":
         """Declare an HTTP API source. Controls poll it with
         ``bind.http("/status", interval=5)`` and act with ``bind.http_request(...)``.
         The app polls directly — no server code. See sources.md."""
@@ -514,8 +527,8 @@ class Layout:
         self._buf.layout.setdefault("sources", {})[name] = src
         return self
 
-    def source_local(self, name: str, collections: dict, *, namespace: str = None,
-                     views: dict = None, week_starts_on: str = None) -> "Layout":
+    def source_local(self, name: str, collections: dict, *, namespace: str | None = None,
+                     views: dict | None = None, week_starts_on: str | None = None) -> "Layout":
         """Declare an on-device local store (see local-store.md). `collections` maps a
         name to either the full ``{"fields": {...}, "shared": bool, "mirror": bool,
         "singleton": bool, "defaults": {...}, "order": [...]}`` declaration or the shorthand ``{field: type}``; a field may also be ``{"type": ..., "required": ..., "default": ..., "choices": [...], ...}`` (see local-store.md Field options; types: string number integer
@@ -540,9 +553,9 @@ class Layout:
         return self
 
     # ─── secrets ({{secret:name}} credentials the phone keeps in its Keychain) ──
-    def secret(self, name: str, *, label: str = None, kind: str = None,
-               hosts: list = None, mesh: bool = None,
-               allow_insecure_http: bool = None) -> str:
+    def secret(self, name: str, *, label: str | None = None, kind: str | None = None,
+               hosts: list | None = None, mesh: bool | None = None,
+               allow_insecure_http: bool | None = None) -> str:
         """Declare a credential a ``{{secret:name}}`` placeholder refers to and return
         that placeholder. The layout carries only the name; the value lives in the
         phone's Keychain and is filled in when a request goes out. By default the
@@ -577,7 +590,7 @@ class Layout:
         return placeholder
 
     # ─── publishers (stream this device's sensors over the connection) ──────────
-    def publisher(self, sensor: str, *, interval: float = None) -> "Layout":
+    def publisher(self, sensor: str, *, interval: float | None = None) -> "Layout":
         """Stream a device [[sensors]] pipeline over the layout's connection, so a hub
         device or server can watch this phone's compass/speed/sound live. `sensor` is a
         pipeline name (heading, motion, barometer, device, audio, location). See publishers.md."""
@@ -589,8 +602,8 @@ class Layout:
 
     # ─── alerts (relay-watcher push rules) ──────────────────────────────────────
     def alert(self, *, event: str, value_path: str, operator: str, value,
-              title: str, body: str, id: str = None, cooldown: int = None,
-              acknowledge_server_readable: bool = None) -> "Layout":
+              title: str, body: str, id: str | None = None, cooldown: int | None = None,
+              acknowledge_server_readable: bool | None = None) -> "Layout":
         """Add a relay-side alert rule: when a broadcast on `event` whose `value_path`
         `operator`-compares to `value` lands, the relay's alert-watcher pushes a
         notification (`title`/`body`) — even with the app closed. `operator` is one of
@@ -609,11 +622,11 @@ class Layout:
         return self
 
     # ─── glance (widgets / lock screen / Dynamic Island / Live Activity) ────────
-    def glance(self, *, enabled: bool = None, title: str = None, icon: str = None,
-               tint: str = None, hero: str = None, slots: list = None,
-               live_activity: bool = None, controls: list = None,
-               live: dict = None, widgets: list = None, island: dict = None,
-               lock_screen: dict = None) -> "Layout":
+    def glance(self, *, enabled: bool | None = None, title: str | None = None, icon: str | None = None,
+               tint: str | None = None, hero: str | None = None, slots: list | None = None,
+               live_activity: bool | None = None, controls: list | None = None,
+               live: dict | None = None, widgets: list | None = None, island: dict | None = None,
+               lock_screen: dict | None = None) -> "Layout":
         """Project this layout onto glance surfaces (widgets, lock screen, Dynamic
         Island, Live Activities, Control Center). See glance.md.
 
@@ -707,8 +720,8 @@ class Layout:
         return self
 
     # ─── appearance (chrome overrides) ──────────────────────────────────────────
-    def appearance(self, *, color_scheme: str = None, show_header: bool = None,
-                   status_bar_style: str = None, background_image: str = None) -> "Layout":
+    def appearance(self, *, color_scheme: str | None = None, show_header: bool | None = None,
+                   status_bar_style: str | None = None, background_image: str | None = None) -> "Layout":
         """Set the layout's `appearance` chrome: `color_scheme` ("light"/"dark"/"system"),
         whether the header shows, status-bar style, and a background image URL."""
         block: dict = {}
@@ -719,7 +732,7 @@ class Layout:
         self._buf.layout["appearance"] = block
         return self
 
-    def serve(self, connection=None, *, name: str = None, **overrides) -> "Hub":
+    def serve(self, connection=None, *, name: str | None = None, **overrides) -> "Hub":
         """The driving side of THIS layout: a Hub bound to these control handles
         (`async with ui.serve() as hub:` connects; then `ctrl.push(v)` /
         `@ctrl.on`). `connection` defaults to the layout's own connection block,
@@ -754,8 +767,8 @@ class Layout:
         return await self._active_hub.notify(title, body, **kw)
 
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
-            cols: int = None, rows: int = None, columns: int = None,
-            mode: str = None, row_height: int = None) -> TabHandle:
+            cols: int | None = None, rows: int | None = None, columns: int | None = None,
+            mode: str | None = None, row_height: int | None = None) -> TabHandle:
         """Start a tab and make it current. First call configures the default tab;
         later calls append. `with ui.tab(...)` scopes controls to it; the flat form
         ``ui.tab("Main"); ui.gauge(...)`` works too. `mode="flow"` opts the tab out of
@@ -765,7 +778,7 @@ class Layout:
         to override for just this tab."""
         cols = cols if cols is not None else (columns if columns is not None else self._default_cols)
         rows = rows if rows is not None else self._default_rows
-        grid = {"columns": cols, "rows": rows}
+        grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
             grid["mode"] = mode
         if row_height is not None:
@@ -808,7 +821,7 @@ class Layout:
         """The underlying LayoutBuffer, for advanced ops (update/move/remove)."""
         return self._buf
 
-    def requires(self, app: str = None, features=None) -> "Layout":
+    def requires(self, app: str | None = None, features=None) -> "Layout":
         """Declare what this layout needs from the app (layout-config.md "Requires and
         fallback"): `app` a minimum version ("1.3"), `features` names like
         "control.symbol" or "name@N". A soft gate — an older app still renders what it
@@ -831,7 +844,7 @@ class Layout:
             self._buf.layout.pop("requires", None)
         return self
 
-    def validate(self, target_app: str = None) -> list:
+    def validate(self, target_app: str | None = None) -> list:
         """Lint against the bundled control catalog. `target_app` overrides the one given
         to Layout(); the layout's requires.app wins over both."""
         import carterkit
@@ -872,6 +885,12 @@ class Layout:
     def __exit__(self, *exc) -> bool:
         return False
 
+    def _ctl(self, ctype: str, kw: dict, props: dict) -> Control:
+        scope = self.__dict__.get("_scope")
+        if scope is None:
+            raise AttributeError(ctype)
+        return scope._ctl(ctype, kw, props)
+
     def __getattr__(self, name: str):
         # delegate control-method calls (ui.gauge(...)) to the active scope
         if name.startswith("_"):
@@ -887,7 +906,7 @@ class Layout:
                 f"{len(self._buf.tabs)} tab(s), {n} control(s)>")
 
 
-class Fragment:
+class Fragment(ScopeControls):
     """A detached grid of controls whose `.children` array is what you broadcast to
     fill a ``dynamic=`` group at runtime. Same control methods as a layout scope:
 
@@ -933,6 +952,9 @@ class Fragment:
     @property
     def children(self) -> list:
         return self._children
+
+    def _ctl(self, ctype: str, kw: dict, props: dict) -> Control:
+        return self._scope._ctl(ctype, kw, props)
 
     def payload(self, msg_type: str) -> dict:
         """The broadcast body to replace a dynamic group's children: `{msg_type, children}`."""

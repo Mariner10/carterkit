@@ -191,7 +191,7 @@ class LayoutBuffer:
 
     def add_tab(self, title: str, icon: str = "square.grid.2x2",
                 columns: int = DEFAULT_COLUMNS, rows: int = DEFAULT_ROWS,
-                mode: str = None, row_height: int = None) -> int:
+                mode: str | None = None, row_height: int | None = None) -> int:
         grid = {"columns": columns, "rows": rows}
         if mode is not None:
             grid["mode"] = mode

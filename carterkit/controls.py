@@ -16,6 +16,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 from . import catalog
+from .typed import BuildControls
 
 
 @lru_cache(maxsize=1)
@@ -56,8 +57,11 @@ def control(type: str, *, id: str, position=None, span=None, **props) -> dict:
     return out
 
 
-class _Controls:
+class _Controls(BuildControls):
     """Attribute access returns a builder bound to a catalog control type."""
+
+    def _ctl(self, ctype: str, kw: dict, props: dict) -> dict:
+        return control(ctype, **{k: v for k, v in kw.items() if v is not None}, **props)
 
     def __getattr__(self, name: str):
         ctype = _resolve_type(name)

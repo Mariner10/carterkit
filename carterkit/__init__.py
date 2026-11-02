@@ -95,7 +95,7 @@ def examples(control: str):
     return catalog.get_examples(controldocs_dir(), control)
 
 
-def validate_layout(layout: dict, catalog_: dict = None, target_app: str = None) -> list:
+def validate_layout(layout: dict, catalog_: dict | None = None, target_app: str | None = None) -> list:
     """Lint a layout (schema + grid). Defaults to the bundled control catalog.
     `target_app` (e.g. "1.2.4") is the oldest app to warn for; the layout's `requires.app`
     wins over it, and with neither the kit uses `validate.DEFAULT_TARGET_APP` (see

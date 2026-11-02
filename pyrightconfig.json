@@ -1,0 +1,7 @@
+{
+  "include": ["carterkit"],
+  "typeCheckingMode": "basic",
+  "pythonVersion": "3.10",
+  "reportMissingImports": "none",
+  "reportAttributeAccessIssue": "none"
+}
