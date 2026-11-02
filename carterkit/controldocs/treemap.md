@@ -5,6 +5,7 @@ icon: rectangle.3.group.fill
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Blocks
 oneLiner: Sizes compared as blocks
 aliases: [tree map, hierarchy, blocks, size, disk usage, proportion]
@@ -16,12 +17,18 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the map
   - name: treemapConfig
     type: object
     description: Full configuration object (see TreemapConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -31,6 +38,11 @@ fields:
     type: string
     description: Formatter for item values
   - name: cellCornerRadius
+    edit: scrub
+    depth: hold
+    under: cellGap
+    title: Cell roundness
+    unit: pt
     tab: style
     min: 0
     max: 30
@@ -40,6 +52,10 @@ fields:
     description: Cell corner rounding
     group: treemapConfig
   - name: cellGap
+    edit: scrub
+    depth: surface
+    title: Cell spacing
+    unit: pt
     tab: style
     min: 0
     max: 40
@@ -49,6 +65,9 @@ fields:
     description: Gap between cells
     group: treemapConfig
   - name: colors
+    edit: list
+    depth: surface
+    title: Cell colors
     tab: style
     type: string[]
     description: Item color cycle (per-item color wins)
@@ -69,11 +88,17 @@ fields:
     description: Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap)
     group: treemapConfig
   - name: showLabels
+    edit: part
+    depth: hold
+    title: Labels
     type: bool
     default: true
     description: Item labels inside cells that have room
     group: treemapConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Value under the label (taller cells only)

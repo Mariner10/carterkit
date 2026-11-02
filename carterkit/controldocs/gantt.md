@@ -5,6 +5,7 @@ icon: chart.bar.doc.horizontal
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Timeline
 oneLiner: Tasks laid out over time
 aliases: [schedule, timeline, project, tasks, plan, bars]
@@ -16,17 +17,28 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the timeline
   - name: ganttConfig
     type: object
     description: Full configuration object (see GanttConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
     description: First-task color and palette seed
   - name: barCornerRadius
+    edit: scrub
+    depth: hold
+    under: rowHeight
+    title: Bar roundness
+    unit: pt
     tab: style
     min: 0
     max: 30
@@ -36,6 +48,9 @@ fields:
     description: Bar corner rounding
     group: ganttConfig
   - name: colors
+    edit: list
+    depth: surface
+    title: Bar colors
     tab: style
     type: string[]
     description: Per-task color cycle (task color wins)
@@ -46,6 +61,10 @@ fields:
     description: Drag along a bar to set its progress
     group: ganttConfig
   - name: rowHeight
+    edit: scrub
+    depth: surface
+    title: Row height
+    unit: pt
     min: 12
     max: 100
     step: 1
@@ -59,21 +78,33 @@ fields:
     description: "When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)"
     group: ganttConfig
   - name: showAxis
+    edit: part
+    depth: hold
+    title: Time axis
     type: bool
     default: true
     description: Time labels along the top
     group: ganttConfig
   - name: showGrid
+    edit: part
+    depth: hold
+    title: Grid lines
     type: bool
     default: true
     description: Vertical gridlines at the axis ticks
     group: ganttConfig
   - name: showProgress
+    edit: part
+    depth: hold
+    title: Progress fill
     type: bool
     default: true
     description: Progress fill inside bars + % readout
     group: ganttConfig
   - name: showToday
+    edit: part
+    depth: hold
+    title: Today line
     type: bool
     default: true
     description: Dashed 'now' line (date timelines only)

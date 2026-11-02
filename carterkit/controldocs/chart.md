@@ -5,6 +5,7 @@ icon: chart.bar.xaxis
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Chart
 oneLiner: Lines or bars over time
 aliases: [graph, plot, line chart, bar chart, trend, timeline]
@@ -16,12 +17,17 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the chart
   - name: chartConfig
     type: object
     description: Full configuration object (see ChartConfig section)
   - name: tint
+    edit: color
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -31,6 +37,11 @@ fields:
     type: string
     description: Formatter for axis/readout numbers (see control-def)
   - name: barCornerRadius
+    edit: scrub
+    depth: hold
+    under: lineWidth
+    title: Bar roundness
+    unit: pt
     tab: style
     min: 0
     max: 30
@@ -40,6 +51,9 @@ fields:
     description: Bar corner rounding
     group: chartConfig
   - name: bins
+    edit: scrub
+    depth: ai
+    title: Histogram bins
     min: 1
     max: 50
     step: 1
@@ -47,6 +61,8 @@ fields:
     description: Bin count for histogram series
     group: chartConfig
   - name: colors
+    edit: list
+    title: Series colors
     tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
@@ -62,6 +78,9 @@ fields:
     description: Horizontal bars — categories run down the leading edge
     group: chartConfig
   - name: lineWidth
+    edit: scrub
+    unit: pt
+    title: Line width
     tab: style
     min: 0.5
     max: 12
@@ -70,7 +89,33 @@ fields:
     default: 2
     description: Line/area stroke width
     group: chartConfig
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: lineWidth
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control
+  - name: lineCap
+    edit: look
+    depth: hold
+    under: glowRadius
+    title: Line ends
+    tab: style
+    type: enum
+    values: [round, butt, square]
+    default: round
+    description: End shape of the lines. Cross-control, same on every control
   - name: maxPoints
+    edit: scrub
+    depth: ai
+    title: Time window
     min: 10
     max: 1000
     step: 10
@@ -85,6 +130,10 @@ fields:
     description: Falling waterfall delta
     group: chartConfig
   - name: pointSize
+    edit: scrub
+    depth: hold
+    under: lineWidth
+    title: Point size
     tab: style
     min: 2
     max: 20
@@ -104,31 +153,49 @@ fields:
     description: Drag shows a dashed crosshair + live readout (with a selection tick)
     group: chartConfig
   - name: showGrid
+    edit: part
+    depth: hold
+    title: Grid
     type: bool
     default: true
     description: Horizontal grid lines
     group: chartConfig
   - name: showLegend
+    edit: part
+    depth: hold
+    title: Legend
     type: bool
     default: false
     description: Series legend under the plot
     group: chartConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Numeric value above each bar / on each vertex
     group: chartConfig
   - name: showXAxis
+    edit: part
+    depth: hold
+    title: X axis
     type: bool
     default: true
     description: Category/x labels along the bottom (leading edge when horizontal)
     group: chartConfig
   - name: showYAxis
+    edit: part
+    depth: hold
+    title: Y axis
     type: bool
     default: true
     description: Value labels down the left gutter
     group: chartConfig
   - name: smooth
+    edit: part
+    depth: hold
+    title: Smoothing
     type: bool
     default: false
     description: Catmull-Rom curve smoothing for line/area series
@@ -144,15 +211,53 @@ fields:
     description: Waterfall running-total bars
     group: chartConfig
   - name: yMax
+    edit: scrub
+    depth: hold
+    under: lineWidth
+    title: Axis top
     bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
     group: chartConfig
   - name: yMin
+    edit: scrub
+    depth: hold
+    under: lineWidth
+    title: Axis bottom
     bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
     group: chartConfig
+  - name: name
+    group: data.series
+    type: string
+    description: Legend name and append routing key
+  - name: type
+    group: data.series
+    values: [bar, line, area, scatter, histogram, waterfall]
+    default: bar
+    type: enum
+    description: Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely
+  - name: color
+    group: data.series
+    type: color
+    description: Series colour (hex); wins over chartConfig.colors
+  - name: values
+    group: data.series
+    type: number[]
+    description: Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas
+  - name: points
+    group: data.series
+    type: array
+    description: Explicit [x, y] pairs for scatter or unevenly sampled series
+  - name: sizes
+    group: data.series
+    type: number[]
+    description: Per-point size multipliers (bubble scatter)
+  - name: totals
+    group: data.series
+    type: number[]
+    description: Waterfall only: indices drawn as running totals from zero
 themeFields:
   - name: cornerRadius
     min: 0
@@ -237,6 +342,8 @@ Inherits all [[control-def|shared fields]]. Key fields:
 | `label` | string | — | Header label (the live selection readout appears beside it) |
 | `chartConfig` | [[#ChartConfig]] | — | Full configuration object (all optional) |
 | `tint` | string | `"#667eea"` | First-series color / palette seed |
+| `glowRadius` | number | `0` | Soft glow behind bars, lines and points in their own colours, 0–30 pt (the same attribute on every control that has it) |
+| `lineCap` | enum | `round` | End shape of the lines: `round`, `butt` or `square` (the same attribute on every control that has it) |
 | `formatValue` | string | — | Formatter for axis + readout numbers |
 
 ## ChartConfig

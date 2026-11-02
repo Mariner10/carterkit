@@ -5,12 +5,16 @@ icon: bubble.left.and.bubble.right.fill
 category: controls
 defaultSpan: [4, 4]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Chat
 oneLiner: Messages back and forth
 aliases: [messages, conversation, assistant, ai, talk, inbox]
 starterPreset: {"label": "Chat"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label
   - name: config
@@ -21,14 +25,24 @@ fields:
     description: "Show the local \"Clear Chat\" affordance in the header (default true). Server-driven clears are always honored regardless."
     group: config
   - name: allowImages
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Images
     type: bool
     description: allowImages
     group: config
   - name: allowReactions
+    edit: part
+    depth: hold
+    title: Reactions
     type: bool
     description: allowReactions
     group: config
   - name: allowReplies
+    edit: part
+    depth: hold
+    title: Replies
     type: bool
     description: allowReplies
     group: config
@@ -40,10 +54,16 @@ fields:
     description: historyCount
     group: config
   - name: showReadReceipts
+    edit: part
+    depth: hold
+    title: Read receipts
     type: bool
     description: showReadReceipts
     group: config
   - name: showTypingIndicators
+    edit: part
+    depth: hold
+    title: Typing dots
     type: bool
     description: showTypingIndicators
     group: config
@@ -56,6 +76,9 @@ fields:
     description: target
     group: config
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     description: tint

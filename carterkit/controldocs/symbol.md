@@ -5,6 +5,7 @@ icon: cloud.bolt.rain.fill
 category: controls
 defaultSpan: [2, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Symbol
 oneLiner: An icon that can animate
 aliases: [icon, sf symbol, glyph, emoji, shape, picture]
@@ -12,20 +13,48 @@ addRank: 8
 starterPreset: {"systemName": "star.fill","label": "Symbol"}
 fields:
   - name: systemName
+    edit: symbol
+    depth: surface
+    title: Symbol
     type: string
     description: SF Symbol name (the glyph at rest)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Caption under the glyph
   - name: hideLabel
+    edit: part
+    depth: hold
+    title: Title shown
     type: bool
     default: false
     description: Hide the caption
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     description: Glyph colour (monochrome/hierarchical; palette primary)
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: tint
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control
   - name: hideBackground
+    edit: part
+    depth: hold
+    title: Background
     tab: style
     type: bool
     default: false
@@ -46,6 +75,9 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on tap (default light)
   - name: renderingMode
+    edit: look
+    depth: hold
+    title: Colouring
     tab: style
     type: enum
     values: [monochrome, hierarchical, palette, multicolor]
@@ -58,12 +90,19 @@ fields:
     description: Hex colour per layer (primary, secondary, tertiary) for palette rendering
     group: symbolConfig
   - name: weight
+    edit: look
+    depth: hold
+    title: Weight
     type: enum
     values: [ultraLight, thin, light, regular, medium, semibold, bold, heavy, black]
     default: regular
     description: Glyph weight
     group: symbolConfig
   - name: variant
+    edit: look
+    depth: hold
+    under: systemName
+    title: Variant
     tab: style
     type: enum
     values: [none, fill, circle, square, rectangle, slash]
@@ -71,6 +110,9 @@ fields:
     description: Symbol variant applied on top of the name
     group: symbolConfig
   - name: size
+    edit: scrub
+    depth: surface
+    title: Size
     min: 12
     max: 300
     step: 1
@@ -78,6 +120,9 @@ fields:
     description: Explicit point size (default scales to the cell)
     group: symbolConfig
   - name: effect
+    edit: look
+    depth: hold
+    title: Effect
     type: enum
     values: [none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale]
     default: none
@@ -253,6 +298,7 @@ Inherits all [[shared-properties]]. Key fields:
 |-------|------|---------|-------------|
 | `systemName` | string | — | SF Symbol name at rest |
 | `tint` | color | theme | Glyph colour (monochrome / hierarchical, or the palette primary) |
+| `glowRadius` | number | `0` | Soft glow behind the glyph in its own colour, 0–30 pt (the same attribute on every control that has it) |
 | `iconMap` / `colorMap` | object | — | Incoming value → symbol name / tint, as on [[image]] |
 | `symbolConfig.renderingMode` | string | `monochrome` | `hierarchical`, `palette` (see `palette`), or `multicolor` (the symbol's own colours) |
 | `symbolConfig.palette` | array | — | Hex colour per layer (primary, secondary, tertiary); a short list repeats its last entry |

@@ -5,6 +5,7 @@ icon: switch.2
 category: controls
 defaultSpan: [1, 1]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Switch
 oneLiner: Turns something on or off
 aliases: [switch, on off, checkbox, enable, flip, boolean]
@@ -18,6 +19,8 @@ fields:
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Toggle label text
@@ -26,6 +29,8 @@ fields:
     type: string
     description: SF Symbol
   - name: style
+    edit: look
+    depth: surface
     title: Look
     tab: style
     type: enum
@@ -49,18 +54,25 @@ fields:
     type: string
     description: SF Symbol when off (button and icon-toggle styles)
   - name: tint
+    edit: color
+    depth: surface
     title: Color when on
     tab: style
     type: color
     default: "#667eea"
     description: Accent color when on
   - name: hideBackground
+    edit: part
+    depth: hold
     title: No background card
     tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: haptic
+    edit: look
+    depth: hold
+    under: style
     title: Vibration on tap
     tab: action
     type: enum
@@ -68,6 +80,8 @@ fields:
     default: rigid
     description: Default haptic on toggle
   - name: trackLength
+    edit: scrub
+    depth: surface
     title: Track length
     tab: style
     styles: [switch]
@@ -78,6 +92,9 @@ fields:
     default: 51
     description: Track extent tip-to-tip along its path (pt)
   - name: trackCurvature
+    edit: scrub
+    depth: hold
+    under: trackLength
     title: Track curve
     tab: style
     styles: [switch]
@@ -107,6 +124,13 @@ fields:
     step: 0.5
     default: 13.5
     description: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -189,6 +213,9 @@ themeFields:
     description: Track width
     summary: How wide the switch is
   - name: knobColor
+    edit: color
+    depth: hold
+    under: tint
     title: Knob color
     styles: [switch]
     type: color
@@ -245,6 +272,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `defaultValue` | bool | `false` | Initial state |
 | `hideBackground` | bool | `false` | Remove glass background |
 | `haptic` | string | `"rigid"` | Default haptic on toggle |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 
 ## Styles
 

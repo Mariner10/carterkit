@@ -33,7 +33,15 @@ _TEMPLATES = _ROOT / "carter-docs-site" / "CAR-TER" / "templates"
 # app tolerates at runtime: a non-canonical enum value (app falls back to default) and a
 # `mode:"request"` broadcast (fires fine, just awaits a reply that never comes). A NEW kind
 # appearing here means real drift to review — hence the soft assertion.
-_ALLOWED_WARNING_KINDS = {"bad_enum", "bad_action"}
+_ALLOWED_WARNING_KINDS = {
+    "bad_enum", "bad_action",
+    # sync stages with keys the app ignores at runtime (habits/reading/workouts samples).
+    "bad_stage",
+    # deep-nest-test.json exists to exercise the nesting limit; its warning is intended.
+    "deep_nesting",
+    # glance-lab's pickers carry a legacy `valueMap` the app tolerates and ignores.
+    "unknown_field",
+}
 
 # Bundled samples that exist to exercise a refusal path: the error IS the expected
 # verdict (same entry as the schema corpus KNOWN_ERRORS; the app renders the

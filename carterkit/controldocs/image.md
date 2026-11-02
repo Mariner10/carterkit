@@ -5,6 +5,7 @@ icon: photo
 category: controls
 defaultSpan: [2, 2]
 addIntent: show
+pickerCategory: Media
 friendlyName: Picture
 oneLiner: A photo or an icon
 aliases: [picture, photo, icon, logo, thumbnail, img]
@@ -12,28 +13,57 @@ addRank: 7
 starterPreset: {"systemName": "photo"}
 fields:
   - name: systemName
+    edit: symbol
+    depth: surface
+    title: Symbol
     type: string
     description: SF Symbol name (fallback/placeholder)
   - name: url
     type: string
     description: Static remote image URL
   - name: style
+    edit: look
+    depth: surface
+    title: Shape
     tab: style
     type: enum
     values: [rounded, circle]
     description: Visual style variant
   - name: imageCornerRadius
+    edit: scrub
+    depth: hold
+    under: style
+    title: Image roundness
     tab: style
     min: 0
     max: 60
     step: 1
     type: number
     description: Custom corner radius
+  - name: imageShadow
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
+    title: Shadow
+    tab: style
+    type: number
+    min: 0
+    max: 30
+    step: 1
+    default: 0
+    description: Soft shadow blur under the image (0 = none)
   - name: aspectRatio
+    edit: look
+    depth: surface
+    title: Fit
     type: enum
     values: [fit, fill]
     description: "fit (scale to fit) or fill (scale to fill, may crop)"
   - name: hideBackground
+    edit: part
+    depth: hold
+    title: Background
     tab: style
     type: bool
     default: false
@@ -105,6 +135,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `url` | string | — | Static remote image URL |
 | `style` | string | — | `"rounded"` for rounded corners, `"circle"` for circular clipping |
 | `imageCornerRadius` | number | — | Custom corner radius |
+| `imageShadow` | number | `0` | Soft shadow blur under the image (0–30) |
 | `aspectRatio` | string | — | `"fit"` (scale to fit) or `"fill"` (scale to fill, may crop) |
 | `hideBackground` | bool | `false` | Remove glass background |
 | `iconMap` | object | — | Incoming value → SF Symbol name — see [[#Value maps]] |

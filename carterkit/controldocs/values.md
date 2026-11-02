@@ -33,6 +33,14 @@ units:
   - { unit: minutes, dimension: duration, symbol: min }
   - { unit: hours, dimension: duration, symbol: h }
   - { unit: percent, dimension: ratio, symbol: "%" }
+fields:
+  - name: valueType
+    type: enum
+    values: [bool, integer, number, string, date, duration, measurement, location, json, list]
+    description: The kind of value a capability produces
+  - name: unit
+    type: string
+    description: "Measurement unit name or symbol for a measurement ([[values#Units]]); controls with a unit field convert to the device locale"
 ---
 
 The kinds of value CAR-TER can show or send, and the units a measurement can

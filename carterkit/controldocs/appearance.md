@@ -3,6 +3,24 @@ type: appearance
 label: Appearance
 icon: macwindow
 category: models
+fields:
+  - name: colorScheme
+    values: [system, dark, light]
+    type: enum
+    description: Pins the whole app to dark or light, or follows the device
+  - name: showHeader
+    type: bool
+    description: Show or hide the header bar
+  - name: statusBarStyle
+    values: [auto, light, dark]
+    type: enum
+    description: Status bar content colour
+  - name: header
+    type: object
+    description: Header bar style, e.g. {style: transparent}
+  - name: backgroundImage
+    type: object
+    description: Page background image: {asset, blur, opacity}
 ---
 
 The `appearance` block on a [[layout-config|layout]] controls the app shell — color scheme, header bar, status bar, and background image. Colors and control styling live in [[theming|theme]]; appearance is about the chrome around your grid.

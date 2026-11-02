@@ -5,6 +5,7 @@ icon: circle.hexagonpath.fill
 category: controls
 defaultSpan: [3, 3]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Connections
 oneLiner: How things connect to each other
 aliases: [relationships, connections, circular, flow, matrix]
@@ -16,12 +17,18 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the diagram
   - name: chordConfig
     type: object
     description: Full configuration object (see ChordConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -36,11 +43,19 @@ fields:
     description: arcAction
     group: chordConfig
   - name: colors
+    edit: list
+    depth: surface
+    title: Arc colors
     tab: style
     type: string[]
     description: Group color cycle (payload colors wins)
     group: chordConfig
   - name: pad
+    edit: scrub
+    depth: hold
+    under: ribbonOpacity
+    title: Arc gap
+    unit: deg
     min: 0
     max: 20
     step: 0.5
@@ -49,6 +64,9 @@ fields:
     description: Degrees of breathing room between arcs
     group: chordConfig
   - name: ribbonOpacity
+    edit: scrub
+    depth: surface
+    title: Ribbon strength
     tab: style
     min: 0
     max: 1
@@ -63,6 +81,9 @@ fields:
     description: Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap)
     group: chordConfig
   - name: showLabels
+    edit: part
+    depth: hold
+    title: Labels
     type: bool
     default: true
     description: Group names around the rim

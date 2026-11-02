@@ -5,6 +5,7 @@ icon: rectangle.split.3x1
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Choice
 oneLiner: Pick one of a few options
 aliases: [tabs, tab bar, choice, options, radio, switcher]
@@ -24,18 +25,25 @@ fields:
     type: string
     description: Text shown when no options are available or a picker has no selection
   - name: options
+    edit: options
+    depth: surface
+    title: Choices
     type: array
     description: Segment labels (string array)
   - name: optionIcons
     type: array
     description: SF Symbols parallel to options
   - name: style
+    edit: look
+    depth: surface
     tab: style
     type: enum
     values: [default, pills, stars]
     default: default
     description: System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number)
   - name: tint
+    edit: color
+    depth: surface
     tab: style
     type: color
     default: "#667eea"
@@ -44,11 +52,21 @@ fields:
     type: string
     description: Initially selected option
   - name: haptic
+    edit: look
+    depth: hold
+    under: style
     tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection
     description: Default haptic on change
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     min: 0
@@ -88,10 +106,17 @@ themeFields:
     default: #39393D
     description: Track background color
   - name: selectedColor
+    edit: color
+    depth: hold
+    under: tint
     type: color
     default: #636366
     description: Selected segment fill
   - name: selectedRadius
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     min: 0
     max: 30
     step: 1
@@ -143,6 +168,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | string | `"#667eea"` | Accent for pills style |
 | `defaultValue` | string | — | Initially selected option |
 | `haptic` | string | `"selection"` | Default haptic on change |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 
 ## Styles
 

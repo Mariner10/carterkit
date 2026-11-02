@@ -25,6 +25,9 @@ fields:
   - name: not
     type: object
     description: The listed condition must NOT hold
+  - name: stale
+    type: boolean
+    description: With `when` — true shows only while that control's feed is stale (went quiet past its staleAfter); false only while it is not. No `operator` or `value`
 ---
 
 Show/hide or enable/disable controls and groups based on other values. The same
@@ -55,7 +58,7 @@ Combine leaves with `all`, `any` and `not` (nest them freely, up to 16 levels):
 
 ```json
 "visible": { "all": [
-  { "ref": { "selected": "plants" }, "operator": "ne", "value": null },
+  { "ref": { "selected": "plants" }, "operator": "exists", "value": true },
   { "any": [
     { "ref": { "control": "daysDry" }, "operator": "gte", "value": 3 },
     { "not": { "when": "hideHealthy", "value": true } }
@@ -68,10 +71,25 @@ Combine leaves with `all`, `any` and `not` (nest them freely, up to 16 levels):
 | Ref | Reads | Notes |
 |-----|-------|-------|
 | `{"control": "<id>"}` | that control's current value | same as `"when": "<id>"` |
-| `{"selected": "<collection>"}` | the selected record id of a local collection or view | set by a `local` action with `op: "select"`; null when nothing is selected |
+| `{"selected": "<collection>"}` | the selected record id of a local collection or view | set by a `local` action with `op: "select"`; null when nothing is selected (test it with `exists`, below) |
 | `{"field": "<formId>.<cell>"}` | a [[form]] cell: `valid`, `dirty`, `<field>`, `<field>.error` | e.g. a Save button `enabled` on `{"field": "plantForm.valid"}` |
 | `{"derive": "<id>"}` | a top-level `derive` entry's current value | no value yet (or an unknown id) behaves like a control with no value |
 | `{"derive": "form.<formId>.<cell>"}` | the same form cell as `field` | |
+
+Test presence with `exists`: "nothing selected" is `"operator": "exists", "value": false` and "something selected" is `"operator": "exists", "value": true`; `eq` and `ne` against `null` never match (the NULL rule).
+
+## Stale
+
+`{"when": "<id>", "stale": true}` holds only while that control's binding is **stale**:
+it had data, then nothing arrived within its `staleAfter`. Use it to show a card
+("Sensor offline") only when the feed has gone quiet; `"stale": false` is the
+opposite. A control that has never received data is not stale (it shows the "No data
+yet" skeleton instead), and a control with no `staleAfter` threshold is never stale.
+It takes no `operator` or `value`, and combines with `all`/`any`/`not` like any leaf.
+
+```json
+"visible": { "when": "cpu", "stale": true }
+```
 
 ## Operators
 

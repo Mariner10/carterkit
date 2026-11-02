@@ -5,20 +5,31 @@ icon: rectangle.3.group.fill
 category: input
 defaultSpan: [10, 4]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Sort board
 oneLiner: Drag cards between columns
 aliases: [kanban, drag, reorder, sort, buckets, ranking]
 starterPreset: {"label": "Board"}
 fields:
   - name: haptic
+    edit: look
+    depth: hold
+    under: label
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Header label
   - name: controlHeight
+    effect: behavior
+    edit: scrub
+    depth: surface
+    title: Height
     min: 100
     max: 1200
     step: 10
@@ -26,22 +37,36 @@ fields:
     default: 560
     description: Rendered height in points (required in flow-mode grids — see Sizing)
   - name: searchable
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Search
     type: bool
     default: false
     description: Show a filter field above the option area
     group: sortboardConfig
   - name: paletteLabel
+    edit: inline
+    depth: surface
+    title: Palette title
     type: string
     default: Options
     description: Header for the option area
     group: sortboardConfig
   - name: hidePalette
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Palette
     tab: style
     type: bool
     default: false
     description: Hide the option area (server-seeded boards where items start placed)
     group: sortboardConfig
   - name: columns
+    edit: scrub
+    depth: surface
+    title: Columns
     min: 1
     max: 12
     step: 1

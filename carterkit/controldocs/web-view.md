@@ -5,6 +5,7 @@ icon: globe
 category: controls
 defaultSpan: [4, 4]
 addIntent: show
+pickerCategory: Media
 friendlyName: Web page
 oneLiner: A web page inside your app
 aliases: [web, browser, webpage, url, site, embed]
@@ -14,13 +15,24 @@ fields:
     type: string
     description: URL to load
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label
   - name: webInteractive
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Interactive
     type: bool
     default: true
     description: Allow user interaction
   - name: webScrollEnabled
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Scrolling
     type: bool
     default: true
     description: Allow scrolling
@@ -31,6 +43,9 @@ fields:
     type: number
     description: Auto-refresh interval in seconds
   - name: hideBackground
+    edit: part
+    depth: hold
+    title: Background
     tab: style
     type: bool
     default: false

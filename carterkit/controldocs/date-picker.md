@@ -5,6 +5,7 @@ icon: calendar
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Date & time
 oneLiner: Pick a day or a time
 aliases: [calendar, time, date, schedule, clock, day]
@@ -12,12 +13,18 @@ addRank: 8
 starterPreset: {"label": "When","datePickerMode": "date"}
 fields:
   - name: datePickerStyle
+    edit: look
+    depth: surface
+    title: Look
     tab: style
     type: enum
     values: [compact, wheel, graphical]
     default: compact
     description: Display style
   - name: datePickerMode
+    edit: look
+    depth: surface
+    title: Shows
     type: enum
     values: [date, time, dateAndTime]
     default: dateAndTime
@@ -29,9 +36,14 @@ fields:
     type: string
     description: Maximum date (ISO 8601)
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Display label
   - name: tint
+    edit: color
+    depth: surface
     tab: style
     type: color
     default: "#667eea"
@@ -40,13 +52,27 @@ fields:
     type: string
     description: Initial ISO 8601 date string
   - name: haptic
+    edit: look
+    depth: hold
+    under: datePickerStyle
     tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection
     description: Default haptic on change
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: datePickerStyle
+    unit: pt
     min: 0
     max: 30
     step: 1
@@ -77,6 +103,10 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: datePickerStyle
+    unit: pt
     min: 0
     max: 5
     step: 0.5
@@ -112,6 +142,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | string | `"#667eea"` | Accent color |
 | `defaultValue` | string | — | Initial ISO 8601 date string |
 | `haptic` | string | `"selection"` | Default haptic on change |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 
 ## Styles
 

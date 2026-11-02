@@ -5,6 +5,7 @@ icon: align.vertical.center
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Spread
 oneLiner: How a set of numbers spreads out
 aliases: [boxplot, distribution, quartile, whisker, spread, statistics]
@@ -16,17 +17,27 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the plot
   - name: boxStyle
+    edit: look
+    depth: surface
+    title: Shape
     tab: style
-    type: string
+    type: enum
+    values: [box, violin]
     default: box
     description: "'box' (box-and-whisker) or 'violin' (kernel density body)"
   - name: boxPlotConfig
     type: object
     description: Full configuration object (see BoxPlotConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -40,7 +51,25 @@ fields:
     type: object
     description: boxAction
     group: boxPlotConfig
+  - name: barCornerRadius
+    edit: scrub
+    depth: hold
+    under: boxStyle
+    title: Bar roundness
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 3
+    description: Box corner rounding
+    group: boxPlotConfig
   - name: boxWidth
+    edit: scrub
+    depth: hold
+    under: boxStyle
+    title: Box width
     tab: style
     min: 0
     max: 1
@@ -50,6 +79,9 @@ fields:
     description: Box width as a fraction of the category slot
     group: boxPlotConfig
   - name: colors
+    edit: list
+    depth: hold
+    title: Box colors
     tab: style
     type: string[]
     description: Per-category color cycle
@@ -60,32 +92,53 @@ fields:
     description: Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap)
     group: boxPlotConfig
   - name: showGrid
+    edit: part
+    depth: hold
+    title: Grid lines
     type: bool
     default: true
     description: Horizontal grid lines
     group: boxPlotConfig
   - name: showMean
+    edit: part
+    depth: hold
+    title: Mean dot
     type: bool
     default: false
     description: Hollow dot at the mean
     group: boxPlotConfig
   - name: showOutliers
+    edit: part
+    depth: hold
+    title: Outliers
     type: bool
     default: true
     description: Outlier dots beyond the whiskers
     group: boxPlotConfig
   - name: showXAxis
+    edit: part
+    depth: hold
+    title: Bottom axis
     type: bool
     default: true
     description: Category labels along the bottom
     group: boxPlotConfig
   - name: showYAxis
+    edit: part
+    depth: hold
+    title: Side axis
     type: bool
     default: true
     description: Value labels down the left gutter
     group: boxPlotConfig
   - name: whiskers
-    type: string
+    edit: look
+    depth: hold
+    under: boxStyle
+    title: Whiskers
+    type: enum
+    values: [tukey, minmax]
+    default: tukey
     description: "'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)"
     group: boxPlotConfig
   - name: yMax
@@ -199,6 +252,7 @@ Inherits all [[control-def|shared fields]]. Key fields:
 | `showOutliers` | bool | `true` | Outlier dots beyond the whiskers |
 | `showMean` | bool | `false` | Hollow dot at the mean |
 | `boxWidth` | number | `0.55` | Box width as a fraction of the category slot |
+| `barCornerRadius` | number | `3` | Box corner rounding in points, 0–30 |
 | `colors` | string[] | built-in palette | Per-category color cycle |
 | `boxAction` | [[actions\|ActionDefinition]] | — | Fired on tap; `{{value}}` = the stats as JSON |
 | `scrub` | bool | `false` | Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap) |

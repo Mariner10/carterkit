@@ -184,10 +184,25 @@ and `toggle` flips a bool `field`. Each creates the row from the collection's
 
 These four are what the editor's Action tab writes: its verbs Record time, Add 1,
 Subtract 1 and Set to… compile to `set` with `{"field": "{{now}}"}`, `increment`,
-`decrement` (no `by`) and `set` with one literal field. After any of them lands, the
-app offers a one-level Undo for about five seconds that puts the touched fields back
-to their prior values (a first write goes back to the default, else `null`); the
-restore is an ordinary `set`, so a hand-written layout gets the same toast.
+`decrement` (no `by`) and `set` with one literal field.
+
+### Confirmation and Undo
+
+A control with `"confirm": true` (the editor's **Show confirmation**, on the Action
+tab; off by default) shows a short pill after each of its local writes lands:
+what changed and an **Undo** button, e.g. `Count · 84  [Undo]`. The pill stays for
+3 seconds; the control's next write replaces it, and a write from a control without
+`confirm` takes it down. Undo is one level:
+
+- a singleton op (`set` / `increment` / `decrement` / `toggle`) puts the touched
+  fields back to their prior values (a first write goes back to the default, else
+  `null`) through an ordinary `set`;
+- an `insert` removes the new entry, a `delete` brings the entry back from Recently
+  deleted, and an `update` / `upsert` restores the row exactly.
+
+A [[form]]'s submit follows the submitting button's `confirm`. Without `confirm` a
+write is silent. The entry sheet and the data browser always offer Undo for their
+own adds, edits and deletes.
 
 ```json
 { "method": "local", "op": "update", "collection": "books", "id": "{{selected}}",

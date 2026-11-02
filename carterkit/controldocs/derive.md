@@ -58,6 +58,34 @@ fields:
   - name: until
     type: object
     description: "{of, unit}: time remaining until a date, negative once it has passed"
+  - name: sum
+    type: array
+    description: Alias of add
+  - name: of
+    type: object
+    description: "Argument of round, clamp, scale, band, since and until: a number, or an argument object (control, derive, clock, or another op)"
+  - name: places
+    type: number
+    min: 0
+    max: 12
+    step: 1
+    description: "round: decimals to keep, 0-12 (default 0)"
+  - name: from
+    type: array
+    description: "scale: the source range [a, b]"
+  - name: to
+    type: array
+    description: "scale: the target range [c, d]"
+  - name: stops
+    type: array
+    description: "band: ascending thresholds; the value is bucketed against them"
+  - name: labels
+    type: array
+    description: "band: one label per bucket (stops count + 1)"
+  - name: unit
+    type: enum
+    values: [seconds, minutes, hours, days, weeks]
+    description: "since / until: unit of the result (default seconds)"
 ---
 
 Values the phone computes from other values, with no server and no code. A

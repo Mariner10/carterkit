@@ -5,26 +5,37 @@ icon: dpad.fill
 category: controls
 defaultSpan: [3, 3]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Joystick
 oneLiner: Steer with your thumb
 aliases: [stick, pad, direction, steer, drive, gamepad]
 starterPreset: {"label": "Joystick"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Header label
   - name: tint
+    edit: color
+    depth: surface
     tab: style
     type: color
     default: "#667eea"
     description: Stick and track color
   - name: style
+    edit: look
+    depth: surface
     tab: style
     type: enum
     values: [analog, dpad]
     default: analog
     description: "analog (free) or dpad (4/8-direction snapping)"
   - name: deadzone
+    edit: scrub
+    depth: surface
+    title: Dead zone
     min: 0
     max: 1
     step: 0.05
@@ -32,10 +43,18 @@ fields:
     default: 0.1
     description: Center deadzone radius (0-1)
   - name: sticky
+    edit: part
+    depth: hold
+    title: Sticky
     type: bool
     default: false
     description: Stick stays where released instead of snapping to center
   - name: sendRate
+    effect: behavior
+    edit: scrub
+    depth: hold
+    under: deadzone
+    title: Send rate
     tab: action
     min: 0.1
     max: 10
@@ -44,11 +63,18 @@ fields:
     default: 0.1
     description: Throttle interval in seconds for action firing
   - name: hideLabel
+    edit: part
+    depth: hold
+    title: Label shown
     type: bool
     default: false
     description: Hide label and coordinate readout
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     min: 0
     max: 30
     step: 1
@@ -79,6 +105,10 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     min: 0
     max: 5
     step: 0.5

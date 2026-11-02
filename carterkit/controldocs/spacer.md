@@ -5,6 +5,7 @@ icon: square.dashed
 category: layout
 defaultSpan: [1, 1]
 addIntent: organize
+pickerCategory: Layout
 friendlyName: Space
 oneLiner: An empty gap
 aliases: [gap, space, padding, blank, empty, filler]

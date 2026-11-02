@@ -5,23 +5,44 @@ icon: number.square
 category: controls
 defaultSpan: [3, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Stat tile
 oneLiner: A big number, its change, and a faint trend
 aliases: [kpi, metric, stat, number, counter, big number]
 starterPreset: {"label": "Downloads","unit": "today","statTileConfig": {"reference": 1000}}
 fields:
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Title above the number
   - name: hideLabel
+    edit: part
+    depth: hold
+    under: label
     type: bool
     default: false
     description: Hide the title
   - name: unit
+    edit: inline
+    depth: surface
     title: Unit
     type: string
     description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally."
+  - name: valueSize
+    edit: scrub
+    depth: hold
+    under: unit
+    unit: pt
+    title: Number size
+    tab: style
+    min: 14
+    max: 80
+    step: 1
+    type: number
+    default: 34
+    description: Point size of the big number
   - name: formatValue
     title: Number format
     simple: hide
@@ -41,11 +62,48 @@ fields:
     type: number
     default: 50
     description: Max values kept in the faint history sparkline
+  - name: lineWidth
+    edit: scrub
+    depth: hold
+    under: tint
+    unit: pt
+    title: Line width
+    tab: style
+    min: 0.5
+    max: 12
+    step: 0.5
+    type: number
+    default: 2
+    description: Stroke width of the faint trend line, in points
   - name: tint
+    edit: color
     title: Color
     tab: style
     type: color
     description: Sparkline colour when no thresholds are set
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: tint
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control
+  - name: lineCap
+    edit: look
+    depth: hold
+    under: glowRadius
+    title: Line ends
+    tab: style
+    type: enum
+    values: [round, butt, square]
+    default: round
+    description: End shape of the history curve. Cross-control, same on every control
   - name: hideBackground
     tab: style
     type: bool
@@ -102,6 +160,9 @@ fields:
     description: At or below this value the tile fills solid with its band colour
     group: statTileConfig
   - name: showSparkline
+    edit: part
+    depth: hold
+    under: tint
     title: Show trend
     tab: style
     type: bool
@@ -185,7 +246,11 @@ Inherits all [[shared-properties]]. Key fields:
 | `unit` | string | — | Measurement unit of the value ([[values#Units]]). Drawn small beside the number and converted to the device locale — `"celsius"` reads °F in the US. Thresholds, reference and delta stay in this unit. Unknown strings are a literal suffix (`"today"`, `"users"`) |
 | `formatValue` | string | — | Number format for the big number (`decimal:1`, `decimal:0`, …) |
 | `sparklinePoints` | number | `50` | How many recent values the faint history keeps |
+| `valueSize` | number | `34` | Point size of the big number, 14–80 |
+| `lineWidth` | number | `2` | Stroke width of the faint trend line, 0.5–12 pt |
 | `tint` | color | accent | Sparkline colour when no `thresholds` are set |
+| `glowRadius` | number | `0` | Soft glow behind the history curve in its own colour, 0–30 pt (the same attribute on every control that has it) |
+| `lineCap` | enum | `round` | End shape of the history curve: `round`, `butt` or `square` (the same attribute on every control that has it) |
 | `statTileConfig.reference` | number | — | The value the change is measured against |
 | `statTileConfig.referencePath` | string | — | Dot path, in the same payload as the value, to a live reference (e.g. `"previous"`). Overrides `reference` once it arrives |
 | `statTileConfig.deltaMode` | string | `"percent"` | `percent` or `absolute` (the difference, in the value's unit) |

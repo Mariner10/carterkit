@@ -23,6 +23,53 @@ fields:
     values: [monday, sunday]
     default: monday
     description: First day of the week for the week bucket and the startOfWeek token
+  - name: label
+    group: collections
+    type: string
+    description: Friendly collection name shown in the type builder
+  - name: fields
+    group: collections
+    type: object
+    description: Field name to type (string number integer bool date json) or {type, ...options}
+  - name: order
+    group: collections
+    type: string[]
+    description: Field names in display order
+  - name: shared
+    group: collections
+    type: bool
+    description: Put the collection in the device-wide shared namespace
+  - name: mirror
+    group: collections
+    type: bool
+    description: Reserved for the studio change-notice; stored, not read by the store
+  - name: singleton
+    group: collections
+    type: bool
+    description: The collection holds exactly one row, id singleton
+  - name: defaults
+    group: collections
+    type: object
+    description: Starting values for the singleton row (needs singleton: true)
+  - name: from
+    group: views
+    type: string
+    description: The collection or view this view reads
+  - name: where
+    group: views
+    type: object
+    description: Filter over the source rows
+  - name: orderBy
+    group: views
+    type: string
+    description: Sort field, - prefix for descending
+  - name: limit
+    group: views
+    min: 1
+    max: 10000
+    step: 1
+    type: number
+    description: Maximum rows
 ---
 
 # Local Store
@@ -427,7 +474,7 @@ default `valuePath` so the minimal form works with every existing receiver.
 | `aggregate: span` | `{"from": "2026-01-03", "to": "2026-09-20", "count": 12, "days": 261, "open": false, "value": "Jan 3 to Sep 20", "caption": "8 months"}` | `value` | [[label]] (the text), a [[stat-tile]] or second label on `caption` / `days` / `count` |
 | `groupBy` (+ `aggregate`, default `count`) | `{"categories": ["2026-01", "2026-02"], "series": [{"name": "count", "values": [4, 7]}], "rows": [{"key": "2026-01", "value": 4}]}` | whole payload | [[chart]] / [[pie-chart]] / [[heatmap]] read `categories` + `series`; a [[list]] uses `valuePath: "rows"`; a sparkline uses `series.0.values` |
 | two-level `groupBy` | `{"categories": ["2026-09-07", "2026-09-14"], "series": [{"name": "bench", "values": [70, null]}, {"name": "squat", "values": [110, 120]}], "rows": [{"key": "2026-09-07", "series": "bench", "value": 70}]}` | whole payload | [[chart]] (one bar group or line per series) |
-| rows (no `aggregate`) | `{"rows": [{"id": "…", "createdAt": "…", "updatedAt": "…", "title": "Dune", "pages": 412}], "count": 1, "total": 3, "first": {…} or null}` | `rows` | [[list]] (`listColumns[].key` reads a field), [[log-console]], or a form control naming `first.title` |
+| rows (no `aggregate`) | `{"rows": [{"id": "…", "createdAt": "…", "updatedAt": "…", "title": "Dune", "pages": 412}], "count": 1, "total": 3, "first": {…} or null}` | `rows` | [[list]] (`listColumns[].key` reads a field; with none given the list shows the collection's first fields), [[log-console]], or a form control naming `first.title` |
 
 Rows are flat: the declared fields sit beside `id`, `createdAt` and `updatedAt`.
 `count` is the rows delivered, `total` the rows in the collection or view. A

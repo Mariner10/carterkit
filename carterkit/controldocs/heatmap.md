@@ -5,6 +5,7 @@ icon: square.grid.3x3.fill
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Heat grid
 oneLiner: Colored squares that show how much
 aliases: [heat map, density, grid, intensity, matrix, calendar heatmap]
@@ -16,12 +17,18 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the grid
   - name: heatmapConfig
     type: object
     description: Full configuration object (see HeatmapConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -55,6 +62,20 @@ fields:
     type: object
     description: cellAction
     group: heatmapConfig
+  - name: cellCornerRadius
+    edit: scrub
+    depth: hold
+    under: cellGap
+    title: Cell roundness
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 3
+    description: Cell corner rounding (square cells only)
+    group: heatmapConfig
   - name: cellCorner
     tab: style
     min: 0
@@ -62,9 +83,13 @@ fields:
     step: 1
     type: number
     default: 3
-    description: Cell corner rounding
+    description: "Older name of cellCornerRadius; cellCornerRadius wins when both are set"
     group: heatmapConfig
   - name: cellGap
+    edit: scrub
+    depth: surface
+    title: Cell spacing
+    unit: pt
     tab: style
     min: 0
     max: 40
@@ -74,16 +99,28 @@ fields:
     description: Gap between cells
     group: heatmapConfig
   - name: cellShape
+    edit: look
+    depth: hold
+    under: cellGap
+    title: Cell shape
     tab: style
-    type: string
+    type: enum
+    values: [square, circle]
+    default: square
     description: square or circle (circle reads as dot-matrix/LED)
     group: heatmapConfig
   - name: colors
+    edit: list
+    depth: surface
+    title: Scale colors
     tab: style
     type: string[]
     description: "Continuous: 2+ gradient stops. Discrete: the palette (value = index)"
     group: heatmapConfig
   - name: discrete
+    edit: part
+    depth: hold
+    title: Stepped scale
     type: bool
     default: false
     description: Treat values as palette indices instead of a continuous range
@@ -104,21 +141,33 @@ fields:
     description: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
     group: heatmapConfig
   - name: showColLabels
+    edit: part
+    depth: hold
+    title: Column labels
     type: bool
     default: true
     description: Column labels along the top (when cols present; auto-thinned)
     group: heatmapConfig
   - name: showRowLabels
+    edit: part
+    depth: hold
+    title: Row labels
     type: bool
     default: true
     description: Row labels down the leading edge (when rows present)
     group: heatmapConfig
   - name: showScale
+    edit: part
+    depth: hold
+    title: Scale legend
     type: bool
     default: false
     description: Gradient scale legend under the grid (continuous only)
     group: heatmapConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Numeric value inside each cell (when cells are large enough)
@@ -234,7 +283,8 @@ Inherits all [[control-def|shared fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cellCorner` | number | `3` | Cell corner rounding |
+| `cellCornerRadius` | number | `3` | Cell corner rounding in points, 0–30 (square cells only) |
+| `cellCorner` | number | `3` | Older name of `cellCornerRadius`; the newer key wins |
 | `cellGap` | number | `2` | Gap between cells |
 | `cellShape` | string | `"square"` | `square` or `circle` (circle reads as dot-matrix/LED) |
 

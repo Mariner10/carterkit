@@ -5,20 +5,31 @@ icon: mappin.and.ellipse
 category: input
 defaultSpan: [10, 4]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Pin board
 oneLiner: Pin things onto a picture
 aliases: [board, notes, sticky, pins, corkboard, cards]
 starterPreset: {"label": "Pin board"}
 fields:
   - name: haptic
+    edit: look
+    depth: hold
+    under: label
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Header label
   - name: controlHeight
+    effect: behavior
+    edit: scrub
+    depth: surface
+    title: Height
     min: 100
     max: 1200
     step: 10
@@ -30,6 +41,10 @@ fields:
     description: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
     group: pinboardConfig
   - name: surfaceAspect
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Shape
     min: 0.2
     max: 5
     step: 0.1
@@ -38,16 +53,27 @@ fields:
     description: Surface aspect ratio (width ÷ height)
     group: pinboardConfig
   - name: searchable
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Search
     type: bool
     default: false
     description: Show a filter field above the option area
     group: pinboardConfig
   - name: paletteLabel
+    edit: inline
+    depth: surface
+    title: Palette title
     type: string
     default: Items
     description: Header for the option area
     group: pinboardConfig
   - name: hidePalette
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Palette
     tab: style
     type: bool
     default: false

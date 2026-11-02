@@ -67,7 +67,7 @@ fields:
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
   - name: liveness
     type: object
-    description: "Layout-wide staleness default for sync bindings, e.g. {'staleAfter': 120} (opt-in; see sync)"
+    description: "Layout-wide staleness default for sync bindings, e.g. {'staleAfter': 120} (opt-in; HTTP polls use max(this, 3x interval); see sync)"
   - name: batchPublishers
     tab: advanced
     type: bool
@@ -75,6 +75,45 @@ fields:
   - name: glance
     type: object
     description: Widgets, Dynamic Island, lock screen and Control Center surfaces projected from this layout (see glance)
+  - name: id
+    type: string
+    description: Stable layout identifier (see Identity); default scope for a local store namespace
+  - name: alerts
+    type: object[]
+    description: Alert rules the app evaluates on incoming events (id, event, valuePath, ...)
+  - name: state
+    type: object
+    description: State sync config: lets the layout's own control values sync through a mesh
+  - name: publishers
+    type: object[]
+    description: Sensor publishers: device sensors streamed out as readings (see publishers)
+  - name: sensorSetup
+    type: object
+    description: Which device sensors and permissions the layout asks the user to set up (see sensors)
+  - name: sampleValues
+    type: object
+    description: Control id to sample value, shown by the designer and previews; never sent
+  - name: url
+    group: connection
+    type: string
+    description: WebSocket URL of the mesh server
+  - name: token
+    group: connection
+    type: string
+    description: Auth token; prefer a {{secret:name}} placeholder, never a literal secret
+  - name: mode
+    group: connection
+    values: [pair, room]
+    type: enum
+    description: pair connects to one peer; room joins a shared room
+  - name: identity
+    group: connection
+    type: object
+    description: Who this device presents as: {name, ...}
+  - name: e2eeKey
+    group: connection
+    type: string
+    description: End-to-end encryption key or {{secret:name}} placeholder
 ---
 
 Top-level JSON structure for a CAR-TER remote.
@@ -373,10 +412,12 @@ not a remote that is glanced at and pocketed.
 `"liveness": { "staleAfter": 120 }` sets a layout-wide default for how many
 seconds a synced value may go without a new source arrival before it counts as
 stale. Staleness is **opt-in**: without this block and without a per-binding
-`staleAfter`, values look live forever, as before.
+`staleAfter`, values look live forever, as before. HTTP polls are the exception:
+one without its own `staleAfter` goes stale at the larger of this default and
+3 x its poll interval (3 x the interval when this block is absent).
 
 A sync entry's own `staleAfter` overrides this default, and `0` at either level
-opts that binding out. Writes that do not come from a source (user gestures,
+opts that binding out (a layout `0` covers HTTP polls too). Writes that do not come from a source (user gestures,
 held or reverted command-ack values, defaults, Studio writes) never refresh the
 clock. See [[sync]] for resolution, arrivals, `timestampPath`, and the sensor
 heartbeat caveat. A malformed block is ignored rather than failing the layout.

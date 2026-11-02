@@ -24,11 +24,15 @@ fields:
     max: 86400
     step: 1
     type: number
-    description: Seconds after the last source arrival before the value counts as stale (opt-in; 0 opts out; overrides the layout's liveness.staleAfter)
+    description: Seconds after the last source arrival before the value counts as stale (opt-in, except HTTP polls default to max(layout liveness.staleAfter, 3x interval); 0 opts out; overrides the layout's liveness.staleAfter)
   - name: timestampPath
     tab: advanced
     type: string
     description: Dot path to epoch seconds or ISO-8601 in the frame; age runs from that timestamp instead of receipt time
+  - name: endsAtPath
+    tab: advanced
+    type: string
+    description: Dot path to an end time (epoch seconds or ISO-8601, e.g. an ETA) beside the value; widgets, Lock Screen and Live Activity count down / fill toward it with no push, and the next real value replaces it
   - name: valuePath
     tab: advanced
     type: string
@@ -76,6 +80,15 @@ fields:
   - name: from
     type: string
     description: The id of a layout derive entry this control shows (derive)
+  - name: group
+    type: string
+    description: Event group the binding belongs to (meshsocket, optional)
+  - name: sensor
+    type: string
+    description: "On-device stream to bind when method is sensor, e.g. heading (see [[sensors]])"
+  - name: having
+    type: object
+    description: "Filter on aggregated groups: {key|value: {op: v}} (local, with groupBy)"
 ---
 
 How controls receive live state — the **standardized connection block**. The
@@ -127,9 +140,10 @@ the loop. Same `filter`/`valuePath` semantics, same special receivers. See
 
 ## Liveness (staleAfter)
 
-Staleness is **opt-in**. By default a synced value looks live forever, even if
-its server went quiet hours ago. Give a binding `staleAfter` (seconds) and the
-app treats the value as stale once that long has passed without a new arrival:
+Staleness is **opt-in**, except for HTTP polls (below). By default a synced
+value looks live forever, even if its server went quiet hours ago. Give a
+binding `staleAfter` (seconds) and the app treats the value as stale once that
+long has passed without a new arrival:
 
 ```json
 { "method": "meshsocket", "event": "broadcast",
@@ -142,11 +156,21 @@ app treats the value as stale once that long has passed without a new arrival:
 **Resolution order** for each binding:
 
 1. The sync entry's own `staleAfter`.
-2. Otherwise the layout's `liveness.staleAfter` (see [[layout-config]]).
-3. Otherwise off.
+2. Otherwise, for an `http` poll: the larger of the layout's
+   `liveness.staleAfter` and 3 x the binding's poll interval, or 3 x the poll
+   interval when the layout sets no default. A poll never flaps stale between
+   two polls, and is never stricter than the layout default. The interval is
+   the one the poller uses: the binding's `interval`, else its source's, else 5 s.
+3. Otherwise the layout's `liveness.staleAfter` (see [[layout-config]]).
+4. Otherwise off.
+
+So with `"liveness": {"staleAfter": 60}`, an HTTP binding polled every 300 s goes
+stale after 900 s; with `"staleAfter": 1200`, one polled every 60 s goes stale
+after 1200 s.
 
 `0` at whichever level applies turns staleness **off** for that binding, which
-suits settings-style controls (pickers, toggles) that change rarely. Values
+suits settings-style controls (pickers, toggles) that change rarely. A layout
+`liveness.staleAfter` of `0` opts HTTP polls out too. Values
 above 86400 (one day) are clamped to 86400; negative or non-numeric values are
 ignored, as if the key were absent. A control
 with several sync entries is stale only when **all** of its bindings are stale:
@@ -171,8 +195,17 @@ usual no-data look.
 **`timestampPath`** is a dot path (not an expression) to epoch seconds or an
 ISO-8601 string inside the frame. When present and parseable, age runs from that
 timestamp instead of from when the phone received the frame; future timestamps
-are clamped to now. Retained MQTT messages need it: the broker replays the last
+are clamped to now. A number is epoch seconds (a value above 1e11 is read as
+milliseconds); a string is ISO-8601, with or without fractional seconds. A missing
+or unparseable value falls back to receipt time. Retained MQTT messages need it: the broker replays the last
 value on every subscribe, so receipt time says nothing about freshness.
+
+**`endsAtPath`** is a dot path to an end time (same formats as `timestampPath`,
+future-dated). A control carrying it shows a system countdown timer on every
+surface; widget timelines get an entry per minute along a projection. A time
+already past, missing or unparseable clears the forecast. Each real arrival
+replaces the previous forecast, and a forecast that runs out with no newer value
+reads stale.
 
 **Sensor idle heartbeat.** Batched sensor publishers hold back unchanged readings
 for up to 120 s. A `staleAfter` of 120 or less on a `msg_type: "sensor"` binding
@@ -246,6 +279,12 @@ A top-level layout key, not a per-control sync — the app↔server session cont
   starts over at 1 is adopted at once, and two hubs on one channel never drop each
   other's lower counter. A snapshot with no `epoch` is ordered as before (one
   legacy counter). Every reconnect/`control_sync_request` also resets the ordering.
+- **Ages.** `control_snapshot` may carry `ages {id: seconds}`: how long ago the
+  authority last received data for each control that has had an arrival. The
+  replica dates each applied value at now minus its age, so a day-old reading does
+  not look fresh after a rejoin. With no `ages` (older authority), a non-finite
+  age, or an id with no entry, the replica stamps the arrival at now; negative ages
+  count as 0.
 - **Authority hello.** On start an authority broadcasts
   `control_authority_hello {epoch, from}` (`from` = its own name). A replica only
   honours a hello whose `from` is the layout's configured `state.authority` (exact

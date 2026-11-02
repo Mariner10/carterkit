@@ -5,6 +5,7 @@ icon: character.cursor.ibeam
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Text box
 oneLiner: Type something in
 aliases: [text field, input, textbox, entry, type, search box]
@@ -12,18 +13,27 @@ addRank: 5
 starterPreset: {"label": "Text box","placeholder": "Type here"}
 fields:
   - name: placeholder
+    edit: inline
+    depth: surface
     type: string
     description: Placeholder text when empty
   - name: label
+    edit: inline
+    depth: surface
     type: string
     description: Display label
   - name: icon
+    edit: symbol
+    depth: hold
+    under: label
     type: string
     description: SF Symbol shown in the field
   - name: defaultValue
     type: string
     description: Initial text
   - name: style
+    edit: look
+    depth: surface
     tab: style
     type: enum
     values: [default, search, multiline]
@@ -65,21 +75,38 @@ fields:
     default: false
     description: Clear the field after the return-key submit
   - name: tint
+    edit: color
+    depth: surface
     tab: style
     type: color
     default: "#667eea"
     description: Accent color
   - name: hideBackground
+    edit: part
+    depth: hold
     tab: style
     type: bool
     default: false
     description: Remove glass background
   - name: hideLabel
+    edit: part
+    depth: hold
     type: bool
     default: false
     description: Hide the header label
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     min: 0
     max: 30
     step: 1

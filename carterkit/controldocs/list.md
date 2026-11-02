@@ -5,6 +5,7 @@ icon: list.bullet
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Table
 oneLiner: Rows of information
 aliases: [rows, table, items, entries, feed, menu]
@@ -18,13 +19,15 @@ fields:
     type: string
     description: "Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is."
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Header label
   - name: listColumns
     title: Columns
     type: array
-    description: "Column definitions: [{key, label, format}]"
+    description: "Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
     summary: Which columns to show and how to display them
   - name: emptyText
     title: Empty message
@@ -32,17 +35,23 @@ fields:
     description: "Line shown when the list has no rows. Default: \"No <label> yet\"."
     summary: What to show when there are no rows
   - name: tint
+    edit: color
+    depth: surface
     title: Header color
     tab: style
     type: color
     default: "#FFFFFF"
     description: Header text color
   - name: hideLabel
+    edit: part
+    depth: hold
     title: Hide the title
     type: bool
     default: false
     description: Hide header label
   - name: hideBackground
+    edit: part
+    depth: hold
     title: No background card
     tab: style
     type: bool
@@ -53,6 +62,13 @@ fields:
     type: object[]
     description: Seed rows shown before the first sync (the same row objects a sync delivers)
     summary: Starting rows shown until new data arrives
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -109,11 +125,12 @@ Inherits all [[shared-properties]]. Key fields:
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `label` | string | falls back to `id` | Header label |
-| `listColumns` | array | — | Column definitions: `[{key, label, format}]` |
+| `listColumns` | array | — | Column definitions: `[{key, label, format}]`. Absent or empty: worked out from the data — see [[#Columns when none are given]] |
 | `listColumns[].key` | string | required | Field to read from each row. A **dot path** reaches into nested rows — see [[#Column keys]] |
 | `listColumns[].label` | string | required | Column header text |
 | `listColumns[].format` | string | — | Number format for numeric cells, or a date format (`relative`, `relative:day`, `date`, `date:time`) for date strings / epoch numbers (same formats as [[label]]) |
 | `action` | [[actions\|ActionDefinition]] | — | Fired on a row tap with `{{value}}` = the row's `id` — see [[#Row taps]] |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 | `tint` | color | `"#FFFFFF"` | Header text color |
 | `hideLabel` | bool | `false` | Hide header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
@@ -132,6 +149,24 @@ If there's no flat match and the key contains dots, it's walked as a **dot path*
 That's what makes a nested public feed usable without a server in between: rows from
 a GeoJSON `features[]` keep their data under `properties`, and a path key reads it
 directly. A key that resolves to nothing renders as `—`.
+
+## Columns when none are given
+
+A list with no `listColumns` (or an empty array) still shows its rows:
+
+- **Bound to a [[local-store]]** (a `method: "local"` sync that neither groups nor
+  aggregates): the collection's fields, as declared in the layout's `sources` (or by
+  the running store, for a shared collection) — the field that names a row first, then
+  the field it sorts by, then the rest in declared order (`order`, else by name). Labels
+  are the fields' friendly names, numbers format as numbers, and raw-data (`json`)
+  fields are left out. At most 3 columns.
+- **Anything else** (a grouped store binding, a web or hub feed): the rows' own keys,
+  plain values by name first. At most 3 columns.
+
+An empty store shows the empty-state line (`emptyText`, else "No <label> yet", else
+"No rows yet"), never a configuration error. Write `listColumns` to choose the columns,
+their order, labels and formats yourself; the editor writes them when it binds a list to
+a store.
 
 ## Row taps
 

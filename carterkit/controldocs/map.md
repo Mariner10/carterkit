@@ -5,31 +5,48 @@ icon: map.fill
 category: controls
 defaultSpan: [4, 4]
 addIntent: show
+pickerCategory: Media
 friendlyName: Map
 oneLiner: A place on a map
 aliases: [location, gps, pin, geo, route, places]
 starterPreset: {"label": "Map","mapStyle": "standard"}
 fields:
   - name: mapStyle
+    edit: look
+    depth: surface
+    title: Map style
     tab: style
     type: enum
     values: [standard, satellite, hybrid, globe]
     default: standard
     description: Map rendering style (globe frames the whole Earth)
   - name: mapInteractive
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Pan and zoom
     type: bool
     default: true
     description: Allow user pan/zoom
   - name: mapZoom
+    edit: scrub
+    depth: surface
+    title: Zoom
     bounds: none
     step: 0.01
     type: number
     default: 0.01
     description: Default coordinate span in degrees
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the map
   - name: tint
+    edit: color
+    depth: surface
+    title: Pin color
     tab: style
     type: color
     default: "#667eea"
@@ -38,6 +55,10 @@ fields:
     type: object
     description: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
   - name: controlHeight
+    effect: behavior
+    edit: scrub
+    depth: hold
+    title: Height
     min: 120
     max: 1200
     step: 10

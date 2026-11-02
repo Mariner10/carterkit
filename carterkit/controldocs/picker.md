@@ -5,6 +5,7 @@ icon: list.bullet
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Menu
 oneLiner: Pick one from a list
 aliases: [dropdown, select, menu, choose, options, combo box]
@@ -27,18 +28,29 @@ fields:
     type: string
     description: Text shown when no options are available or a picker has no selection
   - name: options
+    edit: options
+    depth: surface
+    title: Choices
     type: array
     description: Available choices (string array)
   - name: pickerStyle
+    edit: look
+    depth: surface
+    title: Look
     tab: style
     type: enum
     values: [menu, wheel, inline]
     default: menu
     description: Display style
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Display label
   - name: tint
+    edit: color
+    depth: surface
     tab: style
     type: color
     default: "#667eea"
@@ -47,13 +59,27 @@ fields:
     type: string
     description: Initially selected option
   - name: haptic
+    edit: look
+    depth: hold
+    under: pickerStyle
     tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection
     description: Default haptic on change
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: pickerStyle
+    unit: pt
     min: 0
     max: 30
     step: 1
@@ -84,6 +110,10 @@ themeFields:
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: pickerStyle
+    unit: pt
     min: 0
     max: 5
     step: 0.5
@@ -117,6 +147,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | string | `"#667eea"` | Accent color |
 | `defaultValue` | string | — | Initially selected option |
 | `haptic` | string | `"selection"` | Default haptic on change |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 
 ## Styles
 

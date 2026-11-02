@@ -5,12 +5,16 @@ icon: qrcode
 category: controls
 defaultSpan: [2, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: QR code
 oneLiner: A code a phone camera can scan
 aliases: [qr, barcode, scan, code, link, share]
 starterPreset: {"label": "QR code","text": "https://example.com"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Label below the QR code
   - name: text
@@ -18,16 +22,32 @@ fields:
     description: Static content to encode (overridden by sync)
     summary: Content to encode until a connected value is available
   - name: tint
+    edit: color
+    depth: surface
+    title: Code color
     tab: style
     type: color
     default: "#FFFFFF"
     description: QR code foreground color
+  - name: qrBackground
+    edit: color
+    depth: hold
+    under: tint
+    title: Code background
+    type: color
+    description: Fill behind the code (default: none, the card shows through)
   - name: correctionLevel
+    edit: look
+    depth: hold
+    title: Error correction
     type: enum
     values: [L, M, Q, H]
     default: M
     description: Error correction level
   - name: hideBackground
+    edit: part
+    depth: hold
+    title: Background
     tab: style
     type: bool
     default: false
@@ -95,6 +115,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | falls back to `id` | Label below the QR code |
 | `text` | string | — | Static content to encode (overridden by sync) |
 | `tint` | color | `"#FFFFFF"` | QR code foreground color |
+| `qrBackground` | color | — | Fill behind the code |
 | `correctionLevel` | string | `"M"` | Error correction level: `"L"`, `"M"`, `"Q"`, `"H"` |
 | `hideBackground` | bool | `false` | Remove glass card background |
 

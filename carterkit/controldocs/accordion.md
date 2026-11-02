@@ -5,6 +5,7 @@ icon: list.bullet.below.rectangle
 category: controls
 defaultSpan: [3, 2]
 addIntent: organize
+pickerCategory: Layout
 friendlyName: Sections
 oneLiner: Headings that open and close
 aliases: [collapse, expand, section, fold, disclosure, faq]
@@ -12,6 +13,10 @@ addRank: 5
 starterPreset: {}
 fields:
   - name: accordionMode
+    effect: behavior
+    edit: look
+    depth: surface
+    title: Open mode
     type: enum
     values: [single, multi]
     default: single
@@ -22,6 +27,9 @@ fields:
     default: 0
     description: Section open on load (-1 = all collapsed)
   - name: showChevron
+    edit: part
+    depth: hold
+    title: Chevron
     type: bool
     default: true
     description: Show the disclosure chevron

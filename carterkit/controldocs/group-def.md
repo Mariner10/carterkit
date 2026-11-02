@@ -3,6 +3,83 @@ type: group-def
 label: Group Definition
 icon: square.grid.3x3.square
 category: models
+fields:
+  - name: type
+    title: Type
+    values: [group]
+    type: enum
+    description: Discriminator; always group (required)
+  - name: id
+    title: ID
+    type: string
+    description: Unique identifier among the layout's controls and groups (required)
+  - name: name
+    title: Name
+    type: string
+    description: Readable name the editor shows for this group; never used for identity
+  - name: label
+    title: Header
+    type: string
+    description: Header text shown above the group; absent or null for no header
+  - name: position
+    title: Position
+    type: array
+    description: Zero-indexed [row, col] grid cell within the parent (required)
+  - name: span
+    title: Size
+    type: array
+    description: "[rowSpan, colSpan] grid cells occupied (default [1, 1])"
+  - name: landscape
+    title: Landscape place
+    type: object
+    description: "This group's cell when an iPhone is on its side: {position, span} or {hidden: true}"
+  - name: regular
+    title: Tablet place
+    type: object
+    description: "This group's cell on an iPad-width page: {position, span} or {hidden: true}"
+  - name: grid
+    title: Inner grid
+    type: object
+    description: Internal grid for the group's children (a grid-dimensions object; required)
+  - name: children
+    title: Contents
+    type: object[]
+    description: Controls and nested groups (required)
+  - name: dynamic
+    title: Live event
+    tab: advanced
+    type: string
+    description: Event name whose broadcasts replace the children at runtime (see Dynamic Groups)
+  - name: visible
+    title: Show when
+    type: object
+    description: Show/hide based on another control's value (a VisibilityCondition)
+  - name: enabled
+    title: Enabled when
+    type: object
+    description: Enable/disable every child; false dims the group and ignores touches
+  - name: form
+    title: Form
+    type: object
+    description: Make the group a form whose inputs write a draft, written once by submit
+  - name: hideBackground
+    title: Background on/off
+    type: bool
+    default: false
+    description: Remove the glass card behind the group
+  - name: pulse
+    title: Pulse
+    type: object
+    description: Flash a ring around the group when a live event lands
+  - name: theme
+    title: Theme
+    type: object
+    description: Theme overrides for the group's header, card and every child (same keys as a control's theme)
+  - name: extensions
+    title: Extensions
+    tab: advanced
+    type: object
+    description: Tool data keyed by reverse-DNS name; preserved, never interpreted
 ---
 
 A visual container that clusters controls into a glass card with its own internal grid.
@@ -29,6 +106,10 @@ A visual container that clusters controls into a glass card with its own interna
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
 | `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
 | `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
+
+## Editing a group
+
+Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns, rows, row height, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
 
 ## Example
 

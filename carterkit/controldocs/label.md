@@ -5,6 +5,7 @@ icon: textformat
 category: controls
 defaultSpan: [1, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Text
 oneLiner: A line of text, or a value with a caption
 aliases: [text, title, heading, caption, readout, words]
@@ -14,6 +15,8 @@ lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"for
 lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
 fields:
   - name: text
+    edit: inline
+    depth: surface
     title: Text
     type: string
     description: Static display text (overridden by sync)
@@ -23,29 +26,90 @@ fields:
     type: string
     description: Alternative to text
   - name: icon
+    edit: symbol
+    depth: surface
     title: Symbol
     type: string
     description: SF Symbol before text
   - name: style
+    edit: look
     title: Look
     tab: style
     type: enum
     values: [default, headline, title, caption, mono, large-mono, terminal]
     default: default
     description: Text style variant (terminal = ANSI terminal renderer)
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: style
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control
   - name: tint
+    edit: color
     title: Color
     tab: style
     type: color
     default: "#FFFFFF"
     description: Text and icon color
   - name: align
+    edit: look
+    depth: hold
+    under: style
     title: Alignment
     tab: style
     type: enum
     values: [leading, center, trailing]
     default: leading
     description: Text alignment
+  - name: fontWeight
+    edit: look
+    depth: hold
+    under: style
+    title: Weight
+    tab: style
+    type: enum
+    values: [ultraLight, thin, light, regular, medium, semibold, bold, heavy, black]
+    default: regular
+    description: Font weight laid over the text style
+  - name: forecast
+    title: Look ahead
+    tab: data
+    type: enum
+    values: [countdown, reach]
+    description: "Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale."
+    summary: Show as a countdown, or show where the value is expected to reach
+  - name: forecastTarget
+    title: Expected to reach
+    tab: data
+    type: number
+    min: -1000000
+    max: 1000000
+    step: 1
+    description: The value this one is expected to arrive at (with forecast "reach")
+    summary: The number it should reach
+  - name: forecastTimeFrom
+    title: Arrival time from
+    tab: data
+    simple: hide
+    type: string
+    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
+  - name: forecastRate
+    title: Change per second
+    tab: data
+    simple: hide
+    type: number
+    min: -1000
+    max: 1000
+    step: 0.01
+    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
   - name: unit
     title: Unit
     type: string
@@ -116,8 +180,14 @@ Inherits all [[shared-properties]]. Key fields:
 | `icon` | string | — | SF Symbol before text |
 | `style` | string | `"default"` | See [[style-properties#Label Styles]] |
 | `tint` | string | white | Text and icon color (terminal: default text colour over the dark backdrop) |
+| `glowRadius` | number | `0` | Soft glow behind the text in its own colour, 0–30 pt (the same attribute on every control that has it) |
 | `align` | string | `"leading"` | `"leading"`, `"center"`, `"trailing"` |
+| `fontWeight` | string | `"regular"` | `ultraLight` … `black`, laid over the style |
 | `unit` | string | — | Measurement unit of a numeric value ([[values#Units]]); shown converted to the device locale (`"celsius"` → °F in the US). A `valueMap` hit or non-numeric text shows as sent. Unknown strings are a literal suffix |
+| `forecast` | enum | — | `"countdown"` (the value is a time; count down to it) or `"reach"` (expected to arrive at `forecastTarget`). Shown on widgets and Live Activities, marked "about"; the next real value replaces it, and past its end the value reads stale |
+| `forecastTarget` | number | — | With `"reach"`: the value it is expected to arrive at |
+| `forecastTimeFrom` | string | — | With `"reach"`: id of the control whose value is the arrival time (epoch seconds or ISO-8601) |
+| `forecastRate` | number | — | With `"reach"`: change per second from the last real reading (instead of a target and time) |
 | `scrollable` | bool | `false` | Fixed-height scrolling terminal/log view (pair with `controlHeight`) |
 | `formatValue` | string | — | Value display format (see formatValue table below) |
 | `placeholder` | string | `"Never"` | With `relative` / `relative:day`: the text shown while there is no date |

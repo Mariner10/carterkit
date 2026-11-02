@@ -5,6 +5,7 @@ icon: rectangle.portrait.rotate
 category: controls
 defaultSpan: [2, 2]
 addIntent: organize
+pickerCategory: Layout
 friendlyName: Flip card
 oneLiner: "Two sides: tap to flip"
 aliases: [flip, card, reveal, two-sided, front back, flashcard]
@@ -12,11 +13,18 @@ addRank: 4
 starterPreset: {}
 fields:
   - name: flipTrigger
+    effect: behavior
+    edit: look
+    depth: surface
+    title: Flip by
     type: enum
     values: [tap, longPress]
     default: tap
     description: Gesture that advances to the next face
   - name: flipAxis
+    edit: look
+    depth: surface
+    title: Flip direction
     type: enum
     values: [horizontal, vertical]
     default: horizontal

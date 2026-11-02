@@ -5,12 +5,15 @@ icon: list.bullet.rectangle.fill
 category: display
 defaultSpan: [4, 4]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Cards
 oneLiner: A stack of cards
 aliases: [cards, feed, tiles, items, results, stack]
 starterPreset: {}
 fields:
 ---
+
+Not for store rows: this control browses documentation nodes. Rows from a store use the list control ([[list]]).
 
 A searchable, scrollable browser that renders the same node data as the [[graph]]
 control as a list of cards grouped by category. Each card shows a live example of

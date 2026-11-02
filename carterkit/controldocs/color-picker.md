@@ -5,19 +5,36 @@ icon: paintpalette.fill
 category: controls
 defaultSpan: [1, 1]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Color
 oneLiner: Pick a color
 aliases: [colour, palette, swatch, hue, rgb, paint]
 starterPreset: {"label": "Color"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Display label
   - name: defaultValue
+    edit: color
+    depth: surface
     type: string
     description: Initial hex color
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: defaultValue
+    unit: pt
     min: 0
     max: 30
     step: 1
@@ -44,10 +61,17 @@ themeFields:
     default: #FFFFFF99
     description: Secondary text color
   - name: borderColor
+    edit: color
+    depth: hold
+    under: defaultValue
     type: color
     default: #FFFFFF1A
     description: Border color
   - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: defaultValue
+    unit: pt
     min: 0
     max: 5
     step: 0.5

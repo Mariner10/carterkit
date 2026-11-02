@@ -5,6 +5,7 @@ icon: slider.horizontal.3
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Slider
 oneLiner: Slide to pick a number
 aliases: [range, dial, volume, brightness, scrub, level]
@@ -32,6 +33,9 @@ fields:
     description: Maximum value
     summary: Where the slider ends
   - name: step
+    edit: scrub
+    depth: hold
+    under: style
     title: Step size
     bounds: none
     type: number
@@ -43,11 +47,15 @@ fields:
     default: true
     description: Send actions while dragging; false previews locally and sends once on release
   - name: hideValue
+    edit: part
+    depth: hold
     title: Hide the number
     type: bool
     default: false
     description: Hide numeric readouts in every slider style; keep the label and interaction
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Header label
@@ -57,12 +65,16 @@ fields:
     type: number
     description: Initial value
   - name: tint
+    edit: color
+    depth: surface
     title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Track fill color
   - name: style
+    edit: look
+    depth: surface
     title: Look
     tab: style
     type: enum
@@ -88,11 +100,15 @@ fields:
     type: string
     description: SF Symbol at maximum end
   - name: hideLabel
+    edit: part
+    depth: hold
     title: Hide the title
     type: bool
     default: false
     description: Hide the header
   - name: hideBackground
+    edit: part
+    depth: hold
     title: No background card
     tab: style
     type: bool
@@ -119,6 +135,10 @@ fields:
     default: 0
     description: Arc start rotation (radial style only)
   - name: arcThickness
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     title: Arc thickness
     tab: style
     styles: [radial]
@@ -128,6 +148,13 @@ fields:
     type: number
     default: 8
     description: Track stroke width (radial style only)
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -175,11 +202,18 @@ themeFields:
     default: 12
     description: Label text size
   - name: trackColor
+    edit: color
+    depth: hold
+    under: tint
     title: Track color
     type: color
     default: #39393D
     description: Track background color
   - name: trackHeight
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     title: Track height
     styles: [default]
     min: 4
@@ -190,6 +224,9 @@ themeFields:
     description: Track height
     summary: How thick the bar is
   - name: thumbColor
+    edit: color
+    depth: hold
+    under: tint
     title: Handle color
     styles: [default]
     type: color
@@ -205,6 +242,10 @@ themeFields:
     default: 14
     description: Thumb corner radius
   - name: thumbSize
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     title: Handle size
     styles: [default]
     min: 12

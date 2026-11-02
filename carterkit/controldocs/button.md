@@ -5,6 +5,7 @@ icon: hand.tap.fill
 category: controls
 defaultSpan: [1, 1]
 addIntent: change
+pickerCategory: Buttons
 friendlyName: Button
 oneLiner: Tap it to make something happen
 aliases: [tap, press, click, trigger, action, send]
@@ -13,15 +14,21 @@ starterPreset: {"label": "Button"}
 lookPresets: [{"id": "filled","name": "Filled","symbol": "capsule.fill","set": {"style": "filled"}},{"id": "outlined","name": "Outlined","symbol": "capsule","set": {"style": "outlined"}},{"id": "tinted","name": "Tinted","symbol": "capsule.lefthalf.filled","set": {"style": "tinted"}},{"id": "iconOnly","name": "Icon only","symbol": "circle.fill","set": {"style": "icon-only"}}]
 fields:
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     default: "Button"
     description: Button text
   - name: icon
+    edit: symbol
+    depth: surface
     title: Symbol
     type: string
     description: SF Symbol shown before label
   - name: style
+    edit: look
+    depth: surface
     title: Look
     tab: style
     type: enum
@@ -29,6 +36,9 @@ fields:
     default: filled
     description: Visual style variant ("outline" and "outlined" are both accepted)
   - name: size
+    edit: look
+    depth: hold
+    under: style
     title: Size
     tab: style
     type: enum
@@ -36,12 +46,16 @@ fields:
     default: default
     description: Size variant
   - name: tint
+    edit: color
+    depth: surface
     title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Accent color
   - name: hideLabel
+    edit: part
+    depth: hold
     title: Symbol only
     type: bool
     default: false
@@ -74,8 +88,19 @@ fields:
     tab: data
     type: object
     description: Synced value → hex tint
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     title: Corner roundness
     min: 0
     max: 30
@@ -108,6 +133,10 @@ themeFields:
     description: Border color
     summary: The outline around the control
   - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
     title: Border thickness
     min: 0
     max: 5
@@ -138,6 +167,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `hideLabel` | bool | `false` | Show icon only |
 | `action` | [[actions\|ActionDefinition]] | — | Command fired on tap |
 | `haptic` | string | `"medium"` | Default haptic on press |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 | `repeatOnHold` | bool | `false` | Hold to keep firing `action`, with the system's accelerating repeat (like [[stepper]]) |
 | `valueMap` | object | — | Synced value → button text (`"default"` catches the rest) |
 | `iconMap` | object | — | Synced value → SF Symbol name |

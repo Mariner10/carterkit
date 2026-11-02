@@ -5,12 +5,16 @@ icon: tablecells
 category: display
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Details
 oneLiner: Labeled readings from one object
 aliases: [details, key value, properties, fields, info, readings]
 starterPreset: {"label": "Details"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label
   - name: rows
@@ -18,11 +22,18 @@ fields:
     description: "Row whitelist and order: [{ key, label, format, icon, unit }]"
     summary: Which readings to show, in what order, and how each is labeled
   - name: keyValueStyle
+    edit: look
+    depth: surface
+    title: Layout
     type: enum
     values: [rows, chips, grid]
     default: rows
     description: "rows = label left / value right; chips = wrapping pills; grid = cards"
   - name: columns
+    edit: scrub
+    depth: surface
+    under: keyValueStyle
+    title: Columns
     min: 1
     max: 4
     step: 1
@@ -30,10 +41,16 @@ fields:
     default: 1
     description: How many columns of rows or cards to lay out (grid defaults to 2)
   - name: sortKeys
+    edit: part
+    depth: hold
+    title: Sorted
     type: bool
     default: false
     description: Sort keys alphabetically instead of keeping the feed's own order
   - name: hideEmpty
+    edit: part
+    depth: hold
+    title: Hide empty
     type: bool
     default: true
     description: Skip rows whose value is null or an empty string
@@ -51,13 +68,36 @@ fields:
     type: object
     description: Value → hex tint, so a value can carry its own status color
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     type: color
     description: Value color when no colorMap entry matches
+  - name: keyTint
+    edit: color
+    depth: hold
+    under: tint
+    title: Key color
+    type: color
+    description: Color of the key names (default: the theme's secondary color)
+  - name: valueTint
+    edit: color
+    depth: hold
+    under: tint
+    title: Value color
+    type: color
+    description: Color of the values when no colorMap entry matches (default: tint)
   - name: hideLabel
+    edit: part
+    depth: hold
+    title: Title shown
     type: bool
     default: false
     description: Hide the header label
   - name: hideBackground
+    edit: part
+    depth: hold
+    title: Background
     type: bool
     default: false
     description: Draw without the card surface
@@ -142,6 +182,8 @@ Without `rows` the table shows every key. With it, `rows` is both the **whitelis
 A key the document doesn't contain renders as `—`, or disappears entirely when `hideEmpty` is on.
 
 ## Styles
+
+`keyTint` and `valueTint` colour the key names and the values (a `colorMap` hit still wins for a value).
 
 - **`rows`** (default) — label left, value right. `columns: 2` prints two pairs per line in a wide cell.
 - **`chips`** — wrapping pills. Best for a dozen short values you want to scan, not read in order.

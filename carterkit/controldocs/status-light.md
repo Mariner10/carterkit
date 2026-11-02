@@ -5,6 +5,7 @@ icon: circle.fill
 category: controls
 defaultSpan: [1, 1]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Status dot
 oneLiner: "A colored dot: OK, busy, or off"
 aliases: [led, indicator, status, health, up down, traffic light]
@@ -13,9 +14,15 @@ starterPreset: {"label": "Status"}
 lookPresets: [{"id": "dot","name": "Dot","symbol": "circle.fill","set": {"style": "dot","pulse": null}},{"id": "badge","name": "Badge","symbol": "capsule.fill","set": {"style": "badge","pulse": null}},{"id": "pulsing","name": "Pulsing","symbol": "dot.radiowaves.left.and.right","set": {"style": "dot","pulse": true}}]
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Text beside the indicator
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#34C759"
@@ -26,18 +33,40 @@ fields:
     description: "Map state strings to hex colors: {\"online\": \"#34C759\", \"offline\": \"#FF3B30\"}"
     summary: Colors for each status
   - name: size
+    edit: look
+    depth: surface
+    title: Size
     tab: style
     type: enum
     values: [small, default, large]
     default: default
     description: "Indicator size: small (8pt), default (12pt), large (18pt)"
   - name: style
+    edit: look
+    depth: surface
+    title: Shape
     tab: style
     type: enum
     values: [dot, badge]
     default: dot
     description: "dot (circle) or badge (pill with state text)"
+  - name: glow
+    edit: scrub
+    depth: hold
+    under: tint
+    title: Glow
+    tab: style
+    min: 0
+    max: 1
+    step: 0.05
+    type: number
+    default: 0.3
+    description: Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
   - name: pulse
+    edit: part
+    depth: hold
+    under: tint
+    title: Pulse
     type: bool
     default: false
     description: Pulse animation when active
@@ -108,6 +137,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `statusColors` | object | — | Map state strings to hex colors |
 | `size` | string | `"default"` | `"small"` (8pt), `"default"` (12pt), `"large"` (18pt) |
 | `style` | string | `"dot"` | `"dot"` (circle) or `"badge"` (pill with state text) |
+| `glow` | number | `0.3` | Halo strength behind the light, 0–1 (the badge style tints its pill by the same amount) |
 | `pulse` | bool | `false` | Pulse animation when active |
 | `defaultValue` | string | — | Initial state key |
 

@@ -5,6 +5,7 @@ icon: plus.forwardslash.minus
 category: controls
 defaultSpan: [1, 2]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Plus / minus
 oneLiner: Count up or down one step at a time
 aliases: [plus minus, increment, counter, quantity, spinner, number input]
@@ -38,26 +39,37 @@ fields:
     default: 1
     description: Positive increment/decrement amount; zero or negative falls back to 1
   - name: repeatOnHold
+    effect: behavior
+    edit: part
+    depth: hold
     title: Repeat while held
     tab: action
     type: bool
     default: false
     description: Hold plus or minus to repeat steps using the system repeat behavior
   - name: wraps
+    edit: part
+    depth: hold
     title: Wrap around at the ends
     type: bool
     default: false
     description: Step past an endpoint to cycle to the opposite endpoint
   - name: hideValue
+    edit: part
+    depth: hold
     title: Hide the number
     type: bool
     default: false
     description: Hide the numeric readout; keep the buttons, label, and spoken value
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Display label
   - name: icon
+    edit: symbol
+    depth: surface
     title: Symbol
     type: string
     description: SF Symbol before value
@@ -68,17 +80,29 @@ fields:
     default: decimal
     description: "Value format: decimal, time, percent"
   - name: defaultValue
+    edit: scrub
+    depth: surface
     title: Starting value
     bounds: none
     type: number
     description: Initial value
   - name: haptic
+    edit: look
+    depth: hold
+    under: label
     title: Vibration on tap
     tab: action
     type: enum
     values: [light, medium, heavy, success, warning, error, selection]
     default: light
     description: Default haptic on step
+  - name: confirm
+    title: Show confirmation
+    tab: action
+    type: bool
+    default: false
+    summary: A short note with Undo after each tap
+    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -129,11 +153,17 @@ themeFields:
     default: 14
     description: Value text size
   - name: buttonColor
+    edit: color
+    depth: surface
     title: Button color
     type: color
     default: #667eea
     description: Button fill color
   - name: buttonRadius
+    edit: scrub
+    depth: hold
+    under: buttonColor
+    unit: pt
     title: Button roundness
     min: 0
     max: 30
@@ -142,6 +172,10 @@ themeFields:
     default: 8
     description: Button corner radius
   - name: buttonSize
+    edit: scrub
+    depth: hold
+    under: buttonColor
+    unit: pt
     title: Button size
     min: 12
     max: 50
@@ -150,6 +184,9 @@ themeFields:
     default: 32
     description: Button diameter
   - name: iconColor
+    edit: color
+    depth: hold
+    under: buttonColor
     title: Symbol color
     type: color
     default: #FFFFFF
@@ -189,6 +226,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `formatValue` | string | `"decimal"` | Value format: `"decimal"`, `"time"`, `"percent"` |
 | `defaultValue` | number | — | Initial value |
 | `haptic` | string | `"light"` | Default haptic on step |
+| `confirm` | bool | `false` | "Show confirmation": after each local write, a 3-second pill naming the change, with Undo. See [[actions#Confirmation and Undo]] |
 
 ## Examples
 

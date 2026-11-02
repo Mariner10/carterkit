@@ -5,21 +5,32 @@ icon: terminal.fill
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Log
 oneLiner: Lines of messages as they arrive
 aliases: [console, log, terminal, output, messages, tail]
 starterPreset: {"label": "Log"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label
   - name: style
+    edit: look
+    depth: surface
+    title: Style
     tab: style
     type: enum
     values: [default, transparent]
     default: default
     description: "default (dark bg) or transparent"
   - name: maxLines
+    effect: behavior
+    edit: scrub
+    depth: hold
+    title: Lines kept
     min: 10
     max: 1000
     step: 10
@@ -27,10 +38,16 @@ fields:
     default: 200
     description: Maximum buffered lines
   - name: showTimestamps
+    edit: part
+    depth: hold
+    title: Timestamps
     type: bool
     default: true
     description: Prefix each line with timestamp
   - name: fontSize
+    edit: scrub
+    depth: surface
+    title: Text size
     tab: style
     min: 8
     max: 28
@@ -39,10 +56,17 @@ fields:
     default: 11
     description: Monospace font size
   - name: autoScroll
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Auto-scroll
     type: bool
     default: true
     description: Auto-scroll to latest line
   - name: controlHeight
+    edit: scrub
+    depth: hold
+    title: Height
     min: 80
     max: 800
     step: 10
@@ -54,6 +78,9 @@ fields:
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
     summary: Colors for each kind of message
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"

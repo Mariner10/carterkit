@@ -5,6 +5,7 @@ icon: chart.pie.fill
 category: controls
 defaultSpan: [3, 3]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Pie
 oneLiner: Parts of a whole
 aliases: [pie, donut, doughnut, share, breakdown, proportion]
@@ -16,18 +17,38 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Label under the chart
   - name: pieStyle
+    edit: look
+    title: Shape
     tab: style
     type: enum
     values: [pie, donut, wheel, menu]
     default: pie
     description: Classic pie, donut, spin-to-select wheel, or radial menu
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: pieStyle
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control
   - name: pieConfig
     type: object
     description: Full configuration object (see PieConfig section)
   - name: tint
+    edit: color
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -42,11 +63,17 @@ fields:
     summary: Text shown in the middle of the donut
     group: pieConfig
   - name: colors
+    edit: list
+    title: Slice colors
     tab: style
     type: string[]
     description: Slice color cycle (per-slice color wins)
     group: pieConfig
   - name: donutRatio
+    edit: scrub
+    depth: hold
+    under: pieStyle
+    title: Hole size
     tab: style
     min: 0
     max: 0.85
@@ -54,25 +81,65 @@ fields:
     type: number
     description: Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3)
     group: pieConfig
+  - name: sliceGap
+    edit: scrub
+    depth: hold
+    under: pieStyle
+    title: Slice gap
+    unit: pt
+    tab: style
+    min: 0
+    max: 12
+    step: 1
+    type: number
+    default: 0
+    description: Even-width gap between neighbouring slices in points (slices narrower than the gap drop it)
+    group: pieConfig
+  - name: sliceCornerRadius
+    edit: scrub
+    depth: hold
+    under: pieStyle
+    title: Slice corners
+    unit: pt
+    tab: style
+    min: 0
+    max: 16
+    step: 1
+    type: number
+    default: 0
+    description: Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices
+    group: pieConfig
   - name: explodeSelected
     type: bool
     description: Tapped slice pops outward (**wheels default false)
     group: pieConfig
   - name: percent
+    edit: part
+    depth: hold
+    title: Percent
     type: bool
     default: false
     description: Show values as % of the total
     group: pieConfig
   - name: showLabels
+    edit: part
+    depth: hold
+    title: Labels
     type: bool
     description: Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead)
     group: pieConfig
   - name: showLegend
+    edit: part
+    depth: hold
+    title: Legend
     type: bool
     default: false
     description: Wrapping dot-chip legend under the chart
     group: pieConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Append each slice's value to its label
@@ -96,6 +163,10 @@ fields:
     description: Haptic tick per slice boundary while spinning
     group: pieConfig
   - name: startAngle
+    edit: scrub
+    depth: hold
+    under: pieStyle
+    title: Start angle
     min: 0
     max: 360
     step: 1
@@ -194,6 +265,7 @@ Inherits all [[control-def|shared fields]]. Key fields:
 | `pieStyle` | string | `"pie"` | `pie` \| `donut` \| `wheel` \| `menu` |
 | `pieConfig` | [[#PieConfig]] | — | Full configuration object (all optional) |
 | `tint` | string | `"#667eea"` | First-slice color / palette seed |
+| `glowRadius` | number | `0` | Soft glow behind the slices in their own colours, 0–30 pt (the same attribute on every control that has it) |
 | `icon` | string | — | SF Symbol in the wheel/menu hub before a result lands |
 | `formatValue` | string | — | Formatter for slice/center values |
 | `hideValue` | bool | `false` | Suppress the donut/hub center readout |

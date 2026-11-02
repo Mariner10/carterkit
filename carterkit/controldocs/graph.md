@@ -5,18 +5,24 @@ icon: circle.grid.cross.fill
 category: controls
 defaultSpan: [4, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Network
 oneLiner: Dots joined by lines
 aliases: [network, nodes, edges, diagram, relationships, links]
 starterPreset: {"label": "Network"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the graph
   - name: graphConfig
     type: object
     description: Full configuration object (see GraphConfig section)
   - name: tint
+    edit: color
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -28,6 +34,9 @@ fields:
     description: How strongly connected nodes pull together
     group: graphConfig
   - name: backgroundColor
+    edit: color
+    depth: hold
+    title: Background
     tab: style
     type: color
     description: Graph canvas background
@@ -56,16 +65,26 @@ fields:
     description: Allow dragging individual nodes
     group: graphConfig
   - name: edgeColor
+    edit: color
+    depth: hold
+    title: Line color
     tab: style
     type: color
     description: Default edge line color
     group: graphConfig
   - name: edgeCurved
+    edit: part
+    depth: hold
+    title: Curved lines
     type: bool
     default: false
     description: Use curved (quadratic) edges instead of straight
     group: graphConfig
   - name: edgeOpacity
+    edit: scrub
+    depth: hold
+    under: edgeWidth
+    title: Line fade
     tab: style
     min: 0
     max: 1
@@ -75,6 +94,9 @@ fields:
     description: Edge line opacity (0-1)
     group: graphConfig
   - name: edgeWidth
+    edit: scrub
+    unit: pt
+    title: Line width
     tab: style
     min: 0.5
     max: 12
@@ -89,12 +111,20 @@ fields:
     description: Glow color
     group: graphConfig
   - name: glowEnabled
+    edit: part
+    depth: hold
+    title: Glow
     tab: style
     type: bool
     default: true
     description: Node glow effect
     group: graphConfig
   - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: nodeSize
+    title: Glow
+    unit: pt
     tab: style
     min: 0
     max: 30
@@ -128,6 +158,10 @@ fields:
     description: Distance from node center to label
     group: graphConfig
   - name: labelSize
+    edit: scrub
+    depth: hold
+    under: nodeSize
+    title: Label size
     tab: style
     min: 8
     max: 24
@@ -147,6 +181,10 @@ fields:
     description: Border stroke color
     group: graphConfig
   - name: nodeBorderWidth
+    edit: scrub
+    depth: hold
+    under: nodeSize
+    title: Node outline
     min: 0
     max: 5
     step: 0.5
@@ -155,6 +193,9 @@ fields:
     description: Border stroke width around nodes
     group: graphConfig
   - name: nodeColor
+    edit: color
+    depth: hold
+    title: Node color
     tab: style
     type: color
     description: Default node fill color (hex)
@@ -165,6 +206,9 @@ fields:
     description: Color when node is active/selected
     group: graphConfig
   - name: nodeSize
+    edit: scrub
+    unit: pt
+    title: Node size
     tab: style
     min: 2
     max: 40
@@ -190,14 +234,20 @@ fields:
     description: How strongly nodes push apart
     group: graphConfig
   - name: showLabels
+    edit: part
+    depth: hold
+    title: Labels
     type: bool
     default: true
     description: Show text labels under nodes
     group: graphConfig
   - name: showParticles
+    edit: part
+    depth: hold
+    title: Particles
     type: bool
     default: false
-    description: (Reserved) Animated particles along edges
+    description: Animated particles travelling along edges
     group: graphConfig
   - name: velocityDecay
     min: 0
@@ -340,7 +390,7 @@ All fields are optional with sensible defaults.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `backgroundColor` | string | `"#0D0D1A"` | Graph canvas background |
-| `showParticles` | bool | `false` | (Reserved) Animated particles along edges |
+| `showParticles` | bool | `false` | Animated particles travelling along edges |
 | `particleColor` | string | — | (Reserved) Particle color |
 | `particleSpeed` | number | — | (Reserved) Particle animation speed |
 | `glowEnabled` | bool | `true` | Node glow effect |

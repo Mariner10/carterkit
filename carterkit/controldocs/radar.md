@@ -5,6 +5,7 @@ icon: hexagon.fill
 category: controls
 defaultSpan: [3, 3]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Radar
 oneLiner: Several scores on one shape
 aliases: [spider, web, polar, compare, skills, star chart]
@@ -16,12 +17,18 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Label under the chart
   - name: radarConfig
     type: object
     description: Full configuration object (see RadarConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -31,11 +38,17 @@ fields:
     type: string
     description: Formatter for vertex values
   - name: colors
+    edit: list
+    depth: hold
+    title: Series colors
     tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
     group: radarConfig
   - name: curved
+    edit: part
+    depth: hold
+    title: Curved edges
     type: bool
     default: false
     description: Rounded polygon instead of straight edges
@@ -46,6 +59,9 @@ fields:
     description: Drag the **first** series' vertices along their axes
     group: radarConfig
   - name: fillOpacity
+    edit: scrub
+    depth: surface
+    title: Fill strength
     tab: style
     min: 0
     max: 1
@@ -54,12 +70,39 @@ fields:
     default: 0.25
     description: Polygon fill opacity 0–1
     group: radarConfig
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: fillOpacity
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control
+  - name: lineCap
+    edit: look
+    depth: hold
+    under: glowRadius
+    title: Line ends
+    tab: style
+    type: enum
+    values: [round, butt, square]
+    default: round
+    description: End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control
   - name: maxValue
     bounds: none
     type: number
     description: Per-axis maximum (payload max wins)
     group: radarConfig
   - name: rings
+    edit: scrub
+    depth: hold
+    under: fillOpacity
+    title: Grid rings
     min: 1
     max: 12
     step: 1
@@ -68,21 +111,33 @@ fields:
     description: Concentric grid rings
     group: radarConfig
   - name: showAxisLabels
+    edit: part
+    depth: hold
+    title: Axis labels
     type: bool
     default: true
     description: Axis names around the rim
     group: radarConfig
   - name: showLegend
+    edit: part
+    depth: hold
+    title: Legend
     type: bool
     default: false
     description: Series legend under the chart
     group: radarConfig
   - name: showPoints
+    edit: part
+    depth: hold
+    title: Points
     type: bool
     default: true
     description: Vertex dots (always on while editing)
     group: radarConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Numeric value beside each vertex (the dragged vertex always shows)
@@ -172,6 +227,8 @@ Inherits all [[control-def|shared fields]]. Key fields:
 | `label` | string | — | Label under the chart |
 | `radarConfig` | [[#RadarConfig]] | — | Full configuration object (all optional) |
 | `tint` | string | `"#667eea"` | First-series color / palette seed |
+| `glowRadius` | number | `0` | Soft glow behind each series outline in its own colour, 0–30 pt (the same attribute on every control that has it) |
+| `lineCap` | enum | `round` | End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut): `round`, `butt` or `square` (the same attribute on every control that has it) |
 | `formatValue` | string | — | Formatter for vertex values |
 | `action` | [[actions\|ActionDefinition]] | — | Fired on edit release; `{{value}}` = `{"axes": […], "values": […]}` JSON |
 

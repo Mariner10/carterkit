@@ -5,20 +5,31 @@ icon: location.north.circle.fill
 category: input
 defaultSpan: [7, 3]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Action ring
 oneLiner: Turn a ring to pick an action
 aliases: [heading, direction, bearing, north, orientation, navigation]
 starterPreset: {"label": "Ring"}
 fields:
   - name: haptic
+    edit: look
+    depth: hold
+    under: label
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Header label
   - name: controlHeight
+    effect: behavior
+    edit: scrub
+    depth: surface
+    title: Height
     min: 100
     max: 1200
     step: 10
@@ -26,6 +37,11 @@ fields:
     default: 420
     description: Rendered height in points (required in flow-mode grids)
   - name: tolerance
+    effect: behavior
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Tolerance
     min: 1
     max: 90
     step: 1
@@ -34,6 +50,10 @@ fields:
     description: Half-angle (°) within which the needle counts as pointing at a puck
     group: compassConfig
   - name: dwell
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Hold time
     min: 0
     max: 10
     step: 0.1
@@ -42,11 +62,18 @@ fields:
     description: Seconds to hold on a puck before its action fires (0 = instant)
     group: compassConfig
   - name: showCardinals
+    edit: part
+    depth: hold
+    title: Letters
     type: bool
     default: true
     description: Draw N/E/S/W ticks
     group: compassConfig
   - name: cardinalSize
+    edit: scrub
+    depth: hold
+    under: cardinalColor
+    title: Letter size
     tab: style
     min: 8
     max: 40
@@ -56,11 +83,18 @@ fields:
     description: Cardinal glyph point size
     group: compassConfig
   - name: cardinalColor
+    edit: color
+    depth: surface
+    title: Letter color
     tab: style
     type: color
     description: "E/S/W cardinal color (default secondary grey; N always follows tint)"
     group: compassConfig
   - name: editable
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Editable
     type: bool
     default: true
     description: Allow dragging pucks to re-bearing them

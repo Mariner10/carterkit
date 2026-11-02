@@ -5,6 +5,7 @@ icon: circle.dashed
 category: controls
 defaultSpan: [2, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Ring
 oneLiner: How far along something is
 aliases: [ring, progress, circle, completion, percent, activity ring]
@@ -34,31 +35,129 @@ fields:
     description: Maximum value (100%)
     summary: The value that shows a full ring
   - name: progressStyle
+    edit: look
     title: Shape
     tab: style
     type: enum
     values: [ring, bar]
     default: ring
     description: Circular ring or linear bar
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: progressStyle
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control
+  - name: lineCap
+    edit: look
+    depth: hold
+    under: glowRadius
+    title: Line ends
+    tab: style
+    type: enum
+    values: [round, butt, square]
+    default: round
+    description: End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control
   - name: tint
+    edit: color
     title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Fill color
+  - name: colorByValue
+    edit: stops
+    axis: value
+    depth: surface
+    title: Color zones
+    tab: style
+    type: array
+    description: Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
+    summary: Colour the ring by how far along it is
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Center text (ring) or header text (bar)
   - name: icon
+    edit: symbol
+    depth: hold
+    under: label
     title: Symbol
     type: string
     description: SF Symbol in center (ring only)
+  - name: arcThickness
+    edit: scrub
+    depth: hold
+    under: progressStyle
+    title: Thickness
+    unit: pt
+    tab: style
+    min: 2
+    max: 40
+    step: 1
+    type: number
+    description: Ring stroke width, or bar height, in points. Absent scales with the control size.
+  - name: barCornerRadius
+    edit: scrub
+    depth: hold
+    under: progressStyle
+    title: Bar roundness
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 4
+    description: Corner rounding of the linear bar (progressStyle bar)
   - name: hideValue
+    edit: part
+    depth: hold
+    under: label
     title: Hide the number
     type: bool
     default: false
     description: Show just the arc — hide the center value
+  - name: forecast
+    title: Look ahead
+    tab: data
+    type: enum
+    values: [countdown, reach]
+    description: "Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale."
+    summary: Show as a countdown, or show where the value is expected to reach
+  - name: forecastTarget
+    title: Expected to reach
+    tab: data
+    type: number
+    min: -1000000
+    max: 1000000
+    step: 1
+    description: The value this one is expected to arrive at (with forecast "reach")
+    summary: The number it should reach
+  - name: forecastTimeFrom
+    title: Arrival time from
+    tab: data
+    simple: hide
+    type: string
+    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
+  - name: forecastRate
+    title: Change per second
+    tab: data
+    simple: hide
+    type: number
+    min: -1000
+    max: 1000
+    step: 0.01
+    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
   - name: unit
     title: Unit
     type: string
@@ -140,10 +239,19 @@ Inherits all [[shared-properties]]. Key fields:
 | `max` | number | `100` | Maximum value (100%) |
 | `progressStyle` | string | `"ring"` | `"ring"` (circular) or `"bar"` (linear) |
 | `tint` | string | `"#667eea"` | Fill color |
+| `barCornerRadius` | number | `4` | Corner rounding of the linear bar (`progressStyle` `bar`), 0–30 pt |
+| `glowRadius` | number | `0` | Soft glow behind the ring or bar fill in its own colour, 0–30 pt (the same attribute on every control that has it) |
+| `lineCap` | enum | `round` | End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square): `round`, `butt` or `square` (the same attribute on every control that has it) |
+| `colorByValue` | array | — | Color zones `[{limit, color}]` in the `min`–`max` unit; the fill takes the zone colour of the current value (gauge semantics) and overrides `tint` |
+| `arcThickness` | number | auto | Ring stroke width or bar height, in points (2–40). Absent scales with the control |
 | `label` | string | — | Center text (ring) or header text (bar) |
 | `icon` | string | — | SF Symbol in center (ring only) |
 | `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
 | `unit` | string | — | Measurement unit of the value ([[values#Units]]). With a unit the readout is the value itself, converted to the device locale (`180` `"celsius"` reads 356°F in the US), not the fill percentage. `min`/`max` stay in this unit |
+| `forecast` | enum | — | `"countdown"` (the value is a time; count down to it) or `"reach"` (expected to arrive at `forecastTarget`). Shown on widgets and Live Activities, marked "about"; the next real value replaces it, and past its end the value reads stale |
+| `forecastTarget` | number | — | With `"reach"`: the value it is expected to arrive at |
+| `forecastTimeFrom` | string | — | With `"reach"`: id of the control whose value is the arrival time (epoch seconds or ISO-8601) |
+| `forecastRate` | number | — | With `"reach"`: change per second from the last real reading (instead of a target and time) |
 
 ## Styles
 

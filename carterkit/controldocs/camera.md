@@ -5,12 +5,16 @@ icon: camera.viewfinder
 category: controls
 defaultSpan: [3, 4]
 addIntent: change
+pickerCategory: Media
 friendlyName: Scanner
 oneLiner: Scan a barcode or QR code
 aliases: [photo, picture, scan, capture, video, webcam]
 starterPreset: {"label": "Scan","scan": ["barcode"]}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label
   - name: scan
@@ -35,10 +39,16 @@ fields:
     default: 3
     description: Seconds before the same decoded value can fire again
   - name: torch
+    edit: part
+    depth: hold
+    title: Torch
     type: bool
     default: true
     description: Show a torch toggle while scanning
   - name: snapshot
+    edit: part
+    depth: hold
+    title: Snapshot
     type: bool
     default: false
     description: Show a shutter button (implied when snapshotAction is set)
@@ -57,6 +67,9 @@ fields:
     default: 1280
     description: Longest snapshot edge in pixels
   - name: hideLabel
+    edit: part
+    depth: hold
+    title: Title shown
     type: bool
     default: false
     description: Hide the header label (the LIVE chip moves into the viewfinder)

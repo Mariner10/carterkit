@@ -5,20 +5,31 @@ icon: square.on.square.dashed
 category: input
 defaultSpan: [10, 4]
 addIntent: change
+pickerCategory: Inputs
 friendlyName: Free canvas
 oneLiner: Place things anywhere on a surface
 aliases: [draw, drawing, sketch, paint, shapes, freeform]
 starterPreset: {"label": "Canvas"}
 fields:
   - name: haptic
+    edit: look
+    depth: hold
+    under: label
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Label
     type: string
     description: Header label
   - name: controlHeight
+    effect: behavior
+    edit: scrub
+    depth: surface
+    title: Height
     min: 100
     max: 1200
     step: 10
@@ -26,6 +37,10 @@ fields:
     default: 560
     description: Rendered height in points (required in flow-mode grids)
   - name: aspect
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Shape
     min: 0.2
     max: 5
     step: 0.1
@@ -34,17 +49,27 @@ fields:
     description: Surface aspect ratio (width ÷ height)
     group: canvasConfig
   - name: editable
+    edit: part
+    depth: hold
+    title: Editable
     type: bool
     default: false
     description: Long-press lifts a card; drags emit place/layout and round-trip the synced value
     summary: Touch and hold a card to move it
     group: canvasConfig
   - name: showGrid
+    edit: part
+    depth: hold
+    title: Grid
     type: bool
     default: false
     description: Faint dot lattice on the surface (uses the snap increment when set)
     group: canvasConfig
   - name: snap
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Snap
     min: 0
     max: 1
     step: 0.05
@@ -53,6 +78,11 @@ fields:
     description: Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free)
     group: canvasConfig
   - name: maxZoom
+    effect: behavior
+    edit: scrub
+    depth: hold
+    under: controlHeight
+    title: Max zoom
     min: 0.5
     max: 4
     step: 0.1

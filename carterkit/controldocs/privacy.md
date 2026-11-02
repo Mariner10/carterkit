@@ -7,9 +7,9 @@ category: legal
 
 # CAR-TER Privacy Policy
 
-**Effective date:** June 20, 2026
+**Effective date:** October 28, 2026
 
-CAR-TER ("the app") is a JSON-driven remote-control app for iOS. This policy explains what data the app and its optional cloud service handle. The short version: **the app collects nothing that identifies you.** Your layouts and control traffic go only to a server you run (or, with the optional paid Connect+ feature, through our relay, described below). The one thing the app sends us on its own is **anonymous usage counts** — how many times the app was opened, which kinds of controls get used, whether a layout used a local server or Connect+ — with no identifiers, content, or location, and you can switch it off (see "Anonymous usage statistics").
+CAR-TER ("the app") is a JSON-driven remote-control app for iOS. This policy explains what data the app and its optional cloud service handle. The short version: **the app collects nothing that identifies you.** Your layouts and control traffic go only to a server you run (or, with the optional paid Connect+ feature, through our relay, described below). The one thing the app sends us on its own is **anonymous usage counts** — how many times the app was opened, which kinds of controls get used, whether a layout used a local server or Connect+ — with no identifiers, content, or location, and you can switch it off (see "Anonymous usage statistics"). If you connect an AI app, a copy of how your layouts are built goes to our cloud service so that AI can work on them (see "AI connector").
 
 ## Default use (no account, self-hosted)
 
@@ -48,6 +48,19 @@ If you purchase **Connect+** and connect through our hosted relay (`connect.cart
 
 We do **not** store your name, email address, contacts, or location. We do **not** sell or share this data, and we do **not** use it for advertising. Connect+ account identifiers and credentials are not stored with usage counts. The only derived account attribute stored with those counts is the verified founder flag described above.
 
+## AI connector (optional)
+
+Nothing below happens until you connect an AI app (for example Claude or ChatGPT) on the AI page in Settings and approve it on your phone.
+
+- **What is copied to CAR-TER cloud** (`ai.carterbeaudoin.net`, hosted on Amazon Web Services): how your layouts are built (tabs, controls, labels, colours, the sources they read), the fields of your stores but **never the entries you typed**, which phone readings and widgets exist, the asks and hand-offs you send to your AI, the changes your AI proposes, and wireframe pictures of them (kept 7 days). Passwords and keys stay on your phone: layouts carry only placeholder names for them.
+- **Who can read it**: only the AI apps you approved on this phone, each with its own sign-in that you can revoke. Changes an AI proposes reach your phone as suggestions; anything that adds a new outgoing connection waits for you to allow it.
+- **Service log**: for reliability we log each AI request's tool name, timing and outcome against a salted hash of your space, never its content; these rows expire after 90 days.
+- **Turning it off**: disconnect an AI on the AI page in Settings, or tap **Delete my cloud copy** there to remove the whole copy and disconnect every AI. Your layouts and entries stay on your phone.
+
+## Rooms (live sharing)
+
+When you share a layout as a Room or join one, the layout and its control changes, plus the display name you choose for the Room, travel through our relay to everyone in that Room. If the invite includes a room key, that traffic is end-to-end encrypted and the relay cannot read it; without one it is not. Leave the Room to stop.
+
 ## Payments and push notifications
 
 - **Purchases** are handled entirely by **Apple** through the App Store. The app never receives or stores your payment details. We validate Apple's purchase receipt only to confirm your Connect+ entitlement.
@@ -56,6 +69,7 @@ We do **not** store your name, email address, contacts, or location. We do **not
 ## Data retention and deletion
 
 - Local data is removed when you delete the app from your device.
+- Your AI connector copy stays until you delete it (Delete my cloud copy on the AI page in Settings); deleting it disconnects every AI. Wireframe links expire after 7 days and the service log after 90 days.
 - Connect+ data (account identifier, push token, alert rules) is retained while your subscription is active and removed within a reasonable period after you cancel and stop using the relay. To request deletion, contact us at the address below.
 
 ## Children

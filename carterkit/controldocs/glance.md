@@ -41,6 +41,9 @@ fields:
   - name: lockScreen
     type: object
     description: Lock-screen Live Activity banner scene (defaults to island.expanded.bottom)
+  - name: warmOpen
+    type: bool
+    description: Open the layout filled with its last-known values and sparkline trends from the glance snapshot (under 24 h old), shown as stale until a live frame arrives; a seeded toggle does not send until then. false opens on defaults (default true)
 ---
 
 A layout already says what matters: its controls. The `glance` block projects them
@@ -95,6 +98,19 @@ steppers). Add the block when you want to choose.
 }
 ```
 
+## Surface docs
+
+This page is the overview. Each surface has its own page with every field, a
+machine-readable `constraints` block (per-family limits, allowed tiles, cadences) and
+verified examples:
+
+| Surface | Page |
+|---|---|
+| Home / Lock Screen / StandBy widgets (`widgets[]`) | [[widgets]] |
+| Dynamic Island, liveness and cadence (`island`, `live`) | [[live-activity]] |
+| Lock-screen banner and accessory widgets (`lockScreen`) | [[lock-screen]] |
+| Control Center, corner and Action-button controls (`controls[]`) | [[control-center]] |
+
 ## What iOS allows (read this before designing)
 
 | Surface | Interaction | Motion | Hard limits |
@@ -141,16 +157,20 @@ Widgets, the island and the lock-screen banner are all **scenes**: rows of tiles
 | Tile | Shows | Binds |
 |------|-------|-------|
 | `value` | the formatted value, big; numbers roll | any control |
-| `gauge` / `ring` / `bar` | arc gauge / capacity ring / linear bar | numeric with `min`/`max` |
+| `gauge` / `ring` / `bar` | 270° arc with a lit end cap / closed progress ring / linear bar, the reading inside or beside it | numeric with `min`/`max` |
 | `light` | status dot + state text (`statusColors`) | statusLight or string |
 | `sparkline` | recent history (up to 24 points) | numeric |
 | `text` / `icon` / `spacer` | static label / SF Symbol / flexible space | — (an `icon` may bind a control whose string value names the symbol) |
 | `timer` | a self-ticking clock counting to or from a unix-seconds value | numeric |
-| `freshness` | connection dot + age | — |
+| `freshness` | LIVE pill, or the age ("14m") once the data is stale, or WAITING before anything arrived | — |
 | `toggle` | interactive on/off, sends the control's action | toggle control |
 | `button` | interactive press, sends the control's action (or inline `event`/`payload`) | button control |
 | `step` | `−`/`+` buttons (`delta`) or `presets` | slider / stepper |
 | `open` | deep-links into the layout (`tab` optional) | — |
+
+Tiles are drawn in the app's Glass look on every surface: the reading dims when its
+data is stale, and a value that never arrived shows a dashed track and no number.
+Lock-screen accessory widgets draw the same tiles in the system's monochrome.
 
 | Tile field | Type | Description |
 |------|------|-------------|

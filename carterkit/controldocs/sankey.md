@@ -5,6 +5,7 @@ icon: arrow.triangle.branch
 category: controls
 defaultSpan: [3, 4]
 addIntent: show
+pickerCategory: Charts
 friendlyName: Flows
 oneLiner: Where amounts flow from and to
 aliases: [flow, funnel, diagram, sources, links, breakdown]
@@ -16,12 +17,18 @@ fields:
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Header label above the diagram
   - name: sankeyConfig
     type: object
     description: Full configuration object (see SankeyConfig section)
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#667eea"
@@ -31,11 +38,17 @@ fields:
     type: string
     description: Formatter for node throughput values
   - name: colors
+    edit: list
+    depth: surface
+    title: Node colors
     tab: style
     type: string[]
     description: Node color cycle (per-node color wins)
     group: sankeyConfig
   - name: linkOpacity
+    edit: scrub
+    depth: surface
+    title: Flow strength
     tab: style
     min: 0
     max: 1
@@ -50,6 +63,11 @@ fields:
     description: nodeAction
     group: sankeyConfig
   - name: nodeSpacing
+    edit: scrub
+    depth: hold
+    under: linkOpacity
+    title: Node spacing
+    unit: pt
     tab: style
     min: 0
     max: 40
@@ -58,7 +76,24 @@ fields:
     default: 10
     description: Minimum vertical gap between nodes in a column
     group: sankeyConfig
+  - name: cellCornerRadius
+    edit: scrub
+    depth: hold
+    title: Cell roundness
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Node corner rounding (default: a third of the node width)
+    group: sankeyConfig
   - name: nodeWidth
+    edit: scrub
+    depth: hold
+    under: linkOpacity
+    title: Node width
+    unit: pt
     tab: style
     min: 1
     max: 40
@@ -73,11 +108,17 @@ fields:
     description: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)
     group: sankeyConfig
   - name: showLabels
+    edit: part
+    depth: hold
+    title: Labels
     type: bool
     default: true
     description: Node names beside the bars
     group: sankeyConfig
   - name: showValues
+    edit: part
+    depth: hold
+    title: Value labels
     type: bool
     default: false
     description: Throughput value alongside each label
@@ -175,6 +216,7 @@ Inherits all [[control-def|shared fields]]. Key fields:
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `nodeWidth` | number | `10` | Node bar width in points |
+| `cellCornerRadius` | number | a third of `nodeWidth` | Node corner rounding in points, 0–30 |
 | `nodeSpacing` | number | `10` | Minimum vertical gap between nodes in a column |
 | `showLabels` | bool | `true` | Node names beside the bars |
 | `showValues` | bool | `false` | Throughput value alongside each label |

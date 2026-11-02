@@ -3,6 +3,494 @@ type: theming
 label: Theming
 icon: paintbrush.pointed.fill
 category: models
+fields:
+  - name: pageBackground
+    type: color
+    description: Page background
+  - name: headerBackground
+    type: color
+    description: Header bar background
+  - name: tabBarBackground
+    type: color
+    description: Tab bar background
+  - name: tabBarTint
+    type: color
+    description: Tab bar selected tint
+  - name: surfacePrimary
+    type: color
+    description: Card / control surface
+  - name: surfaceSecondary
+    type: color
+    description: Nested surface
+  - name: surfaceTertiary
+    type: color
+    description: Deepest surface
+  - name: accentColor
+    type: color
+    description: Primary accent
+  - name: foregroundColor
+    type: color
+    description: Primary text
+  - name: onAccent
+    type: color
+    description: Text/icon colour drawn on an accent fill
+  - name: secondaryColor
+    type: color
+    description: Secondary text
+  - name: tertiaryColor
+    type: color
+    description: Tertiary text
+  - name: borderColor
+    type: color
+    description: Border stroke
+  - name: statusOK
+    type: color
+    description: OK / success status colour
+  - name: statusWarn
+    type: color
+    description: Warning status colour
+  - name: statusError
+    type: color
+    description: Error status colour
+  - name: statusInfo
+    type: color
+    description: Info status colour
+  - name: scrimColor
+    type: color
+    description: Dimming scrim behind sheets and popups
+  - name: pageBackgroundGradient
+    type: string[]
+    description: Page background gradient (2+ colours)
+  - name: headerBackgroundGradient
+    type: string[]
+    description: Header background gradient (2+ colours)
+  - name: accentGradient
+    type: string[]
+    description: Accent gradient (2+ colours)
+  - name: borderWidth
+    min: 0
+    max: 6
+    step: 0.5
+    type: number
+    description: Border width
+  - name: cornerRadius
+    min: 0
+    max: 40
+    step: 1
+    type: number
+    description: Control/card corner radius
+  - name: controlPadding
+    min: 0
+    max: 32
+    step: 1
+    type: number
+    description: Inner control padding
+  - name: cardPadding
+    min: 0
+    max: 32
+    step: 1
+    type: number
+    description: Group card padding
+  - name: compactRadius
+    min: 0
+    max: 40
+    step: 1
+    type: number
+    description: Radius for compact elements
+  - name: controlRadius
+    min: 0
+    max: 40
+    step: 1
+    type: number
+    description: Radius for controls
+  - name: cardRadius
+    min: 0
+    max: 40
+    step: 1
+    type: number
+    description: Radius for group cards
+  - name: compactSpacing
+    min: 0
+    max: 32
+    step: 1
+    type: number
+    description: Tight spacing
+  - name: standardSpacing
+    min: 0
+    max: 48
+    step: 1
+    type: number
+    description: Standard spacing
+  - name: sectionSpacing
+    min: 0
+    max: 64
+    step: 1
+    type: number
+    description: Spacing between sections
+  - name: emphasizedBorderWidth
+    min: 0
+    max: 8
+    step: 0.5
+    type: number
+    description: Border width for emphasised elements
+  - name: labelFontSize
+    min: 8
+    max: 32
+    step: 1
+    type: number
+    description: Label font size
+  - name: valueFontSize
+    min: 8
+    max: 72
+    step: 1
+    type: number
+    description: Value font size
+  - name: readoutFontSize
+    min: 8
+    max: 96
+    step: 1
+    type: number
+    description: Big readout font size
+  - name: captionFontSize
+    min: 8
+    max: 24
+    step: 1
+    type: number
+    description: Caption font size
+  - name: blurEnabled
+    type: bool
+    description: Glass material blur
+  - name: accent
+    type: color
+    description: Theme token. Accent colour; overrides the pack, loses to a control's own look
+  - name: surface
+    values: [glass, solid, paper]
+    type: enum
+    description: Theme token. Surface material
+  - name: corners
+    values: [sharp, soft, round]
+    type: enum
+    description: Theme token. Corner shape (4, 12 or 22 pt)
+  - name: type
+    values: [system, rounded, serif, mono]
+    type: enum
+    description: Theme token. Type face
+  - name: density
+    type: number
+    min: 0.7
+    max: 1.5
+    step: 0.05
+    description: Theme token. Padding scale
+  - name: fontFamily
+    type: string
+    description: Custom font family name (e.g. Times New Roman)
+  - name: fontDesign
+    values: [default, rounded, serif, monospaced]
+    type: enum
+    description: Font design
+  - name: valueFontWeight
+    type: string
+    description: Value font weight (e.g. semibold, bold)
+  - name: toggle
+    type: object
+    description: Per-type toggle sub-theme; keys are the toggle group fields
+  - name: slider
+    type: object
+    description: Per-type slider sub-theme; keys are the slider group fields
+  - name: stepper
+    type: object
+    description: Per-type stepper sub-theme; keys are the stepper group fields
+  - name: segmented
+    type: object
+    description: Per-type segmented sub-theme; keys are the segmented group fields
+  - name: progressBar
+    type: object
+    description: Per-type progressBar sub-theme; keys are the progressBar group fields
+  - name: light
+    type: object
+    description: Overrides applied last when the app is in light mode; keys are the schemeOverride group fields
+  - name: dark
+    type: object
+    description: Overrides applied last when the app is in dark mode; keys are the schemeOverride group fields
+  - name: palette
+    type: object
+    description: Named colours written once, referenced as $name in any colour field
+  - name: pageBackground
+    group: schemeOverride
+    type: color
+    description: Page background (scheme override)
+  - name: headerBackground
+    group: schemeOverride
+    type: color
+    description: Header bar background (scheme override)
+  - name: tabBarBackground
+    group: schemeOverride
+    type: color
+    description: Tab bar background (scheme override)
+  - name: tabBarTint
+    group: schemeOverride
+    type: color
+    description: Tab bar selected tint (scheme override)
+  - name: surfacePrimary
+    group: schemeOverride
+    type: color
+    description: Card / control surface (scheme override)
+  - name: surfaceSecondary
+    group: schemeOverride
+    type: color
+    description: Nested surface (scheme override)
+  - name: surfaceTertiary
+    group: schemeOverride
+    type: color
+    description: Deepest surface (scheme override)
+  - name: accentColor
+    group: schemeOverride
+    type: color
+    description: Primary accent (scheme override)
+  - name: foregroundColor
+    group: schemeOverride
+    type: color
+    description: Primary text (scheme override)
+  - name: onAccent
+    group: schemeOverride
+    type: color
+    description: Text/icon colour drawn on an accent fill (scheme override)
+  - name: secondaryColor
+    group: schemeOverride
+    type: color
+    description: Secondary text (scheme override)
+  - name: tertiaryColor
+    group: schemeOverride
+    type: color
+    description: Tertiary text (scheme override)
+  - name: borderColor
+    group: schemeOverride
+    type: color
+    description: Border stroke (scheme override)
+  - name: statusOK
+    group: schemeOverride
+    type: color
+    description: OK / success status colour (scheme override)
+  - name: statusWarn
+    group: schemeOverride
+    type: color
+    description: Warning status colour (scheme override)
+  - name: statusError
+    group: schemeOverride
+    type: color
+    description: Error status colour (scheme override)
+  - name: statusInfo
+    group: schemeOverride
+    type: color
+    description: Info status colour (scheme override)
+  - name: scrimColor
+    group: schemeOverride
+    type: color
+    description: Dimming scrim behind sheets and popups (scheme override)
+  - name: pageBackgroundGradient
+    group: schemeOverride
+    type: string[]
+    description: Page background gradient (2+ colours) (scheme override)
+  - name: headerBackgroundGradient
+    group: schemeOverride
+    type: string[]
+    description: Header background gradient (2+ colours) (scheme override)
+  - name: accentGradient
+    group: schemeOverride
+    type: string[]
+    description: Accent gradient (2+ colours) (scheme override)
+  - name: trackColor
+    group: toggle
+    type: color
+    description: Track colour (off)
+  - name: trackActiveColor
+    group: toggle
+    type: color
+    description: Track colour (on)
+  - name: trackRadius
+    group: toggle
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Track corner radius
+  - name: trackHeight
+    group: toggle
+    min: 8
+    max: 60
+    step: 1
+    type: number
+    description: Track height
+  - name: trackWidth
+    group: toggle
+    min: 20
+    max: 100
+    step: 1
+    type: number
+    description: Track width
+  - name: knobColor
+    group: toggle
+    type: color
+    description: Knob colour (off)
+  - name: knobActiveColor
+    group: toggle
+    type: color
+    description: Knob colour (on)
+  - name: knobRadius
+    group: toggle
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Knob corner radius
+  - name: knobSize
+    group: toggle
+    min: 8
+    max: 50
+    step: 1
+    type: number
+    description: Knob diameter
+  - name: knobShadow
+    group: toggle
+    type: bool
+    description: Draw a shadow under the knob
+  - name: trackColor
+    group: slider
+    type: color
+    description: Track colour
+  - name: trackActiveColor
+    group: slider
+    type: color
+    description: Filled track colour
+  - name: trackRadius
+    group: slider
+    min: 0
+    max: 10
+    step: 1
+    type: number
+    description: Track corner radius
+  - name: trackHeight
+    group: slider
+    min: 2
+    max: 20
+    step: 1
+    type: number
+    description: Track height
+  - name: thumbColor
+    group: slider
+    type: color
+    description: Thumb colour
+  - name: thumbRadius
+    group: slider
+    min: 0
+    max: 20
+    step: 1
+    type: number
+    description: Thumb corner radius
+  - name: thumbSize
+    group: slider
+    min: 8
+    max: 40
+    step: 1
+    type: number
+    description: Thumb diameter
+  - name: thumbShadow
+    group: slider
+    type: bool
+    description: Draw a shadow under the thumb
+  - name: thumbBorderColor
+    group: slider
+    type: color
+    description: Thumb border colour
+  - name: thumbBorderWidth
+    group: slider
+    min: 0
+    max: 6
+    step: 0.5
+    type: number
+    description: Thumb border width
+  - name: buttonColor
+    group: stepper
+    type: color
+    description: Button fill colour
+  - name: buttonRadius
+    group: stepper
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Button corner radius
+  - name: buttonSize
+    group: stepper
+    min: 20
+    max: 64
+    step: 1
+    type: number
+    description: Button size
+  - name: iconColor
+    group: stepper
+    type: color
+    description: Plus/minus icon colour
+  - name: style
+    group: stepper
+    type: string
+    description: Stepper style variant
+  - name: trackColor
+    group: segmented
+    type: color
+    description: Track colour
+  - name: trackRadius
+    group: segmented
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Track corner radius
+  - name: selectedColor
+    group: segmented
+    type: color
+    description: Selected segment fill
+  - name: selectedRadius
+    group: segmented
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    description: Selected segment corner radius
+  - name: selectedShadow
+    group: segmented
+    type: bool
+    description: Draw a shadow under the selected segment
+  - name: textColor
+    group: segmented
+    type: color
+    description: Segment text colour
+  - name: selectedTextColor
+    group: segmented
+    type: color
+    description: Selected segment text colour
+  - name: trackColor
+    group: progressBar
+    type: color
+    description: Track colour
+  - name: trackActiveColor
+    group: progressBar
+    type: color
+    description: Filled track colour
+  - name: trackRadius
+    group: progressBar
+    min: 0
+    max: 20
+    step: 1
+    type: number
+    description: Track corner radius
+  - name: trackHeight
+    group: progressBar
+    min: 2
+    max: 30
+    step: 1
+    type: number
+    description: Track height
 ---
 
 The `theme` block on a [[layout-config|layout]] controls colors, fonts, spacing, and per-control-type styling. Every control resolves its appearance from the active theme, and any control can override it locally via its own `theme` field.
@@ -89,6 +577,8 @@ A `light` / `dark` block accepts: `pageBackground`, `pageBackgroundGradient`, `h
 
 > The whole app stays in lockstep with the device color scheme — see [[appearance]] for `colorScheme`.
 
+**System layouts carry both palettes.** With `colorScheme: system` (or none) the layout follows the device, so a palette written for one scheme breaks contrast in the other. The editor keeps such a layout balanced: scheme-sensitive colours live in `light` and `dark`, both blocks colour the same slots, and in each the text clears 4.5:1 on the page and the accent 3:1 (a missing palette is derived from the other, same hue with the lightness flipped). A layout that sets no page colours keeps the built-in palettes, which already flip. Layouts pinned to `dark` or `light` are not touched.
+
 ## Page & Chrome
 
 | Key | Type | Description |
@@ -147,7 +637,7 @@ Name your colours once in `theme.palette`, then write `"$name"` in any colour fi
 - **Resolution happens at load**. The saved file keeps the `$name` refs, so editors (the designer, carterkit, the MCP) edit tokens, not the hexes behind them. Children pushed at runtime into a `dynamic` group or tab resolve against the active layout's palette the same way, with the same unknown-token fallback.
 - **Lint**: carterkit's `validate_layout` and the MCP warn when a raw colour equals a palette token and suggest the `$name`.
 
-Starting palettes: the playbook theme packs in `layout-library/playbook/themes/<slug>.theme.json` (24 packs of `{theme, appearance, accentColor}`) are the presets; copy one's `theme` and name its colours.
+Starting palettes: the playbook theme packs in `layout-library/playbook/themes/<slug>.theme.json` (24 packs of `{theme, appearance, accentColor}`) are the presets; copy one's `theme` and name its colours. Each of the 19 packs has a doc in `ControlDocs/themes/<slug>.md` whose frontmatter carries its vibe words, accent, light/dark notes, when to use, specimen reference and the `tokens` object to copy. The numeric style rules (one accent, card alpha `0F`-`24`, `cornerRadius` 14-16, `controlPadding` 12 or less, 10 rows on iPhone, the `64n - 8` cell height, light/dark parity) are in [[style-rules]].
 
 ## Cascade
 
@@ -170,6 +660,7 @@ Two colour settings are **not** part of the cascade:
 Theming levels 3–6 are Pro features: without Pro the layout renders with the default glass theme (level 1–2) and the `theme` fields are ignored. `tint` always applies.
 
 ## Related
+- [[style-rules]] — Machine-checkable style rules from the playbook
 - [[appearance]] — Color scheme, header, status bar, background image
 - [[layout-config]] — Where `theme` lives
 - [[control-def]] — Per-control `theme` overrides

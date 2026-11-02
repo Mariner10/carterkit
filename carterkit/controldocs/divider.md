@@ -5,6 +5,7 @@ icon: minus
 category: layout
 defaultSpan: [1, 4]
 addIntent: organize
+pickerCategory: Layout
 friendlyName: Divider
 oneLiner: A line between sections
 aliases: [line, separator, rule, break, split, hr]
@@ -12,19 +13,41 @@ addRank: 1
 starterPreset: {"label": "Section"}
 fields:
   - name: label
+    edit: inline
+    depth: surface
+    title: Title
     type: string
     description: Optional section label centered on the divider
   - name: tint
+    edit: color
+    depth: surface
+    title: Color
     tab: style
     type: color
     default: "#FFFFFF"
     description: Line color
   - name: style
+    edit: look
+    depth: surface
+    title: Line style
     tab: style
     type: enum
     values: [line, dashed]
     default: line
     description: Line style
+  - name: lineThickness
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
+    title: Thickness
+    tab: style
+    type: number
+    min: 0.5
+    max: 8
+    step: 0.5
+    default: 1
+    description: Line thickness in points
 themeFields:
   - name: labelFontSize
     min: 8
@@ -55,6 +78,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | — | Optional section label centered on the divider |
 | `tint` | color | `"#FFFFFF"` | Line color |
 | `style` | string | `"line"` | `"line"` or `"dashed"` |
+| `lineThickness` | number | `1` | Line thickness in points (0.5–8) |
 
 ## Examples
 

@@ -5,6 +5,7 @@ icon: rectangle.stack
 category: controls
 defaultSpan: [3, 2]
 addIntent: organize
+pickerCategory: Layout
 friendlyName: Pages
 oneLiner: Swipe between pages
 aliases: [swipe, slider, slideshow, gallery, pager, pages]
@@ -12,11 +13,18 @@ addRank: 3
 starterPreset: {}
 fields:
   - name: carouselMode
+    effect: behavior
+    edit: look
+    depth: surface
+    title: Style
     type: enum
     values: [paged, coverflow, deck]
     default: paged
     description: Presentation style for the panels
   - name: indicator
+    edit: look
+    depth: surface
+    title: Indicator
     type: enum
     values: [dots, bars, none]
     default: dots
@@ -29,6 +37,9 @@ fields:
     default: 0
     description: Seconds between auto-advances (0 = off)
   - name: loop
+    edit: part
+    depth: hold
+    title: Loop
     type: bool
     default: false
     description: Wrap past the first/last page

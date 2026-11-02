@@ -5,6 +5,7 @@ icon: gauge.medium
 category: controls
 defaultSpan: [2, 2]
 addIntent: show
+pickerCategory: Readouts
 friendlyName: Dial
 oneLiner: A number on a dial, from low to high
 aliases: [dial, meter, speedometer, level, needle, progress]
@@ -34,18 +35,47 @@ fields:
     description: Maximum value
     summary: Where the dial fills up
   - name: gaugeStyle
+    edit: look
     title: Shape
     tab: style
     type: enum
     values: [half, full]
     default: half
     description: "Shorthand: half = 180° arc, full = 360° circle"
+  - name: glowRadius
+    edit: scrub
+    depth: hold
+    under: gaugeStyle
+    title: Glow
+    unit: pt
+    tab: style
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 0
+    description: Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control
+  - name: lineCap
+    edit: look
+    depth: hold
+    under: glowRadius
+    title: Line ends
+    tab: style
+    type: enum
+    values: [round, butt, square]
+    default: round
+    description: End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control
   - name: segments
+    edit: stops
+    axis: value
+    depth: surface
+    facet: colorByValue
     title: Color zones
     type: array
     description: Color zone breakpoints [{limit, color}]
     summary: Colors for different ranges of values
   - name: colorBlend
+    facet: colorByValue
     title: Zone blending
     tab: style
     min: 0
@@ -55,12 +85,15 @@ fields:
     default: 0
     description: "How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments."
   - name: tint
+    edit: color
     title: Color
     tab: style
     type: color
     default: "#667eea"
     description: Primary arc fill color (when no segments)
   - name: label
+    edit: inline
+    depth: surface
     title: Title
     type: string
     description: Text below the gauge
@@ -75,6 +108,9 @@ fields:
     default: 1
     description: Determines decimal formatting of center value
   - name: arcAngle
+    edit: scrub
+    depth: hold
+    under: gaugeStyle
     title: Arc length
     tab: style
     min: 1
@@ -84,6 +120,9 @@ fields:
     default: 180
     description: Arc sweep in degrees (1-360)
   - name: arcRotation
+    edit: scrub
+    depth: hold
+    under: gaugeStyle
     title: Arc turn
     tab: style
     min: -180
@@ -93,6 +132,10 @@ fields:
     default: 0
     description: Rotates the arc start position in degrees
   - name: arcThickness
+    edit: scrub
+    depth: hold
+    under: gaugeStyle
+    unit: pt
     title: Arc thickness
     tab: style
     min: 1
@@ -102,10 +145,43 @@ fields:
     default: auto
     description: Arc stroke width in points. Omit to auto-scale with the gauge's size.
   - name: hideValue
+    edit: part
+    depth: hold
     title: Hide the number
     type: bool
     default: false
     description: Show just the arc — hide the center value
+  - name: forecast
+    title: Look ahead
+    tab: data
+    type: enum
+    values: [countdown, reach]
+    description: "Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale."
+    summary: Show as a countdown, or show where the value is expected to reach
+  - name: forecastTarget
+    title: Expected to reach
+    tab: data
+    type: number
+    min: -1000000
+    max: 1000000
+    step: 1
+    description: The value this one is expected to arrive at (with forecast "reach")
+    summary: The number it should reach
+  - name: forecastTimeFrom
+    title: Arrival time from
+    tab: data
+    simple: hide
+    type: string
+    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
+  - name: forecastRate
+    title: Change per second
+    tab: data
+    simple: hide
+    type: number
+    min: -1000
+    max: 1000
+    step: 0.01
+    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
   - name: unit
     title: Unit
     type: string
@@ -188,6 +264,8 @@ Inherits all [[shared-properties]]. Key fields:
 | `gaugeStyle` | string | `"half"` | `"half"` (180° arc) or `"full"` (360° circle) |
 | `segments` | GaugeSegment[] | — | Color zone breakpoints |
 | `tint` | string | `"#667eea"` | Primary arc fill color (when no segments) |
+| `glowRadius` | number | `0` | Soft glow behind the value arc in its own colour, 0–30 pt (the same attribute on every control that has it) |
+| `lineCap` | enum | `round` | End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set): `round`, `butt` or `square` (the same attribute on every control that has it) |
 | `label` | string | — | Text below the gauge |
 | `icon` | string | — | SF Symbol in the center |
 | `step` | number | `1` | Used to determine decimal formatting of center value |
@@ -196,6 +274,10 @@ Inherits all [[shared-properties]]. Key fields:
 | `arcThickness` | number | auto | Arc stroke width in points. Omit to auto-scale with the gauge's size; set for an absolute width |
 | `hideValue` | bool | `false` | Show just the arc — hide the center value (pairs with `hideBackground` for a compact glyph) |
 | `unit` | string | — | Measurement unit of the value ([[values#Units]]). The center readout converts to the device locale — `"celsius"` reads 70.7°F in the US, 21,5 °C in Germany. `min`, `max` and `segments` stay in this unit, so the arc never moves. Unknown strings are a literal suffix |
+| `forecast` | enum | — | `"countdown"` (the value is a time; count down to it) or `"reach"` (expected to arrive at `forecastTarget`). Shown on widgets and Live Activities, marked "about"; the next real value replaces it, and past its end the value reads stale |
+| `forecastTarget` | number | — | With `"reach"`: the value it is expected to arrive at |
+| `forecastTimeFrom` | string | — | With `"reach"`: id of the control whose value is the arrival time (epoch seconds or ISO-8601) |
+| `forecastRate` | number | — | With `"reach"`: change per second from the last real reading (instead of a target and time) |
 
 > **Note:** `gaugeStyle` is a shorthand alias. `"half"` sets `arcAngle: 180` and `"full"` sets `arcAngle: 360`. When `arcAngle` is set explicitly, it takes precedence over `gaugeStyle`.
 
@@ -283,6 +365,10 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
 - Value animates smoothly between updates (smooth profile)
 - Center displays the numeric value with animated content transition
 - No action — display only (use [[long-press]] for interaction)
+
+## On-control editing (C6)
+
+The dial publishes its arc as a value axis (`publishValueAxis`) and parts `label` (title), `hideValue` (number) and `tint` (arc fill) via `publishPart`; zone dots in edit mode ride the arc and snap to other zone limits, the ends and 0. See `SharedEditorContract.swift`.
 
 ## Related
 - [[shared-properties]] — Base fields
