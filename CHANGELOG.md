@@ -8,6 +8,7 @@ All notable changes to **carterkit** are documented here. This project follows
 ### Added
 
 - **`carterkit repl [hello.py]`**: an asyncio-aware prompt (top-level await) with the hub connected and `hub`, `ui` and every control bound by id; Ctrl-D disconnects cleanly (aif-e9vyd.5).
+- **`async with hub.live_tab('lab') as t`**: a temporary tab (reuses an existing one with that id) with `.add(control)`, `.push(id, value)`, `.clear()`; removed on exit, normal or exception (aif-e9vyd.6).
 
 ## [0.16.0] — 2026-10-20
 
