@@ -383,6 +383,23 @@ class Hub:
         await self.client.broadcast_frame(payload)
         return payload
 
+    def live_tab(self, id: str, title: str | None = None) -> "LiveTab":
+        """Async context manager: patch a temporary tab into the layout (reusing an
+        existing tab with this `id`), yield a :class:`LiveTab`, and remove it on exit
+        (normal or exception). The layout change goes to the paired device when there
+        is one; pushes inside go through :meth:`push` as usual."""
+        return LiveTab(self, id, title)
+
+    def _apply_ops(self, ops: list) -> None:
+        from . import patch
+        self.adopt_layout(patch.apply(self.layout, ops).document)
+
+    async def _sync_layout(self) -> None:
+        try:
+            await self.push_layout()
+        except HubError as e:
+            log.warning("live_tab: layout not pushed to a device: %s", e)
+
     def _warn_fragment_ids(self, children, what: str) -> None:
         """Warn (never raise: older apps still accept it) when a deck or dynamic tab has
         an empty, duplicate or layout-colliding id — CAR-TER 1.3+ drops the whole
@@ -490,3 +507,59 @@ class Hub:
     def __repr__(self) -> str:
         n = len(self._index)
         return f"<Hub {self.name!r} {self.connection!r} {n} control(s)>"
+
+
+class LiveTab:
+    """A temporary tab (see :meth:`Hub.live_tab`). `.add(control)`, `.push(id, value)`,
+    `.clear()`; the tab is removed when the `async with` block exits."""
+
+    def __init__(self, hub: Hub, id: str, title: str | None = None):
+        self.hub, self.id, self.title = hub, id, title or id
+        self._created = False
+
+    def _tab(self) -> dict | None:
+        for t in (self.hub.layout or {}).get("tabs", []):
+            if isinstance(t, dict) and t.get("id") == self.id:
+                return t
+        return None
+
+    async def __aenter__(self) -> "LiveTab":
+        hub = self.hub
+        if hub.layout is None:
+            raise HubError("this hub has no layout to add a tab to")
+        if self._tab() is None:
+            hub._apply_ops([{"op": "addTab", "id": self.id, "title": self.title}])
+            self._created = True
+            await hub._sync_layout()
+        return self
+
+    async def add(self, control) -> dict:
+        d = control if isinstance(control, dict) else getattr(control, "ref", None)
+        if not isinstance(d, dict):
+            d = control.to_dict() if hasattr(control, "to_dict") else None
+        if not isinstance(d, dict):
+            raise HubError(f"can't add {control!r}: not a control dict")
+        self.hub._apply_ops([{"op": "add", "parent": self.id, "control": d}])
+        await self.hub._sync_layout()
+        return d
+
+    async def push(self, id, value) -> dict:
+        return await self.hub.push(id, value)
+
+    async def clear(self) -> None:
+        tab = self._tab()
+        ids = [c["id"] for c in (tab or {}).get("children", [])
+               if isinstance(c, dict) and c.get("id")]
+        if ids:
+            self.hub._apply_ops([{"op": "remove", "id": i} for i in ids])
+            await self.hub._sync_layout()
+
+    async def __aexit__(self, *exc) -> bool:
+        if self._created and self._tab() is not None:
+            try:
+                self.hub._apply_ops([{"op": "removeTab", "tab": self.id}])
+            except Exception as e:     # e.g. it was the only tab
+                log.warning("live_tab: could not remove tab %r: %s", self.id, e)
+            else:
+                await self.hub._sync_layout()
+        return False
