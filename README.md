@@ -15,59 +15,50 @@ definitions.
 pip install carterkit
 ```
 
-## iOS surfaces from your backend
+## Quickstart
 
-Use `hub.surfaces` to refresh widgets and Control Center state, send notifications
-with buttons and inline replies, and start/update/end Live Activities. It derives
-payloads from your layout and uses the hub's renewed Add Hub credential. Existing
-`@control.on` handlers receive actions from widgets, Control Center and Shortcuts.
-
-```python
-await hub.surfaces.publish({temperature: 25}, activity=True)  # widgets + Control Center + island
-await hub.surfaces.notify("Workshop", "Job complete", include_glance=True)
-print(await hub.surfaces.state())     # what a widget pulls when iOS wakes it
+```bash
+pip install carterkit
 ```
 
-`publish` is one request to the relay, which **retains** the values: a widget iOS
-wakes hours later still renders something, and the relay's own floors coalesce a
-chatty publisher rather than burning the app's push budget (a skipped push comes
-back as `suppressed`, with the state merged either way). If the phone never opened
-CAR-TER no token is registered: the reply then carries `no_tokens: True` (and one
-warning is logged per layout).
+**1. Make a hub credential.** In CAR-TER on the phone open **Hubs -> Add Hub**
+(Connect+) and save the JSON it shows as `secrets/hub.json`.
 
-Design the surfaces in the layout, in the same vocabulary as the controls:
+**2. Scaffold and run a starter project**
 
-```python
-from carterkit import tile, scene, widget, island, live, cc_toggle, cc_step
-
-ui.glance(hero=nozzle, live=live(tier="fresh"),
-          widgets=[widget("temps", title="Temps", families=["systemMedium"],
-                          scene=scene([tile("gauge", nozzle), tile("gauge", bed)],
-                                      [tile("sparkline", nozzle, span=2)]))],
-          island=island(compact_trailing=tile("ring", progress),
-                        expanded=dict(bottom=scene([tile("gauge", nozzle)]))),
-          controls=[cc_toggle("lights", "Lights", lights),
-                    cc_step("fan-up", "Fan +10", fan_speed, delta=10)])
+```bash
+carterkit new demo
+mkdir -p demo/secrets && mv secrets/hub.json demo/secrets/   # wherever you saved it
+cd demo
+python3 hello.py
 ```
 
-Control Center has toggles and buttons only, so a slider becomes `cc_step`/`cc_set`
-and a picker becomes `cc_cycle`; `carterkit.doc("glance")` has the full reference.
+A gauge updates every 2 s on the phone and the button resets it. `secrets/` is
+git-ignored; `hello.py` is the file to edit (`carterkit repl hello.py` gives you a
+live prompt on the same hub).
 
-See the [connector guide](docs/ios-surfaces.md) for setup, notification actions,
-delivery semantics, payload limits and lower-level APIs. The
-[example](examples/ios_surfaces.py) previews offline by default. These additions
-are in this checkout; installing the existing PyPI release does not include them.
-
-## Explore the controls (zero config)
+**No Connect+? Use the LAN Studio path.** The embedded relay binds `127.0.0.1` by
+default, so a phone cannot reach its QR. Bind the LAN explicitly:
 
 ```python
-import carterkit
+import asyncio
+from carterkit import Layout
 
-carterkit.controls()            # {type: schema} for every placeable control
-carterkit.doc("gauge")          # full parsed doc: fields, themeFields, examples
-print(carterkit.doc_markdown("gauge"))   # the rendered documentation prose
-carterkit.examples("button")    # documented example snippets
+with Layout("Hello", cols=4, rows=3) as ui:
+    level = ui.gauge("level", label="Level", min=0, max=100, listen="level")
+
+async def main():
+    async with ui.serve(host="0.0.0.0") as hub:   # 0.0.0.0: reachable from the phone
+        print("pair the app with:", hub.qr_json())
+        await hub.wait_for_device()
+        await hub.push_layout()
+        await level.push(42)
+        await asyncio.sleep(60)
+
+asyncio.run(main())
 ```
+
+The pairing QR then carries your LAN address and the shared key.
 
 ## Build a layout
 
@@ -227,22 +218,6 @@ over a held draft; `lay.buffer` exposes it.
 `codegen.generate_service_stub(layout)` emits a runnable `Hub`-based server skeleton;
 `theming.theme_for(...)` and `tune.tune_gauge(...)` round out the authoring tools.
 
-## CLI
-
-```bash
-carterkit catalog                 # list every control type
-carterkit doc gauge               # print a control's documentation
-carterkit examples button         # list a control's examples (--name to print one)
-carterkit validate layout.json    # lint a layout (exit 1 on errors)
-carterkit gen layout.json         # generate a runnable Hub server stub
-carterkit relay --port 8765       # run the bundled MeshSocket relay (keyed, loopback)
-carterkit relay --lan --key s3cret  # let phones on the LAN join with that shared key
-```
-
-`carterkit relay` generates and prints a shared key when you don't pass `--key`, and
-binds `127.0.0.1` unless you pass `--lan`. Running it open (no key) requires
-`--insecure` and means anyone who can reach the port joins every channel.
-
 ## Drive the layout you just built
 
 The layout already declares every control's wire contract, so the same object that
@@ -251,6 +226,7 @@ control's `sync` binding, and `@ctrl.on` derives the demux from its `action`:
 
 ```python
 import asyncio
+import random
 from carterkit import Layout
 
 with Layout("Thermostat") as ui:
@@ -259,18 +235,25 @@ with Layout("Thermostat") as ui:
                           listen="temp", when={"msg_type": "climate"})
         target = ui.slider("target", min=10, max=30, send="set_target")
 
+setpoint = 20.0
+reading = 18.0
+
 async def main():
-    async with ui.serve() as hub:        # zero config: embedded LocalRelay
+    global setpoint, reading
+    # host="0.0.0.0": the phone on your LAN must be able to reach the QR address
+    async with ui.serve(host="0.0.0.0") as hub:   # embedded LocalRelay
         print("pair the app with:", hub.qr_json())
         await hub.wait_for_device()
         await hub.push_layout()          # routed apply-layout; echoes what rendered
 
         @target.on
         async def _(data):
-            heater.set(data["value"])
+            global setpoint
+            setpoint = data["value"]     # your heater control goes here
 
         while True:
-            await temp.push(read_temp())
+            reading += (setpoint - reading) * 0.1 + random.uniform(-0.2, 0.2)
+            await temp.push(round(reading, 1))
             await asyncio.sleep(2)
 
 asyncio.run(main())
@@ -281,6 +264,62 @@ contract: `Hub("dashboard.json").push("temp", 21.5)`. Dynamic groups fill with
 `hub.fill(group, fragment)`; the hub answers late joiners with the last pushed values
 (control-state authority) by default.
 
+## Explore the controls (zero config)
+
+```python
+import carterkit
+
+carterkit.controls()            # {type: schema} for every placeable control
+carterkit.doc("gauge")          # full parsed doc: fields, themeFields, examples
+print(carterkit.doc_markdown("gauge"))   # the rendered documentation prose
+carterkit.examples("button")    # documented example snippets
+```
+
+
+## iOS surfaces from your backend
+
+Use `hub.surfaces` to refresh widgets and Control Center state, send notifications
+with buttons and inline replies, and start/update/end Live Activities. It derives
+payloads from your layout and uses the hub's renewed Add Hub credential. Existing
+`@control.on` handlers receive actions from widgets, Control Center and Shortcuts.
+
+```python
+await hub.surfaces.publish({temperature: 25}, activity=True)  # widgets + Control Center + island
+await hub.surfaces.notify("Workshop", "Job complete", include_glance=True)
+print(await hub.surfaces.state())     # what a widget pulls when iOS wakes it
+```
+
+`publish` is one request to the relay, which **retains** the values: a widget iOS
+wakes hours later still renders something, and the relay's own floors coalesce a
+chatty publisher rather than burning the app's push budget (a skipped push comes
+back as `suppressed`, with the state merged either way). If the phone never opened
+CAR-TER no token is registered: the reply then carries `no_tokens: True` (and one
+warning is logged per layout).
+
+Design the surfaces in the layout, in the same vocabulary as the controls:
+
+```python
+from carterkit import tile, scene, widget, island, live, cc_toggle, cc_step
+
+ui.glance(hero=nozzle, live=live(tier="fresh"),
+          widgets=[widget("temps", title="Temps", families=["systemMedium"],
+                          scene=scene([tile("gauge", nozzle), tile("gauge", bed)],
+                                      [tile("sparkline", nozzle, span=2)]))],
+          island=island(compact_trailing=tile("ring", progress),
+                        expanded=dict(bottom=scene([tile("gauge", nozzle)]))),
+          controls=[cc_toggle("lights", "Lights", lights),
+                    cc_step("fan-up", "Fan +10", fan_speed, delta=10)])
+```
+
+Control Center has toggles and buttons only, so a slider becomes `cc_step`/`cc_set`
+and a picker becomes `cc_cycle`; `carterkit.doc("glance")` has the full reference.
+
+See the [connector guide](docs/ios-surfaces.md) for setup, notification actions,
+delivery semantics, payload limits and lower-level APIs. The
+[example](examples/ios_surfaces.py) previews offline by default. These additions
+are in this checkout; installing the existing PyPI release does not include them.
+
+
 ## One connection story
 
 `Connection.parse(...)` accepts every connection artifact in the ecosystem, and
@@ -290,7 +329,7 @@ contract: `Hub("dashboard.json").push("temp", 21.5)`. Dynamic groups fill with
 |---|---|---|
 | nothing (LAN dev) | `ui.serve()` | embedded `LocalRelay`, QR pairing |
 | a self-hosted relay | `"ws://192.168.1.50:8765"` (+ `token=`) | symmetric: same config for app & hub |
-| Connect+ | the **Add Device** JSON from the app (Members → Add Device) | token self-refresh + room E2EE automatic |
+| Connect+ | the **Add Hub** JSON from the app (Hubs -> Add Hub) | token self-refresh + room E2EE automatic |
 
 The asymmetry to know: self-hosted is symmetric (one URL + shared key both sides);
 on Connect+ the app joins with its own account while the hub holds the per-device
@@ -333,64 +372,33 @@ the stdlib-only `carterkit.notify_http(...)`.
 - Inbound frames are dispatched under a semaphore (32) and a per-`msg_type` token
   bucket (20/s, burst 40); excess frames are dropped and counted in `client.dropped`.
 
-## Agent pager: approve Claude Code tool calls from your phone
-
-`carterkit.pager` turns CAR-TER into an approval pager for the Claude Code agents
-running on your Mac (for example tmux pane agents). A Claude Code permission hook
-asks a small local daemon; the daemon pages your phone with an Approve/Deny
-notification and shows the request in the **Agents** layout. It fails closed: only
-an explicit Approve carrying the live request's nonce, before its deadline, ever
-allows. A timeout, a restart, a stale button or an unreachable daemon never does
-(the terminal falls back to its normal prompt when the daemon is down).
-
-**1. Install on the Mac**
+## CLI
 
 ```bash
-pip install carterkit
-carterkit pager install --dry-run --connection ~/.carter/pager/device.json  # shows the settings.json diff
-carterkit pager install --connection ~/.carter/pager/device.json            # backs up, then merges
+carterkit new demo                # scaffold a starter project (hello.py, secrets/, VS Code settings)
+carterkit repl hello.py           # live prompt with the hub connected, controls bound by id
+carterkit catalog                 # list every control type
+carterkit doc gauge               # print a control's documentation
+carterkit examples button         # list a control's examples (--name to print one)
+carterkit validate layout.json    # lint a layout (exit 1 on errors)
+carterkit gen layout.json         # generate a runnable Hub server stub
+carterkit explore layout.json     # live, typed endpoint explorer (--device, --lan, --port)
+carterkit share layout.json       # serve a layout for 10 minutes + QR to import it
+carterkit local describe ws://HOST:PORT   # read/seed the paired phone's local store (describe|query|seed)
+carterkit relay --port 8765       # run the bundled MeshSocket relay (keyed, loopback)
+carterkit relay --lan --key s3cret  # let phones on the LAN join with that shared key
+carterkit pager install|uninstall|run   # approve Claude Code tool calls from the phone
+carterkit version                 # print the installed version
 ```
 
-`install` writes the hook to `~/.carter/pager/hook.py`, merges one hook entry into
-`~/.claude/settings.json` (a `settings.json.bak-<ts>` backup first; other hooks
-are kept; `--event PermissionRequest|PreToolUse`, `--timeout 90`), and writes the
-Agents layout to `~/.carter/pager/agents-layout.json`. `carterkit pager uninstall`
-removes only that entry.
+`carterkit relay` generates and prints a shared key when you don't pass `--key`, and
+binds `127.0.0.1` unless you pass `--lan`. Running it open (no key) requires
+`--insecure` and means anyone who can reach the port joins every channel.
 
-**2. Mint a personal, non-room credential.** In CAR-TER on the phone, Connect+ →
-**Add Hub**, on a personal channel (for example `agents`) that is **not** an E2EE
-room. Save the JSON to `~/.carter/pager/device.json` with mode `0600`. A credential
-that carries `k` / `e2eeKey` (a room) is refused: in a room the app's plaintext
-button frames are dropped, so every request would just time out and be denied.
+## Agent pager
 
-**3. Run the daemon and pin the layout**
-
-```bash
-carterkit pager run --connection ~/.carter/pager/device.json
-```
-
-Push `~/.carter/pager/agents-layout.json` to the phone (carter MCP
-`push_layout(layout_path=...)`, or import the file), open it, and pin it to the
-layout deck so it is one swipe away.
-
-**The Agents layout** (`pager.build_pager_layout()`, standard controls, no code):
-a `pg-status` light (idle / waiting), the paged request's agent, tool and summary
-labels, a full-width `pg-queue` with an Approve/Deny pair per paged request (each
-button's payload carries that request's literal nonce:
-`{msg_type: "action", op: "pager_decide", decision, req}`), a "+N waiting" list
-of requests queued behind each agent's active one, and a `pg-log` decision audit.
-`state.acks` makes a press show pending until the daemon acks it. When the phone
-reconnects, the daemon re-pushes the status and re-fills the queue.
-
-**Metrics.** `carterkit pager run` appends one line per decision to
-`~/.carter/pager/metrics.jsonl` (`0600`):
-`{ts, nonce, agent, tool, decision, source, latency, queued, timed_out}`.
-`latency` is the seconds from paging to the decision. The timeout share is
-`mean(timed_out)`:
-
-```bash
-python -c "import json;m=[json.loads(l) for l in open('$HOME/.carter/pager/metrics.jsonl')];print(len(m),'decisions',sum(x['timed_out'] for x in m)/len(m),'timed out')"
-```
+`carterkit pager` pages your phone to approve Claude Code tool calls (fails closed).
+Setup, the Agents layout and metrics: [docs/pager.md](docs/pager.md).
 
 ## Built on
 
