@@ -222,6 +222,7 @@ class Hub:
         device via `get-layout` — reindexing controls so push()/on()/frame_for()
         resolve against it."""
         self.layout = layout
+        self._last_layout_push = None
         self._index = {ch["id"]: ch for ch in _walk_children(layout or {})
                        if ch.get("id")}
 
@@ -255,19 +256,38 @@ class Hub:
         reply echoes what actually rendered). Requires a device on the channel."""
         if not self.layout:
             raise HubError("this hub has no layout to push")
+        self.__dict__.setdefault("_last_layout_push", None)
+        self.__dict__.setdefault("_last_layout_reply", None)
         peer = await self._first_peer()
         if not peer:
             raise HubError("no device on the channel — have the phone connect first "
                            "(hub.qr_json() prints the pairing JSON) or wait_for_device()")
+        findings = [f for f in self.validate() if f.get("severity") == "error"]
+        if findings:
+            raise HubError(
+                f"layout has {len(findings)} error(s); nothing was sent:\n"
+                + "\n".join(f"  - [{f['kind']}] {f['where']}: {f['detail']}"
+                             for f in findings))
         req = dict(self.layout)
         req.pop("msg_type", None)
+        if self._last_layout_push == req:
+            log.info("skipped: identical to the last push")
+            return dict(self._last_layout_reply or {"ok": True, "skipped": True},
+                        skipped=True)
         res = await self.client._sock.request(
             "route_msg", {"target_id": peer.get("id"), "type": "apply-layout",
                           "payload": req}, timeout=10.0)
         if not isinstance(res, dict) or not res.get("ok"):
             raise HubError(f"device rejected the layout: "
                            f"{(res or {}).get('error', 'no reply')}")
+        self._last_layout_push = _json.loads(_json.dumps(req))
+        self._last_layout_reply = res
         return res
+
+    def validate(self) -> list:
+        """Lint this hub's layout against the bundled catalog."""
+        import carterkit
+        return carterkit.validate_layout(self.layout)
 
     # ─── drive: server -> controls ───────────────────────────────────────────
     def _control(self, target) -> dict:
@@ -318,6 +338,11 @@ class Hub:
         `target` is a Control handle or an id string. Returns the sent frame."""
         ctrl = self._control(target)
         frame = self.frame_for(ctrl, value)
+        pushed = self.__dict__.setdefault("_last_frames", {})
+        if pushed.get(ctrl.get("id")) == frame:
+            log.info("skipped: identical to the last push")
+            return frame
+        pushed[ctrl.get("id")] = _json.loads(_json.dumps(frame))
         self.client.set_control_state(ctrl.get("id"), value)
         self.surfaces._note_push(ctrl, value)
         await self.client.broadcast_frame(frame)

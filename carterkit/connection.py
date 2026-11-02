@@ -238,10 +238,9 @@ class Connection:
     def client_kwargs(self, *, name: str | None = None) -> dict:
         """Constructor kwargs for a hub-side :class:`CarterClient`."""
         if self.kind == "account":
-            raise ValueError(
-                "this connection is a Connect+ account-side block — it has no hub "
-                "credential. Mint one on the phone (Layout hub → Hubs → Add Hub) and pass "
-                "that JSON instead.")
+            from .client import MissingCredentialError
+            raise MissingCredentialError(
+                "this connection is a Connect+ account-side block, not a hub credential")
         url = self.url if self.kind != "local" else f"ws://127.0.0.1:{self.port}"
         kw: dict = {
             "gateway_url": url,

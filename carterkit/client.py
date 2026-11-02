@@ -61,6 +61,22 @@ class CarterNotifyError(Exception):
         self.detail = detail
 
 
+DOCS_URL = "https://carterbeaudoin.net/CAR-TER"
+
+
+class MissingCredentialError(CarterNotifyError, ValueError):
+    """A hub credential is missing. One class for every such path (also a
+    ``ValueError``, so older ``except ValueError`` callers keep working)."""
+    def __init__(self, why=""):
+        msg = ("needs a credential: on the phone open Hubs -> Add Hub, then pass it "
+               f"to Hub(...) (see {DOCS_URL})")
+        if why:
+            msg = f"{msg} [{why}]"
+        Exception.__init__(self, msg)
+        self.status = 0
+        self.detail = msg
+
+
 #: interruption-levels the relay accepts; "critical" needs Apple approval and is
 #: rejected server-side, so fail fast here with the same story.
 _INTERRUPTION_LEVELS = ("passive", "active", "time-sensitive")
@@ -1059,8 +1075,9 @@ class CarterClient:
         if not token and self._device_id and self._refresh_token:
             token = self._sock.auth_token
         if not self._validator_url or not token:
-            raise CarterNotifyError(0, "ambient APIs require validator_url and session_jwt, "
-                                       "or an Add Hub device credential; a local relay key is not sufficient")
+            raise MissingCredentialError(
+                "ambient APIs need validator_url and session_jwt or an Add Hub "
+                "device credential; a local relay key is not sufficient")
         return token
 
     async def push_live_activity(self, *, layout_id, event, content_state, **options):
