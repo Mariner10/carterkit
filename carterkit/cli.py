@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · examples · validate · gen · explore · local · relay · pager · version.
+Commands: catalog · doc · examples · validate · gen · explore · repl · local · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -215,6 +215,11 @@ def _cmd_pager(args) -> int:
     return pager_install.run(connection=args.connection, timeout=args.timeout)
 
 
+def _cmd_repl(args) -> int:
+    from . import repl
+    return repl.main(args.file)
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -335,6 +340,11 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--timeout", type=float, default=None,
                     help="auto-deny seconds (default: install's, else 90)")
     pr.set_defaults(fn=_cmd_pager)
+
+    c = sub.add_parser("repl", help="live prompt with the hub connected and controls bound by id")
+    c.add_argument("file", nargs="?", help="a module defining the Layout/Hub (e.g. hello.py); "
+                   "omit to use secrets/hub.json")
+    c.set_defaults(fn=_cmd_repl)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)
