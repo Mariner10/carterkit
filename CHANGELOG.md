@@ -5,6 +5,10 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **`carterkit repl [hello.py]`**: an asyncio-aware prompt (top-level await) with the hub connected and `hub`, `ui` and every control bound by id; Ctrl-D disconnects cleanly (aif-e9vyd.5).
+
 ## [0.16.0] — 2026-10-20
 
 Includes the ControlDocs resync, pinned to CAR-TER `master` c7c37539 (`controldocs/SOURCE`;
