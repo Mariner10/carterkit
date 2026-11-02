@@ -244,6 +244,7 @@ PAGE = r"""<!doctype html>
   #toast.show { opacity: 1; }
   #toast.err { border-color: var(--err); color: var(--err); }
 </style>
+<link rel="stylesheet" href="/assets/surfaces.css">
 </head>
 <body>
 <header>
@@ -293,6 +294,11 @@ PAGE = r"""<!doctype html>
     <div class="scroll" id="controls"></div>
   </section>
 
+  <section id="sec-surfaces">
+    <h2>Surfaces <span class="count">preview</span></h2>
+    <div class="scroll" id="surfaces"></div>
+  </section>
+
   <section id="sec-wire">
     <h2>Live wire</h2>
     <div id="wire-controls">
@@ -306,6 +312,7 @@ PAGE = r"""<!doctype html>
 
 <div id="toast"></div>
 
+<script src="/assets/surfaces.js"></script>
 <script>
 "use strict";
 // Per-run CSRF token, injected by the server; required on every POST and on /events.
@@ -747,6 +754,7 @@ function renderContract(c) {
   renderFeeds(c.feeds);
   renderAppDirect(c.appDirect);
   refreshControls();
+if (window.refreshSurfaces) refreshSurfaces();
 }
 
 /* ── pairing QR (inline SVG, drawn from the module matrix the server sends —

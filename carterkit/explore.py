@@ -42,12 +42,16 @@ import time
 from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from pathlib import Path
+
 from .codegen import generate_service_stub
 from .contract import extract_contract, is_group, walk_with_location
 from .explore_html import PAGE
 from .hub import Hub
 from .qr import encode as _qr_encode
 
+_ASSET_DIR = Path(__file__).parent / "explore_assets"
+_ASSETS = {"surfaces.js", "surfaces.css"}
 _PULL_VERBS = {"current": ("get-current-layout", {"include": "full"})}
 
 #: Studio Mirror — the phone's narration of what the user is doing during a Studio
@@ -88,6 +92,112 @@ def extract_controls(layout: dict) -> list[dict]:
             "step": ctrl.get("step"),
         })
     return out
+
+
+#: Real sizes in points (iPhone 15 Pro), keyed by the app's surface-doc names.
+SURFACE_SIZES = {
+    "systemSmall": (158, 158), "systemMedium": (338, 158), "systemLarge": (338, 354),
+    "compactLeading": (62, 37), "compactTrailing": (62, 37),
+    "expanded": (371, 160), "lockScreen": (359, 160),
+}
+
+
+def _sample_for(ctrl: dict):
+    if ctrl.get("defaultValue") is not None:
+        return ctrl["defaultValue"]
+    t = ctrl.get("type")
+    if t == "toggle" or t == "statusLight":
+        return False
+    lo, hi = ctrl.get("min"), ctrl.get("max")
+    if isinstance(lo, (int, float)) and isinstance(hi, (int, float)):
+        return (lo + hi) / 2
+    if t in ("slider", "gauge", "progressRing", "stepper", "sparkline"):
+        return 50
+    return None
+
+
+def _resolve_tile(tile, by_id: dict, values: dict):
+    if not isinstance(tile, dict):
+        return None
+    out = {k: tile[k] for k in ("tile", "label", "icon", "tint", "span") if k in tile}
+    out.setdefault("tile", "value")
+    cid = tile.get("control")
+    if cid:
+        ctrl = by_id.get(cid)
+        if ctrl is None:
+            return None          # the app drops a tile with an unknown control id
+        val = values.get(cid)
+        sample = val is None
+        if sample:
+            val = _sample_for(ctrl)
+        lo, hi = ctrl.get("min", 0), ctrl.get("max", 100)
+        out.update(control=cid, value=val, sample=sample, min=lo, max=hi,
+                   label=tile.get("label") or ctrl.get("label") or cid)
+    return out
+
+
+def _resolve_scene(scene, by_id, values, *, first_row=False):
+    if not isinstance(scene, dict):
+        return None
+    rows = scene.get("rows") or []
+    if first_row:
+        rows = rows[:1]
+    return [[t for t in (_resolve_tile(x, by_id, values) for x in row) if t]
+            for row in rows if isinstance(row, list)]
+
+
+def surfaces_preview(layout: dict | None, values: dict | None = None) -> dict:
+    """The Surfaces section's data: each surface the layout declares, its scene
+    resolved against the layout's controls with sample values where none is known.
+    Surface names and field names are the app's own (``widgets[]``, ``island``,
+    ``lockScreen``); sizes are the real points in ``SURFACE_SIZES``."""
+    glance = (layout or {}).get("glance") or {}
+    widgets, island, lock = glance.get("widgets") or [], glance.get("island"), glance.get("lockScreen")
+    if not (widgets or island or lock):
+        return {"hint": "This layout declares no surfaces. Add glance.widgets, "
+                        "glance.island or glance.lockScreen to preview them here.",
+                "surfaces": []}
+    by_id = {c["id"]: c for c, _t, _c in walk_with_location(layout or {})
+             if c.get("id") and not is_group(c)}
+    values = values or {}
+    out = []
+
+    def add(name, label, scene=None, tile=None, first_row=False, **extra):
+        w, h = SURFACE_SIZES.get(name, (158, 158))
+        item = {"name": name, "label": label, "width": w, "height": h, **extra}
+        if tile is not None:
+            item["tile"] = _resolve_tile(tile, by_id, values) or {"tile": "icon"}
+        else:
+            item["rows"] = _resolve_scene(scene, by_id, values, first_row=first_row) or []
+        out.append(item)
+
+    for wd in widgets:
+        if not isinstance(wd, dict):
+            continue
+        scene = wd.get("scene") or {}
+        title = wd.get("title") or wd.get("id") or "widget"
+        for fam in ("systemSmall", "systemMedium", "systemLarge"):
+            fams = wd.get("families")
+            if fams and fam not in fams:
+                continue
+            if isinstance(wd.get(fam), dict):
+                add(fam, f"{title} · {fam}", wd[fam])
+            else:
+                add(fam, f"{title} · {fam}", scene, first_row=fam == "systemSmall")
+    if island:
+        for key in ("compactLeading", "compactTrailing"):
+            add(key, f"Island · {key}", tile=island.get(key) or {"tile": "icon"})
+        exp = island.get("expanded") or {}
+        regions = {}
+        for r in ("leading", "trailing", "center"):
+            v = exp.get(r)
+            regions[r] = (_resolve_scene(v, by_id, values) if isinstance(v, dict) and "rows" in v
+                          else [[t]] if (t := _resolve_tile(v, by_id, values)) else [])
+        add("expanded", "Island · expanded", exp.get("bottom"), regions=regions)
+    banner = lock or (island or {}).get("expanded", {}).get("bottom")
+    if banner:
+        add("lockScreen", "Lock Screen · banner", banner)
+    return {"hint": None, "surfaces": out, "preview": True}
 
 
 #: Controls whose value is a *buffer* the device appends to rather than a scalar.
@@ -511,6 +621,12 @@ class Explorer:
                 if path == "/api/controls":
                     return self._send({"controls": explorer.controls,
                                        "values": explorer.control_values})
+                if path == "/api/surfaces":
+                    return self._send(surfaces_preview(explorer.hub.layout,
+                                                       explorer.control_values))
+                if path.startswith("/assets/") and path[8:] in _ASSETS:
+                    ctype = "text/css" if path.endswith(".css") else "text/javascript"
+                    return self._send((_ASSET_DIR / path[8:]).read_text(), ctype)
                 if path == "/api/layout":
                     if explorer.hub.layout is None:
                         return self._err("no layout yet", 404)
