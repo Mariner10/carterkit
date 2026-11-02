@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · examples · validate · gen · explore · repl · new · local · relay · pager · version.
+Commands: catalog · doc · examples · validate · gen · explore · repl · new · share · local · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -231,6 +231,11 @@ def _cmd_new(args) -> int:
     return 0
 
 
+def _cmd_share(args) -> int:
+    from . import share
+    return share.share(args.file, https_url=args.https_url)
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -360,6 +365,11 @@ def build_parser() -> argparse.ArgumentParser:
     c = sub.add_parser("new", help="scaffold a starter project (hello.py, secrets/, VS Code settings)")
     c.add_argument("name", help="directory to create (must not exist or be empty)")
     c.set_defaults(fn=_cmd_new)
+
+    c = sub.add_parser("share", help="serve a layout for 10 minutes and show a QR to import it")
+    c.add_argument("file", help="layout JSON file")
+    c.add_argument("--https-url", help="use this hosted URL instead of serving locally")
+    c.set_defaults(fn=_cmd_share)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)
