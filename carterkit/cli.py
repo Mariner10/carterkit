@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · examples · validate · gen · explore · repl · local · relay · pager · version.
+Commands: catalog · doc · examples · validate · gen · explore · repl · new · local · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -220,6 +220,17 @@ def _cmd_repl(args) -> int:
     return repl.main(args.file)
 
 
+def _cmd_new(args) -> int:
+    from . import scaffold
+    try:
+        scaffold.scaffold(args.name)
+    except FileExistsError as e:
+        print(f"carterkit new: {e}", file=sys.stderr)
+        return 1
+    print(f"created {args.name}/  -> cd {args.name} && python hello.py")
+    return 0
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -345,6 +356,10 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("file", nargs="?", help="a module defining the Layout/Hub (e.g. hello.py); "
                    "omit to use secrets/hub.json")
     c.set_defaults(fn=_cmd_repl)
+
+    c = sub.add_parser("new", help="scaffold a starter project (hello.py, secrets/, VS Code settings)")
+    c.add_argument("name", help="directory to create (must not exist or be empty)")
+    c.set_defaults(fn=_cmd_new)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)
