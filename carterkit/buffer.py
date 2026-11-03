@@ -192,7 +192,7 @@ class LayoutBuffer:
     def add_tab(self, title: str, icon: str = "square.grid.2x2",
                 columns: int = DEFAULT_COLUMNS, rows: int = DEFAULT_ROWS,
                 mode: str | None = None, row_height: int | None = None) -> int:
-        grid = {"columns": columns, "rows": rows}
+        grid: dict = {"columns": columns, "rows": rows}
         if mode is not None:
             grid["mode"] = mode
         if row_height is not None:
@@ -290,6 +290,6 @@ class LayoutBuffer:
         if problems:
             lines.append("\n⚠ placement issues:")
             for p in problems:
-                ids = p.get("ids") or [p.get("id")]
+                ids = p.get("ids") or [str(p.get("id"))]
                 lines.append(f"  - [tab {p['tab']}] {p['kind']}: {', '.join(ids)} — {p['detail']}")
         return "\n".join(lines)

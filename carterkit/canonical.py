@@ -324,6 +324,5 @@ def digest_scope(layout: dict) -> dict:
 def content_digest(layout: dict | str | bytes) -> str:
     """``"sha256:<hex>"`` over the JCS bytes of :func:`digest_scope`. Accepts a
     parsed layout or its JSON text."""
-    if isinstance(layout, (str, bytes, bytearray)):
-        layout = loads(layout)
-    return DIGEST_PREFIX + hashlib.sha256(canonical_bytes(digest_scope(layout))).hexdigest()
+    doc: Any = loads(layout) if isinstance(layout, (str, bytes, bytearray)) else layout
+    return DIGEST_PREFIX + hashlib.sha256(canonical_bytes(digest_scope(doc))).hexdigest()

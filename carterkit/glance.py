@@ -191,7 +191,7 @@ def scene(*rows, columns=None):
                 raise ValueError(f"row {index} must contain tiles — build them "
                                  f"with tile()")
         out_rows.append(list(row))
-    out = {"rows": out_rows}
+    out: dict = {"rows": out_rows}
     if columns is not None:
         if isinstance(columns, bool) or not isinstance(columns, int) or columns < 1:
             raise ValueError("columns must be an integer >= 1")
@@ -223,7 +223,7 @@ def widget(id, title=None, families=None, scene=None, icon=None, **per_family):
     the first gauge/ring/value, `accessoryInline` a "label value" pair."""
     if not isinstance(id, str) or not id:
         raise ValueError("widget id must be a non-empty string")
-    out = {"id": id}
+    out: dict = {"id": id}
     if title is not None:
         out["title"] = title
     if icon is not None:
