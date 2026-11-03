@@ -392,6 +392,8 @@ class Hub:
 
     def _apply_ops(self, ops: list) -> None:
         from . import patch
+        if self.layout is None:
+            raise HubError("this hub has no layout to patch")
         self.adopt_layout(patch.apply(self.layout, ops).document)
 
     async def _sync_layout(self) -> None:

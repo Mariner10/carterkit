@@ -520,7 +520,10 @@ class Explorer:
 
     # ── HTTP plumbing ────────────────────────────────────────────────────────
     def _call(self, coro, timeout: float = 15.0):
-        return asyncio.run_coroutine_threadsafe(coro, self.loop).result(timeout)
+        loop = self.loop
+        if loop is None:
+            raise RuntimeError("explorer loop is not running")
+        return asyncio.run_coroutine_threadsafe(coro, loop).result(timeout)
 
     def pairing(self) -> str | None:
         """The FULL pairing JSON (relay key + room key included) — only ever served
@@ -681,7 +684,8 @@ class Explorer:
                                           "data": {"values": values, "reply": res}})
                         return self._send({"ok": True, **res})
                     if path == "/api/repull":
-                        explorer.loop.call_soon_threadsafe(explorer._repull.set)
+                        if explorer.loop is not None:
+                            explorer.loop.call_soon_threadsafe(explorer._repull.set)
                         return self._send({"ok": True})
                 except KeyError as e:
                     return self._err(f"missing field {e}")

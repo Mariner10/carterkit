@@ -126,7 +126,7 @@ def run(stdin_text, *, event, socket_path, timeout, env=None):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p = argparse.ArgumentParser(description=(__doc__ or '').splitlines()[0])
     p.add_argument("--event", choices=EVENTS, default="PermissionRequest")
     p.add_argument("--socket", default=DEFAULT_SOCKET)
     p.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT)

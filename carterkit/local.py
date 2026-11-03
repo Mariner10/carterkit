@@ -69,7 +69,10 @@ def fields_for(schema: dict, name: str) -> dict | None:
     seen = set()
     while name in (schema.get("views") or {}) and name not in seen:
         seen.add(name)
-        name = (schema["views"][name] or {}).get("from")
+        nxt = (schema["views"][name] or {}).get("from")
+        if not isinstance(nxt, str):
+            return None
+        name = nxt
     coll = (schema.get("collections") or {}).get(name)
     if coll is None:
         return None
@@ -270,7 +273,7 @@ def _lint_option_default(v, ftype, choices, multiple, rng, display, err):
         bad = True
     elif ftype == "integer" and isinstance(v, float) and not v.is_integer():
         bad = True
-    elif ftype == "date" and not _valid_date(v):
+    elif ftype == "date" and not (isinstance(v, str) and _valid_date(v)):
         bad = True
     if not bad and choices is not None:
         items = v if multiple else [v]

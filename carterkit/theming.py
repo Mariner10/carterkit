@@ -24,7 +24,7 @@ def parse_hex(s: str) -> tuple[int, int, int, int]:
     return tuple(int(s[i:i + 2], 16) for i in (0, 2, 4, 6))  # type: ignore
 
 
-def to_hex(r: int, g: int, b: int, a: int = 255) -> str:
+def to_hex(r: float, g: float, b: float, a: float = 255) -> str:
     clamp = lambda v: max(0, min(255, int(round(v))))
     body = f"#{clamp(r):02X}{clamp(g):02X}{clamp(b):02X}"
     return body if a >= 255 else body + f"{clamp(a):02X}"

@@ -508,7 +508,7 @@ def encode(data: str | bytes, *, ecc: str = "M", min_version: int = 1) -> QRCode
     # Mask selection scores the matrix with format/version info still blank
     # (matching the reference algorithm) — those bits depend on the mask
     # that's about to be chosen, so they're written only onto the winner.
-    best_mask, best_score = None, None
+    best_mask, best_score = 0, None
     for pattern in range(8):
         candidate = _apply_mask(skeleton, reserved, pattern)
         score = _penalty(candidate)

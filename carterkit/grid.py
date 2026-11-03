@@ -138,7 +138,7 @@ def validate_placement(children: list[dict], columns: int, rows: int) -> list[di
         for cell in child_cells(child):
             other = seen.get(cell)
             if other and other != cid:
-                key = tuple(sorted((other, cid)))
+                key = (min(other, cid), max(other, cid))
                 if key not in reported:
                     reported.add(key)
                     issues.append({"kind": "overlap", "ids": list(key),

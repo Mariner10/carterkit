@@ -121,7 +121,7 @@ class _Request:
         self.nonce = "pg" + uuid.uuid4().hex
         self.agent, self.tool, self.summary = agent, tool, summary
         self.created = time.time()
-        self.deadline = None
+        self.deadline: float | None = None
         self.activated = None
         self.state = "queued"
         self.future = loop.create_future()
@@ -330,7 +330,7 @@ class AgentPager:
                 return "expired"
             log.warning("pager: ignoring %s decision for unknown nonce %s", source, nonce)
             return "ignored"
-        if time.time() >= req.deadline:     # timer not yet fired, deadline passed
+        if req.deadline is not None and time.time() >= req.deadline:     # timer not yet fired, deadline passed
             self._resolve(req, DENY, f"timed out after {self.timeout:g}s", "deadline")
             return "expired"
         verdict = _DECISIONS[decision]
