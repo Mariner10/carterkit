@@ -87,14 +87,16 @@ def _normalize_sender(sender):
     "avatar_url"/"avatar": ...}` → the wire `{"name", "avatarURL"?}` dict."""
     if sender is None:
         return None
+    out: dict
     if isinstance(sender, str):
         out = {"name": sender}
     elif isinstance(sender, (tuple, list)):
-        if not sender or len(sender) > 2:
+        parts = list(sender)
+        if not parts or len(parts) > 2:
             raise ValueError("sender tuple must be (name,) or (name, avatar_url)")
-        out = {"name": sender[0]}
-        if len(sender) == 2 and sender[1]:
-            out["avatarURL"] = sender[1]
+        out = {"name": parts[0]}
+        if len(parts) == 2 and parts[1]:
+            out["avatarURL"] = parts[1]
     elif isinstance(sender, dict):
         out = {"name": sender.get("name")}
         avatar = sender.get("avatarURL") or sender.get("avatar_url") or sender.get("avatar")
@@ -102,9 +104,10 @@ def _normalize_sender(sender):
             out["avatarURL"] = avatar
     else:
         raise ValueError("sender must be a name, (name, avatar_url), or dict")
-    if not out.get("name") or len(out["name"]) > 64:
+    name = out.get("name")
+    if not name or len(name) > 64:
         raise ValueError("sender name must be non-empty and <= 64 chars")
-    if len(out.get("avatarURL", "")) > 512:
+    if len(out.get("avatarURL") or "") > 512:
         raise ValueError("sender avatar URL must be <= 512 chars")
     return out
 
@@ -237,7 +240,7 @@ def notify_http(validator_url, session_jwt, title, body, *, subtitle=None, chann
         # them makes APNs treat it as user-visible and the silence is lost. So a
         # silent request carries only what a background push can act on, and every
         # presentation field is deliberately dropped rather than sent and ignored.
-        payload = {"silent": True}
+        payload: dict = {"silent": True}
     else:
         payload = {"title": title, "body": body, "sound": sound}
         if subtitle is not None:
@@ -604,8 +607,11 @@ class CarterClient:
             from .e2ee import decode_key_b64
             secret = decode_key_b64(e2ee_key)          # strict base64, exactly 32 bytes
             ctx = {"channel": channel, "sender": name}
-            self._session = (E2EESession.group(secret, **ctx) if room
-                             else E2EESession(secret, is_device_side=(role in ("device", "hub")), **ctx))
+            session_cls = E2EESession
+            if session_cls is None:      # pragma: no cover - crypto stack missing
+                raise ImportError("e2ee_key needs the crypto stack; run `pip install meshsocket`.")
+            self._session = (session_cls.group(secret, **ctx) if room
+                             else session_cls(secret, is_device_side=(role in ("device", "hub")), **ctx))
         else:
             self._session = None
         self.strict_e2ee = strict_e2ee
@@ -663,7 +669,7 @@ class CarterClient:
         otherwise. Relay control frames are always passed through. Never raises."""
         if not self._session:
             return payload
-        if isinstance(payload, dict) and E2EESession.is_envelope(payload):
+        if isinstance(payload, dict) and E2EESession is not None and E2EESession.is_envelope(payload):
             try:
                 data = self._session.open(payload)
             except ValueError as exc:
@@ -1042,7 +1048,11 @@ class CarterClient:
                 sealed["sender"] = sender
             data = dict(data or {})
             # Notification content rides APNs, not the mesh: no freshness/replay stamps.
-            data["enc"] = self._session.seal(sealed, stamp=False)
+            seal_session = self._session
+            if seal_session is None:
+                raise CarterNotifyError(0, "encrypted notifications need a room cipher "
+                                           "(e2ee_key + room=True)")
+            data["enc"] = seal_session.seal(sealed, stamp=False)
             title, body = placeholder_title or "CAR-TER", placeholder_body
             subtitle = image = sender = None
 

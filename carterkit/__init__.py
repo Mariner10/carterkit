@@ -71,7 +71,7 @@ PROTOCOL_VERSION = 1
 
 def controldocs_dir() -> Path:
     """Filesystem path to the bundled ControlDocs markdown (the source of truth)."""
-    return Path(files(__package__) / "controldocs")
+    return Path(str(files(__package__ or "carterkit") / "controldocs"))
 
 
 def controls(types=None, include_theme: bool = False) -> dict:
@@ -104,7 +104,7 @@ def validate_layout(layout: dict, catalog_: dict | None = None, target_app: str 
                             target_app=target_app)
 
 
-def lint_dynamic_traffic(layout: dict, observed, catalog_: dict = None) -> list:
+def lint_dynamic_traffic(layout: dict, observed, catalog_: dict | None = None) -> list:
     """Lint a layout's `dynamic=` groups against observed broadcast payloads. Returns
     `validate`-style findings (see `dynamic.lint_dynamic_traffic`)."""
     return dynamic.lint_dynamic_traffic(layout, observed, catalog=catalog_)

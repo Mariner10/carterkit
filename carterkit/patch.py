@@ -170,7 +170,7 @@ def decode_op(obj) -> dict:
         return ints
 
     def num(k):
-        v = o.get(k)
+        v: Any = o.get(k)
         return int(v) if _is_int(v) and not isinstance(v, bool) else None
 
     def value(k):
@@ -190,7 +190,7 @@ def decode_op(obj) -> dict:
             ref = _ref(o.get(alt))
         if ref is None:
             return None
-        out = {"parent": ref}
+        out: dict = {"parent": ref}
         if num("panel") is not None:
             out["panel"] = num("panel")
         return out
@@ -230,7 +230,7 @@ def decode_op(obj) -> dict:
             control = value("child")
         if control is None:
             raise PatchError('add needs a "control"')
-        d = {"op": "add", **p, "control": control}
+        d: dict = {"op": "add", **p, "control": control}
         return put(d, position=pair("position"), span=pair("span"), index=num("index"))
     if name == "remove":
         return {"op": "remove", "id": s("id")}
@@ -246,7 +246,7 @@ def decode_op(obj) -> dict:
             raise PatchError('resize needs "span"')
         return {"op": "resize", "id": s("id"), "span": span}
     if name == "place":
-        d = {"op": "place", "id": s("id"), "presentation": opt_s("presentation") or "default"}
+        d: dict = {"op": "place", "id": s("id"), "presentation": opt_s("presentation") or "default"}
         put(d, position=pair("position"), span=pair("span"))
         return put(d, hidden=True if o.get("hidden") is True else None)
     if name == "renameId":
@@ -261,7 +261,7 @@ def decode_op(obj) -> dict:
     if name == "setTheme":
         return put({"op": "setTheme", "key": s("key"), "value": value("value")}, scheme=opt_s("scheme"))
     if name == "addTab":
-        d = {"op": "addTab"}
+        d: dict = {"op": "addTab"}
         if isinstance(o.get("tab"), dict):
             d["tab"] = obj_("tab")
         else:
@@ -281,10 +281,10 @@ def decode_op(obj) -> dict:
             raise PatchError('moveTab needs "index"')
         return {"op": "moveTab", "tab": tab("tab"), "index": i}
     if name == "upsertSource":
-        d = value("def")
-        if d is None:
+        src = value("def")
+        if src is None:
             raise PatchError('upsertSource needs "def"')
-        return {"op": "upsertSource", "sourceId": s("sourceId"), "def": d}
+        return {"op": "upsertSource", "sourceId": s("sourceId"), "def": src}
     if name == "removeSource":
         return {"op": "removeSource", "sourceId": s("sourceId")}
     raise PatchError(f'unknown op "{name}"')
@@ -327,7 +327,7 @@ def _get(root, path):
     return cur
 
 
-def _set(root, path, new):
+def _set(root, path, new) -> Any:
     """``root`` with the value at ``path`` replaced (in place where possible); ``new``
     None removes an object key or an array element. Returns the (new) root."""
     if not path:
@@ -496,7 +496,7 @@ def _restore(nid, before: dict, after: dict) -> list:
 
 class _Engine:
     def __init__(self, doc, mint):
-        self.doc = doc
+        self.doc: dict = doc
         self.mint = mint
         self.undo: list = []           # one list per op, execution order
         self.minted: dict = {}
@@ -524,7 +524,7 @@ class _Engine:
                     return i
         return None
 
-    def node_path(self, raw: str):
+    def node_path(self, raw: str) -> Optional[tuple]:
         nid = self.resolve(raw)
         for t, tab in enumerate(self.tabs):
             hit = self._search(tab, ("tabs", t), nid, False, 0)
@@ -560,14 +560,14 @@ class _Engine:
                     return hit
         return None
 
-    def node(self, nid):
+    def node(self, nid) -> tuple[tuple, dict]:
         path = self.node_path(nid)
         d = _get(self.doc, path) if path is not None else _MISSING
-        if not isinstance(d, dict):
+        if path is None or not isinstance(d, dict):
             raise _Failure(f'no control or group "{nid}"')
         return path, d
 
-    def container_path(self, ref, panel=None):
+    def container_path(self, ref, panel=None) -> tuple:
         tabs = self.tabs
         if isinstance(ref, int):
             if panel is not None:
@@ -582,7 +582,7 @@ class _Engine:
                     return ("tabs", i)
         path = self.node_path(key)
         d = _get(self.doc, path) if path is not None else _MISSING
-        if isinstance(d, dict):
+        if path is not None and isinstance(d, dict):
             if panel is not None:
                 panels = d.get("panels")
                 if not (isinstance(panels, list) and 0 <= panel < len(panels) and isinstance(panels[panel], dict)):
@@ -1077,7 +1077,7 @@ def apply(layout: dict, ops_or_batch, *, base: Optional[str] = None,
     if base is not None and _canonical.content_digest(layout) != base:
         raise PatchError(f"the layout changed since base {base[:15]}…; reread it and rebuild the ops")
     version = layout.get("schemaVersion")
-    if _is_int(version) and not isinstance(version, bool) and version > _MAX_WRITABLE:
+    if isinstance(version, (int, float)) and _is_int(version) and version > _MAX_WRITABLE:
         raise PatchError("this layout was written by a newer CAR-TER and is read-only here")
     sectioned = _sections.is_sectioned(layout)
     engine = _Ops(_sections.to_inline(layout) if sectioned else copy.deepcopy(layout),
@@ -1189,10 +1189,10 @@ def _diff_ops(old: dict, new: dict) -> list:
 
     def tab_ids(tabs):
         ids = [t.get("id") for t in tabs]
-        return ids if all(isinstance(i, str) and i for i in ids) and len(set(ids)) == len(ids) else None
+        return ids, all(isinstance(i, str) and i for i in ids) and len(set(ids)) == len(ids)
 
-    aids, bids = tab_ids(a_tabs), tab_ids(b_tabs)
-    keyed = aids is not None and bids is not None
+    (aids, a_keyed), (bids, b_keyed) = tab_ids(a_tabs), tab_ids(b_tabs)
+    keyed = a_keyed and b_keyed
     if not keyed and len(a_tabs) != len(b_tabs):
         raise _Inexpressible
     if keyed:

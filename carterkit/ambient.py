@@ -154,7 +154,7 @@ def glance_update(*, layout_id, values=None, controls=None, hero=None, slots=Non
     """
     if not isinstance(layout_id, str) or not layout_id or len(layout_id.encode()) > 128:
         raise ValueError("layout_id must be non-empty and <= 128 UTF-8 bytes")
-    out = {"layoutId": layout_id}
+    out: dict = {"layoutId": layout_id}
     for name, mapping in (("values", values), ("controls", controls)):
         if mapping is not None:
             if not isinstance(mapping, dict) or any(not isinstance(k, str) or not k for k in mapping):
@@ -555,7 +555,7 @@ def _surface_map(mapping, name):
 def _surface_state_body(layout_id, values, controls, is_connected, values_at=None):
     """The `{values, controls, isConnected}` half every surface route shares.
     Omitted keys are left alone server-side; the relay merges onto what it holds."""
-    body = {"layoutId": _surface_layout_id(layout_id)}
+    body: dict = {"layoutId": _surface_layout_id(layout_id)}
     if values is not None:
         body["values"] = _surface_map(values, "values")
     if controls is not None:

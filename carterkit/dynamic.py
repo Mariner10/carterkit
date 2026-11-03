@@ -68,7 +68,7 @@ def _event_of(msg: dict):
     return msg.get("msg_type") or msg.get("event")
 
 
-def lint_dynamic_traffic(layout: dict, observed, *, catalog: dict = None) -> list[dict]:
+def lint_dynamic_traffic(layout: dict, observed, *, catalog: dict | None = None) -> list[dict]:
     """Lint a layout's dynamic groups against `observed` broadcast payloads (an iterable
     of decoded dicts). Returns `validate`-style findings."""
     import carterkit

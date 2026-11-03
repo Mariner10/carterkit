@@ -6,9 +6,9 @@ Builder only. Validation lives in validate.py (`bad_form`): build with
 from __future__ import annotations
 
 
-def rules(*, required: bool = None, min: float = None, max: float = None,
-          min_length: int = None, max_length: int = None, one_of: list = None,
-          kind: str = None) -> dict:
+def rules(*, required: bool | None = None, min: float | None = None, max: float | None = None,
+          min_length: int | None = None, max_length: int | None = None,
+          one_of: list | None = None, kind: str | None = None) -> dict:
     """One field's validators (required, min, max, minLength, maxLength, oneOf, kind)."""
     out: dict = {}
     for key, v in (("required", required), ("min", min), ("max", max), ("minLength", min_length),
@@ -18,8 +18,8 @@ def rules(*, required: bool = None, min: float = None, max: float = None,
     return out
 
 
-def form(*, fields: dict = None, submit: dict = None, mode: str = None,
-         collection: str = None, after_submit: str = None) -> dict:
+def form(*, fields: dict | None = None, submit: dict | None = None, mode: str | None = None,
+         collection: str | None = None, after_submit: str | None = None) -> dict:
     """A group's `form` block. `fields` maps field name -> `rules(...)` or a plain dict;
     `submit` is one action, e.g. {"method": "local", "op": "insert", "set": "{{form}}"}."""
     if mode is not None and mode not in ("create", "edit"):

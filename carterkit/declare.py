@@ -167,8 +167,9 @@ class Tab:
     """Base for a nested tab class: ``class Main(Tab, icon="gauge", cols=4, rows=6): ...``"""
 
     @classmethod
-    def __init_subclass__(cls, *, title: str = None, icon: str = "square.grid.2x2",
-                          cols: int = None, rows: int = None, columns: int = None, **rest):
+    def __init_subclass__(cls, *, title: str | None = None, icon: str = "square.grid.2x2",
+                          cols: int | None = None, rows: int | None = None,
+                          columns: int | None = None, **rest):
         super().__init_subclass__(**rest)
         # cols/rows stay None unless given: Layout.tab() then fills them from the
         # Screen's grid, mirroring the flat builder's inherit-unless-overridden rule.
@@ -181,9 +182,9 @@ class Group:
     ``class Motors(Group, span=(2,2), cols=2, rows=2, dynamic="motor_state"): ...``"""
 
     @classmethod
-    def __init_subclass__(cls, *, label: str = None, span=None, cols: int = 4, rows: int = 4,
-                          dynamic: str = None, visible=None, pulse=None,
-                          hide_background: bool = None, **rest):
+    def __init_subclass__(cls, *, label: str | None = None, span=None, cols: int = 4, rows: int = 4,
+                          dynamic: str | None = None, visible=None, pulse=None,
+                          hide_background: bool | None = None, **rest):
         super().__init_subclass__(**rest)
         cls._group_meta = {"label": label if label is not None else cls.__name__,
                            "span": span, "cols": cols, "rows": rows, "dynamic": dynamic,
@@ -202,8 +203,8 @@ class Screen(metaclass=_ScreenMeta):
     ``.save(path)`` / ``.validate()`` / ``.findings()``."""
 
     @classmethod
-    def __init_subclass__(cls, *, name: str = None, cols: int = None, rows: int = 6,
-                          columns: int = None, accent: str = "#667eea", **rest):
+    def __init_subclass__(cls, *, name: str | None = None, cols: int | None = None, rows: int = 6,
+                          columns: int | None = None, accent: str = "#667eea", **rest):
         super().__init_subclass__(**rest)
         cls._screen_meta = {"name": name or cls.__name__,
                             "cols": cols if cols is not None else (columns or 4),
@@ -242,9 +243,10 @@ class Screen(metaclass=_ScreenMeta):
     @classmethod
     def build(cls) -> Layout:
         """Compile (once) to a `Layout`. Cached on the class."""
-        if cls.__dict__.get("_compiled") is None:
-            cls._compiled = cls._compile()
-        return cls._compiled
+        compiled = cls.__dict__.get("_compiled")
+        if compiled is None:
+            compiled = cls._compiled = cls._compile()
+        return compiled
 
     @classmethod
     def json(cls, indent: int = 2) -> str:

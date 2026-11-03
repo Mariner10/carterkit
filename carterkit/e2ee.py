@@ -98,7 +98,7 @@ class _Window:
 
 
 class E2EESession:
-    def __init__(self, secret: bytes, is_device_side: bool = False, seal_salt: bytes = None,
+    def __init__(self, secret: bytes, is_device_side: bool = False, seal_salt: bytes | None = None,
                  is_group: bool = False, *, channel: str | None = None,
                  sender: str | None = None, check_freshness: bool = True):
         """``channel``/``sender`` are stamped into every sealed plaintext (``_ch``/``_from``)
@@ -134,7 +134,7 @@ class E2EESession:
         self.rejected = {"malformed": 0, "auth": 0, "replay": 0, "stale": 0, "channel": 0}
 
     @classmethod
-    def group(cls, secret: bytes, seal_salt: bytes = None, **kw) -> "E2EESession":
+    def group(cls, secret: bytes, seal_salt: bytes | None = None, **kw) -> "E2EESession":
         """Symmetric room session matching the app's `mode: room` group cipher — used by a
         hub that shares an encrypted room with several members."""
         return cls(secret, is_group=True, seal_salt=seal_salt, **kw)
