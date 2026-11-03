@@ -63,7 +63,7 @@ def local_source(src: Path, pin: dict, tmp: str) -> Path:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     ap.add_argument("--check", action="store_true",
                     help="exit 1 if the vendored copy differs from the pinned source")
     ap.add_argument("--source", default=os.environ.get("CARTER_CONTROLDOCS_SOURCE"),

@@ -19,7 +19,7 @@ Wire blocks and the palette itself are skipped. See ControlDocs/theming.md.
 from __future__ import annotations
 
 import re
-from typing import Iterator
+from typing import Any, Iterator, cast
 
 REF_PREFIX = "$"
 MAX_TOKENS = 64
@@ -76,7 +76,7 @@ def palette(layout: dict) -> dict[str, str]:
 
 def color_strings(layout: dict) -> Iterator[tuple[str, str]]:
     """Every `(where, string)` in a colour position, the palette excluded."""
-    stack = [(layout, "", None, False, 0)]
+    stack: list[tuple[Any, str, str | None, bool, int]] = [(layout, "", None, False, 0)]
     while stack:
         node, where, key, in_color, depth = stack.pop()
         if isinstance(node, str):
@@ -129,7 +129,7 @@ def resolve(layout: dict) -> dict:
             return [r for r in (walk(i, key, in_color, depth + 1) for i in node) if r is not _DROP]
         return node
 
-    return walk(layout, None, False, 0)
+    return cast(dict, walk(layout, None, False, 0))
 
 
 _DROP = object()

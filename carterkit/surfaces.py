@@ -328,7 +328,8 @@ class LayoutSurfaces:
         live = ((self.hub.layout or {}).get("glance") or {}).get("live") or {}
         cadence = _num((live.get("activity") or {}).get("remoteCadence"))
         if cadence is None:
-            cadence = _TIER_REMOTE_CADENCE.get(live.get("tier"), 5)
+            tier = live.get("tier")
+            cadence = _TIER_REMOTE_CADENCE.get(tier, 5) if isinstance(tier, str) else 5
         return max(cadence, _MIN_LIVE_EVERY)
 
     def keep_live(self, every=None, *, activity=False, send_values_at=True):

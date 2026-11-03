@@ -22,7 +22,7 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional, TypeGuard
 from urllib.parse import urlsplit
 
 from . import grid as gridmod
@@ -614,7 +614,7 @@ def _scan_tree(layout: dict, findings: list) -> None:
                            "a credential is embedded in the layout — anyone who receives "
                            "this JSON (share, export, MCP readback) receives the secret" + fix))
 
-    stack = [(layout, "root", 0, None)]
+    stack: list[tuple[Any, str, int, Optional[str]]] = [(layout, "root", 0, None)]
     seen_urls = 0
     blobs = 0
     while stack:
@@ -656,7 +656,7 @@ def _scan_tree(layout: dict, findings: list) -> None:
                                    f"and a disk load truncates it"))
 
 
-def _is_num(v) -> bool:
+def _is_num(v) -> TypeGuard[float]:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
@@ -1737,7 +1737,7 @@ def app_features() -> dict:
         return {"app": None, "source": None, "features": []}
 
 
-def known_features(catalog: dict = None) -> dict:
+def known_features(catalog: Optional[dict] = None) -> dict:
     """Feature name → highest version the vendored app speaks (DeviceCapabilities
     .featureVersions). `catalog` is accepted for API symmetry and ignored."""
     out = {}
@@ -1882,7 +1882,7 @@ DEFAULT_TARGET_APP = "1.2.4"
 _APP_VERSION = re.compile(r"^[0-9]+(\.[0-9]+)*$")
 
 
-def _is_app_version(v) -> bool:
+def _is_app_version(v) -> TypeGuard[str]:
     """A dotted numeric version string ("1.3", "1.2.4") — what `requires.app` takes."""
     return isinstance(v, str) and bool(_APP_VERSION.match(v.strip()))
 
@@ -1966,7 +1966,8 @@ def soft_tier_findings(layout: dict) -> list[dict]:
             if not isinstance(node, dict):
                 continue
             seen += 1
-            weight += _SOFT_WEIGHTS.get(node.get("type"), 1)
+            _nt = node.get("type")
+            weight += _SOFT_WEIGHTS.get(_nt, 1) if isinstance(_nt, str) else 1
             deepest = max(deepest, depth - 1)
             if depth <= MAX_DEPTH + 2:
                 stack.extend(_hosted(node, depth))
@@ -2097,7 +2098,8 @@ def derive_ref_findings(layout: dict, target_app: Optional[str] = None) -> list[
     block = layout.get("derive")
     findings = []
     found: list = []
-    for t, tab in enumerate(layout.get("tabs") if isinstance(layout.get("tabs"), list) else []):
+    _tabs = layout.get("tabs")
+    for t, tab in enumerate(_tabs if isinstance(_tabs, list) else []):
         if isinstance(tab, dict):
             _walk_controls(tab.get("children"), f"tabs[{t}]", found, groups=True)
     for ch, spot in found:

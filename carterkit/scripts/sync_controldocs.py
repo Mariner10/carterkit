@@ -69,7 +69,7 @@ def local_files(dest: Path) -> dict[str, bytes]:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     ap.add_argument("--check", action="store_true",
                     help="exit 1 if the vendored tree differs from the pin")
     ap.add_argument("--dest", type=Path, default=DEST,
