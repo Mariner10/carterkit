@@ -389,6 +389,7 @@ carterkit relay --port 8765       # run the bundled MeshSocket relay (keyed, loo
 carterkit relay --lan --key s3cret  # let phones on the LAN join with that shared key
 carterkit pager install|uninstall|run   # approve Claude Code tool calls from the phone
 carterkit version                 # print the installed version
+carterkit --version               # same, as "carterkit <version>"
 ```
 
 `carterkit relay` generates and prints a shared key when you don't pass `--key`, and

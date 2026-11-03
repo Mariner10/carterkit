@@ -36,6 +36,14 @@ def test_version(capsys):
     assert capsys.readouterr().out.strip() == carterkit.__version__
 
 
+def test_version_flag(capsys):
+    import pytest
+    with pytest.raises(SystemExit) as e:
+        cli.main(["--version"])
+    assert e.value.code == 0
+    assert capsys.readouterr().out.strip() == f"carterkit {carterkit.__version__}"
+
+
 def test_validate_clean(tmp_path):
     b = carterkit.LayoutBuffer.blank(columns=4, rows=4)
     b.add_control(carterkit.build.gauge(id="cpu", min=0, max=100), default_span=[2, 2])

@@ -244,6 +244,8 @@ def _cmd_version(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="carterkit", description="Build and drive CAR-TER layouts.")
+    import carterkit
+    p.add_argument("--version", action="version", version=f"carterkit {carterkit.__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     c = sub.add_parser("catalog", help="list the control catalog")
