@@ -50,7 +50,7 @@ fields:
   - name: defaults
     group: collections
     type: object
-    description: Starting values for the singleton row (needs singleton: true)
+    description: "Starting values for the singleton row (needs singleton: true)"
   - name: from
     group: views
     type: string

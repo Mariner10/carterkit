@@ -92,7 +92,7 @@ fields:
     type: enum
     values: [round, butt, square]
     default: round
-    description: End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control
+    description: "End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control"
   - name: maxValue
     bounds: none
     type: number

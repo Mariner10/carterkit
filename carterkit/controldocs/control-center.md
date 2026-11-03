@@ -26,7 +26,7 @@ fields:
     description: Explicit MeshSocket event instead of the bound control's action
   - name: payload
     type: object
-    description: Static payload for event; value-bearing kinds merge {"value": <value>} into it
+    description: "Static payload for event; value-bearing kinds merge {value: <value>} into it"
   - name: on
     type: object
     description: Toggle styling while on, { label, icon, tint }

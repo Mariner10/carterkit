@@ -83,10 +83,10 @@ fields:
     description: Alert rules the app evaluates on incoming events (id, event, valuePath, ...)
   - name: state
     type: object
-    description: State sync config: lets the layout's own control values sync through a mesh
+    description: "State sync config: lets the layout's own control values sync through a mesh"
   - name: publishers
     type: object[]
-    description: Sensor publishers: device sensors streamed out as readings (see publishers)
+    description: "Sensor publishers: device sensors streamed out as readings (see publishers)"
   - name: sensorSetup
     type: object
     description: Which device sensors and permissions the layout asks the user to set up (see sensors)
@@ -109,7 +109,7 @@ fields:
   - name: identity
     group: connection
     type: object
-    description: Who this device presents as: {name, ...}
+    description: "Who this device presents as: {name, ...}"
   - name: e2eeKey
     group: connection
     type: string

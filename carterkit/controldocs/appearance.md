@@ -17,10 +17,10 @@ fields:
     description: Status bar content colour
   - name: header
     type: object
-    description: Header bar style, e.g. {style: transparent}
+    description: "Header bar style, e.g. {style: transparent}"
   - name: backgroundImage
     type: object
-    description: Page background image: {asset, blur, opacity}
+    description: "Page background image: {asset, blur, opacity}"
 ---
 
 The `appearance` block on a [[layout-config|layout]] controls the app shell — color scheme, header bar, status bar, and background image. Colors and control styling live in [[theming|theme]]; appearance is about the chrome around your grid.

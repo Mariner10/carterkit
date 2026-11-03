@@ -79,14 +79,14 @@ fields:
     under: tint
     title: Key color
     type: color
-    description: Color of the key names (default: the theme's secondary color)
+    description: "Color of the key names (default: the theme's secondary color)"
   - name: valueTint
     edit: color
     depth: hold
     under: tint
     title: Value color
     type: color
-    description: Color of the values when no colorMap entry matches (default: tint)
+    description: "Color of the values when no colorMap entry matches (default: tint)"
   - name: hideLabel
     edit: part
     depth: hold

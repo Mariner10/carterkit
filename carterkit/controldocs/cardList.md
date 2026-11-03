@@ -21,6 +21,12 @@ the control on the left with its name and summary; tapping a card opens the
 control's documentation. Reads the same synced `GraphData` value as `graph` and
 uses only the `nodes` (edges are ignored).
 
+## Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `searchPlaceholder` | string | `"Search"` | Placeholder text shown in the search field while it is empty |
+
 ## Examples
 
 ### Control browser pane

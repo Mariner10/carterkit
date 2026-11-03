@@ -257,7 +257,7 @@ fields:
   - name: totals
     group: data.series
     type: number[]
-    description: Waterfall only: indices drawn as running totals from zero
+    description: "Waterfall only: indices drawn as running totals from zero"
 themeFields:
   - name: cornerRadius
     min: 0

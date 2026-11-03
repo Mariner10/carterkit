@@ -16,13 +16,13 @@ fields:
     description: Zero-indexed [row, col] grid cell (required)
   - name: span
     type: array
-    description: [rowSpan, colSpan] grid cells occupied (default [1, 1])
+    description: "[rowSpan, colSpan] grid cells occupied (default [1, 1])"
   - name: landscape
     type: object
-    description: Placement when an iPhone is on its side: {position, span} or {hidden: true}
+    description: "Placement when an iPhone is on its side: {position, span} or {hidden: true}"
   - name: regular
     type: object
-    description: Placement on an iPad-width page: {position, span} or {hidden: true}
+    description: "Placement on an iPad-width page: {position, span} or {hidden: true}"
   - name: name
     type: string
     description: Readable name the editor shows; never used for identity or on the wire
@@ -37,7 +37,7 @@ fields:
     description: Sub-group popup shown on long-press (a GroupDefinition, see long-press)
   - name: snapshotAction
     type: object
-    description: Camera only: action fired on shutter with {{image}} substitution
+    description: "Camera only: action fired on shutter with {{image}} substitution"
   - name: sync
     type: object[]
     description: Live state listeners (SyncDefinition list, see sync)
@@ -50,10 +50,10 @@ fields:
   - name: role
     values: [submit]
     type: enum
-    description: On a button inside a form group: submit makes pressing it submit the form
+    description: "On a button inside a form group: submit makes pressing it submit the form"
   - name: field
     type: string
-    description: Inside a form group: the draft field this input writes (default the id)
+    description: "Inside a form group: the draft field this input writes (default the id)"
   - name: theme
     type: object
     description: Per-control theme overrides; same keys as the layout theme block plus per-type keys (see theming)

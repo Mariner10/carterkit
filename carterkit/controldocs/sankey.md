@@ -86,7 +86,7 @@ fields:
     max: 30
     step: 1
     type: number
-    description: Node corner rounding (default: a third of the node width)
+    description: "Node corner rounding (default: a third of the node width)"
     group: sankeyConfig
   - name: nodeWidth
     edit: scrub

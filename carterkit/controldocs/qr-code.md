@@ -35,7 +35,7 @@ fields:
     under: tint
     title: Code background
     type: color
-    description: Fill behind the code (default: none, the card shows through)
+    description: "Fill behind the code (default: none, the card shows through)"
   - name: correctionLevel
     edit: look
     depth: hold
