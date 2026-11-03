@@ -5,10 +5,35 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.17.0] — 2026-11-03
+
+The new-developer release: everything a first `pip install carterkit` hits, fixed in one pass
+(epic aif-e9vyd). ControlDocs re-vendored from CAR-TER `master` 7cdc5e1b (`controldocs/SOURCE`).
+
 ### Added
 
+- **Typed control factories** (`carterkit.typed`): one function per control kind, generated from the
+  ControlDocs by `scripts/gen-typed-controls.py`, with `Literal` enums for every documented option so
+  editors autocomplete fields and pyright catches a wrong value before the push (aif-e9vyd.2).
+- **`carterkit new <dir>`**: scaffolds a starter project (`hello.py`, README, a gitignored `secrets/` folder, VS Code
+  settings) that runs as generated (aif-e9vyd.4).
 - **`carterkit repl [hello.py]`**: an asyncio-aware prompt (top-level await) with the hub connected and `hub`, `ui` and every control bound by id; Ctrl-D disconnects cleanly (aif-e9vyd.5).
 - **`async with hub.live_tab('lab') as t`**: a temporary tab (reuses an existing one with that id) with `.add(control)`, `.push(id, value)`, `.clear()`; removed on exit, normal or exception (aif-e9vyd.6).
+- **`carterkit share <layout.json>`**: serves the layout on the LAN for 10 minutes and prints a
+  `carter://import?url=` QR the app scans (aif-e9vyd.10).
+- **`carterkit explore` Surfaces section**: previews widgets, the Island and the Lock Screen from the
+  layout, no device needed (aif-e9vyd.9).
+- **Examples** for `push_value`, `button_tap`, `live_tab`, `island`, `notification` and `pager`, each with a
+  test, plus the Island demo kit (`examples/island_demo.py`, `docs/film-island.md`) (aif-e9vyd.8, .18).
+
+### Changed
+
+- **Actionable errors**: a missing or wrong hub credential names the file, the field and the fix;
+  `push_layout` validates before sending; a push identical to the last one is skipped and reported
+  (aif-e9vyd.3).
+- **README**: the quickstart runs as pasted, the full CLI list is in one table, Add Hub wording matches
+  the app, pager details moved to `docs/pager.md` (aif-e9vyd.7).
+- `explore_assets` ships in the sdist (aif-e9vyd.9); tests find MeshSocket without a manual `PYTHONPATH` (aif-e9vyd.3).
 
 ## [0.16.0] — 2026-10-20
 
