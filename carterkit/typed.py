@@ -1871,16 +1871,16 @@ class ScopeControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
-            placeholder (string): Text shown when no options are available or a picker has no selection.
-            options (array): Segment labels (string array).
-            optionIcons (array): SF Symbols parallel to options.
-            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Values: default, pills, stars.
-            tint (color, default #667eea): Accent for pills style.
-            defaultValue (string): Initially selected option.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Each segment shows this text in place of its stored value; a blank entry falls back to the value.
+            placeholder (string): Text shown when no options are available or a picker has no selection. Does: Shows this text, e.g. No options, where the segments would be when the list is empty.
+            options (array): Segment labels (string array). Does: Creates one segment per entry, in order; two to five fit best.
+            optionIcons (array): SF Symbols parallel to options. Does: Draws an SF Symbol on each segment at the same position as its option; missing entries show none.
+            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Does: Switches between the system segmented bar, separate capsule buttons and a row of tappable stars. Values: default = the standard iOS segmented bar, pills = separate capsule buttons with the chosen one tinted, stars = a row of stars where tapping one fills up to it and sends its number.
+            tint (color, default #667eea): Accent for pills style. Does: Colours the selected pill background and the filled stars; the default bar ignores it.
+            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker and the default.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After each change a pill naming it with an Undo button shows for 3 seconds.
 
         Example:
             ui.segmented_control('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
@@ -2233,22 +2233,22 @@ class ScopeControls:
         (catalog type `stepper`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1.
-            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior.
-            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint.
-            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value.
-            label (string): Display label.
-            icon (string): SF Symbol before value.
-            formatValue (string, default decimal): Value format: decimal, time, percent.
-            defaultValue (number): Initial value.
-            haptic (enum, default light): Default haptic on step. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the readout animates between values, from an instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft transition, instant = changes with no animation.
+            min (number, default 0): Minimum value. Does: Sets the lowest number reachable; the minus button dims there.
+            max (number, default 100): Maximum value. Does: Sets the highest number reachable; the plus button dims there.
+            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1. Does: Changes the number by this amount per tap, in the control's own units; 0 or less acts as 1.
+            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior. Does: On, holding plus or minus repeats the step until you let go; off, each tap is one step.
+            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint. Does: On, plus at the highest value jumps to the lowest and minus at the lowest jumps to the highest; off, the buttons dim at the ends.
+            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value. Does: Removes the visible number between the buttons; the title and buttons stay and VoiceOver still reads the value.
+            label (string): Display label. Does: Writes this text as the title of the stepper.
+            icon (string): SF Symbol before value. Does: Shows this SF Symbol before the value.
+            formatValue (string, default decimal): Value format: decimal, time, percent. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit.
+            defaultValue (number): Initial value. Does: Shows this number (within lowest to highest) until something else sets it.
+            haptic (enum, default light): Default haptic on step. Does: Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern. Values: light = a soft tap, medium = a firmer tap, heavy = a strong thump, success = a pleasant double tap, warning = a cautionary buzz, error = a sharp failure buzz, selection = a tiny tick like a picker.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you step.
 
         Example:
-            ui.stepper('preset', position=[0, 0], label='Preset', min=1, max=8, step=1, repeatOnHold=True, wraps=True)
+            ui.stepper('guests', position=[0, 0], label='Guests', icon='person.2', min=0, max=10, step=1, defaultValue=3)
         """
         return self._ctl("stepper", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, min=min, max=max, step=step, repeatOnHold=repeatOnHold, wraps=wraps, hideValue=hideValue, label=label, icon=icon, formatValue=formatValue, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -3998,16 +3998,16 @@ class BuildControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
-            placeholder (string): Text shown when no options are available or a picker has no selection.
-            options (array): Segment labels (string array).
-            optionIcons (array): SF Symbols parallel to options.
-            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Values: default, pills, stars.
-            tint (color, default #667eea): Accent for pills style.
-            defaultValue (string): Initially selected option.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Each segment shows this text in place of its stored value; a blank entry falls back to the value.
+            placeholder (string): Text shown when no options are available or a picker has no selection. Does: Shows this text, e.g. No options, where the segments would be when the list is empty.
+            options (array): Segment labels (string array). Does: Creates one segment per entry, in order; two to five fit best.
+            optionIcons (array): SF Symbols parallel to options. Does: Draws an SF Symbol on each segment at the same position as its option; missing entries show none.
+            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Does: Switches between the system segmented bar, separate capsule buttons and a row of tappable stars. Values: default = the standard iOS segmented bar, pills = separate capsule buttons with the chosen one tinted, stars = a row of stars where tapping one fills up to it and sends its number.
+            tint (color, default #667eea): Accent for pills style. Does: Colours the selected pill background and the filled stars; the default bar ignores it.
+            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker and the default.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After each change a pill naming it with an Undo button shows for 3 seconds.
 
         Example:
             ui.segmented_control('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
@@ -4278,22 +4278,22 @@ class BuildControls:
         (catalog type `stepper`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1.
-            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior.
-            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint.
-            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value.
-            label (string): Display label.
-            icon (string): SF Symbol before value.
-            formatValue (string, default decimal): Value format: decimal, time, percent.
-            defaultValue (number): Initial value.
-            haptic (enum, default light): Default haptic on step. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the readout animates between values, from an instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft transition, instant = changes with no animation.
+            min (number, default 0): Minimum value. Does: Sets the lowest number reachable; the minus button dims there.
+            max (number, default 100): Maximum value. Does: Sets the highest number reachable; the plus button dims there.
+            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1. Does: Changes the number by this amount per tap, in the control's own units; 0 or less acts as 1.
+            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior. Does: On, holding plus or minus repeats the step until you let go; off, each tap is one step.
+            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint. Does: On, plus at the highest value jumps to the lowest and minus at the lowest jumps to the highest; off, the buttons dim at the ends.
+            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value. Does: Removes the visible number between the buttons; the title and buttons stay and VoiceOver still reads the value.
+            label (string): Display label. Does: Writes this text as the title of the stepper.
+            icon (string): SF Symbol before value. Does: Shows this SF Symbol before the value.
+            formatValue (string, default decimal): Value format: decimal, time, percent. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit.
+            defaultValue (number): Initial value. Does: Shows this number (within lowest to highest) until something else sets it.
+            haptic (enum, default light): Default haptic on step. Does: Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern. Values: light = a soft tap, medium = a firmer tap, heavy = a strong thump, success = a pleasant double tap, warning = a cautionary buzz, error = a sharp failure buzz, selection = a tiny tick like a picker.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you step.
 
         Example:
-            ui.stepper('preset', position=[0, 0], label='Preset', min=1, max=8, step=1, repeatOnHold=True, wraps=True)
+            ui.stepper('guests', position=[0, 0], label='Guests', icon='person.2', min=0, max=10, step=1, defaultValue=3)
         """
         return self._ctl("stepper", dict(id=id, position=position, span=span, animation=animation, min=min, max=max, step=step, repeatOnHold=repeatOnHold, wraps=wraps, hideValue=hideValue, label=label, icon=icon, formatValue=formatValue, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
