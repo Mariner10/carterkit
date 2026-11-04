@@ -1269,25 +1269,25 @@ class ScopeControls:
         (catalog type `label`)
 
         Fields:
-            text (string): Static display text (overridden by sync).
-            label (string): Alternative to text.
-            icon (string): SF Symbol before text.
-            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Values: default, headline, title, caption, mono, large-mono, terminal.
-            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control.
-            tint (color, default #FFFFFF): Text and icon color.
-            align (enum, default leading): Text alignment. Values: leading, center, trailing.
-            fontWeight (enum, default regular): Font weight laid over the text style. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
-            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight).
-            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since).
-            placeholder (string): Shown by a relative-date label with no date yet (default "Never").
-            valueMap (object): Incoming value → display text ("default" catches the rest).
-            iconMap (object): Incoming value → SF Symbol name.
-            colorMap (object): Incoming value → hex tint.
+            text (string): Static display text (overridden by sync). Does: Sets the words on the label; a synced value replaces them as soon as one arrives.
+            label (string): Alternative to text. Does: Shows this text when Text is empty; the label reads the same either way.
+            icon (string): SF Symbol before text. Does: Draws the named SF Symbol in front of the text, in the same color and size.
+            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Does: Switches the font between a small line, a headline, a title, a caption and monospaced or terminal looks. Values: default = small body text, headline = bold headline size, title = larger bold title, caption = small caption text, mono = body text in a monospaced font, large-mono = larger monospaced text, good for big numbers, terminal = a dark ANSI terminal view that keeps colors and columns.
+            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a blurred glow in the text color, 0 to 30 points wide; 0 turns it off.
+            tint (color, default #FFFFFF): Text and icon color. Does: Recolors the text and the symbol in front of it.
+            align (enum, default leading): Text alignment. Does: Moves the text to the left edge, the middle or the right edge of the label. Values: leading = text starts at the left edge, center = text is centered, trailing = text ends at the right edge.
+            fontWeight (enum, default regular): Font weight laid over the text style. Does: Makes the letters lighter or heavier, from ultra thin to black, on top of the chosen style. Values: ultraLight = hairline strokes, thin = very slim strokes, light = slim strokes, regular = normal strokes, medium = slightly heavier than normal, semibold = firm, between medium and bold, bold = heavy strokes, heavy = very heavy strokes, black = the heaviest strokes.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Lets the label keep ticking between real readings, marked as about, until a real value replaces it. Values: countdown = the value is a time and the label counts down to it, reach = the value is guessed to move toward a target number until the next real reading.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Gives the number the guessed value drifts toward, from -1000000 to 1000000.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Uses that control's time value as the moment the guess reaches the target, so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Moves the displayed number by this much every second after the last real reading, from -1000 to 1000.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally. Does: Converts a numeric value to the phone's own units, so celsius shows as degrees Fahrenheit in the US; text is shown as sent.
+            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight). Does: Gives the label a fixed height that scrolls and stays on the newest line.
+            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since). Does: Shows the value as a rounded number, a percent, a duration, a size, a date or a time since, instead of the raw text.
+            placeholder (string): Shown by a relative-date label with no date yet (default "Never"). Does: Shows this text (Never by default) on a time-since or date label that has no date yet.
+            valueMap (object): Incoming value → display text ("default" catches the rest). Does: Replaces a raw incoming value such as 61 with the words you pick, with default catching the rest.
+            iconMap (object): Incoming value → SF Symbol name. Does: Swaps the symbol in front of the text to match the incoming value.
+            colorMap (object): Incoming value → hex tint. Does: Recolors the text to match the incoming value, for example green for running.
 
         Example:
             ui.label('fern-watered', label='Fern — last watered', icon='leaf.fill', formatValue='relative:day', placeholder='Not watered yet', sync=[{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'fern'}, 'valuePath': 'lastWatered'}])
@@ -1326,15 +1326,15 @@ class ScopeControls:
         (catalog type `list`)
 
         Fields:
-            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
-            label (string): Header label.
-            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
-            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\".
-            tint (color, default #FFFFFF): Header text color.
-            hideLabel (bool, default false): Hide header label.
-            hideBackground (bool, default false): Remove glass card background.
-            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers).
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is. Does: Dates in columns without their own format show as e.g. 4 days ago (relative:day) or a calendar date; other text is unchanged.
+            label (string): Header label. Does: Shows this text as the header line above the rows in the header text size.
+            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
+            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\". Does: Replaces the line shown when there are no rows, e.g. No books yet.
+            tint (color, default #FFFFFF): Header text color. Does: Paints the header label in this color.
+            hideLabel (bool, default false): Hide header label. Does: Removes the header label so the rows start at the top of the card.
+            hideBackground (bool, default false): Remove glass card background. Does: Drops the frosted card fill so the rows sit directly on the screen background.
+            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers). Does: Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button.
 
         Example:
             ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
@@ -3528,25 +3528,25 @@ class BuildControls:
         (catalog type `label`)
 
         Fields:
-            text (string): Static display text (overridden by sync).
-            label (string): Alternative to text.
-            icon (string): SF Symbol before text.
-            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Values: default, headline, title, caption, mono, large-mono, terminal.
-            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control.
-            tint (color, default #FFFFFF): Text and icon color.
-            align (enum, default leading): Text alignment. Values: leading, center, trailing.
-            fontWeight (enum, default regular): Font weight laid over the text style. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
-            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight).
-            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since).
-            placeholder (string): Shown by a relative-date label with no date yet (default "Never").
-            valueMap (object): Incoming value → display text ("default" catches the rest).
-            iconMap (object): Incoming value → SF Symbol name.
-            colorMap (object): Incoming value → hex tint.
+            text (string): Static display text (overridden by sync). Does: Sets the words on the label; a synced value replaces them as soon as one arrives.
+            label (string): Alternative to text. Does: Shows this text when Text is empty; the label reads the same either way.
+            icon (string): SF Symbol before text. Does: Draws the named SF Symbol in front of the text, in the same color and size.
+            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Does: Switches the font between a small line, a headline, a title, a caption and monospaced or terminal looks. Values: default = small body text, headline = bold headline size, title = larger bold title, caption = small caption text, mono = body text in a monospaced font, large-mono = larger monospaced text, good for big numbers, terminal = a dark ANSI terminal view that keeps colors and columns.
+            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a blurred glow in the text color, 0 to 30 points wide; 0 turns it off.
+            tint (color, default #FFFFFF): Text and icon color. Does: Recolors the text and the symbol in front of it.
+            align (enum, default leading): Text alignment. Does: Moves the text to the left edge, the middle or the right edge of the label. Values: leading = text starts at the left edge, center = text is centered, trailing = text ends at the right edge.
+            fontWeight (enum, default regular): Font weight laid over the text style. Does: Makes the letters lighter or heavier, from ultra thin to black, on top of the chosen style. Values: ultraLight = hairline strokes, thin = very slim strokes, light = slim strokes, regular = normal strokes, medium = slightly heavier than normal, semibold = firm, between medium and bold, bold = heavy strokes, heavy = very heavy strokes, black = the heaviest strokes.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Lets the label keep ticking between real readings, marked as about, until a real value replaces it. Values: countdown = the value is a time and the label counts down to it, reach = the value is guessed to move toward a target number until the next real reading.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Gives the number the guessed value drifts toward, from -1000000 to 1000000.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Uses that control's time value as the moment the guess reaches the target, so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Moves the displayed number by this much every second after the last real reading, from -1000 to 1000.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally. Does: Converts a numeric value to the phone's own units, so celsius shows as degrees Fahrenheit in the US; text is shown as sent.
+            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight). Does: Gives the label a fixed height that scrolls and stays on the newest line.
+            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since). Does: Shows the value as a rounded number, a percent, a duration, a size, a date or a time since, instead of the raw text.
+            placeholder (string): Shown by a relative-date label with no date yet (default "Never"). Does: Shows this text (Never by default) on a time-since or date label that has no date yet.
+            valueMap (object): Incoming value → display text ("default" catches the rest). Does: Replaces a raw incoming value such as 61 with the words you pick, with default catching the rest.
+            iconMap (object): Incoming value → SF Symbol name. Does: Swaps the symbol in front of the text to match the incoming value.
+            colorMap (object): Incoming value → hex tint. Does: Recolors the text to match the incoming value, for example green for running.
 
         Example:
             ui.label('fern-watered', label='Fern — last watered', icon='leaf.fill', formatValue='relative:day', placeholder='Not watered yet', sync=[{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'fern'}, 'valuePath': 'lastWatered'}])
@@ -3573,15 +3573,15 @@ class BuildControls:
         (catalog type `list`)
 
         Fields:
-            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
-            label (string): Header label.
-            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
-            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\".
-            tint (color, default #FFFFFF): Header text color.
-            hideLabel (bool, default false): Hide header label.
-            hideBackground (bool, default false): Remove glass card background.
-            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers).
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is. Does: Dates in columns without their own format show as e.g. 4 days ago (relative:day) or a calendar date; other text is unchanged.
+            label (string): Header label. Does: Shows this text as the header line above the rows in the header text size.
+            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
+            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\". Does: Replaces the line shown when there are no rows, e.g. No books yet.
+            tint (color, default #FFFFFF): Header text color. Does: Paints the header label in this color.
+            hideLabel (bool, default false): Hide header label. Does: Removes the header label so the rows start at the top of the card.
+            hideBackground (bool, default false): Remove glass card background. Does: Drops the frosted card fill so the rows sit directly on the screen background.
+            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers). Does: Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button.
 
         Example:
             ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])

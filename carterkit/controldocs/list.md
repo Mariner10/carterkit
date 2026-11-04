@@ -1,5 +1,6 @@
 ---
 type: list
+depth: complete
 label: List
 icon: list.bullet
 category: controls
@@ -18,22 +19,28 @@ fields:
     tab: data
     type: string
     description: "Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is."
+    summary: How dates in the rows are written
+    does: "Dates in columns without their own format show as e.g. 4 days ago (relative:day) or a calendar date; other text is unchanged."
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label
+    summary: The heading above the rows
+    does: "Shows this text as the header line above the rows in the header text size."
   - name: listColumns
     title: Columns
     type: array
     description: "Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
     summary: Which columns to show and how to display them
+    does: "Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data."
   - name: emptyText
     title: Empty message
     type: string
     description: "Line shown when the list has no rows. Default: \"No <label> yet\"."
     summary: What to show when there are no rows
+    does: "Replaces the line shown when there are no rows, e.g. No books yet."
   - name: tint
     edit: color
     depth: surface
@@ -42,6 +49,8 @@ fields:
     type: color
     default: "#FFFFFF"
     description: Header text color
+    summary: The color of the heading
+    does: "Paints the header label in this color."
   - name: hideLabel
     edit: part
     depth: hold
@@ -49,6 +58,8 @@ fields:
     type: bool
     default: false
     description: Hide header label
+    summary: Hide the heading line
+    does: "Removes the header label so the rows start at the top of the card."
   - name: hideBackground
     edit: part
     depth: hold
@@ -57,18 +68,22 @@ fields:
     type: bool
     default: false
     description: Remove glass card background
+    summary: Remove the card behind the rows
+    does: "Drops the frosted card fill so the rows sit directly on the screen background."
   - name: defaultValue
     title: Starting rows
     type: object[]
     description: Seed rows shown before the first sync (the same row objects a sync delivers)
     summary: Starting rows shown until new data arrives
+    does: "Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them."
   - name: confirm
     title: Show confirmation
     tab: action
     type: bool
     default: false
-    summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    summary: A short note with Undo after each tap
+    does: "After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button."
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -78,6 +93,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: "Rounds the card corners from 0 (square) to 30 points."
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -86,22 +103,29 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space between the card edge and the rows
+    does: "Adds 0 to 24 points of space inside the card around the rows."
   - name: surfacePrimary
     title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The fill color of the card
+    does: "Paints the card background in this color, usually a faint translucent tone."
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The color of the row text
+    does: "Colors the text in the rows with this color."
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline around the control
+    does: "Draws the card outline in this color."
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -110,6 +134,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: "Sets the outline thickness from 0 (none) to 5 points."
 ---
 
 # List
@@ -183,6 +209,7 @@ stays read-only.
 ## Examples
 
 ### Device status list
+Shows a list fed live from a hub, with a number column. Intended effect: three columns of device name, status and ping that refresh whenever the hub broadcasts.
 ```json
 {
   "type": "list",
@@ -202,6 +229,7 @@ stays read-only.
 The server broadcasts `{"msg_type": "device_list", "devices": [{"name": "…", "status": "…", "latency": 12}, …]}`; `valuePath` picks the row array out of the frame.
 
 ### Nested feed rows (USGS GeoJSON, no server)
+Shows dot-path column keys reading nested feed data. Intended effect: the last hour of earthquakes with magnitude, place and depth, refreshed every 5 minutes.
 ```json
 {
   "type": "list",
@@ -220,6 +248,65 @@ The server broadcasts `{"msg_type": "device_list", "devices": [{"name": "…", "
 
 `valuePath` picks the row array out of the document; each column key then reaches
 into that row.
+### Last-time look with starting rows
+Shows the Last time look (`formatValue: "relative:day"`) together with seed rows, a custom empty message and a hidden title. Intended effect: rows appear at once with dates like "4 days ago", and show "Nothing watered yet" if the data is cleared.
+```json
+{
+  "type": "list",
+  "id": "watering-log",
+  "position": [0, 4],
+  "span": [2, 3],
+  "label": "Watering",
+  "hideLabel": true,
+  "formatValue": "relative:day",
+  "emptyText": "Nothing watered yet",
+  "listColumns": [
+    { "key": "plant", "label": "Plant" },
+    { "key": "when", "label": "Last watered" }
+  ],
+  "defaultValue": [
+    { "plant": "Fern", "when": "2026-10-30" },
+    { "plant": "Basil", "when": "2026-11-02" }
+  ]
+}
+```
+
+The Plain look leaves `formatValue` unset, and the Date look sets it to `"date"` so the same column shows a calendar date; the JSON is otherwise identical. A per-column `format` always wins over `formatValue`.
+
+### Tap a row to tick it (local store)
+Shows a row tap bound to a local collection, with the confirmation pill. Intended effect: tapping a task marks it done, a pill with Undo appears for 3 seconds, and the row updates.
+```json
+{
+  "type": "list",
+  "id": "todo-list",
+  "position": [2, 4],
+  "span": [3, 4],
+  "label": "To do",
+  "confirm": true,
+  "hideBackground": true,
+  "action": { "method": "local", "op": "update", "collection": "items", "id": "{{value}}", "set": { "done": true } },
+  "sync": [{ "method": "local", "collection": "items" }]
+}
+```
+
+### Tap a row to select it
+Shows the select binding that moves the selection cursor. Intended effect: tapping a book fills every control bound with `"where": {"id": "{{selected}}"}` with that book, so a form elsewhere can edit it.
+```json
+{
+  "type": "list",
+  "id": "book-list",
+  "position": [0, 8],
+  "span": [3, 4],
+  "label": "Books",
+  "action": { "method": "local", "op": "select", "collection": "books", "id": "{{value}}" },
+  "sync": [{ "method": "local", "collection": "books" }]
+}
+```
+
+The list has no look that switches it to another control type, and no long-press or detail view.
+
+## Editor notes
+`hideBackground`, `hideLabel` and `tint` (header color) change only the card and header, so with `hideLabel` on, the Header color field changes nothing on screen.
 
 ## Related
 - [[shared-properties]] — Base fields
