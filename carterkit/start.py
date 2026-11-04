@@ -207,6 +207,78 @@ async def run(*, host: str | None = None, port: int | None = None, session_path:
         await hub.close()
 
 
+def demo_layout(control: str, example: str | None = None):
+    """A one-control Layout built from the control's named (default first) example JSON.
+    Raises ValueError with a plain message when the control/example is unusable."""
+    from . import catalog, controldocs_dir
+    from .layout import Layout
+    doc = catalog.resolve_doc(controldocs_dir(), control)
+    if doc is None:
+        raise ValueError(f"no doc for {control!r}")
+    exs = doc.get("examples") or []
+    ex = catalog.find_example(controldocs_dir(), control, example) if example else (exs[0] if exs else None)
+    if not ex:
+        raise ValueError(f"no example {example!r} for {control!r}" if example
+                         else f"{control!r} has no examples")
+    obj = catalog.example_as_obj(ex)
+    if not obj or "type" not in obj:
+        raise ValueError(f"example {ex['name']!r} is not a control object")
+    obj = dict(obj)
+    obj.setdefault("id", "demo")
+    obj.pop("position", None)
+    ui = Layout(f"Demo: {doc['label']}", cols=4, rows=4)
+    ui.add(obj, span=obj.get("span") or doc.get("defaultSpan") or (2, 2))
+    errs = [f for f in ui.validate() if f.get("severity") == "error"]
+    if errs:
+        raise ValueError("example does not validate: " + "; ".join(
+            f"{f['where']}: {f['detail']}" for f in errs))
+    return ui
+
+
+async def demo(control: str, *, example: str | None = None, host: str | None = None,
+               port: int | None = None, session_path: str = SESSION, fresh: bool = False,
+               timeout: float | None = None, out=None) -> int:
+    """Serve a LAN hub like ``start``, wait for the phone, push the control's example."""
+    from .hub import HubError, describe_push_reply
+    out = out or (lambda s: print(s, flush=True))
+    try:
+        demo_ui = demo_layout(control, example)
+    except ValueError as e:
+        out(f"carterkit demo: {e}")
+        return 1
+    timeout = default_timeout() if timeout is None else timeout
+    quiet_logs()
+    _, hub, reused = serve_playground(host=host, port=port, session_path=session_path, fresh=fresh)
+    hub.layout = demo_ui.layout
+    if not await start_hub(hub, out, name="carterkit demo"):
+        return 1
+    try:
+        for line in pairing_lines(hub, reused=reused):
+            out(line)
+        out(f"Waiting for the phone (up to {timeout:.0f} s; Ctrl-C stops)...")
+        try:
+            peer = await hub.wait_for_device(timeout=timeout)
+        except HubError:
+            out(f"No phone joined in {timeout:.0f} s.")
+            return 1
+        out(f"Paired with {peer.get('name') or 'your phone'}. Sending the {control} demo...")
+        try:
+            res = await hub.push_layout()
+        except Exception as e:  # noqa: BLE001
+            out(f"carterkit demo: the layout did not land: {type(e).__name__}: {e}")
+            return 1
+        out(describe_push_reply(res, "The demo").capitalize())
+        out("Ctrl-C stops.")
+        try:
+            while True:
+                await asyncio.sleep(3600)
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            pass
+        return 0
+    finally:
+        await hub.close()
+
+
 async def _demo_loop(hub, ui, seconds: float | None, out) -> int:
     """No prompt: echo the phone's actions and sweep the gauge until Ctrl-C."""
     import random

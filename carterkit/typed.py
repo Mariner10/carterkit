@@ -58,12 +58,15 @@ class ScopeControls:
         (catalog type `accordion`)
 
         Fields:
-            accordionMode: Whether one or many sections can be open
-            expandedIndex: Section open on load (-1 = all collapsed)
-            showChevron: Show the disclosure chevron
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial open index (overrides expandedIndex; -1 = all collapsed)
+            accordionMode (enum, default single): Whether one or many sections can be open. Values: single, multi.
+            expandedIndex (number, default 0): Section open on load (-1 = all collapsed).
+            showChevron (bool, default true): Show the disclosure chevron.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed).
+
+        Example:
+            ui.accordion('settings', position=[0, 0], span=[4, 2], accordionMode='single', expandedIndex=0, containerAnimation={'profile': 'smooth', 'chevronRotation': 90}, panels=[{'type': 'group', 'id': 'display', 'label': 'Display', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'slider', 'id': 'bright', 'position': [0, 0], 'label': 'Brightness', 'min': 0, 'max': 100}]}, {'type': 'group', 'id': 'network', 'label': 'Network', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'toggle', 'id': 'wifi', 'position': [0, 0], 'label': 'Wi-Fi'}]}])
         """
         return self._ctl("accordion", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, accordionMode=accordionMode, expandedIndex=expandedIndex, showChevron=showChevron, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -109,25 +112,28 @@ class ScopeControls:
         (catalog type `boxPlot`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the plot
-            boxStyle: 'box' (box-and-whisker) or 'violin' (kernel density body)
-            boxPlotConfig: Full configuration object (see BoxPlotConfig section)
-            tint: First-category color and palette seed
-            formatValue: Formatter for axis/readout numbers
-            boxAction: boxAction
-            barCornerRadius: Box corner rounding
-            boxWidth: Box width as a fraction of the category slot
-            colors: Per-category color cycle
-            scrub: Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap)
-            showGrid: Horizontal grid lines
-            showMean: Hollow dot at the mean
-            showOutliers: Outlier dots beyond the whiskers
-            showXAxis: Category labels along the bottom
-            showYAxis: Value labels down the left gutter
-            whiskers: 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)
-            yMax: Pin the value axis
-            yMin: Pin the value axis
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the plot.
+            boxStyle (enum, default box): 'box' (box-and-whisker) or 'violin' (kernel density body). Values: box, violin.
+            boxPlotConfig (object): Full configuration object (see BoxPlotConfig section).
+            tint (color, default #667eea): First-category color and palette seed.
+            formatValue (string): Formatter for axis/readout numbers.
+            boxAction (object): boxAction.
+            barCornerRadius (number, default 3): Box corner rounding.
+            boxWidth (number, default 0.55): Box width as a fraction of the category slot.
+            colors (string[]): Per-category color cycle.
+            scrub (bool, default false): Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap).
+            showGrid (bool, default true): Horizontal grid lines.
+            showMean (bool, default false): Hollow dot at the mean.
+            showOutliers (bool, default true): Outlier dots beyond the whiskers.
+            showXAxis (bool, default true): Category labels along the bottom.
+            showYAxis (bool, default true): Value labels down the left gutter.
+            whiskers (enum, default tukey): 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range). Values: tukey, minmax.
+            yMax (number): Pin the value axis.
+            yMin (number): Pin the value axis.
+
+        Example:
+            ui.box_plot('latency', position=[0, 0], span=[3, 4], label='Latency (ms)', boxPlotConfig={'boxAction': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inspect_region', 'stats': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'latency_samples'}, 'valuePath': 'regions'}])
         """
         return self._ctl("boxPlot", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, boxStyle=boxStyle, boxPlotConfig=boxPlotConfig, tint=tint, formatValue=formatValue, boxAction=boxAction, barCornerRadius=barCornerRadius, boxWidth=boxWidth, colors=colors, scrub=scrub, showGrid=showGrid, showMean=showMean, showOutliers=showOutliers, showXAxis=showXAxis, showYAxis=showYAxis, whiskers=whiskers, yMax=yMax, yMin=yMin), props)
 
@@ -166,18 +172,21 @@ class ScopeControls:
         (catalog type `button`)
 
         Fields:
-            label: Button text
-            icon: SF Symbol shown before label
-            style: Visual style variant ("outline" and "outlined" are both accepted)
-            size: Size variant
-            tint: Accent color
-            hideLabel: Show icon only
-            haptic: Haptic feedback on press
-            repeatOnHold: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
-            valueMap: Synced value → button text ("default" catches the rest)
-            iconMap: Synced value → SF Symbol name (swaps with the native replace effect)
-            colorMap: Synced value → hex tint
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            label (string, default Button): Button text.
+            icon (string): SF Symbol shown before label.
+            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Values: filled, outlined, outline, ghost, tinted, icon-only.
+            size (enum, default default): Size variant. Values: compact, default, large.
+            tint (color, default #667eea): Accent color.
+            hideLabel (bool, default false): Show icon only.
+            haptic (enum, default medium): Haptic feedback on press. Values: light, medium, heavy, success, warning, error, selection.
+            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set).
+            valueMap (object): Synced value → button text ("default" catches the rest).
+            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect).
+            colorMap (object): Synced value → hex tint.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.button('all-off', position=[0, 3], label='All Off', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'scene', 'payload': {'name': 'all_off'}}})
         """
         return self._ctl("button", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, icon=icon, style=style, size=size, tint=tint, hideLabel=hideLabel, haptic=haptic, repeatOnHold=repeatOnHold, valueMap=valueMap, iconMap=iconMap, colorMap=colorMap, confirm=confirm), props)
 
@@ -214,16 +223,19 @@ class ScopeControls:
         (catalog type `camera`)
 
         Fields:
-            label: Header label
-            scan: What the live scanner detects: any of barcode, text
-            symbologies: Barcode filter (qr, ean13, code128, …). Omit for all supported
-            sendMode: auto sends every stabilized detection; tap sends only items the user taps
-            debounce: Seconds before the same decoded value can fire again
-            torch: Show a torch toggle while scanning
-            snapshot: Show a shutter button (implied when snapshotAction is set)
-            snapshotQuality: JPEG quality 0–1 (auto-lowered to fit the mesh frame budget)
-            snapshotMaxDimension: Longest snapshot edge in pixels
-            hideLabel: Hide the header label (the LIVE chip moves into the viewfinder)
+            label (string): Header label.
+            scan (array, default [barcode]): What the live scanner detects: any of barcode, text.
+            symbologies (array): Barcode filter (qr, ean13, code128, …). Omit for all supported.
+            sendMode (enum, default auto): auto sends every stabilized detection; tap sends only items the user taps. Values: auto, tap.
+            debounce (number, default 3): Seconds before the same decoded value can fire again.
+            torch (bool, default true): Show a torch toggle while scanning.
+            snapshot (bool, default false): Show a shutter button (implied when snapshotAction is set).
+            snapshotQuality (number, default 0.6): JPEG quality 0–1 (auto-lowered to fit the mesh frame budget).
+            snapshotMaxDimension (number, default 1280): Longest snapshot edge in pixels.
+            hideLabel (bool, default false): Hide the header label (the LIVE chip moves into the viewfinder).
+
+        Example:
+            ui.camera('intake-scanner', position=[0, 0], span=[3, 4], label='Scan Inventory', scan=['barcode'], symbologies=['qr', 'ean13', 'code128'], debounce=5, action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inventory_scan', 'code': '{{value}}', 'kind': '{{kind}}'}})
         """
         return self._ctl("camera", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
 
@@ -261,17 +273,20 @@ class ScopeControls:
         (catalog type `canvas`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            aspect: Surface aspect ratio (width ÷ height)
-            editable: Long-press lifts a card; drags emit place/layout and round-trip the synced value
-            showGrid: Faint dot lattice on the surface (uses the snap increment when set)
-            snap: Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free)
-            maxZoom: Max pinch-zoom scale (1 disables zoom and panning)
-            items: The hosted controls with their normalized frames (see Config)
-            events: pickup / place / layout actions fired as cards are lifted and dropped
-            canvasConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids).
+            aspect (number, default 1.0): Surface aspect ratio (width ÷ height).
+            editable (bool, default false): Long-press lifts a card; drags emit place/layout and round-trip the synced value.
+            showGrid (bool, default false): Faint dot lattice on the surface (uses the snap increment when set).
+            snap (number, default 0): Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free).
+            maxZoom (number, default 3): Max pinch-zoom scale (1 disables zoom and panning).
+            items (array): The hosted controls with their normalized frames (see Config).
+            events (object): pickup / place / layout actions fired as cards are lifted and dropped.
+            canvasConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.canvas('status-board', position=[0, 0], span=[10, 4], controlHeight=560, label='Ops Board', canvasConfig={'aspect': 1.2, 'items': [{'id': 'cpu', 'x': 0.05, 'y': 0.05, 'w': 0.42, 'h': 0.3, 'control': {'type': 'gauge', 'id': 'cpu-gauge', 'label': 'CPU', 'min': 0, 'max': 100, 'sync': [{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'cpu'}]}}, {'id': 'temp', 'x': 0.53, 'y': 0.05, 'w': 0.42, 'h': 0.3, 'control': {'type': 'sparkline', 'id': 'temp-spark', 'label': 'Temp', 'sync': [{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'temp'}]}}, {'id': 'power', 'x': 0.05, 'y': 0.42, 'w': 0.42, 'h': 0.18, 'control': {'type': 'toggle', 'id': 'rig-power', 'label': 'Rig Power', 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'power', 'payload': {'on': '{{value}}'}}}}}]})
         """
         return self._ctl("canvas", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, aspect=aspect, editable=editable, showGrid=showGrid, snap=snap, maxZoom=maxZoom, items=items, events=events, canvasConfig=canvasConfig), props)
 
@@ -296,6 +311,9 @@ class ScopeControls:
     ) -> "Control":
         """Cards: A stack of cards
         (catalog type `cardList`)
+
+        Example:
+            ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
         return self._ctl("cardList", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback), props)
 
@@ -329,13 +347,16 @@ class ScopeControls:
         (catalog type `carousel`)
 
         Fields:
-            carouselMode: Presentation style for the panels
-            indicator: Page indicator style
-            autoAdvance: Seconds between auto-advances (0 = off)
-            loop: Wrap past the first/last page
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial page index
+            carouselMode (enum, default paged): Presentation style for the panels. Values: paged, coverflow, deck.
+            indicator (enum, default dots): Page indicator style. Values: dots, bars, none.
+            autoAdvance (number, default 0): Seconds between auto-advances (0 = off).
+            loop (bool, default false): Wrap past the first/last page.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number, default 0): Initial page index.
+
+        Example:
+            ui.carousel('scenes', position=[0, 0], span=[3, 4], carouselMode='coverflow', indicator='dots', loop=True, containerAnimation={'profile': 'smooth', 'sideScale': 0.78, 'sideRotation': 50}, defaultValue=0, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'scene'}, 'valuePath': 'index'}], action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'scene', 'payload': {'index': '{{value}}'}}}, panels=[{'type': 'group', 'id': 'home', 'label': 'Home', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'home-l', 'position': [0, 0], 'text': 'Home scene'}]}, {'type': 'group', 'id': 'away', 'label': 'Away', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'away-l', 'position': [0, 0], 'text': 'Away scene'}]}])
         """
         return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -397,41 +418,44 @@ class ScopeControls:
         (catalog type `chart`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the chart
-            chartConfig: Full configuration object (see ChartConfig section)
-            tint: First-series color and palette seed
-            formatValue: Formatter for axis/readout numbers (see control-def)
-            barCornerRadius: Bar corner rounding
-            bins: Bin count for histogram series
-            colors: Series color cycle (per-series color wins)
-            datumAction: datumAction
-            horizontal: Horizontal bars — categories run down the leading edge
-            lineWidth: Line/area stroke width
-            glowRadius: Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the lines. Cross-control, same on every control
-            maxPoints: Rolling window applied to {'append': …} pushes
-            negativeColor: Falling waterfall delta
-            pointSize: Scatter point / vertex dot diameter
-            positiveColor: Rising waterfall delta
-            scrub: Drag shows a dashed crosshair + live readout (with a selection tick)
-            showGrid: Horizontal grid lines
-            showLegend: Series legend under the plot
-            showValues: Numeric value above each bar / on each vertex
-            showXAxis: Category/x labels along the bottom (leading edge when horizontal)
-            showYAxis: Value labels down the left gutter
-            smooth: Catmull-Rom curve smoothing for line/area series
-            stacked: Stack bar/area series instead of grouping/overlaying
-            totalColor: Waterfall running-total bars
-            yMax: Pin the value axis (bars baseline at 0 by default)
-            yMin: Pin the value axis (bars baseline at 0 by default)
-            name: Legend name and append routing key
-            type: Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely
-            color: Series colour (hex); wins over chartConfig.colors
-            values: Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas
-            points: Explicit [x, y] pairs for scatter or unevenly sampled series
-            sizes: Per-point size multipliers (bubble scatter)
-            totals: Waterfall only: indices drawn as running totals from zero
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the chart.
+            chartConfig (object): Full configuration object (see ChartConfig section).
+            tint (color, default #667eea): First-series color and palette seed.
+            formatValue (string): Formatter for axis/readout numbers (see control-def).
+            barCornerRadius (number, default 3): Bar corner rounding.
+            bins (number): Bin count for histogram series.
+            colors (string[]): Series color cycle (per-series color wins).
+            datumAction (object): datumAction.
+            horizontal (bool, default false): Horizontal bars — categories run down the leading edge.
+            lineWidth (number, default 2): Line/area stroke width.
+            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Values: round, butt, square.
+            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes.
+            negativeColor (color): Falling waterfall delta.
+            pointSize (number, default 6): Scatter point / vertex dot diameter.
+            positiveColor (color): Rising waterfall delta.
+            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick).
+            showGrid (bool, default true): Horizontal grid lines.
+            showLegend (bool, default false): Series legend under the plot.
+            showValues (bool, default false): Numeric value above each bar / on each vertex.
+            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal).
+            showYAxis (bool, default true): Value labels down the left gutter.
+            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series.
+            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying.
+            totalColor (color): Waterfall running-total bars.
+            yMax (number): Pin the value axis (bars baseline at 0 by default).
+            yMin (number): Pin the value axis (bars baseline at 0 by default).
+            name (string): Legend name and append routing key.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Values: bar, line, area, scatter, histogram, waterfall.
+            color (color): Series colour (hex); wins over chartConfig.colors.
+            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas.
+            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series.
+            sizes (number[]): Per-point size multipliers (bubble scatter).
+            totals (number[]): Waterfall only: indices drawn as running totals from zero.
+
+        Example:
+            ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
         """
         return self._ctl("chart", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
 
@@ -470,18 +494,21 @@ class ScopeControls:
         (catalog type `chat`)
 
         Fields:
-            label: Header label
-            config: ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint
-            allowClear: Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless.
-            allowImages: allowImages
-            allowReactions: allowReactions
-            allowReplies: allowReplies
-            historyCount: historyCount
-            showReadReceipts: showReadReceipts
-            showTypingIndicators: showTypingIndicators
-            systemMessageEvents: systemMessageEvents
-            target: target
-            tint: tint
+            label (string): Header label.
+            config (object): ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint.
+            allowClear (bool): Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless.
+            allowImages (bool): allowImages.
+            allowReactions (bool): allowReactions.
+            allowReplies (bool): allowReplies.
+            historyCount (number): historyCount.
+            showReadReceipts (bool): showReadReceipts.
+            showTypingIndicators (bool): showTypingIndicators.
+            systemMessageEvents (string[]): systemMessageEvents.
+            target (string): target.
+            tint (color): tint.
+
+        Example:
+            ui.chat('team-chat', position=[0, 0], span=[4, 4], label='Team Chat', config={'target': 'hub-server', 'showTypingIndicators': True, 'showReadReceipts': True, 'allowReactions': True, 'allowReplies': True, 'historyCount': 100})
         """
         return self._ctl("chat", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, config=config, allowClear=allowClear, allowImages=allowImages, allowReactions=allowReactions, allowReplies=allowReplies, historyCount=historyCount, showReadReceipts=showReadReceipts, showTypingIndicators=showTypingIndicators, systemMessageEvents=systemMessageEvents, target=target, tint=tint), props)
 
@@ -519,17 +546,20 @@ class ScopeControls:
         (catalog type `chord`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the diagram
-            chordConfig: Full configuration object (see ChordConfig section)
-            tint: First-group color and palette seed
-            formatValue: Formatter for group totals
-            arcAction: arcAction
-            colors: Group color cycle (payload colors wins)
-            pad: Degrees of breathing room between arcs
-            ribbonOpacity: Ribbon opacity (selection brightens involved ribbons)
-            scrub: Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap)
-            showLabels: Group names around the rim
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the diagram.
+            chordConfig (object): Full configuration object (see ChordConfig section).
+            tint (color, default #667eea): First-group color and palette seed.
+            formatValue (string): Formatter for group totals.
+            arcAction (object): arcAction.
+            colors (string[]): Group color cycle (payload colors wins).
+            pad (number, default 2.5): Degrees of breathing room between arcs.
+            ribbonOpacity (number, default 0.4): Ribbon opacity (selection brightens involved ribbons).
+            scrub (bool, default false): Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap).
+            showLabels (bool, default true): Group names around the rim.
+
+        Example:
+            ui.chord('mesh-traffic', position=[0, 0], span=[3, 3], label='Calls/min', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'mesh_matrix'}, 'valuePath': 'chord'}])
         """
         return self._ctl("chord", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, chordConfig=chordConfig, tint=tint, formatValue=formatValue, arcAction=arcAction, colors=colors, pad=pad, ribbonOpacity=ribbonOpacity, scrub=scrub, showLabels=showLabels), props)
 
@@ -559,9 +589,12 @@ class ScopeControls:
         (catalog type `colorPicker`)
 
         Fields:
-            label: Display label
-            defaultValue: Initial hex color
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            label (string): Display label.
+            defaultValue (string): Initial hex color.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.color_picker('lr-color', position=[1, 3], defaultValue='#F4B860', label='Color', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'color', 'payload': {'room': 'living', 'hex': '{{value}}'}}})
         """
         return self._ctl("colorPicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, defaultValue=defaultValue, confirm=confirm), props)
 
@@ -600,18 +633,21 @@ class ScopeControls:
         (catalog type `compass`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            tolerance: Half-angle (°) within which the needle counts as pointing at a puck
-            dwell: Seconds to hold on a puck before its action fires (0 = instant)
-            showCardinals: Draw N/E/S/W ticks
-            cardinalSize: Cardinal glyph point size
-            cardinalColor: E/S/W cardinal color (default secondary grey; N always follows tint)
-            editable: Allow dragging pucks to re-bearing them
-            events: events
-            pucks: pucks
-            compassConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 420): Rendered height in points (required in flow-mode grids).
+            tolerance (number, default 15): Half-angle (°) within which the needle counts as pointing at a puck.
+            dwell (number, default 1.2): Seconds to hold on a puck before its action fires (0 = instant).
+            showCardinals (bool, default true): Draw N/E/S/W ticks.
+            cardinalSize (number, default 13): Cardinal glyph point size.
+            cardinalColor (color): E/S/W cardinal color (default secondary grey; N always follows tint).
+            editable (bool, default true): Allow dragging pucks to re-bearing them.
+            events (object): events.
+            pucks (object): pucks.
+            compassConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.compass('action-ring', position=[0, 0], span=[7, 4], controlHeight=420, label='Action Ring', defaultValue=5, compassConfig={'tolerance': 20, 'dwell': 1.0, 'pucks': [{'id': 'lights', 'label': 'Lights', 'icon': 'lightbulb.fill', 'tint': '#FF9500', 'bearing': 0, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'music', 'label': 'Music', 'icon': 'music.note', 'tint': '#FF2D55', 'bearing': 90, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'lock', 'label': 'Lock', 'icon': 'lock.fill', 'tint': '#34C759', 'bearing': 180, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}]}, sync=[{'method': 'sensor', 'sensor': 'heading'}])
         """
         return self._ctl("compass", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
 
@@ -647,15 +683,18 @@ class ScopeControls:
         (catalog type `datePicker`)
 
         Fields:
-            datePickerStyle: Display style
-            datePickerMode: Date/time components
-            dateMin: Minimum date (ISO 8601)
-            dateMax: Maximum date (ISO 8601)
-            label: Display label
-            tint: Accent color
-            defaultValue: Initial ISO 8601 date string
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            datePickerStyle (enum, default compact): Display style. Values: compact, wheel, graphical.
+            datePickerMode (enum, default dateAndTime): Date/time components. Values: date, time, dateAndTime.
+            dateMin (string): Minimum date (ISO 8601).
+            dateMax (string): Maximum date (ISO 8601).
+            label (string): Display label.
+            tint (color, default #667eea): Accent color.
+            defaultValue (string): Initial ISO 8601 date string.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
         """
         return self._ctl("datePicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -686,10 +725,13 @@ class ScopeControls:
         (catalog type `divider`)
 
         Fields:
-            label: Optional section label centered on the divider
-            tint: Line color
-            style: Line style
-            lineThickness: Line thickness in points
+            label (string): Optional section label centered on the divider.
+            tint (color, default #FFFFFF): Line color.
+            style (enum, default line): Line style. Values: line, dashed.
+            lineThickness (number, default 1): Line thickness in points.
+
+        Example:
+            ui.divider('section-break', position=[2, 0], span=[1, 4], label='Advanced Settings', style='dashed', tint='#8E8E93')
         """
         return self._ctl("divider", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, style=style, lineThickness=lineThickness), props)
 
@@ -721,11 +763,14 @@ class ScopeControls:
         (catalog type `flipCard`)
 
         Fields:
-            flipTrigger: Gesture that advances to the next face
-            flipAxis: Axis the card rotates around
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial face index
+            flipTrigger (enum, default tap): Gesture that advances to the next face. Values: tap, longPress.
+            flipAxis (enum, default horizontal): Axis the card rotates around. Values: horizontal, vertical.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number, default 0): Initial face index.
+
+        Example:
+            ui.flip_card('status-card', position=[0, 0], span=[2, 2], flipAxis='horizontal', containerAnimation={'profile': 'snappy', 'flipPerspective': 0.7}, panels=[{'type': 'group', 'id': 'front', 'label': 'Status', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'gauge', 'id': 'f-cpu', 'position': [0, 0], 'label': 'CPU', 'min': 0, 'max': 100, 'defaultValue': 42}]}, {'type': 'group', 'id': 'back', 'label': 'Actions', 'position': [0, 0], 'grid': {'columns': 2, 'rows': 1}, 'children': [{'type': 'button', 'id': 'b-restart', 'position': [0, 0], 'label': 'Restart', 'icon': 'arrow.clockwise'}, {'type': 'button', 'id': 'b-stop', 'position': [0, 1], 'label': 'Stop', 'icon': 'stop.fill'}]}])
         """
         return self._ctl("flipCard", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, flipTrigger=flipTrigger, flipAxis=flipAxis, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -767,21 +812,24 @@ class ScopeControls:
         (catalog type `gantt`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the timeline
-            ganttConfig: Full configuration object (see GanttConfig section)
-            tint: First-task color and palette seed
-            barCornerRadius: Bar corner rounding
-            colors: Per-task color cycle (task color wins)
-            editable: Drag along a bar to set its progress
-            rowHeight: Points per task row
-            scrub: When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)
-            showAxis: Time labels along the top
-            showGrid: Vertical gridlines at the axis ticks
-            showProgress: Progress fill inside bars + % readout
-            showToday: Dashed 'now' line (date timelines only)
-            step: Progress snap while dragging
-            taskAction: taskAction
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the timeline.
+            ganttConfig (object): Full configuration object (see GanttConfig section).
+            tint (color, default #667eea): First-task color and palette seed.
+            barCornerRadius (number, default 5): Bar corner rounding.
+            colors (string[]): Per-task color cycle (task color wins).
+            editable (bool, default false): Drag along a bar to set its progress.
+            rowHeight (number, default 30): Points per task row.
+            scrub (bool, default false): When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap).
+            showAxis (bool, default true): Time labels along the top.
+            showGrid (bool, default true): Vertical gridlines at the axis ticks.
+            showProgress (bool, default true): Progress fill inside bars + % readout.
+            showToday (bool, default true): Dashed 'now' line (date timelines only).
+            step (number, default 0.05): Progress snap while dragging.
+            taskAction (object): taskAction.
+
+        Example:
+            ui.gantt('sprint', position=[0, 0], span=[3, 4], label='Sprint 12', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'sprint_plan'}, 'valuePath': 'gantt'}])
         """
         return self._ctl("gantt", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, ganttConfig=ganttConfig, tint=tint, barCornerRadius=barCornerRadius, colors=colors, editable=editable, rowHeight=rowHeight, scrub=scrub, showAxis=showAxis, showGrid=showGrid, showProgress=showProgress, showToday=showToday, step=step, taskAction=taskAction), props)
 
@@ -829,27 +877,30 @@ class ScopeControls:
         (catalog type `gauge`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            gaugeStyle: Shorthand: half = 180° arc, full = 360° circle
-            glowRadius: Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control
-            segments: Color zone breakpoints [{limit, color}]
-            colorBlend: How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
-            tint: Primary arc fill color (when no segments)
-            label: Text below the gauge
-            icon: SF Symbol in the center
-            step: Determines decimal formatting of center value
-            arcAngle: Arc sweep in degrees (1-360)
-            arcRotation: Rotates the arc start position in degrees
-            arcThickness: Arc stroke width in points. Omit to auto-scale with the gauge's size.
-            hideValue: Show just the arc — hide the center value
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Values: half, full.
+            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Values: round, butt, square.
+            segments (array): Color zone breakpoints [{limit, color}].
+            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
+            tint (color, default #667eea): Primary arc fill color (when no segments).
+            label (string): Text below the gauge.
+            icon (string): SF Symbol in the center.
+            step (number, default 1): Determines decimal formatting of center value.
+            arcAngle (number, default 180): Arc sweep in degrees (1-360).
+            arcRotation (number, default 0): Rotates the arc start position in degrees.
+            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size.
+            hideValue (bool, default false): Show just the arc — hide the center value.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+
+        Example:
+            ui.gauge('cpu-temp', position=[0, 0], min=30, max=100, gaugeStyle='half', label='CPU Temp', icon='thermometer.medium', segments=[{'limit': 60, 'color': '#34C759'}, {'limit': 80, 'color': '#FF9500'}, {'limit': 100, 'color': '#FF3B30'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'device': 'server'}, 'valuePath': 'cpu_temp'}])
         """
         return self._ctl("gauge", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, min=min, max=max, gaugeStyle=gaugeStyle, glowRadius=glowRadius, lineCap=lineCap, segments=segments, colorBlend=colorBlend, tint=tint, label=label, icon=icon, step=step, arcAngle=arcAngle, arcRotation=arcRotation, arcThickness=arcThickness, hideValue=hideValue, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit), props)
 
@@ -910,40 +961,43 @@ class ScopeControls:
         (catalog type `graph`)
 
         Fields:
-            label: Header label above the graph
-            graphConfig: Full configuration object (see GraphConfig section)
-            tint: Fallback node color
-            attractionForce: How strongly connected nodes pull together
-            backgroundColor: Graph canvas background
-            centerForce: How strongly nodes are pulled toward center
-            contentEvent: (Reserved) Event for content-push model
-            damping: Velocity dampening per tick (0-1, lower = more friction)
-            draggable: Allow dragging individual nodes
-            edgeColor: Default edge line color
-            edgeCurved: Use curved (quadratic) edges instead of straight
-            edgeOpacity: Edge line opacity (0-1)
-            edgeWidth: Edge line width
-            glowColor: Glow color
-            glowEnabled: Node glow effect
-            glowRadius: Glow blur radius
-            groupColors: groupColors
-            interactive: Allow pan and zoom
-            labelColor: Label text color
-            labelOffset: Distance from node center to label
-            labelSize: Label font size
-            nodeAction: nodeAction
-            nodeBorderColor: Border stroke color
-            nodeBorderWidth: Border stroke width around nodes
-            nodeColor: Default node fill color (hex)
-            nodeHighlightColor: Color when node is active/selected
-            nodeSize: Base node radius in points
-            particleColor: (Reserved) Particle color
-            particleSpeed: (Reserved) Particle animation speed
-            repulsionForce: How strongly nodes push apart
-            showLabels: Show text labels under nodes
-            showParticles: Animated particles travelling along edges
-            velocityDecay: Velocity decay rate (0-1, lower = faster settling)
-            zoomRange: Pinch zoom limits
+            label (string): Header label above the graph.
+            graphConfig (object): Full configuration object (see GraphConfig section).
+            tint (color, default #667eea): Fallback node color.
+            attractionForce (number, default 0.01): How strongly connected nodes pull together.
+            backgroundColor (color): Graph canvas background.
+            centerForce (number, default 0.02): How strongly nodes are pulled toward center.
+            contentEvent (string): (Reserved) Event for content-push model.
+            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction).
+            draggable (bool, default true): Allow dragging individual nodes.
+            edgeColor (color): Default edge line color.
+            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight.
+            edgeOpacity (number, default 0.4): Edge line opacity (0-1).
+            edgeWidth (number, default 1.0): Edge line width.
+            glowColor (color): Glow color.
+            glowEnabled (bool, default true): Node glow effect.
+            glowRadius (number, default 6.0): Glow blur radius.
+            groupColors (object): groupColors.
+            interactive (bool, default true): Allow pan and zoom.
+            labelColor (color): Label text color.
+            labelOffset (number, default 12.0): Distance from node center to label.
+            labelSize (number, default 10.0): Label font size.
+            nodeAction (object): nodeAction.
+            nodeBorderColor (color): Border stroke color.
+            nodeBorderWidth (number, default 0): Border stroke width around nodes.
+            nodeColor (color): Default node fill color (hex).
+            nodeHighlightColor (color): Color when node is active/selected.
+            nodeSize (number, default 8.0): Base node radius in points.
+            particleColor (color): (Reserved) Particle color.
+            particleSpeed (number): (Reserved) Particle animation speed.
+            repulsionForce (number, default 100): How strongly nodes push apart.
+            showLabels (bool, default true): Show text labels under nodes.
+            showParticles (bool, default false): Animated particles travelling along edges.
+            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling).
+            zoomRange (object): Pinch zoom limits.
+
+        Example:
+            ui.graph('network-topology', position=[0, 0], span=[4, 4], label='Network Topology', graphConfig={'nodeColor': '#667eea', 'nodeSize': 10, 'nodeBorderWidth': 1.5, 'nodeBorderColor': '#FFFFFF', 'edgeColor': '#FFFFFF', 'edgeWidth': 1.0, 'edgeOpacity': 0.3, 'edgeCurved': True, 'showLabels': True, 'labelColor': '#AAAAAA', 'labelSize': 9, 'repulsionForce': 120, 'attractionForce': 0.015, 'centerForce': 0.03, 'damping': 0.85, 'velocityDecay': 0.5, 'interactive': True, 'draggable': True, 'zoomRange': [0.5, 2.5], 'backgroundColor': '#0A0A1A', 'glowEnabled': True, 'glowRadius': 8, 'glowColor': '#667eea', 'groupColors': {'hub': '#FF6B6B', 'bridge': '#FFD93D', 'device': '#6BCB77', 'mobile': '#4D96FF'}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'network_graph'}, 'valuePath': 'graph_data'}])
         """
         return self._ctl("graph", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, graphConfig=graphConfig, tint=tint, attractionForce=attractionForce, backgroundColor=backgroundColor, centerForce=centerForce, contentEvent=contentEvent, damping=damping, draggable=draggable, edgeColor=edgeColor, edgeCurved=edgeCurved, edgeOpacity=edgeOpacity, edgeWidth=edgeWidth, glowColor=glowColor, glowEnabled=glowEnabled, glowRadius=glowRadius, groupColors=groupColors, interactive=interactive, labelColor=labelColor, labelOffset=labelOffset, labelSize=labelSize, nodeAction=nodeAction, nodeBorderColor=nodeBorderColor, nodeBorderWidth=nodeBorderWidth, nodeColor=nodeColor, nodeHighlightColor=nodeHighlightColor, nodeSize=nodeSize, particleColor=particleColor, particleSpeed=particleSpeed, repulsionForce=repulsionForce, showLabels=showLabels, showParticles=showParticles, velocityDecay=velocityDecay, zoomRange=zoomRange), props)
 
@@ -994,30 +1048,33 @@ class ScopeControls:
         (catalog type `heatmap`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the grid
-            heatmapConfig: Full configuration object (see HeatmapConfig section)
-            tint: Ramp/palette seed color
-            formatValue: Formatter for scale/cell values
-            calendar: Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it
-            weekStartsOn: Calendar week start (default: the bound local source's weekStartsOn, else monday)
-            weeks: Calendar shows only the most recent N weeks (default the whole span, up to 106)
-            cellAction: cellAction
-            cellCornerRadius: Cell corner rounding (square cells only)
-            cellCorner: Older name of cellCornerRadius; cellCornerRadius wins when both are set
-            cellGap: Gap between cells
-            cellShape: square or circle (circle reads as dot-matrix/LED)
-            colors: Continuous: 2+ gradient stops. Discrete: the palette (value = index)
-            discrete: Treat values as palette indices instead of a continuous range
-            drag: Drag paints the first-touched cell's new value across cells
-            editable: Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)
-            sendMode: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
-            showColLabels: Column labels along the top (when cols present; auto-thinned)
-            showRowLabels: Row labels down the leading edge (when rows present)
-            showScale: Gradient scale legend under the grid (continuous only)
-            showValues: Numeric value inside each cell (when cells are large enough)
-            vMax: Continuous color-scale bounds
-            vMin: Continuous color-scale bounds
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the grid.
+            heatmapConfig (object): Full configuration object (see HeatmapConfig section).
+            tint (color, default #667eea): Ramp/palette seed color.
+            formatValue (string): Formatter for scale/cell values.
+            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it.
+            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Values: monday, sunday.
+            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106).
+            cellAction (object): cellAction.
+            cellCornerRadius (number, default 3): Cell corner rounding (square cells only).
+            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set.
+            cellGap (number, default 2): Gap between cells.
+            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Values: square, circle.
+            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index).
+            discrete (bool, default false): Treat values as palette indices instead of a continuous range.
+            drag (bool, default true): Drag paints the first-touched cell's new value across cells.
+            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle).
+            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s).
+            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned).
+            showRowLabels (bool, default true): Row labels down the leading edge (when rows present).
+            showScale (bool, default false): Gradient scale legend under the grid (continuous only).
+            showValues (bool, default false): Numeric value inside each cell (when cells are large enough).
+            vMax (number): Continuous color-scale bounds.
+            vMin (number): Continuous color-scale bounds.
+
+        Example:
+            ui.heatmap('rack-temps', defaultValue='{"rows":["Mon","Tue","Wed"],"cols":["00","06","12","18"],"values":[[24,31,62,45],[28,55,81,49],[22,38,74,68]]}', position=[0, 0], span=[3, 4], label='Rack temperatures', formatValue='suffix:°C', heatmapConfig={'colors': ['#1B2845', '#667eea', '#FF9500', '#FF6B6B'], 'showScale': True, 'vMin': 20, 'vMax': 90}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'rack_temps'}, 'valuePath': 'grid'}])
         """
         return self._ctl("heatmap", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, heatmapConfig=heatmapConfig, tint=tint, formatValue=formatValue, calendar=calendar, weekStartsOn=weekStartsOn, weeks=weeks, cellAction=cellAction, cellCornerRadius=cellCornerRadius, cellCorner=cellCorner, cellGap=cellGap, cellShape=cellShape, colors=colors, discrete=discrete, drag=drag, editable=editable, sendMode=sendMode, showColLabels=showColLabels, showRowLabels=showRowLabels, showScale=showScale, showValues=showValues, vMax=vMax, vMin=vMin), props)
 
@@ -1054,16 +1111,19 @@ class ScopeControls:
         (catalog type `image`)
 
         Fields:
-            systemName: SF Symbol name (fallback/placeholder)
-            url: Static remote image URL
-            style: Visual style variant
-            imageCornerRadius: Custom corner radius
-            imageShadow: Soft shadow blur under the image (0 = none)
-            aspectRatio: fit (scale to fit) or fill (scale to fill, may crop)
-            hideBackground: Remove glass background
-            iconMap: Incoming value → SF Symbol name ("default" catches the rest)
-            valueMap: Incoming value → image URL
-            colorMap: Incoming value → hex tint for the mapped symbol
+            systemName (string): SF Symbol name (fallback/placeholder).
+            url (string): Static remote image URL.
+            style (enum): Visual style variant. Values: rounded, circle.
+            imageCornerRadius (number): Custom corner radius.
+            imageShadow (number, default 0): Soft shadow blur under the image (0 = none).
+            aspectRatio (enum): fit (scale to fit) or fill (scale to fill, may crop). Values: fit, fill.
+            hideBackground (bool, default false): Remove glass background.
+            iconMap (object): Incoming value → SF Symbol name ("default" catches the rest).
+            valueMap (object): Incoming value → image URL.
+            colorMap (object): Incoming value → hex tint for the mapped symbol.
+
+        Example:
+            ui.image('cam-front', position=[0, 0], span=[1, 2], systemName='video.fill')
         """
         return self._ctl("image", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, systemName=systemName, url=url, style=style, imageCornerRadius=imageCornerRadius, imageShadow=imageShadow, aspectRatio=aspectRatio, hideBackground=hideBackground, iconMap=iconMap, valueMap=valueMap, colorMap=colorMap), props)
 
@@ -1097,13 +1157,16 @@ class ScopeControls:
         (catalog type `joystick`)
 
         Fields:
-            label: Header label
-            tint: Stick and track color
-            style: analog (free) or dpad (4/8-direction snapping)
-            deadzone: Center deadzone radius (0-1)
-            sticky: Stick stays where released instead of snapping to center
-            sendRate: Throttle interval in seconds for action firing
-            hideLabel: Hide label and coordinate readout
+            label (string): Header label.
+            tint (color, default #667eea): Stick and track color.
+            style (enum, default analog): analog (free) or dpad (4/8-direction snapping). Values: analog, dpad.
+            deadzone (number, default 0.1): Center deadzone radius (0-1).
+            sticky (bool, default false): Stick stays where released instead of snapping to center.
+            sendRate (number, default 0.1): Throttle interval in seconds for action firing.
+            hideLabel (bool, default false): Hide label and coordinate readout.
+
+        Example:
+            ui.joystick('drive-stick', position=[0, 0], span=[3, 3], label='Drive', tint='#FF2D55', style='analog', deadzone=0.15, sendRate=0.05, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'robot', 'type': 'drive', 'payload': {'x': '$value.x', 'y': '$value.y'}}})
         """
         return self._ctl("joystick", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel), props)
 
@@ -1144,20 +1207,23 @@ class ScopeControls:
         (catalog type `keyValue`)
 
         Fields:
-            label: Header label
-            rows: Row whitelist and order: [{ key, label, format, icon, unit }]
-            keyValueStyle: rows = label left / value right; chips = wrapping pills; grid = cards
-            columns: How many columns of rows or cards to lay out (grid defaults to 2)
-            sortKeys: Sort keys alphabetically instead of keeping the feed's own order
-            hideEmpty: Skip rows whose value is null or an empty string
-            maxRows: Cap on rendered rows (0 = all of them)
-            format: Default number format for rows without their own (percent, duration, bytes, suffix:°C, …)
-            colorMap: Value → hex tint, so a value can carry its own status color
-            tint: Value color when no colorMap entry matches
-            keyTint: Color of the key names (default: the theme's secondary color)
-            valueTint: Color of the values when no colorMap entry matches (default: tint)
-            hideLabel: Hide the header label
-            hideBackground: Draw without the card surface
+            label (string): Header label.
+            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }].
+            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Values: rows, chips, grid.
+            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2).
+            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order.
+            hideEmpty (bool, default true): Skip rows whose value is null or an empty string.
+            maxRows (number, default 0): Cap on rendered rows (0 = all of them).
+            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …).
+            colorMap (object): Value → hex tint, so a value can carry its own status color.
+            tint (color): Value color when no colorMap entry matches.
+            keyTint (color): Color of the key names (default: the theme's secondary color).
+            valueTint (color): Color of the values when no colorMap entry matches (default: tint).
+            hideLabel (bool, default false): Hide the header label.
+            hideBackground (bool, default false): Draw without the card surface.
+
+        Example:
+            ui.key_value('health', position=[0, 0], span=[3, 4], label='Pi Health', rows=[{'key': 'cpu', 'label': 'CPU', 'format': 'percent', 'icon': 'cpu'}, {'key': 'temp', 'label': 'Temp', 'format': 'suffix:°C', 'icon': 'thermometer.medium'}, {'key': 'uptime', 'label': 'Uptime', 'format': 'duration', 'icon': 'clock'}, {'key': 'ip', 'label': 'IP', 'icon': 'network'}, {'key': 'online', 'label': 'Link', 'icon': 'antenna.radiowaves.left.and.right'}], colorMap={'true': '#34C759', 'false': '#FF3B30'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'health'}, 'valuePath': 'stats'}])
         """
         return self._ctl("keyValue", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, rows=rows, keyValueStyle=keyValueStyle, columns=columns, sortKeys=sortKeys, hideEmpty=hideEmpty, maxRows=maxRows, format=format, colorMap=colorMap, tint=tint, keyTint=keyTint, valueTint=valueTint, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
@@ -1203,25 +1269,28 @@ class ScopeControls:
         (catalog type `label`)
 
         Fields:
-            text: Static display text (overridden by sync)
-            label: Alternative to text
-            icon: SF Symbol before text
-            style: Text style variant (terminal = ANSI terminal renderer)
-            glowRadius: Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control
-            tint: Text and icon color
-            align: Text alignment
-            fontWeight: Font weight laid over the text style
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
-            scrollable: Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight)
-            formatValue: Value display format (see formatValue table; relative / relative:day show a date as time-since)
-            placeholder: Shown by a relative-date label with no date yet (default "Never")
-            valueMap: Incoming value → display text ("default" catches the rest)
-            iconMap: Incoming value → SF Symbol name
-            colorMap: Incoming value → hex tint
+            text (string): Static display text (overridden by sync).
+            label (string): Alternative to text.
+            icon (string): SF Symbol before text.
+            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Values: default, headline, title, caption, mono, large-mono, terminal.
+            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control.
+            tint (color, default #FFFFFF): Text and icon color.
+            align (enum, default leading): Text alignment. Values: leading, center, trailing.
+            fontWeight (enum, default regular): Font weight laid over the text style. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
+            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight).
+            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since).
+            placeholder (string): Shown by a relative-date label with no date yet (default "Never").
+            valueMap (object): Incoming value → display text ("default" catches the rest).
+            iconMap (object): Incoming value → SF Symbol name.
+            colorMap (object): Incoming value → hex tint.
+
+        Example:
+            ui.label('fern-watered', label='Fern — last watered', icon='leaf.fill', formatValue='relative:day', placeholder='Not watered yet', sync=[{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'fern'}, 'valuePath': 'lastWatered'}])
         """
         return self._ctl("label", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, text=text, label=label, icon=icon, style=style, glowRadius=glowRadius, tint=tint, align=align, fontWeight=fontWeight, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit, scrollable=scrollable, formatValue=formatValue, placeholder=placeholder, valueMap=valueMap, iconMap=iconMap, colorMap=colorMap), props)
 
@@ -1257,15 +1326,18 @@ class ScopeControls:
         (catalog type `list`)
 
         Fields:
-            formatValue: Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
-            label: Header label
-            listColumns: Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
-            emptyText: Line shown when the list has no rows. Default: \\"No <label> yet\\".
-            tint: Header text color
-            hideLabel: Hide header label
-            hideBackground: Remove glass card background
-            defaultValue: Seed rows shown before the first sync (the same row objects a sync delivers)
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
+            label (string): Header label.
+            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
+            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\".
+            tint (color, default #FFFFFF): Header text color.
+            hideLabel (bool, default false): Hide header label.
+            hideBackground (bool, default false): Remove glass card background.
+            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
         """
         return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm), props)
 
@@ -1302,16 +1374,19 @@ class ScopeControls:
         (catalog type `logConsole`)
 
         Fields:
-            label: Header label
-            style: default (dark bg) or transparent
-            maxLines: Maximum buffered lines
-            showTimestamps: Prefix each line with timestamp
-            fontSize: Monospace font size
-            autoScroll: Auto-scroll to latest line
-            controlHeight: Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span.
-            logColors: Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}
-            tint: Accent color
-            defaultValue: Seed lines shown before the first sync (strings, or objects with text and level)
+            label (string): Header label.
+            style (enum, default default): default (dark bg) or transparent. Values: default, transparent.
+            maxLines (number, default 200): Maximum buffered lines.
+            showTimestamps (bool, default true): Prefix each line with timestamp.
+            fontSize (number, default 11): Monospace font size.
+            autoScroll (bool, default true): Auto-scroll to latest line.
+            controlHeight (number): Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span.
+            logColors (object): Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}.
+            tint (color, default #667eea): Accent color.
+            defaultValue (array): Seed lines shown before the first sync (strings, or objects with text and level).
+
+        Example:
+            ui.log_console('app-logs', position=[0, 0], span=[3, 4], label='Application Logs', maxLines=500, showTimestamps=True, fontSize=12, autoScroll=True, logColors={'error': '#FF3B30', 'warn': '#FF9500', 'info': '#34C759', 'debug': '#8E8E93'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'log_stream'}}])
         """
         return self._ctl("logConsole", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, style=style, maxLines=maxLines, showTimestamps=showTimestamps, fontSize=fontSize, autoScroll=autoScroll, controlHeight=controlHeight, logColors=logColors, tint=tint, defaultValue=defaultValue), props)
 
@@ -1345,13 +1420,16 @@ class ScopeControls:
         (catalog type `map`)
 
         Fields:
-            mapStyle: Map rendering style (globe frames the whole Earth)
-            mapInteractive: Allow user pan/zoom
-            mapZoom: Default coordinate span in degrees
-            label: Header label above the map
-            tint: Default marker color (used when a marker carries none)
-            mapConfig: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
-            controlHeight: Map height in points in a flow-mode grid (2-D grids size it by rowSpan)
+            mapStyle (enum, default standard): Map rendering style (globe frames the whole Earth). Values: standard, satellite, hybrid, globe.
+            mapInteractive (bool, default true): Allow user pan/zoom.
+            mapZoom (number, default 0.01): Default coordinate span in degrees.
+            label (string): Header label above the map.
+            tint (color, default #667eea): Default marker color (used when a marker carries none).
+            mapConfig (object): Property→style mapping for GeoJSON feeds (marker size/color/label/ripple).
+            controlHeight (number): Map height in points in a flow-mode grid (2-D grids size it by rowSpan).
+
+        Example:
+            ui.map('vehicle-location', position=[0, 0], span=[3, 4], mapStyle='standard', mapInteractive=True, mapZoom=0.005, label='Vehicle', tint='#FF3B30', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'gps_update'}, 'valuePath': 'map_data'}])
         """
         return self._ctl("map", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, controlHeight=controlHeight), props)
 
@@ -1389,17 +1467,20 @@ class ScopeControls:
         (catalog type `picker`)
 
         Fields:
-            animation: Motion profile for value changes
-            optionIcons: Optional SF Symbols parallel to options, supported in every picker style
-            optionLabels: Display labels parallel to options; actions and sync use the original option values
-            placeholder: Text shown when no options are available or a picker has no selection
-            options: Available choices (string array)
-            pickerStyle: Display style
-            label: Display label
-            tint: Accent color
-            defaultValue: Initially selected option
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
+            placeholder (string): Text shown when no options are available or a picker has no selection.
+            options (array): Available choices (string array).
+            pickerStyle (enum, default menu): Display style. Values: menu, wheel, inline.
+            label (string): Display label.
+            tint (color, default #667eea): Accent color.
+            defaultValue (string): Initially selected option.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
         return self._ctl("picker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -1449,29 +1530,32 @@ class ScopeControls:
         (catalog type `pieChart`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Label under the chart
-            pieStyle: Classic pie, donut, spin-to-select wheel, or radial menu
-            glowRadius: Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control
-            pieConfig: Full configuration object (see PieConfig section)
-            tint: First-slice color and palette seed
-            formatValue: Formatter for slice/center values
-            centerText: Donut center text; {{total}} interpolates the slice sum
-            colors: Slice color cycle (per-slice color wins)
-            donutRatio: Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3)
-            sliceGap: Even-width gap between neighbouring slices in points (slices narrower than the gap drop it)
-            sliceCornerRadius: Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices
-            explodeSelected: Tapped slice pops outward (**wheels default false)
-            percent: Show values as % of the total
-            showLabels: Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead)
-            showLegend: Wrapping dot-chip legend under the chart
-            showValues: Append each slice's value to its label
-            sliceAction: sliceAction
-            spinDuration: Approximate seconds a full-strength spin takes to settle
-            spinTicks: Haptic tick per slice boundary while spinning
-            startAngle: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
-            icon: SF Symbol in the wheel/menu hub before a result lands
-            hideValue: Suppress the donut/hub center readout
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Label under the chart.
+            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Values: pie, donut, wheel, menu.
+            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control.
+            pieConfig (object): Full configuration object (see PieConfig section).
+            tint (color, default #667eea): First-slice color and palette seed.
+            formatValue (string): Formatter for slice/center values.
+            centerText (string): Donut center text; {{total}} interpolates the slice sum.
+            colors (string[]): Slice color cycle (per-slice color wins).
+            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3).
+            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it).
+            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices.
+            explodeSelected (bool): Tapped slice pops outward (**wheels default false).
+            percent (bool, default false): Show values as % of the total.
+            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead).
+            showLegend (bool, default false): Wrapping dot-chip legend under the chart.
+            showValues (bool, default false): Append each slice's value to its label.
+            sliceAction (object): sliceAction.
+            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle.
+            spinTicks (bool, default true): Haptic tick per slice boundary while spinning.
+            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise).
+            icon (string): SF Symbol in the wheel/menu hub before a result lands.
+            hideValue (bool, default false): Suppress the donut/hub center readout.
+
+        Example:
+            ui.pie_chart('power-split', position=[0, 0], span=[3, 3], label='Power draw', pieStyle='donut', pieConfig={'centerText': '{{total}}W', 'showLegend': True, 'percent': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power'}, 'valuePath': 'split'}])
         """
         return self._ctl("pieChart", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, pieStyle=pieStyle, glowRadius=glowRadius, pieConfig=pieConfig, tint=tint, formatValue=formatValue, centerText=centerText, colors=colors, donutRatio=donutRatio, sliceGap=sliceGap, sliceCornerRadius=sliceCornerRadius, explodeSelected=explodeSelected, percent=percent, showLabels=showLabels, showLegend=showLegend, showValues=showValues, sliceAction=sliceAction, spinDuration=spinDuration, spinTicks=spinTicks, startAngle=startAngle, icon=icon, hideValue=hideValue), props)
 
@@ -1509,17 +1593,20 @@ class ScopeControls:
         (catalog type `pinboard`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            background: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
-            surfaceAspect: Surface aspect ratio (width ÷ height)
-            searchable: Show a filter field above the option area
-            paletteLabel: Header for the option area
-            hidePalette: Hide the option area (surfaces whose markers all start placed)
-            events: events
-            items: items
-            pinboardConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids).
+            background (string): SF Symbol drawn faint behind the surface (floor-plan / map backdrop).
+            surfaceAspect (number, default 1.4): Surface aspect ratio (width ÷ height).
+            searchable (bool, default false): Show a filter field above the option area.
+            paletteLabel (string, default Items): Header for the option area.
+            hidePalette (bool, default false): Hide the option area (surfaces whose markers all start placed).
+            events (object): events.
+            items (object): items.
+            pinboardConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.pinboard('home-plan', position=[0, 0], span=[10, 4], controlHeight=560, label='Home Devices', pinboardConfig={'background': 'house.fill', 'surfaceAspect': 1.6, 'paletteLabel': 'Unplaced devices', 'items': [{'id': 'living-lamp', 'label': 'Living Lamp', 'icon': 'lamp.table.fill', 'tint': '#FF9500', 'x': 0.28, 'y': 0.4, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'toggle', 'payload': {'device': '{{value}}'}}}}, {'id': 'front-door', 'label': 'Front Door', 'icon': 'door.left.hand.closed', 'tint': '#34C759', 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'toggle', 'payload': {'device': '{{value}}'}}}}], 'events': {'place': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'place_device', 'payload': {'device': '{{item}}', 'x': '{{x}}', 'y': '{{y}}'}}}, 'layout': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'floorplan_state'}}}})
         """
         return self._ctl("pinboard", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, background=background, surfaceAspect=surfaceAspect, searchable=searchable, paletteLabel=paletteLabel, hidePalette=hidePalette, events=events, items=items, pinboardConfig=pinboardConfig), props)
 
@@ -1564,24 +1651,27 @@ class ScopeControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value (0%)
-            max: Maximum value (100%)
-            progressStyle: Circular ring or linear bar
-            glowRadius: Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control
-            tint: Fill color
-            colorByValue: Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
-            label: Center text (ring) or header text (bar)
-            icon: SF Symbol in center (ring only)
-            arcThickness: Ring stroke width, or bar height, in points. Absent scales with the control size.
-            barCornerRadius: Corner rounding of the linear bar (progressStyle bar)
-            hideValue: Show just the arc — hide the center value
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value (0%).
+            max (number, default 100): Maximum value (100%).
+            progressStyle (enum, default ring): Circular ring or linear bar. Values: ring, bar.
+            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Values: round, butt, square.
+            tint (color, default #667eea): Fill color.
+            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
+            label (string): Center text (ring) or header text (bar).
+            icon (string): SF Symbol in center (ring only).
+            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size.
+            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar).
+            hideValue (bool, default false): Show just the arc — hide the center value.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+
+        Example:
+            ui.progress_ring('download-progress', position=[0, 0], min=0, max=100, progressStyle='ring', tint='#34C759', label='Download', icon='arrow.down.circle', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'task': 'firmware_update'}, 'valuePath': 'percent'}])
         """
         return self._ctl("progressRing", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, min=min, max=max, progressStyle=progressStyle, glowRadius=glowRadius, lineCap=lineCap, tint=tint, colorByValue=colorByValue, label=label, icon=icon, arcThickness=arcThickness, barCornerRadius=barCornerRadius, hideValue=hideValue, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit), props)
 
@@ -1614,12 +1704,15 @@ class ScopeControls:
         (catalog type `qrCode`)
 
         Fields:
-            label: Label below the QR code
-            text: Static content to encode (overridden by sync)
-            tint: QR code foreground color
-            qrBackground: Fill behind the code (default: none, the card shows through)
-            correctionLevel: Error correction level
-            hideBackground: Remove glass card background
+            label (string): Label below the QR code.
+            text (string): Static content to encode (overridden by sync).
+            tint (color, default #FFFFFF): QR code foreground color.
+            qrBackground (color): Fill behind the code (default: none, the card shows through).
+            correctionLevel (enum, default M): Error correction level. Values: L, M, Q, H.
+            hideBackground (bool, default false): Remove glass card background.
+
+        Example:
+            ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
         """
         return self._ctl("qrCode", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideBackground=hideBackground), props)
 
@@ -1664,24 +1757,27 @@ class ScopeControls:
         (catalog type `radar`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Label under the chart
-            radarConfig: Full configuration object (see RadarConfig section)
-            tint: First-series color and palette seed
-            formatValue: Formatter for vertex values
-            colors: Series color cycle (per-series color wins)
-            curved: Rounded polygon instead of straight edges
-            editable: Drag the **first** series' vertices along their axes
-            fillOpacity: Polygon fill opacity 0–1
-            glowRadius: Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control
-            maxValue: Per-axis maximum (payload max wins)
-            rings: Concentric grid rings
-            showAxisLabels: Axis names around the rim
-            showLegend: Series legend under the chart
-            showPoints: Vertex dots (always on while editing)
-            showValues: Numeric value beside each vertex (the dragged vertex always shows)
-            step: Snap dragged values to this step (e.g. 1, 5, 0.1)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Label under the chart.
+            radarConfig (object): Full configuration object (see RadarConfig section).
+            tint (color, default #667eea): First-series color and palette seed.
+            formatValue (string): Formatter for vertex values.
+            colors (string[]): Series color cycle (per-series color wins).
+            curved (bool, default false): Rounded polygon instead of straight edges.
+            editable (bool, default false): Drag the **first** series' vertices along their axes.
+            fillOpacity (number, default 0.25): Polygon fill opacity 0–1.
+            glowRadius (number, default 0): Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control. Values: round, butt, square.
+            maxValue (number): Per-axis maximum (payload max wins).
+            rings (number, default 4): Concentric grid rings.
+            showAxisLabels (bool, default true): Axis names around the rim.
+            showLegend (bool, default false): Series legend under the chart.
+            showPoints (bool, default true): Vertex dots (always on while editing).
+            showValues (bool, default false): Numeric value beside each vertex (the dragged vertex always shows).
+            step (number): Snap dragged values to this step (e.g. 1, 5, 0.1).
+
+        Example:
+            ui.radar('rover-compare', position=[0, 0], span=[3, 3], label='Rover profiles', radarConfig={'showLegend': True, 'curved': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'fleet_stats'}, 'valuePath': 'radar'}])
         """
         return self._ctl("radar", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, radarConfig=radarConfig, tint=tint, formatValue=formatValue, colors=colors, curved=curved, editable=editable, fillOpacity=fillOpacity, glowRadius=glowRadius, lineCap=lineCap, maxValue=maxValue, rings=rings, showAxisLabels=showAxisLabels, showLegend=showLegend, showPoints=showPoints, showValues=showValues, step=step), props)
 
@@ -1722,20 +1818,23 @@ class ScopeControls:
         (catalog type `sankey`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the diagram
-            sankeyConfig: Full configuration object (see SankeyConfig section)
-            tint: First-node color and palette seed
-            formatValue: Formatter for node throughput values
-            colors: Node color cycle (per-node color wins)
-            linkOpacity: Ribbon opacity (selection brightens involved ribbons)
-            nodeAction: nodeAction
-            nodeSpacing: Minimum vertical gap between nodes in a column
-            cellCornerRadius: Node corner rounding (default: a third of the node width)
-            nodeWidth: Node bar width in points
-            scrub: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)
-            showLabels: Node names beside the bars
-            showValues: Throughput value alongside each label
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the diagram.
+            sankeyConfig (object): Full configuration object (see SankeyConfig section).
+            tint (color, default #667eea): First-node color and palette seed.
+            formatValue (string): Formatter for node throughput values.
+            colors (string[]): Node color cycle (per-node color wins).
+            linkOpacity (number, default 0.32): Ribbon opacity (selection brightens involved ribbons).
+            nodeAction (object): nodeAction.
+            nodeSpacing (number, default 10): Minimum vertical gap between nodes in a column.
+            cellCornerRadius (number): Node corner rounding (default: a third of the node width).
+            nodeWidth (number, default 10): Node bar width in points.
+            scrub (bool, default false): Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap).
+            showLabels (bool, default true): Node names beside the bars.
+            showValues (bool, default false): Throughput value alongside each label.
+
+        Example:
+            ui.sankey('energy', position=[0, 0], span=[3, 4], label='Energy (kW)', sankeyConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power_flow'}, 'valuePath': 'sankey'}])
         """
         return self._ctl("sankey", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, sankeyConfig=sankeyConfig, tint=tint, formatValue=formatValue, colors=colors, linkOpacity=linkOpacity, nodeAction=nodeAction, nodeSpacing=nodeSpacing, cellCornerRadius=cellCornerRadius, nodeWidth=nodeWidth, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
 
@@ -1772,16 +1871,19 @@ class ScopeControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation: Motion profile for value changes
-            optionLabels: Display labels parallel to options; actions and sync use the original option values
-            placeholder: Text shown when no options are available or a picker has no selection
-            options: Segment labels (string array)
-            optionIcons: SF Symbols parallel to options
-            style: System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number)
-            tint: Accent for pills style
-            defaultValue: Initially selected option
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
+            placeholder (string): Text shown when no options are available or a picker has no selection.
+            options (array): Segment labels (string array).
+            optionIcons (array): SF Symbols parallel to options.
+            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Values: default, pills, stars.
+            tint (color, default #667eea): Accent for pills style.
+            defaultValue (string): Initially selected option.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.segmented_control('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
         return self._ctl("segmentedControl", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, optionLabels=optionLabels, placeholder=placeholder, options=options, optionIcons=optionIcons, style=style, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -1827,25 +1929,28 @@ class ScopeControls:
         (catalog type `slider`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            step: Detent spacing measured from min; zero or negative allows continuous values
-            continuous: Send actions while dragging; false previews locally and sends once on release
-            hideValue: Hide numeric readouts in every slider style; keep the label and interaction
-            label: Header label
-            defaultValue: Initial value
-            tint: Track fill color
-            style: Display style
-            formatValue: Value display format
-            minIcon: SF Symbol at minimum end
-            maxIcon: SF Symbol at maximum end
-            hideLabel: Hide the header
-            hideBackground: Remove glass background
-            arcAngle: Arc sweep in degrees (radial style only)
-            arcRotation: Arc start rotation (radial style only)
-            arcThickness: Track stroke width (radial style only)
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values.
+            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release.
+            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction.
+            label (string): Header label.
+            defaultValue (number): Initial value.
+            tint (color, default #667eea): Track fill color.
+            style (enum, default default): Display style. Values: default, scrubber, radial.
+            formatValue (enum, default decimal): Value display format. Values: decimal, time, percent, none.
+            minIcon (string): SF Symbol at minimum end.
+            maxIcon (string): SF Symbol at maximum end.
+            hideLabel (bool, default false): Hide the header.
+            hideBackground (bool, default false): Remove glass background.
+            arcAngle (number, default 270): Arc sweep in degrees (radial style only).
+            arcRotation (number, default 0): Arc start rotation (radial style only).
+            arcThickness (number, default 8): Track stroke width (radial style only).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.slider('seek', position=[0, 0], label='Playback', min=0, max=300, step=1, style='scrubber', formatValue='time', continuous=False)
         """
         return self._ctl("slider", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, min=min, max=max, step=step, continuous=continuous, hideValue=hideValue, label=label, defaultValue=defaultValue, tint=tint, style=style, formatValue=formatValue, minIcon=minIcon, maxIcon=maxIcon, hideLabel=hideLabel, hideBackground=hideBackground, arcAngle=arcAngle, arcRotation=arcRotation, arcThickness=arcThickness, confirm=confirm), props)
 
@@ -1883,17 +1988,20 @@ class ScopeControls:
         (catalog type `sortboard`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids — see Sizing)
-            searchable: Show a filter field above the option area
-            paletteLabel: Header for the option area
-            hidePalette: Hide the option area (server-seeded boards where items start placed)
-            columns: How many zone columns to lay out
-            events: events
-            items: items
-            zones: zones
-            sortboardConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids — see Sizing).
+            searchable (bool, default false): Show a filter field above the option area.
+            paletteLabel (string, default Options): Header for the option area.
+            hidePalette (bool, default false): Hide the option area (server-seeded boards where items start placed).
+            columns (number, default 2): How many zone columns to lay out.
+            events (object): events.
+            items (object): items.
+            zones (object): zones.
+            sortboardConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.sortboard('sprint-board', position=[0, 0], span=[10, 4], controlHeight=560, label='Sprint Board', sortboardConfig={'searchable': True, 'paletteLabel': 'Backlog', 'columns': 3, 'items': [{'id': 'AUTH-14', 'label': 'OAuth refresh', 'icon': 'person.badge.key.fill', 'tint': '#FF9500'}, {'id': 'UI-88', 'label': 'Dark mode', 'icon': 'moon.fill', 'tint': '#667eea'}, {'id': 'PERF-5', 'label': 'Cold start', 'icon': 'bolt.fill', 'tint': '#FF6B6B'}, {'id': 'DOC-9', 'label': 'API docs', 'icon': 'book.fill', 'tint': '#5AC8FA', 'zone': 'doing'}, {'id': 'BUG-72', 'label': 'Crash on launch', 'icon': 'ant.fill', 'tint': '#FF3B30', 'zone': 'done'}], 'zones': [{'id': 'todo', 'label': 'To Do'}, {'id': 'doing', 'label': 'In Progress', 'capacity': 3, 'tint': '#FF9500'}, {'id': 'done', 'label': 'Done', 'tint': '#34C759'}], 'events': {'place': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'tracker', 'type': 'move_ticket', 'payload': {'ticket': '{{item}}', 'column': '{{to}}', 'index': '{{index}}'}}}, 'layout': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'board_state'}}}})
         """
         return self._ctl("sortboard", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, searchable=searchable, paletteLabel=paletteLabel, hidePalette=hidePalette, columns=columns, events=events, items=items, zones=zones, sortboardConfig=sortboardConfig), props)
 
@@ -1918,6 +2026,9 @@ class ScopeControls:
     ) -> "Control":
         """Space: An empty gap
         (catalog type `spacer`)
+
+        Example:
+            ui.spacer('gap-1', position=[1, 2])
         """
         return self._ctl("spacer", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback), props)
 
@@ -1954,16 +2065,19 @@ class ScopeControls:
         (catalog type `sparkline`)
 
         Fields:
-            sparklinePoints: Max data points retained in the buffer
-            lineWidth: Line stroke width in points. Omit to scale with the control's height.
-            sparklineFill: Fill the area under the line with a gradient
-            glowRadius: Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the line. Cross-control, same on every control
-            colorByValue: Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
-            colorBlend: How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue.
-            tint: Line and fill color
-            label: Header label (also shows latest value)
-            defaultValue: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
+            sparklinePoints (number, default 50): Max data points retained in the buffer.
+            lineWidth (number): Line stroke width in points. Omit to scale with the control's height.
+            sparklineFill (bool, default false): Fill the area under the line with a gradient.
+            glowRadius (number, default 0): Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Values: round, butt, square.
+            colorByValue (array): Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
+            colorBlend (number, default 0): How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue.
+            tint (color, default #667eea): Line and fill color.
+            label (string): Header label (also shows latest value).
+            defaultValue (array): Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints.
+
+        Example:
+            ui.sparkline('temp-history', position=[0, 0], span=[1, 3], sparklinePoints=100, sparklineFill=True, tint='#FF6B6B', label='Temperature', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living'}, 'valuePath': 'temperature'}])
         """
         return self._ctl("sparkline", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, sparklinePoints=sparklinePoints, lineWidth=lineWidth, sparklineFill=sparklineFill, glowRadius=glowRadius, lineCap=lineCap, colorByValue=colorByValue, colorBlend=colorBlend, tint=tint, label=label, defaultValue=defaultValue), props)
 
@@ -2012,28 +2126,31 @@ class ScopeControls:
         (catalog type `statTile`)
 
         Fields:
-            label: Title above the number
-            hideLabel: Hide the title
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
-            valueSize: Point size of the big number
-            formatValue: Number format for the big number (see the formatValue table, e.g. decimal:1)
-            step: Determines decimal formatting of the number when formatValue is unset
-            sparklinePoints: Max values kept in the faint history sparkline
-            lineWidth: Stroke width of the faint trend line, in points
-            tint: Sparkline colour when no thresholds are set
-            glowRadius: Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the history curve. Cross-control, same on every control
-            hideBackground: Remove the card (and its threshold tint)
-            animation: Motion profile for the number roll
-            reference: The value the change is measured against (yesterday, target…)
-            referencePath: Dot path in the same payload as the value to a live reference; overrides reference once it arrives
-            deltaMode: Percent change, or the absolute difference in the value's unit
-            invertDelta: Colour a rise red and a fall green (latency, error rate)
-            thresholds: Background bands [{limit, color}], gauge segment semantics
-            criticalAbove: At or above this value the tile fills solid with its band colour
-            criticalBelow: At or below this value the tile fills solid with its band colour
-            showSparkline: Draw the faint history sparkline under the number
-            statTileConfig: grouped config object (see grouped fields)
+            label (string): Title above the number.
+            hideLabel (bool, default false): Hide the title.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
+            valueSize (number, default 34): Point size of the big number.
+            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1).
+            step (number): Determines decimal formatting of the number when formatValue is unset.
+            sparklinePoints (number, default 50): Max values kept in the faint history sparkline.
+            lineWidth (number, default 2): Stroke width of the faint trend line, in points.
+            tint (color): Sparkline colour when no thresholds are set.
+            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Values: round, butt, square.
+            hideBackground (bool, default false): Remove the card (and its threshold tint).
+            animation (enum): Motion profile for the number roll. Values: smooth, snappy, bouncy, gentle, instant.
+            reference (number): The value the change is measured against (yesterday, target…).
+            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives.
+            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Values: percent, absolute.
+            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate).
+            thresholds (array): Background bands [{limit, color}], gauge segment semantics.
+            criticalAbove (number): At or above this value the tile fills solid with its band colour.
+            criticalBelow (number): At or below this value the tile fills solid with its band colour.
+            showSparkline (bool, default true): Draw the faint history sparkline under the number.
+            statTileConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.stat_tile('downloads', position=[0, 0], span=[3, 2], label='Downloads', unit='today', formatValue='decimal:0', statTileConfig={'reference': 1142, 'thresholds': [{'limit': 500, 'color': '#FF9F0A'}, {'limit': 100000, 'color': '#34C759'}]}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'stats'}, 'valuePath': 'downloads'}])
         """
         return self._ctl("statTile", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, hideLabel=hideLabel, unit=unit, valueSize=valueSize, formatValue=formatValue, step=step, sparklinePoints=sparklinePoints, lineWidth=lineWidth, tint=tint, glowRadius=glowRadius, lineCap=lineCap, hideBackground=hideBackground, animation=animation, reference=reference, referencePath=referencePath, deltaMode=deltaMode, invertDelta=invertDelta, thresholds=thresholds, criticalAbove=criticalAbove, criticalBelow=criticalBelow, showSparkline=showSparkline, statTileConfig=statTileConfig), props)
 
@@ -2067,13 +2184,16 @@ class ScopeControls:
         (catalog type `statusLight`)
 
         Fields:
-            label: Text beside the indicator
-            tint: Default indicator color
-            statusColors: Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}
-            size: Indicator size: small (8pt), default (12pt), large (18pt)
-            style: dot (circle) or badge (pill with state text)
-            glow: Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
-            defaultValue: Initial state key
+            label (string): Text beside the indicator.
+            tint (color, default #34C759): Default indicator color.
+            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}.
+            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Values: small, default, large.
+            style (enum, default dot): dot (circle) or badge (pill with state text). Values: dot, badge.
+            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
+            defaultValue (string): Initial state key.
+
+        Example:
+            ui.status_light('server-status', position=[0, 0], label='API Server', statusColors={'online': '#34C759', 'degraded': '#FF9500', 'offline': '#FF3B30'}, size='large', style='badge', pulse=True, defaultValue='offline', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'server_health'}, 'valuePath': 'state'}])
         """
         return self._ctl("statusLight", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, statusColors=statusColors, size=size, style=style, glow=glow, defaultValue=defaultValue), props)
 
@@ -2113,19 +2233,22 @@ class ScopeControls:
         (catalog type `stepper`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            step: Positive increment/decrement amount; zero or negative falls back to 1
-            repeatOnHold: Hold plus or minus to repeat steps using the system repeat behavior
-            wraps: Step past an endpoint to cycle to the opposite endpoint
-            hideValue: Hide the numeric readout; keep the buttons, label, and spoken value
-            label: Display label
-            icon: SF Symbol before value
-            formatValue: Value format: decimal, time, percent
-            defaultValue: Initial value
-            haptic: Default haptic on step
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1.
+            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior.
+            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint.
+            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value.
+            label (string): Display label.
+            icon (string): SF Symbol before value.
+            formatValue (string, default decimal): Value format: decimal, time, percent.
+            defaultValue (number): Initial value.
+            haptic (enum, default light): Default haptic on step. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.stepper('preset', position=[0, 0], label='Preset', min=1, max=8, step=1, repeatOnHold=True, wraps=True)
         """
         return self._ctl("stepper", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, min=min, max=max, step=step, repeatOnHold=repeatOnHold, wraps=wraps, hideValue=hideValue, label=label, icon=icon, formatValue=formatValue, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -2182,36 +2305,39 @@ class ScopeControls:
         (catalog type `symbol`)
 
         Fields:
-            systemName: SF Symbol name (the glyph at rest)
-            label: Caption under the glyph
-            hideLabel: Hide the caption
-            tint: Glyph colour (monochrome/hierarchical; palette primary)
-            glowRadius: Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control
-            hideBackground: Remove glass background
-            iconMap: Incoming value → SF Symbol name ("default" catches the rest)
-            colorMap: Incoming value → hex tint
-            haptic: Touch feedback on tap (default light)
-            renderingMode: SF rendering mode — multicolor uses the symbol's own colours
-            palette: Hex colour per layer (primary, secondary, tertiary) for palette rendering
-            weight: Glyph weight
-            variant: Symbol variant applied on top of the name
-            size: Explicit point size (default scales to the cell)
-            effect: Native symbol effect or custom rain, snow, sparkle animation
-            particleColor: Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor)
-            particleIntensity: Rain, snow, sparkle density (0 hides particles)
-            particleAngle: Rain/snow direction in degrees from vertical (negative left, positive right)
-            effectOptions: Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol …
-            loop: How the effect repeats
-            loopCount: periodic only — plays before stopping (omit for forever)
-            loopDelay: periodic only — seconds between plays
-            speed: Playback speed multiplier
-            activeWhen: always | truthy | a state word the synced value must equal
-            variableMin: Numeric value at which the variable layers are empty
-            variableMax: Numeric value at which the variable layers are full
-            transition: How a glyph change animates (default replace; none when the value is numeric)
-            tapEffect: One-shot effect played on tap
-            triggers: Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]
-            symbolConfig: grouped config object (see grouped fields)
+            systemName (string): SF Symbol name (the glyph at rest).
+            label (string): Caption under the glyph.
+            hideLabel (bool, default false): Hide the caption.
+            tint (color): Glyph colour (monochrome/hierarchical; palette primary).
+            glowRadius (number, default 0): Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control.
+            hideBackground (bool, default false): Remove glass background.
+            iconMap (object): Incoming value → SF Symbol name ("default" catches the rest).
+            colorMap (object): Incoming value → hex tint.
+            haptic (enum): Touch feedback on tap (default light). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Values: monochrome, hierarchical, palette, multicolor.
+            palette (array): Hex colour per layer (primary, secondary, tertiary) for palette rendering.
+            weight (enum, default regular): Glyph weight. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
+            variant (enum, default none): Symbol variant applied on top of the name. Values: none, fill, circle, square, rectangle, slash.
+            size (number): Explicit point size (default scales to the cell).
+            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Values: none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale.
+            particleColor (color): Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor).
+            particleIntensity (number, default 0.65): Rain, snow, sparkle density (0 hides particles).
+            particleAngle (number, default -18): Rain/snow direction in degrees from vertical (negative left, positive right).
+            effectOptions (array): Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol ….
+            loop (enum, default continuous): How the effect repeats. Values: continuous, periodic, once.
+            loopCount (number): periodic only — plays before stopping (omit for forever).
+            loopDelay (number, default 1): periodic only — seconds between plays.
+            speed (number, default 1): Playback speed multiplier.
+            activeWhen (string, default always): always | truthy | a state word the synced value must equal.
+            variableMin (number, default 0): Numeric value at which the variable layers are empty.
+            variableMax (number, default 100): Numeric value at which the variable layers are full.
+            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Values: replace, replace.downUp, replace.upUp, replace.offUp, replace.magic, none.
+            tapEffect (enum, default none): One-shot effect played on tap. Values: none, bounce, pulse, variableColor, wiggle, rotate, breathe.
+            triggers (array): Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }].
+            symbolConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.symbol('rain', position=[0, 0], span=[2, 2], systemName='cloud.rain.fill', label='Rain', tint='#8AA5BD', defaultValue=True, symbolConfig={'effect': 'rain', 'particleColor': '#3DA9FC', 'particleAngle': -22, 'particleIntensity': 0.65, 'activeWhen': 'truthy'})
         """
         return self._ctl("symbol", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, systemName=systemName, label=label, hideLabel=hideLabel, tint=tint, glowRadius=glowRadius, hideBackground=hideBackground, iconMap=iconMap, colorMap=colorMap, haptic=haptic, renderingMode=renderingMode, palette=palette, weight=weight, variant=variant, size=size, effect=effect, particleColor=particleColor, particleIntensity=particleIntensity, particleAngle=particleAngle, effectOptions=effectOptions, loop=loop, loopCount=loopCount, loopDelay=loopDelay, speed=speed, activeWhen=activeWhen, variableMin=variableMin, variableMax=variableMax, transition=transition, tapEffect=tapEffect, triggers=triggers, symbolConfig=symbolConfig), props)
 
@@ -2254,22 +2380,25 @@ class ScopeControls:
         (catalog type `textInput`)
 
         Fields:
-            placeholder: Placeholder text when empty
-            label: Display label
-            icon: SF Symbol shown in the field
-            defaultValue: Initial text
-            style: Display style variant
-            sendButton: Growing composer with a Send button (Return inserts a newline)
-            minLines: Composer starting line count
-            maxLines: Composer max lines before it scrolls internally
-            autocorrect: Default autocorrect/caps (off = ASCII keyboard, terminal-friendly)
-            autocorrectToggle: Inline Aa button that flips autocorrect on the live keyboard
-            keyboard: Keyboard type
-            clearOnSubmit: Clear the field after the return-key submit
-            tint: Accent color
-            hideBackground: Remove glass background
-            hideLabel: Hide the header label
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            placeholder (string): Placeholder text when empty.
+            label (string): Display label.
+            icon (string): SF Symbol shown in the field.
+            defaultValue (string): Initial text.
+            style (enum, default default): Display style variant. Values: default, search, multiline.
+            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline).
+            minLines (number, default 1): Composer starting line count.
+            maxLines (number, default 6): Composer max lines before it scrolls internally.
+            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly).
+            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard.
+            keyboard (enum): Keyboard type. Values: ascii, default, url, email, numbers.
+            clearOnSubmit (bool, default false): Clear the field after the return-key submit.
+            tint (color, default #667eea): Accent color.
+            hideBackground (bool, default false): Remove glass background.
+            hideLabel (bool, default false): Hide the header label.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
         """
         return self._ctl("textInput", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
 
@@ -2311,21 +2440,24 @@ class ScopeControls:
         (catalog type `toggle`)
 
         Fields:
-            animation: Motion profile for value changes
-            label: Toggle label text
-            icon: SF Symbol
-            style: Display style
-            defaultValue: Initial on/off state
-            onIcon: SF Symbol when on (button and icon-toggle styles)
-            offIcon: SF Symbol when off (button and icon-toggle styles)
-            tint: Accent color when on
-            hideBackground: Remove glass background
-            haptic: Default haptic on toggle
-            trackLength: Track extent tip-to-tip along its path (pt)
-            trackCurvature: Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more)
-            trackRadius: Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below)
-            knobRadius: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            label (string): Toggle label text.
+            icon (string): SF Symbol.
+            style (enum, default switch): Display style. Values: switch, button, icon-toggle.
+            defaultValue (bool, default false): Initial on/off state.
+            onIcon (string): SF Symbol when on (button and icon-toggle styles).
+            offIcon (string): SF Symbol when off (button and icon-toggle styles).
+            tint (color, default #667eea): Accent color when on.
+            hideBackground (bool, default false): Remove glass background.
+            haptic (enum, default rigid): Default haptic on toggle. Values: light, medium, heavy, rigid, success, warning, error, selection.
+            trackLength (number, default 51): Track extent tip-to-tip along its path (pt).
+            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more).
+            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below).
+            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.toggle('lr-main', position=[0, 0], label='Main Light', defaultValue=True, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'light', 'payload': {'room': 'living', 'fixture': 'main', 'command': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living', 'fixture': 'main'}, 'valuePath': 'state'}])
         """
         return self._ctl("toggle", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, label=label, icon=icon, style=style, defaultValue=defaultValue, onIcon=onIcon, offIcon=offIcon, tint=tint, hideBackground=hideBackground, haptic=haptic, trackLength=trackLength, trackCurvature=trackCurvature, trackRadius=trackRadius, knobRadius=knobRadius, confirm=confirm), props)
 
@@ -2365,19 +2497,22 @@ class ScopeControls:
         (catalog type `treemap`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the map
-            treemapConfig: Full configuration object (see TreemapConfig section)
-            tint: First-item color and palette seed
-            formatValue: Formatter for item values
-            cellCornerRadius: Cell corner rounding
-            cellGap: Gap between cells
-            colors: Item color cycle (per-item color wins)
-            drillDown: Tap a parent to zoom into its children
-            itemAction: itemAction
-            scrub: Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap)
-            showLabels: Item labels inside cells that have room
-            showValues: Value under the label (taller cells only)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the map.
+            treemapConfig (object): Full configuration object (see TreemapConfig section).
+            tint (color, default #667eea): First-item color and palette seed.
+            formatValue (string): Formatter for item values.
+            cellCornerRadius (number, default 5): Cell corner rounding.
+            cellGap (number, default 2): Gap between cells.
+            colors (string[]): Item color cycle (per-item color wins).
+            drillDown (bool, default true): Tap a parent to zoom into its children.
+            itemAction (object): itemAction.
+            scrub (bool, default false): Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap).
+            showLabels (bool, default true): Item labels inside cells that have room.
+            showValues (bool, default false): Value under the label (taller cells only).
+
+        Example:
+            ui.treemap('storage', position=[0, 0], span=[3, 4], label='Storage', formatValue='suffix: GB', treemapConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'disk_usage'}, 'valuePath': 'tree'}])
         """
         return self._ctl("treemap", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, treemapConfig=treemapConfig, tint=tint, formatValue=formatValue, cellCornerRadius=cellCornerRadius, cellGap=cellGap, colors=colors, drillDown=drillDown, itemAction=itemAction, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
 
@@ -2410,12 +2545,15 @@ class ScopeControls:
         (catalog type `webView`)
 
         Fields:
-            url: URL to load
-            label: Header label
-            webInteractive: Allow user interaction
-            webScrollEnabled: Allow scrolling
-            webRefreshInterval: Auto-refresh interval in seconds
-            hideBackground: Remove glass card background
+            url (string): URL to load.
+            label (string): Header label.
+            webInteractive (bool, default true): Allow user interaction.
+            webScrollEnabled (bool, default true): Allow scrolling.
+            webRefreshInterval (number): Auto-refresh interval in seconds.
+            hideBackground (bool, default false): Remove glass card background.
+
+        Example:
+            ui.web_view('grafana', position=[0, 0], span=[4, 4], label='Metrics Dashboard', url='https://grafana.local/d/overview?kiosk', webInteractive=True, webScrollEnabled=False, webRefreshInterval=30)
         """
         return self._ctl("webView", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideBackground=hideBackground), props)
 
@@ -2443,12 +2581,15 @@ class BuildControls:
         (catalog type `accordion`)
 
         Fields:
-            accordionMode: Whether one or many sections can be open
-            expandedIndex: Section open on load (-1 = all collapsed)
-            showChevron: Show the disclosure chevron
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial open index (overrides expandedIndex; -1 = all collapsed)
+            accordionMode (enum, default single): Whether one or many sections can be open. Values: single, multi.
+            expandedIndex (number, default 0): Section open on load (-1 = all collapsed).
+            showChevron (bool, default true): Show the disclosure chevron.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed).
+
+        Example:
+            ui.accordion('settings', position=[0, 0], span=[4, 2], accordionMode='single', expandedIndex=0, containerAnimation={'profile': 'smooth', 'chevronRotation': 90}, panels=[{'type': 'group', 'id': 'display', 'label': 'Display', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'slider', 'id': 'bright', 'position': [0, 0], 'label': 'Brightness', 'min': 0, 'max': 100}]}, {'type': 'group', 'id': 'network', 'label': 'Network', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'toggle', 'id': 'wifi', 'position': [0, 0], 'label': 'Wi-Fi'}]}])
         """
         return self._ctl("accordion", dict(id=id, position=position, span=span, accordionMode=accordionMode, expandedIndex=expandedIndex, showChevron=showChevron, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -2482,25 +2623,28 @@ class BuildControls:
         (catalog type `boxPlot`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the plot
-            boxStyle: 'box' (box-and-whisker) or 'violin' (kernel density body)
-            boxPlotConfig: Full configuration object (see BoxPlotConfig section)
-            tint: First-category color and palette seed
-            formatValue: Formatter for axis/readout numbers
-            boxAction: boxAction
-            barCornerRadius: Box corner rounding
-            boxWidth: Box width as a fraction of the category slot
-            colors: Per-category color cycle
-            scrub: Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap)
-            showGrid: Horizontal grid lines
-            showMean: Hollow dot at the mean
-            showOutliers: Outlier dots beyond the whiskers
-            showXAxis: Category labels along the bottom
-            showYAxis: Value labels down the left gutter
-            whiskers: 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)
-            yMax: Pin the value axis
-            yMin: Pin the value axis
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the plot.
+            boxStyle (enum, default box): 'box' (box-and-whisker) or 'violin' (kernel density body). Values: box, violin.
+            boxPlotConfig (object): Full configuration object (see BoxPlotConfig section).
+            tint (color, default #667eea): First-category color and palette seed.
+            formatValue (string): Formatter for axis/readout numbers.
+            boxAction (object): boxAction.
+            barCornerRadius (number, default 3): Box corner rounding.
+            boxWidth (number, default 0.55): Box width as a fraction of the category slot.
+            colors (string[]): Per-category color cycle.
+            scrub (bool, default false): Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap).
+            showGrid (bool, default true): Horizontal grid lines.
+            showMean (bool, default false): Hollow dot at the mean.
+            showOutliers (bool, default true): Outlier dots beyond the whiskers.
+            showXAxis (bool, default true): Category labels along the bottom.
+            showYAxis (bool, default true): Value labels down the left gutter.
+            whiskers (enum, default tukey): 'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range). Values: tukey, minmax.
+            yMax (number): Pin the value axis.
+            yMin (number): Pin the value axis.
+
+        Example:
+            ui.box_plot('latency', position=[0, 0], span=[3, 4], label='Latency (ms)', boxPlotConfig={'boxAction': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inspect_region', 'stats': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'latency_samples'}, 'valuePath': 'regions'}])
         """
         return self._ctl("boxPlot", dict(id=id, position=position, span=span, haptic=haptic, label=label, boxStyle=boxStyle, boxPlotConfig=boxPlotConfig, tint=tint, formatValue=formatValue, boxAction=boxAction, barCornerRadius=barCornerRadius, boxWidth=boxWidth, colors=colors, scrub=scrub, showGrid=showGrid, showMean=showMean, showOutliers=showOutliers, showXAxis=showXAxis, showYAxis=showYAxis, whiskers=whiskers, yMax=yMax, yMin=yMin), props)
 
@@ -2527,18 +2671,21 @@ class BuildControls:
         (catalog type `button`)
 
         Fields:
-            label: Button text
-            icon: SF Symbol shown before label
-            style: Visual style variant ("outline" and "outlined" are both accepted)
-            size: Size variant
-            tint: Accent color
-            hideLabel: Show icon only
-            haptic: Haptic feedback on press
-            repeatOnHold: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
-            valueMap: Synced value → button text ("default" catches the rest)
-            iconMap: Synced value → SF Symbol name (swaps with the native replace effect)
-            colorMap: Synced value → hex tint
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            label (string, default Button): Button text.
+            icon (string): SF Symbol shown before label.
+            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Values: filled, outlined, outline, ghost, tinted, icon-only.
+            size (enum, default default): Size variant. Values: compact, default, large.
+            tint (color, default #667eea): Accent color.
+            hideLabel (bool, default false): Show icon only.
+            haptic (enum, default medium): Haptic feedback on press. Values: light, medium, heavy, success, warning, error, selection.
+            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set).
+            valueMap (object): Synced value → button text ("default" catches the rest).
+            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect).
+            colorMap (object): Synced value → hex tint.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.button('all-off', position=[0, 3], label='All Off', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'scene', 'payload': {'name': 'all_off'}}})
         """
         return self._ctl("button", dict(id=id, position=position, span=span, label=label, icon=icon, style=style, size=size, tint=tint, hideLabel=hideLabel, haptic=haptic, repeatOnHold=repeatOnHold, valueMap=valueMap, iconMap=iconMap, colorMap=colorMap, confirm=confirm), props)
 
@@ -2563,16 +2710,19 @@ class BuildControls:
         (catalog type `camera`)
 
         Fields:
-            label: Header label
-            scan: What the live scanner detects: any of barcode, text
-            symbologies: Barcode filter (qr, ean13, code128, …). Omit for all supported
-            sendMode: auto sends every stabilized detection; tap sends only items the user taps
-            debounce: Seconds before the same decoded value can fire again
-            torch: Show a torch toggle while scanning
-            snapshot: Show a shutter button (implied when snapshotAction is set)
-            snapshotQuality: JPEG quality 0–1 (auto-lowered to fit the mesh frame budget)
-            snapshotMaxDimension: Longest snapshot edge in pixels
-            hideLabel: Hide the header label (the LIVE chip moves into the viewfinder)
+            label (string): Header label.
+            scan (array, default [barcode]): What the live scanner detects: any of barcode, text.
+            symbologies (array): Barcode filter (qr, ean13, code128, …). Omit for all supported.
+            sendMode (enum, default auto): auto sends every stabilized detection; tap sends only items the user taps. Values: auto, tap.
+            debounce (number, default 3): Seconds before the same decoded value can fire again.
+            torch (bool, default true): Show a torch toggle while scanning.
+            snapshot (bool, default false): Show a shutter button (implied when snapshotAction is set).
+            snapshotQuality (number, default 0.6): JPEG quality 0–1 (auto-lowered to fit the mesh frame budget).
+            snapshotMaxDimension (number, default 1280): Longest snapshot edge in pixels.
+            hideLabel (bool, default false): Hide the header label (the LIVE chip moves into the viewfinder).
+
+        Example:
+            ui.camera('intake-scanner', position=[0, 0], span=[3, 4], label='Scan Inventory', scan=['barcode'], symbologies=['qr', 'ean13', 'code128'], debounce=5, action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inventory_scan', 'code': '{{value}}', 'kind': '{{kind}}'}})
         """
         return self._ctl("camera", dict(id=id, position=position, span=span, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
 
@@ -2598,17 +2748,20 @@ class BuildControls:
         (catalog type `canvas`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            aspect: Surface aspect ratio (width ÷ height)
-            editable: Long-press lifts a card; drags emit place/layout and round-trip the synced value
-            showGrid: Faint dot lattice on the surface (uses the snap increment when set)
-            snap: Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free)
-            maxZoom: Max pinch-zoom scale (1 disables zoom and panning)
-            items: The hosted controls with their normalized frames (see Config)
-            events: pickup / place / layout actions fired as cards are lifted and dropped
-            canvasConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids).
+            aspect (number, default 1.0): Surface aspect ratio (width ÷ height).
+            editable (bool, default false): Long-press lifts a card; drags emit place/layout and round-trip the synced value.
+            showGrid (bool, default false): Faint dot lattice on the surface (uses the snap increment when set).
+            snap (number, default 0): Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free).
+            maxZoom (number, default 3): Max pinch-zoom scale (1 disables zoom and panning).
+            items (array): The hosted controls with their normalized frames (see Config).
+            events (object): pickup / place / layout actions fired as cards are lifted and dropped.
+            canvasConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.canvas('status-board', position=[0, 0], span=[10, 4], controlHeight=560, label='Ops Board', canvasConfig={'aspect': 1.2, 'items': [{'id': 'cpu', 'x': 0.05, 'y': 0.05, 'w': 0.42, 'h': 0.3, 'control': {'type': 'gauge', 'id': 'cpu-gauge', 'label': 'CPU', 'min': 0, 'max': 100, 'sync': [{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'cpu'}]}}, {'id': 'temp', 'x': 0.53, 'y': 0.05, 'w': 0.42, 'h': 0.3, 'control': {'type': 'sparkline', 'id': 'temp-spark', 'label': 'Temp', 'sync': [{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'temp'}]}}, {'id': 'power', 'x': 0.05, 'y': 0.42, 'w': 0.42, 'h': 0.18, 'control': {'type': 'toggle', 'id': 'rig-power', 'label': 'Rig Power', 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'power', 'payload': {'on': '{{value}}'}}}}}]})
         """
         return self._ctl("canvas", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, aspect=aspect, editable=editable, showGrid=showGrid, snap=snap, maxZoom=maxZoom, items=items, events=events, canvasConfig=canvasConfig), props)
 
@@ -2621,6 +2774,9 @@ class BuildControls:
     ) -> dict[str, Any]:
         """Cards: A stack of cards
         (catalog type `cardList`)
+
+        Example:
+            ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
         return self._ctl("cardList", dict(id=id, position=position, span=span), props)
 
@@ -2642,13 +2798,16 @@ class BuildControls:
         (catalog type `carousel`)
 
         Fields:
-            carouselMode: Presentation style for the panels
-            indicator: Page indicator style
-            autoAdvance: Seconds between auto-advances (0 = off)
-            loop: Wrap past the first/last page
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial page index
+            carouselMode (enum, default paged): Presentation style for the panels. Values: paged, coverflow, deck.
+            indicator (enum, default dots): Page indicator style. Values: dots, bars, none.
+            autoAdvance (number, default 0): Seconds between auto-advances (0 = off).
+            loop (bool, default false): Wrap past the first/last page.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number, default 0): Initial page index.
+
+        Example:
+            ui.carousel('scenes', position=[0, 0], span=[3, 4], carouselMode='coverflow', indicator='dots', loop=True, containerAnimation={'profile': 'smooth', 'sideScale': 0.78, 'sideRotation': 50}, defaultValue=0, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'scene'}, 'valuePath': 'index'}], action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'scene', 'payload': {'index': '{{value}}'}}}, panels=[{'type': 'group', 'id': 'home', 'label': 'Home', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'home-l', 'position': [0, 0], 'text': 'Home scene'}]}, {'type': 'group', 'id': 'away', 'label': 'Away', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'away-l', 'position': [0, 0], 'text': 'Away scene'}]}])
         """
         return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -2698,41 +2857,44 @@ class BuildControls:
         (catalog type `chart`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the chart
-            chartConfig: Full configuration object (see ChartConfig section)
-            tint: First-series color and palette seed
-            formatValue: Formatter for axis/readout numbers (see control-def)
-            barCornerRadius: Bar corner rounding
-            bins: Bin count for histogram series
-            colors: Series color cycle (per-series color wins)
-            datumAction: datumAction
-            horizontal: Horizontal bars — categories run down the leading edge
-            lineWidth: Line/area stroke width
-            glowRadius: Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the lines. Cross-control, same on every control
-            maxPoints: Rolling window applied to {'append': …} pushes
-            negativeColor: Falling waterfall delta
-            pointSize: Scatter point / vertex dot diameter
-            positiveColor: Rising waterfall delta
-            scrub: Drag shows a dashed crosshair + live readout (with a selection tick)
-            showGrid: Horizontal grid lines
-            showLegend: Series legend under the plot
-            showValues: Numeric value above each bar / on each vertex
-            showXAxis: Category/x labels along the bottom (leading edge when horizontal)
-            showYAxis: Value labels down the left gutter
-            smooth: Catmull-Rom curve smoothing for line/area series
-            stacked: Stack bar/area series instead of grouping/overlaying
-            totalColor: Waterfall running-total bars
-            yMax: Pin the value axis (bars baseline at 0 by default)
-            yMin: Pin the value axis (bars baseline at 0 by default)
-            name: Legend name and append routing key
-            type: Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely
-            color: Series colour (hex); wins over chartConfig.colors
-            values: Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas
-            points: Explicit [x, y] pairs for scatter or unevenly sampled series
-            sizes: Per-point size multipliers (bubble scatter)
-            totals: Waterfall only: indices drawn as running totals from zero
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the chart.
+            chartConfig (object): Full configuration object (see ChartConfig section).
+            tint (color, default #667eea): First-series color and palette seed.
+            formatValue (string): Formatter for axis/readout numbers (see control-def).
+            barCornerRadius (number, default 3): Bar corner rounding.
+            bins (number): Bin count for histogram series.
+            colors (string[]): Series color cycle (per-series color wins).
+            datumAction (object): datumAction.
+            horizontal (bool, default false): Horizontal bars — categories run down the leading edge.
+            lineWidth (number, default 2): Line/area stroke width.
+            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Values: round, butt, square.
+            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes.
+            negativeColor (color): Falling waterfall delta.
+            pointSize (number, default 6): Scatter point / vertex dot diameter.
+            positiveColor (color): Rising waterfall delta.
+            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick).
+            showGrid (bool, default true): Horizontal grid lines.
+            showLegend (bool, default false): Series legend under the plot.
+            showValues (bool, default false): Numeric value above each bar / on each vertex.
+            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal).
+            showYAxis (bool, default true): Value labels down the left gutter.
+            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series.
+            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying.
+            totalColor (color): Waterfall running-total bars.
+            yMax (number): Pin the value axis (bars baseline at 0 by default).
+            yMin (number): Pin the value axis (bars baseline at 0 by default).
+            name (string): Legend name and append routing key.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Values: bar, line, area, scatter, histogram, waterfall.
+            color (color): Series colour (hex); wins over chartConfig.colors.
+            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas.
+            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series.
+            sizes (number[]): Per-point size multipliers (bubble scatter).
+            totals (number[]): Waterfall only: indices drawn as running totals from zero.
+
+        Example:
+            ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
         """
         return self._ctl("chart", dict(id=id, position=position, span=span, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
 
@@ -2759,18 +2921,21 @@ class BuildControls:
         (catalog type `chat`)
 
         Fields:
-            label: Header label
-            config: ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint
-            allowClear: Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless.
-            allowImages: allowImages
-            allowReactions: allowReactions
-            allowReplies: allowReplies
-            historyCount: historyCount
-            showReadReceipts: showReadReceipts
-            showTypingIndicators: showTypingIndicators
-            systemMessageEvents: systemMessageEvents
-            target: target
-            tint: tint
+            label (string): Header label.
+            config (object): ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint.
+            allowClear (bool): Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless.
+            allowImages (bool): allowImages.
+            allowReactions (bool): allowReactions.
+            allowReplies (bool): allowReplies.
+            historyCount (number): historyCount.
+            showReadReceipts (bool): showReadReceipts.
+            showTypingIndicators (bool): showTypingIndicators.
+            systemMessageEvents (string[]): systemMessageEvents.
+            target (string): target.
+            tint (color): tint.
+
+        Example:
+            ui.chat('team-chat', position=[0, 0], span=[4, 4], label='Team Chat', config={'target': 'hub-server', 'showTypingIndicators': True, 'showReadReceipts': True, 'allowReactions': True, 'allowReplies': True, 'historyCount': 100})
         """
         return self._ctl("chat", dict(id=id, position=position, span=span, label=label, config=config, allowClear=allowClear, allowImages=allowImages, allowReactions=allowReactions, allowReplies=allowReplies, historyCount=historyCount, showReadReceipts=showReadReceipts, showTypingIndicators=showTypingIndicators, systemMessageEvents=systemMessageEvents, target=target, tint=tint), props)
 
@@ -2796,17 +2961,20 @@ class BuildControls:
         (catalog type `chord`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the diagram
-            chordConfig: Full configuration object (see ChordConfig section)
-            tint: First-group color and palette seed
-            formatValue: Formatter for group totals
-            arcAction: arcAction
-            colors: Group color cycle (payload colors wins)
-            pad: Degrees of breathing room between arcs
-            ribbonOpacity: Ribbon opacity (selection brightens involved ribbons)
-            scrub: Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap)
-            showLabels: Group names around the rim
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the diagram.
+            chordConfig (object): Full configuration object (see ChordConfig section).
+            tint (color, default #667eea): First-group color and palette seed.
+            formatValue (string): Formatter for group totals.
+            arcAction (object): arcAction.
+            colors (string[]): Group color cycle (payload colors wins).
+            pad (number, default 2.5): Degrees of breathing room between arcs.
+            ribbonOpacity (number, default 0.4): Ribbon opacity (selection brightens involved ribbons).
+            scrub (bool, default false): Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap).
+            showLabels (bool, default true): Group names around the rim.
+
+        Example:
+            ui.chord('mesh-traffic', position=[0, 0], span=[3, 3], label='Calls/min', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'mesh_matrix'}, 'valuePath': 'chord'}])
         """
         return self._ctl("chord", dict(id=id, position=position, span=span, haptic=haptic, label=label, chordConfig=chordConfig, tint=tint, formatValue=formatValue, arcAction=arcAction, colors=colors, pad=pad, ribbonOpacity=ribbonOpacity, scrub=scrub, showLabels=showLabels), props)
 
@@ -2824,9 +2992,12 @@ class BuildControls:
         (catalog type `colorPicker`)
 
         Fields:
-            label: Display label
-            defaultValue: Initial hex color
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            label (string): Display label.
+            defaultValue (string): Initial hex color.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.color_picker('lr-color', position=[1, 3], defaultValue='#F4B860', label='Color', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'color', 'payload': {'room': 'living', 'hex': '{{value}}'}}})
         """
         return self._ctl("colorPicker", dict(id=id, position=position, span=span, label=label, defaultValue=defaultValue, confirm=confirm), props)
 
@@ -2853,18 +3024,21 @@ class BuildControls:
         (catalog type `compass`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            tolerance: Half-angle (°) within which the needle counts as pointing at a puck
-            dwell: Seconds to hold on a puck before its action fires (0 = instant)
-            showCardinals: Draw N/E/S/W ticks
-            cardinalSize: Cardinal glyph point size
-            cardinalColor: E/S/W cardinal color (default secondary grey; N always follows tint)
-            editable: Allow dragging pucks to re-bearing them
-            events: events
-            pucks: pucks
-            compassConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 420): Rendered height in points (required in flow-mode grids).
+            tolerance (number, default 15): Half-angle (°) within which the needle counts as pointing at a puck.
+            dwell (number, default 1.2): Seconds to hold on a puck before its action fires (0 = instant).
+            showCardinals (bool, default true): Draw N/E/S/W ticks.
+            cardinalSize (number, default 13): Cardinal glyph point size.
+            cardinalColor (color): E/S/W cardinal color (default secondary grey; N always follows tint).
+            editable (bool, default true): Allow dragging pucks to re-bearing them.
+            events (object): events.
+            pucks (object): pucks.
+            compassConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.compass('action-ring', position=[0, 0], span=[7, 4], controlHeight=420, label='Action Ring', defaultValue=5, compassConfig={'tolerance': 20, 'dwell': 1.0, 'pucks': [{'id': 'lights', 'label': 'Lights', 'icon': 'lightbulb.fill', 'tint': '#FF9500', 'bearing': 0, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'music', 'label': 'Music', 'icon': 'music.note', 'tint': '#FF2D55', 'bearing': 90, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'lock', 'label': 'Lock', 'icon': 'lock.fill', 'tint': '#34C759', 'bearing': 180, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}]}, sync=[{'method': 'sensor', 'sensor': 'heading'}])
         """
         return self._ctl("compass", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
 
@@ -2888,15 +3062,18 @@ class BuildControls:
         (catalog type `datePicker`)
 
         Fields:
-            datePickerStyle: Display style
-            datePickerMode: Date/time components
-            dateMin: Minimum date (ISO 8601)
-            dateMax: Maximum date (ISO 8601)
-            label: Display label
-            tint: Accent color
-            defaultValue: Initial ISO 8601 date string
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            datePickerStyle (enum, default compact): Display style. Values: compact, wheel, graphical.
+            datePickerMode (enum, default dateAndTime): Date/time components. Values: date, time, dateAndTime.
+            dateMin (string): Minimum date (ISO 8601).
+            dateMax (string): Maximum date (ISO 8601).
+            label (string): Display label.
+            tint (color, default #667eea): Accent color.
+            defaultValue (string): Initial ISO 8601 date string.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
         """
         return self._ctl("datePicker", dict(id=id, position=position, span=span, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -2915,10 +3092,13 @@ class BuildControls:
         (catalog type `divider`)
 
         Fields:
-            label: Optional section label centered on the divider
-            tint: Line color
-            style: Line style
-            lineThickness: Line thickness in points
+            label (string): Optional section label centered on the divider.
+            tint (color, default #FFFFFF): Line color.
+            style (enum, default line): Line style. Values: line, dashed.
+            lineThickness (number, default 1): Line thickness in points.
+
+        Example:
+            ui.divider('section-break', position=[2, 0], span=[1, 4], label='Advanced Settings', style='dashed', tint='#8E8E93')
         """
         return self._ctl("divider", dict(id=id, position=position, span=span, label=label, tint=tint, style=style, lineThickness=lineThickness), props)
 
@@ -2938,11 +3118,14 @@ class BuildControls:
         (catalog type `flipCard`)
 
         Fields:
-            flipTrigger: Gesture that advances to the next face
-            flipAxis: Axis the card rotates around
-            panels: The panel groups this container pages through (group defs with children)
-            containerAnimation: Transition tuning, e.g. { profile, duration }
-            defaultValue: Initial face index
+            flipTrigger (enum, default tap): Gesture that advances to the next face. Values: tap, longPress.
+            flipAxis (enum, default horizontal): Axis the card rotates around. Values: horizontal, vertical.
+            panels (object): The panel groups this container pages through (group defs with children).
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
+            defaultValue (number, default 0): Initial face index.
+
+        Example:
+            ui.flip_card('status-card', position=[0, 0], span=[2, 2], flipAxis='horizontal', containerAnimation={'profile': 'snappy', 'flipPerspective': 0.7}, panels=[{'type': 'group', 'id': 'front', 'label': 'Status', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'gauge', 'id': 'f-cpu', 'position': [0, 0], 'label': 'CPU', 'min': 0, 'max': 100, 'defaultValue': 42}]}, {'type': 'group', 'id': 'back', 'label': 'Actions', 'position': [0, 0], 'grid': {'columns': 2, 'rows': 1}, 'children': [{'type': 'button', 'id': 'b-restart', 'position': [0, 0], 'label': 'Restart', 'icon': 'arrow.clockwise'}, {'type': 'button', 'id': 'b-stop', 'position': [0, 1], 'label': 'Stop', 'icon': 'stop.fill'}]}])
         """
         return self._ctl("flipCard", dict(id=id, position=position, span=span, flipTrigger=flipTrigger, flipAxis=flipAxis, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -2972,21 +3155,24 @@ class BuildControls:
         (catalog type `gantt`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the timeline
-            ganttConfig: Full configuration object (see GanttConfig section)
-            tint: First-task color and palette seed
-            barCornerRadius: Bar corner rounding
-            colors: Per-task color cycle (task color wins)
-            editable: Drag along a bar to set its progress
-            rowHeight: Points per task row
-            scrub: When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)
-            showAxis: Time labels along the top
-            showGrid: Vertical gridlines at the axis ticks
-            showProgress: Progress fill inside bars + % readout
-            showToday: Dashed 'now' line (date timelines only)
-            step: Progress snap while dragging
-            taskAction: taskAction
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the timeline.
+            ganttConfig (object): Full configuration object (see GanttConfig section).
+            tint (color, default #667eea): First-task color and palette seed.
+            barCornerRadius (number, default 5): Bar corner rounding.
+            colors (string[]): Per-task color cycle (task color wins).
+            editable (bool, default false): Drag along a bar to set its progress.
+            rowHeight (number, default 30): Points per task row.
+            scrub (bool, default false): When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap).
+            showAxis (bool, default true): Time labels along the top.
+            showGrid (bool, default true): Vertical gridlines at the axis ticks.
+            showProgress (bool, default true): Progress fill inside bars + % readout.
+            showToday (bool, default true): Dashed 'now' line (date timelines only).
+            step (number, default 0.05): Progress snap while dragging.
+            taskAction (object): taskAction.
+
+        Example:
+            ui.gantt('sprint', position=[0, 0], span=[3, 4], label='Sprint 12', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'sprint_plan'}, 'valuePath': 'gantt'}])
         """
         return self._ctl("gantt", dict(id=id, position=position, span=span, haptic=haptic, label=label, ganttConfig=ganttConfig, tint=tint, barCornerRadius=barCornerRadius, colors=colors, editable=editable, rowHeight=rowHeight, scrub=scrub, showAxis=showAxis, showGrid=showGrid, showProgress=showProgress, showToday=showToday, step=step, taskAction=taskAction), props)
 
@@ -3022,27 +3208,30 @@ class BuildControls:
         (catalog type `gauge`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            gaugeStyle: Shorthand: half = 180° arc, full = 360° circle
-            glowRadius: Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control
-            segments: Color zone breakpoints [{limit, color}]
-            colorBlend: How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
-            tint: Primary arc fill color (when no segments)
-            label: Text below the gauge
-            icon: SF Symbol in the center
-            step: Determines decimal formatting of center value
-            arcAngle: Arc sweep in degrees (1-360)
-            arcRotation: Rotates the arc start position in degrees
-            arcThickness: Arc stroke width in points. Omit to auto-scale with the gauge's size.
-            hideValue: Show just the arc — hide the center value
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Values: half, full.
+            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Values: round, butt, square.
+            segments (array): Color zone breakpoints [{limit, color}].
+            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
+            tint (color, default #667eea): Primary arc fill color (when no segments).
+            label (string): Text below the gauge.
+            icon (string): SF Symbol in the center.
+            step (number, default 1): Determines decimal formatting of center value.
+            arcAngle (number, default 180): Arc sweep in degrees (1-360).
+            arcRotation (number, default 0): Rotates the arc start position in degrees.
+            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size.
+            hideValue (bool, default false): Show just the arc — hide the center value.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+
+        Example:
+            ui.gauge('cpu-temp', position=[0, 0], min=30, max=100, gaugeStyle='half', label='CPU Temp', icon='thermometer.medium', segments=[{'limit': 60, 'color': '#34C759'}, {'limit': 80, 'color': '#FF9500'}, {'limit': 100, 'color': '#FF3B30'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'device': 'server'}, 'valuePath': 'cpu_temp'}])
         """
         return self._ctl("gauge", dict(id=id, position=position, span=span, animation=animation, min=min, max=max, gaugeStyle=gaugeStyle, glowRadius=glowRadius, lineCap=lineCap, segments=segments, colorBlend=colorBlend, tint=tint, label=label, icon=icon, step=step, arcAngle=arcAngle, arcRotation=arcRotation, arcThickness=arcThickness, hideValue=hideValue, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit), props)
 
@@ -3091,40 +3280,43 @@ class BuildControls:
         (catalog type `graph`)
 
         Fields:
-            label: Header label above the graph
-            graphConfig: Full configuration object (see GraphConfig section)
-            tint: Fallback node color
-            attractionForce: How strongly connected nodes pull together
-            backgroundColor: Graph canvas background
-            centerForce: How strongly nodes are pulled toward center
-            contentEvent: (Reserved) Event for content-push model
-            damping: Velocity dampening per tick (0-1, lower = more friction)
-            draggable: Allow dragging individual nodes
-            edgeColor: Default edge line color
-            edgeCurved: Use curved (quadratic) edges instead of straight
-            edgeOpacity: Edge line opacity (0-1)
-            edgeWidth: Edge line width
-            glowColor: Glow color
-            glowEnabled: Node glow effect
-            glowRadius: Glow blur radius
-            groupColors: groupColors
-            interactive: Allow pan and zoom
-            labelColor: Label text color
-            labelOffset: Distance from node center to label
-            labelSize: Label font size
-            nodeAction: nodeAction
-            nodeBorderColor: Border stroke color
-            nodeBorderWidth: Border stroke width around nodes
-            nodeColor: Default node fill color (hex)
-            nodeHighlightColor: Color when node is active/selected
-            nodeSize: Base node radius in points
-            particleColor: (Reserved) Particle color
-            particleSpeed: (Reserved) Particle animation speed
-            repulsionForce: How strongly nodes push apart
-            showLabels: Show text labels under nodes
-            showParticles: Animated particles travelling along edges
-            velocityDecay: Velocity decay rate (0-1, lower = faster settling)
-            zoomRange: Pinch zoom limits
+            label (string): Header label above the graph.
+            graphConfig (object): Full configuration object (see GraphConfig section).
+            tint (color, default #667eea): Fallback node color.
+            attractionForce (number, default 0.01): How strongly connected nodes pull together.
+            backgroundColor (color): Graph canvas background.
+            centerForce (number, default 0.02): How strongly nodes are pulled toward center.
+            contentEvent (string): (Reserved) Event for content-push model.
+            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction).
+            draggable (bool, default true): Allow dragging individual nodes.
+            edgeColor (color): Default edge line color.
+            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight.
+            edgeOpacity (number, default 0.4): Edge line opacity (0-1).
+            edgeWidth (number, default 1.0): Edge line width.
+            glowColor (color): Glow color.
+            glowEnabled (bool, default true): Node glow effect.
+            glowRadius (number, default 6.0): Glow blur radius.
+            groupColors (object): groupColors.
+            interactive (bool, default true): Allow pan and zoom.
+            labelColor (color): Label text color.
+            labelOffset (number, default 12.0): Distance from node center to label.
+            labelSize (number, default 10.0): Label font size.
+            nodeAction (object): nodeAction.
+            nodeBorderColor (color): Border stroke color.
+            nodeBorderWidth (number, default 0): Border stroke width around nodes.
+            nodeColor (color): Default node fill color (hex).
+            nodeHighlightColor (color): Color when node is active/selected.
+            nodeSize (number, default 8.0): Base node radius in points.
+            particleColor (color): (Reserved) Particle color.
+            particleSpeed (number): (Reserved) Particle animation speed.
+            repulsionForce (number, default 100): How strongly nodes push apart.
+            showLabels (bool, default true): Show text labels under nodes.
+            showParticles (bool, default false): Animated particles travelling along edges.
+            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling).
+            zoomRange (object): Pinch zoom limits.
+
+        Example:
+            ui.graph('network-topology', position=[0, 0], span=[4, 4], label='Network Topology', graphConfig={'nodeColor': '#667eea', 'nodeSize': 10, 'nodeBorderWidth': 1.5, 'nodeBorderColor': '#FFFFFF', 'edgeColor': '#FFFFFF', 'edgeWidth': 1.0, 'edgeOpacity': 0.3, 'edgeCurved': True, 'showLabels': True, 'labelColor': '#AAAAAA', 'labelSize': 9, 'repulsionForce': 120, 'attractionForce': 0.015, 'centerForce': 0.03, 'damping': 0.85, 'velocityDecay': 0.5, 'interactive': True, 'draggable': True, 'zoomRange': [0.5, 2.5], 'backgroundColor': '#0A0A1A', 'glowEnabled': True, 'glowRadius': 8, 'glowColor': '#667eea', 'groupColors': {'hub': '#FF6B6B', 'bridge': '#FFD93D', 'device': '#6BCB77', 'mobile': '#4D96FF'}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'network_graph'}, 'valuePath': 'graph_data'}])
         """
         return self._ctl("graph", dict(id=id, position=position, span=span, label=label, graphConfig=graphConfig, tint=tint, attractionForce=attractionForce, backgroundColor=backgroundColor, centerForce=centerForce, contentEvent=contentEvent, damping=damping, draggable=draggable, edgeColor=edgeColor, edgeCurved=edgeCurved, edgeOpacity=edgeOpacity, edgeWidth=edgeWidth, glowColor=glowColor, glowEnabled=glowEnabled, glowRadius=glowRadius, groupColors=groupColors, interactive=interactive, labelColor=labelColor, labelOffset=labelOffset, labelSize=labelSize, nodeAction=nodeAction, nodeBorderColor=nodeBorderColor, nodeBorderWidth=nodeBorderWidth, nodeColor=nodeColor, nodeHighlightColor=nodeHighlightColor, nodeSize=nodeSize, particleColor=particleColor, particleSpeed=particleSpeed, repulsionForce=repulsionForce, showLabels=showLabels, showParticles=showParticles, velocityDecay=velocityDecay, zoomRange=zoomRange), props)
 
@@ -3163,30 +3355,33 @@ class BuildControls:
         (catalog type `heatmap`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the grid
-            heatmapConfig: Full configuration object (see HeatmapConfig section)
-            tint: Ramp/palette seed color
-            formatValue: Formatter for scale/cell values
-            calendar: Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it
-            weekStartsOn: Calendar week start (default: the bound local source's weekStartsOn, else monday)
-            weeks: Calendar shows only the most recent N weeks (default the whole span, up to 106)
-            cellAction: cellAction
-            cellCornerRadius: Cell corner rounding (square cells only)
-            cellCorner: Older name of cellCornerRadius; cellCornerRadius wins when both are set
-            cellGap: Gap between cells
-            cellShape: square or circle (circle reads as dot-matrix/LED)
-            colors: Continuous: 2+ gradient stops. Discrete: the palette (value = index)
-            discrete: Treat values as palette indices instead of a continuous range
-            drag: Drag paints the first-touched cell's new value across cells
-            editable: Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)
-            sendMode: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
-            showColLabels: Column labels along the top (when cols present; auto-thinned)
-            showRowLabels: Row labels down the leading edge (when rows present)
-            showScale: Gradient scale legend under the grid (continuous only)
-            showValues: Numeric value inside each cell (when cells are large enough)
-            vMax: Continuous color-scale bounds
-            vMin: Continuous color-scale bounds
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the grid.
+            heatmapConfig (object): Full configuration object (see HeatmapConfig section).
+            tint (color, default #667eea): Ramp/palette seed color.
+            formatValue (string): Formatter for scale/cell values.
+            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it.
+            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Values: monday, sunday.
+            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106).
+            cellAction (object): cellAction.
+            cellCornerRadius (number, default 3): Cell corner rounding (square cells only).
+            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set.
+            cellGap (number, default 2): Gap between cells.
+            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Values: square, circle.
+            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index).
+            discrete (bool, default false): Treat values as palette indices instead of a continuous range.
+            drag (bool, default true): Drag paints the first-touched cell's new value across cells.
+            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle).
+            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s).
+            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned).
+            showRowLabels (bool, default true): Row labels down the leading edge (when rows present).
+            showScale (bool, default false): Gradient scale legend under the grid (continuous only).
+            showValues (bool, default false): Numeric value inside each cell (when cells are large enough).
+            vMax (number): Continuous color-scale bounds.
+            vMin (number): Continuous color-scale bounds.
+
+        Example:
+            ui.heatmap('rack-temps', defaultValue='{"rows":["Mon","Tue","Wed"],"cols":["00","06","12","18"],"values":[[24,31,62,45],[28,55,81,49],[22,38,74,68]]}', position=[0, 0], span=[3, 4], label='Rack temperatures', formatValue='suffix:°C', heatmapConfig={'colors': ['#1B2845', '#667eea', '#FF9500', '#FF6B6B'], 'showScale': True, 'vMin': 20, 'vMax': 90}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'rack_temps'}, 'valuePath': 'grid'}])
         """
         return self._ctl("heatmap", dict(id=id, position=position, span=span, haptic=haptic, label=label, heatmapConfig=heatmapConfig, tint=tint, formatValue=formatValue, calendar=calendar, weekStartsOn=weekStartsOn, weeks=weeks, cellAction=cellAction, cellCornerRadius=cellCornerRadius, cellCorner=cellCorner, cellGap=cellGap, cellShape=cellShape, colors=colors, discrete=discrete, drag=drag, editable=editable, sendMode=sendMode, showColLabels=showColLabels, showRowLabels=showRowLabels, showScale=showScale, showValues=showValues, vMax=vMax, vMin=vMin), props)
 
@@ -3211,16 +3406,19 @@ class BuildControls:
         (catalog type `image`)
 
         Fields:
-            systemName: SF Symbol name (fallback/placeholder)
-            url: Static remote image URL
-            style: Visual style variant
-            imageCornerRadius: Custom corner radius
-            imageShadow: Soft shadow blur under the image (0 = none)
-            aspectRatio: fit (scale to fit) or fill (scale to fill, may crop)
-            hideBackground: Remove glass background
-            iconMap: Incoming value → SF Symbol name ("default" catches the rest)
-            valueMap: Incoming value → image URL
-            colorMap: Incoming value → hex tint for the mapped symbol
+            systemName (string): SF Symbol name (fallback/placeholder).
+            url (string): Static remote image URL.
+            style (enum): Visual style variant. Values: rounded, circle.
+            imageCornerRadius (number): Custom corner radius.
+            imageShadow (number, default 0): Soft shadow blur under the image (0 = none).
+            aspectRatio (enum): fit (scale to fit) or fill (scale to fill, may crop). Values: fit, fill.
+            hideBackground (bool, default false): Remove glass background.
+            iconMap (object): Incoming value → SF Symbol name ("default" catches the rest).
+            valueMap (object): Incoming value → image URL.
+            colorMap (object): Incoming value → hex tint for the mapped symbol.
+
+        Example:
+            ui.image('cam-front', position=[0, 0], span=[1, 2], systemName='video.fill')
         """
         return self._ctl("image", dict(id=id, position=position, span=span, systemName=systemName, url=url, style=style, imageCornerRadius=imageCornerRadius, imageShadow=imageShadow, aspectRatio=aspectRatio, hideBackground=hideBackground, iconMap=iconMap, valueMap=valueMap, colorMap=colorMap), props)
 
@@ -3242,13 +3440,16 @@ class BuildControls:
         (catalog type `joystick`)
 
         Fields:
-            label: Header label
-            tint: Stick and track color
-            style: analog (free) or dpad (4/8-direction snapping)
-            deadzone: Center deadzone radius (0-1)
-            sticky: Stick stays where released instead of snapping to center
-            sendRate: Throttle interval in seconds for action firing
-            hideLabel: Hide label and coordinate readout
+            label (string): Header label.
+            tint (color, default #667eea): Stick and track color.
+            style (enum, default analog): analog (free) or dpad (4/8-direction snapping). Values: analog, dpad.
+            deadzone (number, default 0.1): Center deadzone radius (0-1).
+            sticky (bool, default false): Stick stays where released instead of snapping to center.
+            sendRate (number, default 0.1): Throttle interval in seconds for action firing.
+            hideLabel (bool, default false): Hide label and coordinate readout.
+
+        Example:
+            ui.joystick('drive-stick', position=[0, 0], span=[3, 3], label='Drive', tint='#FF2D55', style='analog', deadzone=0.15, sendRate=0.05, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'robot', 'type': 'drive', 'payload': {'x': '$value.x', 'y': '$value.y'}}})
         """
         return self._ctl("joystick", dict(id=id, position=position, span=span, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel), props)
 
@@ -3277,20 +3478,23 @@ class BuildControls:
         (catalog type `keyValue`)
 
         Fields:
-            label: Header label
-            rows: Row whitelist and order: [{ key, label, format, icon, unit }]
-            keyValueStyle: rows = label left / value right; chips = wrapping pills; grid = cards
-            columns: How many columns of rows or cards to lay out (grid defaults to 2)
-            sortKeys: Sort keys alphabetically instead of keeping the feed's own order
-            hideEmpty: Skip rows whose value is null or an empty string
-            maxRows: Cap on rendered rows (0 = all of them)
-            format: Default number format for rows without their own (percent, duration, bytes, suffix:°C, …)
-            colorMap: Value → hex tint, so a value can carry its own status color
-            tint: Value color when no colorMap entry matches
-            keyTint: Color of the key names (default: the theme's secondary color)
-            valueTint: Color of the values when no colorMap entry matches (default: tint)
-            hideLabel: Hide the header label
-            hideBackground: Draw without the card surface
+            label (string): Header label.
+            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }].
+            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Values: rows, chips, grid.
+            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2).
+            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order.
+            hideEmpty (bool, default true): Skip rows whose value is null or an empty string.
+            maxRows (number, default 0): Cap on rendered rows (0 = all of them).
+            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …).
+            colorMap (object): Value → hex tint, so a value can carry its own status color.
+            tint (color): Value color when no colorMap entry matches.
+            keyTint (color): Color of the key names (default: the theme's secondary color).
+            valueTint (color): Color of the values when no colorMap entry matches (default: tint).
+            hideLabel (bool, default false): Hide the header label.
+            hideBackground (bool, default false): Draw without the card surface.
+
+        Example:
+            ui.key_value('health', position=[0, 0], span=[3, 4], label='Pi Health', rows=[{'key': 'cpu', 'label': 'CPU', 'format': 'percent', 'icon': 'cpu'}, {'key': 'temp', 'label': 'Temp', 'format': 'suffix:°C', 'icon': 'thermometer.medium'}, {'key': 'uptime', 'label': 'Uptime', 'format': 'duration', 'icon': 'clock'}, {'key': 'ip', 'label': 'IP', 'icon': 'network'}, {'key': 'online', 'label': 'Link', 'icon': 'antenna.radiowaves.left.and.right'}], colorMap={'true': '#34C759', 'false': '#FF3B30'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'health'}, 'valuePath': 'stats'}])
         """
         return self._ctl("keyValue", dict(id=id, position=position, span=span, label=label, rows=rows, keyValueStyle=keyValueStyle, columns=columns, sortKeys=sortKeys, hideEmpty=hideEmpty, maxRows=maxRows, format=format, colorMap=colorMap, tint=tint, keyTint=keyTint, valueTint=valueTint, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
@@ -3324,25 +3528,28 @@ class BuildControls:
         (catalog type `label`)
 
         Fields:
-            text: Static display text (overridden by sync)
-            label: Alternative to text
-            icon: SF Symbol before text
-            style: Text style variant (terminal = ANSI terminal renderer)
-            glowRadius: Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control
-            tint: Text and icon color
-            align: Text alignment
-            fontWeight: Font weight laid over the text style
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
-            scrollable: Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight)
-            formatValue: Value display format (see formatValue table; relative / relative:day show a date as time-since)
-            placeholder: Shown by a relative-date label with no date yet (default "Never")
-            valueMap: Incoming value → display text ("default" catches the rest)
-            iconMap: Incoming value → SF Symbol name
-            colorMap: Incoming value → hex tint
+            text (string): Static display text (overridden by sync).
+            label (string): Alternative to text.
+            icon (string): SF Symbol before text.
+            style (enum, default default): Text style variant (terminal = ANSI terminal renderer). Values: default, headline, title, caption, mono, large-mono, terminal.
+            glowRadius (number, default 0): Soft glow behind the text in its own colour, in points (0 = none). Cross-control, same on every control.
+            tint (color, default #FFFFFF): Text and icon color.
+            align (enum, default leading): Text alignment. Values: leading, center, trailing.
+            fontWeight (enum, default regular): Font weight laid over the text style. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). A numeric value converts to the device locale; text values show as sent. Unknown strings show literally.
+            scrollable (bool, default false): Fixed-height scrolling terminal/log view that keeps the latest line in view (pair with controlHeight).
+            formatValue (string): Value display format (see formatValue table; relative / relative:day show a date as time-since).
+            placeholder (string): Shown by a relative-date label with no date yet (default "Never").
+            valueMap (object): Incoming value → display text ("default" catches the rest).
+            iconMap (object): Incoming value → SF Symbol name.
+            colorMap (object): Incoming value → hex tint.
+
+        Example:
+            ui.label('fern-watered', label='Fern — last watered', icon='leaf.fill', formatValue='relative:day', placeholder='Not watered yet', sync=[{'method': 'meshsocket', 'event': 'broadcast', 'filter': {'msg_type': 'fern'}, 'valuePath': 'lastWatered'}])
         """
         return self._ctl("label", dict(id=id, position=position, span=span, text=text, label=label, icon=icon, style=style, glowRadius=glowRadius, tint=tint, align=align, fontWeight=fontWeight, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit, scrollable=scrollable, formatValue=formatValue, placeholder=placeholder, valueMap=valueMap, iconMap=iconMap, colorMap=colorMap), props)
 
@@ -3366,15 +3573,18 @@ class BuildControls:
         (catalog type `list`)
 
         Fields:
-            formatValue: Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
-            label: Header label
-            listColumns: Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
-            emptyText: Line shown when the list has no rows. Default: \\"No <label> yet\\".
-            tint: Header text color
-            hideLabel: Hide header label
-            hideBackground: Remove glass card background
-            defaultValue: Seed rows shown before the first sync (the same row objects a sync delivers)
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is.
+            label (string): Header label.
+            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys.
+            emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\".
+            tint (color, default #FFFFFF): Header text color.
+            hideLabel (bool, default false): Hide header label.
+            hideBackground (bool, default false): Remove glass card background.
+            defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
         """
         return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm), props)
 
@@ -3399,16 +3609,19 @@ class BuildControls:
         (catalog type `logConsole`)
 
         Fields:
-            label: Header label
-            style: default (dark bg) or transparent
-            maxLines: Maximum buffered lines
-            showTimestamps: Prefix each line with timestamp
-            fontSize: Monospace font size
-            autoScroll: Auto-scroll to latest line
-            controlHeight: Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span.
-            logColors: Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}
-            tint: Accent color
-            defaultValue: Seed lines shown before the first sync (strings, or objects with text and level)
+            label (string): Header label.
+            style (enum, default default): default (dark bg) or transparent. Values: default, transparent.
+            maxLines (number, default 200): Maximum buffered lines.
+            showTimestamps (bool, default true): Prefix each line with timestamp.
+            fontSize (number, default 11): Monospace font size.
+            autoScroll (bool, default true): Auto-scroll to latest line.
+            controlHeight (number): Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span.
+            logColors (object): Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}.
+            tint (color, default #667eea): Accent color.
+            defaultValue (array): Seed lines shown before the first sync (strings, or objects with text and level).
+
+        Example:
+            ui.log_console('app-logs', position=[0, 0], span=[3, 4], label='Application Logs', maxLines=500, showTimestamps=True, fontSize=12, autoScroll=True, logColors={'error': '#FF3B30', 'warn': '#FF9500', 'info': '#34C759', 'debug': '#8E8E93'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'log_stream'}}])
         """
         return self._ctl("logConsole", dict(id=id, position=position, span=span, label=label, style=style, maxLines=maxLines, showTimestamps=showTimestamps, fontSize=fontSize, autoScroll=autoScroll, controlHeight=controlHeight, logColors=logColors, tint=tint, defaultValue=defaultValue), props)
 
@@ -3430,13 +3643,16 @@ class BuildControls:
         (catalog type `map`)
 
         Fields:
-            mapStyle: Map rendering style (globe frames the whole Earth)
-            mapInteractive: Allow user pan/zoom
-            mapZoom: Default coordinate span in degrees
-            label: Header label above the map
-            tint: Default marker color (used when a marker carries none)
-            mapConfig: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
-            controlHeight: Map height in points in a flow-mode grid (2-D grids size it by rowSpan)
+            mapStyle (enum, default standard): Map rendering style (globe frames the whole Earth). Values: standard, satellite, hybrid, globe.
+            mapInteractive (bool, default true): Allow user pan/zoom.
+            mapZoom (number, default 0.01): Default coordinate span in degrees.
+            label (string): Header label above the map.
+            tint (color, default #667eea): Default marker color (used when a marker carries none).
+            mapConfig (object): Property→style mapping for GeoJSON feeds (marker size/color/label/ripple).
+            controlHeight (number): Map height in points in a flow-mode grid (2-D grids size it by rowSpan).
+
+        Example:
+            ui.map('vehicle-location', position=[0, 0], span=[3, 4], mapStyle='standard', mapInteractive=True, mapZoom=0.005, label='Vehicle', tint='#FF3B30', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'gps_update'}, 'valuePath': 'map_data'}])
         """
         return self._ctl("map", dict(id=id, position=position, span=span, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, controlHeight=controlHeight), props)
 
@@ -3462,17 +3678,20 @@ class BuildControls:
         (catalog type `picker`)
 
         Fields:
-            animation: Motion profile for value changes
-            optionIcons: Optional SF Symbols parallel to options, supported in every picker style
-            optionLabels: Display labels parallel to options; actions and sync use the original option values
-            placeholder: Text shown when no options are available or a picker has no selection
-            options: Available choices (string array)
-            pickerStyle: Display style
-            label: Display label
-            tint: Accent color
-            defaultValue: Initially selected option
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
+            placeholder (string): Text shown when no options are available or a picker has no selection.
+            options (array): Available choices (string array).
+            pickerStyle (enum, default menu): Display style. Values: menu, wheel, inline.
+            label (string): Display label.
+            tint (color, default #667eea): Accent color.
+            defaultValue (string): Initially selected option.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
         return self._ctl("picker", dict(id=id, position=position, span=span, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -3510,29 +3729,32 @@ class BuildControls:
         (catalog type `pieChart`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Label under the chart
-            pieStyle: Classic pie, donut, spin-to-select wheel, or radial menu
-            glowRadius: Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control
-            pieConfig: Full configuration object (see PieConfig section)
-            tint: First-slice color and palette seed
-            formatValue: Formatter for slice/center values
-            centerText: Donut center text; {{total}} interpolates the slice sum
-            colors: Slice color cycle (per-slice color wins)
-            donutRatio: Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3)
-            sliceGap: Even-width gap between neighbouring slices in points (slices narrower than the gap drop it)
-            sliceCornerRadius: Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices
-            explodeSelected: Tapped slice pops outward (**wheels default false)
-            percent: Show values as % of the total
-            showLabels: Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead)
-            showLegend: Wrapping dot-chip legend under the chart
-            showValues: Append each slice's value to its label
-            sliceAction: sliceAction
-            spinDuration: Approximate seconds a full-strength spin takes to settle
-            spinTicks: Haptic tick per slice boundary while spinning
-            startAngle: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
-            icon: SF Symbol in the wheel/menu hub before a result lands
-            hideValue: Suppress the donut/hub center readout
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Label under the chart.
+            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Values: pie, donut, wheel, menu.
+            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control.
+            pieConfig (object): Full configuration object (see PieConfig section).
+            tint (color, default #667eea): First-slice color and palette seed.
+            formatValue (string): Formatter for slice/center values.
+            centerText (string): Donut center text; {{total}} interpolates the slice sum.
+            colors (string[]): Slice color cycle (per-slice color wins).
+            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3).
+            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it).
+            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices.
+            explodeSelected (bool): Tapped slice pops outward (**wheels default false).
+            percent (bool, default false): Show values as % of the total.
+            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead).
+            showLegend (bool, default false): Wrapping dot-chip legend under the chart.
+            showValues (bool, default false): Append each slice's value to its label.
+            sliceAction (object): sliceAction.
+            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle.
+            spinTicks (bool, default true): Haptic tick per slice boundary while spinning.
+            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise).
+            icon (string): SF Symbol in the wheel/menu hub before a result lands.
+            hideValue (bool, default false): Suppress the donut/hub center readout.
+
+        Example:
+            ui.pie_chart('power-split', position=[0, 0], span=[3, 3], label='Power draw', pieStyle='donut', pieConfig={'centerText': '{{total}}W', 'showLegend': True, 'percent': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power'}, 'valuePath': 'split'}])
         """
         return self._ctl("pieChart", dict(id=id, position=position, span=span, haptic=haptic, label=label, pieStyle=pieStyle, glowRadius=glowRadius, pieConfig=pieConfig, tint=tint, formatValue=formatValue, centerText=centerText, colors=colors, donutRatio=donutRatio, sliceGap=sliceGap, sliceCornerRadius=sliceCornerRadius, explodeSelected=explodeSelected, percent=percent, showLabels=showLabels, showLegend=showLegend, showValues=showValues, sliceAction=sliceAction, spinDuration=spinDuration, spinTicks=spinTicks, startAngle=startAngle, icon=icon, hideValue=hideValue), props)
 
@@ -3558,17 +3780,20 @@ class BuildControls:
         (catalog type `pinboard`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids)
-            background: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
-            surfaceAspect: Surface aspect ratio (width ÷ height)
-            searchable: Show a filter field above the option area
-            paletteLabel: Header for the option area
-            hidePalette: Hide the option area (surfaces whose markers all start placed)
-            events: events
-            items: items
-            pinboardConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids).
+            background (string): SF Symbol drawn faint behind the surface (floor-plan / map backdrop).
+            surfaceAspect (number, default 1.4): Surface aspect ratio (width ÷ height).
+            searchable (bool, default false): Show a filter field above the option area.
+            paletteLabel (string, default Items): Header for the option area.
+            hidePalette (bool, default false): Hide the option area (surfaces whose markers all start placed).
+            events (object): events.
+            items (object): items.
+            pinboardConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.pinboard('home-plan', position=[0, 0], span=[10, 4], controlHeight=560, label='Home Devices', pinboardConfig={'background': 'house.fill', 'surfaceAspect': 1.6, 'paletteLabel': 'Unplaced devices', 'items': [{'id': 'living-lamp', 'label': 'Living Lamp', 'icon': 'lamp.table.fill', 'tint': '#FF9500', 'x': 0.28, 'y': 0.4, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'toggle', 'payload': {'device': '{{value}}'}}}}, {'id': 'front-door', 'label': 'Front Door', 'icon': 'door.left.hand.closed', 'tint': '#34C759', 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'toggle', 'payload': {'device': '{{value}}'}}}}], 'events': {'place': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'place_device', 'payload': {'device': '{{item}}', 'x': '{{x}}', 'y': '{{y}}'}}}, 'layout': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'floorplan_state'}}}})
         """
         return self._ctl("pinboard", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, background=background, surfaceAspect=surfaceAspect, searchable=searchable, paletteLabel=paletteLabel, hidePalette=hidePalette, events=events, items=items, pinboardConfig=pinboardConfig), props)
 
@@ -3601,24 +3826,27 @@ class BuildControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value (0%)
-            max: Maximum value (100%)
-            progressStyle: Circular ring or linear bar
-            glowRadius: Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control
-            tint: Fill color
-            colorByValue: Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
-            label: Center text (ring) or header text (bar)
-            icon: SF Symbol in center (ring only)
-            arcThickness: Ring stroke width, or bar height, in points. Absent scales with the control size.
-            barCornerRadius: Corner rounding of the linear bar (progressStyle bar)
-            hideValue: Show just the arc — hide the center value
-            forecast: Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale.
-            forecastTarget: The value this one is expected to arrive at (with forecast "reach")
-            forecastTimeFrom: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach
-            forecastRate: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value (0%).
+            max (number, default 100): Maximum value (100%).
+            progressStyle (enum, default ring): Circular ring or linear bar. Values: ring, bar.
+            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Values: round, butt, square.
+            tint (color, default #667eea): Fill color.
+            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
+            label (string): Center text (ring) or header text (bar).
+            icon (string): SF Symbol in center (ring only).
+            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size.
+            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar).
+            hideValue (bool, default false): Show just the arc — hide the center value.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+
+        Example:
+            ui.progress_ring('download-progress', position=[0, 0], min=0, max=100, progressStyle='ring', tint='#34C759', label='Download', icon='arrow.down.circle', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'task': 'firmware_update'}, 'valuePath': 'percent'}])
         """
         return self._ctl("progressRing", dict(id=id, position=position, span=span, animation=animation, min=min, max=max, progressStyle=progressStyle, glowRadius=glowRadius, lineCap=lineCap, tint=tint, colorByValue=colorByValue, label=label, icon=icon, arcThickness=arcThickness, barCornerRadius=barCornerRadius, hideValue=hideValue, forecast=forecast, forecastTarget=forecastTarget, forecastTimeFrom=forecastTimeFrom, forecastRate=forecastRate, unit=unit), props)
 
@@ -3639,12 +3867,15 @@ class BuildControls:
         (catalog type `qrCode`)
 
         Fields:
-            label: Label below the QR code
-            text: Static content to encode (overridden by sync)
-            tint: QR code foreground color
-            qrBackground: Fill behind the code (default: none, the card shows through)
-            correctionLevel: Error correction level
-            hideBackground: Remove glass card background
+            label (string): Label below the QR code.
+            text (string): Static content to encode (overridden by sync).
+            tint (color, default #FFFFFF): QR code foreground color.
+            qrBackground (color): Fill behind the code (default: none, the card shows through).
+            correctionLevel (enum, default M): Error correction level. Values: L, M, Q, H.
+            hideBackground (bool, default false): Remove glass card background.
+
+        Example:
+            ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
         """
         return self._ctl("qrCode", dict(id=id, position=position, span=span, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideBackground=hideBackground), props)
 
@@ -3677,24 +3908,27 @@ class BuildControls:
         (catalog type `radar`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Label under the chart
-            radarConfig: Full configuration object (see RadarConfig section)
-            tint: First-series color and palette seed
-            formatValue: Formatter for vertex values
-            colors: Series color cycle (per-series color wins)
-            curved: Rounded polygon instead of straight edges
-            editable: Drag the **first** series' vertices along their axes
-            fillOpacity: Polygon fill opacity 0–1
-            glowRadius: Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control
-            maxValue: Per-axis maximum (payload max wins)
-            rings: Concentric grid rings
-            showAxisLabels: Axis names around the rim
-            showLegend: Series legend under the chart
-            showPoints: Vertex dots (always on while editing)
-            showValues: Numeric value beside each vertex (the dragged vertex always shows)
-            step: Snap dragged values to this step (e.g. 1, 5, 0.1)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Label under the chart.
+            radarConfig (object): Full configuration object (see RadarConfig section).
+            tint (color, default #667eea): First-series color and palette seed.
+            formatValue (string): Formatter for vertex values.
+            colors (string[]): Series color cycle (per-series color wins).
+            curved (bool, default false): Rounded polygon instead of straight edges.
+            editable (bool, default false): Drag the **first** series' vertices along their axes.
+            fillOpacity (number, default 0.25): Polygon fill opacity 0–1.
+            glowRadius (number, default 0): Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control. Values: round, butt, square.
+            maxValue (number): Per-axis maximum (payload max wins).
+            rings (number, default 4): Concentric grid rings.
+            showAxisLabels (bool, default true): Axis names around the rim.
+            showLegend (bool, default false): Series legend under the chart.
+            showPoints (bool, default true): Vertex dots (always on while editing).
+            showValues (bool, default false): Numeric value beside each vertex (the dragged vertex always shows).
+            step (number): Snap dragged values to this step (e.g. 1, 5, 0.1).
+
+        Example:
+            ui.radar('rover-compare', position=[0, 0], span=[3, 3], label='Rover profiles', radarConfig={'showLegend': True, 'curved': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'fleet_stats'}, 'valuePath': 'radar'}])
         """
         return self._ctl("radar", dict(id=id, position=position, span=span, haptic=haptic, label=label, radarConfig=radarConfig, tint=tint, formatValue=formatValue, colors=colors, curved=curved, editable=editable, fillOpacity=fillOpacity, glowRadius=glowRadius, lineCap=lineCap, maxValue=maxValue, rings=rings, showAxisLabels=showAxisLabels, showLegend=showLegend, showPoints=showPoints, showValues=showValues, step=step), props)
 
@@ -3723,20 +3957,23 @@ class BuildControls:
         (catalog type `sankey`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the diagram
-            sankeyConfig: Full configuration object (see SankeyConfig section)
-            tint: First-node color and palette seed
-            formatValue: Formatter for node throughput values
-            colors: Node color cycle (per-node color wins)
-            linkOpacity: Ribbon opacity (selection brightens involved ribbons)
-            nodeAction: nodeAction
-            nodeSpacing: Minimum vertical gap between nodes in a column
-            cellCornerRadius: Node corner rounding (default: a third of the node width)
-            nodeWidth: Node bar width in points
-            scrub: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)
-            showLabels: Node names beside the bars
-            showValues: Throughput value alongside each label
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the diagram.
+            sankeyConfig (object): Full configuration object (see SankeyConfig section).
+            tint (color, default #667eea): First-node color and palette seed.
+            formatValue (string): Formatter for node throughput values.
+            colors (string[]): Node color cycle (per-node color wins).
+            linkOpacity (number, default 0.32): Ribbon opacity (selection brightens involved ribbons).
+            nodeAction (object): nodeAction.
+            nodeSpacing (number, default 10): Minimum vertical gap between nodes in a column.
+            cellCornerRadius (number): Node corner rounding (default: a third of the node width).
+            nodeWidth (number, default 10): Node bar width in points.
+            scrub (bool, default false): Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap).
+            showLabels (bool, default true): Node names beside the bars.
+            showValues (bool, default false): Throughput value alongside each label.
+
+        Example:
+            ui.sankey('energy', position=[0, 0], span=[3, 4], label='Energy (kW)', sankeyConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power_flow'}, 'valuePath': 'sankey'}])
         """
         return self._ctl("sankey", dict(id=id, position=position, span=span, haptic=haptic, label=label, sankeyConfig=sankeyConfig, tint=tint, formatValue=formatValue, colors=colors, linkOpacity=linkOpacity, nodeAction=nodeAction, nodeSpacing=nodeSpacing, cellCornerRadius=cellCornerRadius, nodeWidth=nodeWidth, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
 
@@ -3761,16 +3998,19 @@ class BuildControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation: Motion profile for value changes
-            optionLabels: Display labels parallel to options; actions and sync use the original option values
-            placeholder: Text shown when no options are available or a picker has no selection
-            options: Segment labels (string array)
-            optionIcons: SF Symbols parallel to options
-            style: System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number)
-            tint: Accent for pills style
-            defaultValue: Initially selected option
-            haptic: Default haptic on change
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
+            placeholder (string): Text shown when no options are available or a picker has no selection.
+            options (array): Segment labels (string array).
+            optionIcons (array): SF Symbols parallel to options.
+            style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Values: default, pills, stars.
+            tint (color, default #667eea): Accent for pills style.
+            defaultValue (string): Initially selected option.
+            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.segmented_control('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
         return self._ctl("segmentedControl", dict(id=id, position=position, span=span, animation=animation, optionLabels=optionLabels, placeholder=placeholder, options=options, optionIcons=optionIcons, style=style, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -3804,25 +4044,28 @@ class BuildControls:
         (catalog type `slider`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            step: Detent spacing measured from min; zero or negative allows continuous values
-            continuous: Send actions while dragging; false previews locally and sends once on release
-            hideValue: Hide numeric readouts in every slider style; keep the label and interaction
-            label: Header label
-            defaultValue: Initial value
-            tint: Track fill color
-            style: Display style
-            formatValue: Value display format
-            minIcon: SF Symbol at minimum end
-            maxIcon: SF Symbol at maximum end
-            hideLabel: Hide the header
-            hideBackground: Remove glass background
-            arcAngle: Arc sweep in degrees (radial style only)
-            arcRotation: Arc start rotation (radial style only)
-            arcThickness: Track stroke width (radial style only)
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values.
+            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release.
+            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction.
+            label (string): Header label.
+            defaultValue (number): Initial value.
+            tint (color, default #667eea): Track fill color.
+            style (enum, default default): Display style. Values: default, scrubber, radial.
+            formatValue (enum, default decimal): Value display format. Values: decimal, time, percent, none.
+            minIcon (string): SF Symbol at minimum end.
+            maxIcon (string): SF Symbol at maximum end.
+            hideLabel (bool, default false): Hide the header.
+            hideBackground (bool, default false): Remove glass background.
+            arcAngle (number, default 270): Arc sweep in degrees (radial style only).
+            arcRotation (number, default 0): Arc start rotation (radial style only).
+            arcThickness (number, default 8): Track stroke width (radial style only).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.slider('seek', position=[0, 0], label='Playback', min=0, max=300, step=1, style='scrubber', formatValue='time', continuous=False)
         """
         return self._ctl("slider", dict(id=id, position=position, span=span, animation=animation, min=min, max=max, step=step, continuous=continuous, hideValue=hideValue, label=label, defaultValue=defaultValue, tint=tint, style=style, formatValue=formatValue, minIcon=minIcon, maxIcon=maxIcon, hideLabel=hideLabel, hideBackground=hideBackground, arcAngle=arcAngle, arcRotation=arcRotation, arcThickness=arcThickness, confirm=confirm), props)
 
@@ -3848,17 +4091,20 @@ class BuildControls:
         (catalog type `sortboard`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label
-            controlHeight: Rendered height in points (required in flow-mode grids — see Sizing)
-            searchable: Show a filter field above the option area
-            paletteLabel: Header for the option area
-            hidePalette: Hide the option area (server-seeded boards where items start placed)
-            columns: How many zone columns to lay out
-            events: events
-            items: items
-            zones: zones
-            sortboardConfig: grouped config object (see grouped fields)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label.
+            controlHeight (number, default 560): Rendered height in points (required in flow-mode grids — see Sizing).
+            searchable (bool, default false): Show a filter field above the option area.
+            paletteLabel (string, default Options): Header for the option area.
+            hidePalette (bool, default false): Hide the option area (server-seeded boards where items start placed).
+            columns (number, default 2): How many zone columns to lay out.
+            events (object): events.
+            items (object): items.
+            zones (object): zones.
+            sortboardConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.sortboard('sprint-board', position=[0, 0], span=[10, 4], controlHeight=560, label='Sprint Board', sortboardConfig={'searchable': True, 'paletteLabel': 'Backlog', 'columns': 3, 'items': [{'id': 'AUTH-14', 'label': 'OAuth refresh', 'icon': 'person.badge.key.fill', 'tint': '#FF9500'}, {'id': 'UI-88', 'label': 'Dark mode', 'icon': 'moon.fill', 'tint': '#667eea'}, {'id': 'PERF-5', 'label': 'Cold start', 'icon': 'bolt.fill', 'tint': '#FF6B6B'}, {'id': 'DOC-9', 'label': 'API docs', 'icon': 'book.fill', 'tint': '#5AC8FA', 'zone': 'doing'}, {'id': 'BUG-72', 'label': 'Crash on launch', 'icon': 'ant.fill', 'tint': '#FF3B30', 'zone': 'done'}], 'zones': [{'id': 'todo', 'label': 'To Do'}, {'id': 'doing', 'label': 'In Progress', 'capacity': 3, 'tint': '#FF9500'}, {'id': 'done', 'label': 'Done', 'tint': '#34C759'}], 'events': {'place': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'tracker', 'type': 'move_ticket', 'payload': {'ticket': '{{item}}', 'column': '{{to}}', 'index': '{{index}}'}}}, 'layout': {'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'board_state'}}}})
         """
         return self._ctl("sortboard", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, searchable=searchable, paletteLabel=paletteLabel, hidePalette=hidePalette, columns=columns, events=events, items=items, zones=zones, sortboardConfig=sortboardConfig), props)
 
@@ -3871,6 +4117,9 @@ class BuildControls:
     ) -> dict[str, Any]:
         """Space: An empty gap
         (catalog type `spacer`)
+
+        Example:
+            ui.spacer('gap-1', position=[1, 2])
         """
         return self._ctl("spacer", dict(id=id, position=position, span=span), props)
 
@@ -3895,16 +4144,19 @@ class BuildControls:
         (catalog type `sparkline`)
 
         Fields:
-            sparklinePoints: Max data points retained in the buffer
-            lineWidth: Line stroke width in points. Omit to scale with the control's height.
-            sparklineFill: Fill the area under the line with a gradient
-            glowRadius: Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the line. Cross-control, same on every control
-            colorByValue: Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
-            colorBlend: How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue.
-            tint: Line and fill color
-            label: Header label (also shows latest value)
-            defaultValue: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
+            sparklinePoints (number, default 50): Max data points retained in the buffer.
+            lineWidth (number): Line stroke width in points. Omit to scale with the control's height.
+            sparklineFill (bool, default false): Fill the area under the line with a gradient.
+            glowRadius (number, default 0): Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Values: round, butt, square.
+            colorByValue (array): Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
+            colorBlend (number, default 0): How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue.
+            tint (color, default #667eea): Line and fill color.
+            label (string): Header label (also shows latest value).
+            defaultValue (array): Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints.
+
+        Example:
+            ui.sparkline('temp-history', position=[0, 0], span=[1, 3], sparklinePoints=100, sparklineFill=True, tint='#FF6B6B', label='Temperature', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living'}, 'valuePath': 'temperature'}])
         """
         return self._ctl("sparkline", dict(id=id, position=position, span=span, sparklinePoints=sparklinePoints, lineWidth=lineWidth, sparklineFill=sparklineFill, glowRadius=glowRadius, lineCap=lineCap, colorByValue=colorByValue, colorBlend=colorBlend, tint=tint, label=label, defaultValue=defaultValue), props)
 
@@ -3941,28 +4193,31 @@ class BuildControls:
         (catalog type `statTile`)
 
         Fields:
-            label: Title above the number
-            hideLabel: Hide the title
-            unit: Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
-            valueSize: Point size of the big number
-            formatValue: Number format for the big number (see the formatValue table, e.g. decimal:1)
-            step: Determines decimal formatting of the number when formatValue is unset
-            sparklinePoints: Max values kept in the faint history sparkline
-            lineWidth: Stroke width of the faint trend line, in points
-            tint: Sparkline colour when no thresholds are set
-            glowRadius: Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control
-            lineCap: End shape of the history curve. Cross-control, same on every control
-            hideBackground: Remove the card (and its threshold tint)
-            animation: Motion profile for the number roll
-            reference: The value the change is measured against (yesterday, target…)
-            referencePath: Dot path in the same payload as the value to a live reference; overrides reference once it arrives
-            deltaMode: Percent change, or the absolute difference in the value's unit
-            invertDelta: Colour a rise red and a fall green (latency, error rate)
-            thresholds: Background bands [{limit, color}], gauge segment semantics
-            criticalAbove: At or above this value the tile fills solid with its band colour
-            criticalBelow: At or below this value the tile fills solid with its band colour
-            showSparkline: Draw the faint history sparkline under the number
-            statTileConfig: grouped config object (see grouped fields)
+            label (string): Title above the number.
+            hideLabel (bool, default false): Hide the title.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
+            valueSize (number, default 34): Point size of the big number.
+            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1).
+            step (number): Determines decimal formatting of the number when formatValue is unset.
+            sparklinePoints (number, default 50): Max values kept in the faint history sparkline.
+            lineWidth (number, default 2): Stroke width of the faint trend line, in points.
+            tint (color): Sparkline colour when no thresholds are set.
+            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control.
+            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Values: round, butt, square.
+            hideBackground (bool, default false): Remove the card (and its threshold tint).
+            animation (enum): Motion profile for the number roll. Values: smooth, snappy, bouncy, gentle, instant.
+            reference (number): The value the change is measured against (yesterday, target…).
+            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives.
+            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Values: percent, absolute.
+            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate).
+            thresholds (array): Background bands [{limit, color}], gauge segment semantics.
+            criticalAbove (number): At or above this value the tile fills solid with its band colour.
+            criticalBelow (number): At or below this value the tile fills solid with its band colour.
+            showSparkline (bool, default true): Draw the faint history sparkline under the number.
+            statTileConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.stat_tile('downloads', position=[0, 0], span=[3, 2], label='Downloads', unit='today', formatValue='decimal:0', statTileConfig={'reference': 1142, 'thresholds': [{'limit': 500, 'color': '#FF9F0A'}, {'limit': 100000, 'color': '#34C759'}]}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'stats'}, 'valuePath': 'downloads'}])
         """
         return self._ctl("statTile", dict(id=id, position=position, span=span, label=label, hideLabel=hideLabel, unit=unit, valueSize=valueSize, formatValue=formatValue, step=step, sparklinePoints=sparklinePoints, lineWidth=lineWidth, tint=tint, glowRadius=glowRadius, lineCap=lineCap, hideBackground=hideBackground, animation=animation, reference=reference, referencePath=referencePath, deltaMode=deltaMode, invertDelta=invertDelta, thresholds=thresholds, criticalAbove=criticalAbove, criticalBelow=criticalBelow, showSparkline=showSparkline, statTileConfig=statTileConfig), props)
 
@@ -3985,14 +4240,17 @@ class BuildControls:
         (catalog type `statusLight`)
 
         Fields:
-            label: Text beside the indicator
-            tint: Default indicator color
-            statusColors: Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}
-            size: Indicator size: small (8pt), default (12pt), large (18pt)
-            style: dot (circle) or badge (pill with state text)
-            glow: Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
-            pulse: Pulse animation when active
-            defaultValue: Initial state key
+            label (string): Text beside the indicator.
+            tint (color, default #34C759): Default indicator color.
+            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}.
+            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Values: small, default, large.
+            style (enum, default dot): dot (circle) or badge (pill with state text). Values: dot, badge.
+            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
+            pulse (bool, default false): Pulse animation when active.
+            defaultValue (string): Initial state key.
+
+        Example:
+            ui.status_light('server-status', position=[0, 0], label='API Server', statusColors={'online': '#34C759', 'degraded': '#FF9500', 'offline': '#FF3B30'}, size='large', style='badge', pulse=True, defaultValue='offline', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'server_health'}, 'valuePath': 'state'}])
         """
         return self._ctl("statusLight", dict(id=id, position=position, span=span, label=label, tint=tint, statusColors=statusColors, size=size, style=style, glow=glow, pulse=pulse, defaultValue=defaultValue), props)
 
@@ -4020,19 +4278,22 @@ class BuildControls:
         (catalog type `stepper`)
 
         Fields:
-            animation: Motion profile for value changes
-            min: Minimum value
-            max: Maximum value
-            step: Positive increment/decrement amount; zero or negative falls back to 1
-            repeatOnHold: Hold plus or minus to repeat steps using the system repeat behavior
-            wraps: Step past an endpoint to cycle to the opposite endpoint
-            hideValue: Hide the numeric readout; keep the buttons, label, and spoken value
-            label: Display label
-            icon: SF Symbol before value
-            formatValue: Value format: decimal, time, percent
-            defaultValue: Initial value
-            haptic: Default haptic on step
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            min (number, default 0): Minimum value.
+            max (number, default 100): Maximum value.
+            step (number, default 1): Positive increment/decrement amount; zero or negative falls back to 1.
+            repeatOnHold (bool, default false): Hold plus or minus to repeat steps using the system repeat behavior.
+            wraps (bool, default false): Step past an endpoint to cycle to the opposite endpoint.
+            hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value.
+            label (string): Display label.
+            icon (string): SF Symbol before value.
+            formatValue (string, default decimal): Value format: decimal, time, percent.
+            defaultValue (number): Initial value.
+            haptic (enum, default light): Default haptic on step. Values: light, medium, heavy, success, warning, error, selection.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.stepper('preset', position=[0, 0], label='Preset', min=1, max=8, step=1, repeatOnHold=True, wraps=True)
         """
         return self._ctl("stepper", dict(id=id, position=position, span=span, animation=animation, min=min, max=max, step=step, repeatOnHold=repeatOnHold, wraps=wraps, hideValue=hideValue, label=label, icon=icon, formatValue=formatValue, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
 
@@ -4077,36 +4338,39 @@ class BuildControls:
         (catalog type `symbol`)
 
         Fields:
-            systemName: SF Symbol name (the glyph at rest)
-            label: Caption under the glyph
-            hideLabel: Hide the caption
-            tint: Glyph colour (monochrome/hierarchical; palette primary)
-            glowRadius: Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control
-            hideBackground: Remove glass background
-            iconMap: Incoming value → SF Symbol name ("default" catches the rest)
-            colorMap: Incoming value → hex tint
-            haptic: Touch feedback on tap (default light)
-            renderingMode: SF rendering mode — multicolor uses the symbol's own colours
-            palette: Hex colour per layer (primary, secondary, tertiary) for palette rendering
-            weight: Glyph weight
-            variant: Symbol variant applied on top of the name
-            size: Explicit point size (default scales to the cell)
-            effect: Native symbol effect or custom rain, snow, sparkle animation
-            particleColor: Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor)
-            particleIntensity: Rain, snow, sparkle density (0 hides particles)
-            particleAngle: Rain/snow direction in degrees from vertical (negative left, positive right)
-            effectOptions: Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol …
-            loop: How the effect repeats
-            loopCount: periodic only — plays before stopping (omit for forever)
-            loopDelay: periodic only — seconds between plays
-            speed: Playback speed multiplier
-            activeWhen: always | truthy | a state word the synced value must equal
-            variableMin: Numeric value at which the variable layers are empty
-            variableMax: Numeric value at which the variable layers are full
-            transition: How a glyph change animates (default replace; none when the value is numeric)
-            tapEffect: One-shot effect played on tap
-            triggers: Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]
-            symbolConfig: grouped config object (see grouped fields)
+            systemName (string): SF Symbol name (the glyph at rest).
+            label (string): Caption under the glyph.
+            hideLabel (bool, default false): Hide the caption.
+            tint (color): Glyph colour (monochrome/hierarchical; palette primary).
+            glowRadius (number, default 0): Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control.
+            hideBackground (bool, default false): Remove glass background.
+            iconMap (object): Incoming value → SF Symbol name ("default" catches the rest).
+            colorMap (object): Incoming value → hex tint.
+            haptic (enum): Touch feedback on tap (default light). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Values: monochrome, hierarchical, palette, multicolor.
+            palette (array): Hex colour per layer (primary, secondary, tertiary) for palette rendering.
+            weight (enum, default regular): Glyph weight. Values: ultraLight, thin, light, regular, medium, semibold, bold, heavy, black.
+            variant (enum, default none): Symbol variant applied on top of the name. Values: none, fill, circle, square, rectangle, slash.
+            size (number): Explicit point size (default scales to the cell).
+            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Values: none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale.
+            particleColor (color): Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor).
+            particleIntensity (number, default 0.65): Rain, snow, sparkle density (0 hides particles).
+            particleAngle (number, default -18): Rain/snow direction in degrees from vertical (negative left, positive right).
+            effectOptions (array): Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol ….
+            loop (enum, default continuous): How the effect repeats. Values: continuous, periodic, once.
+            loopCount (number): periodic only — plays before stopping (omit for forever).
+            loopDelay (number, default 1): periodic only — seconds between plays.
+            speed (number, default 1): Playback speed multiplier.
+            activeWhen (string, default always): always | truthy | a state word the synced value must equal.
+            variableMin (number, default 0): Numeric value at which the variable layers are empty.
+            variableMax (number, default 100): Numeric value at which the variable layers are full.
+            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Values: replace, replace.downUp, replace.upUp, replace.offUp, replace.magic, none.
+            tapEffect (enum, default none): One-shot effect played on tap. Values: none, bounce, pulse, variableColor, wiggle, rotate, breathe.
+            triggers (array): Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }].
+            symbolConfig (object): grouped config object (see grouped fields).
+
+        Example:
+            ui.symbol('rain', position=[0, 0], span=[2, 2], systemName='cloud.rain.fill', label='Rain', tint='#8AA5BD', defaultValue=True, symbolConfig={'effect': 'rain', 'particleColor': '#3DA9FC', 'particleAngle': -22, 'particleIntensity': 0.65, 'activeWhen': 'truthy'})
         """
         return self._ctl("symbol", dict(id=id, position=position, span=span, systemName=systemName, label=label, hideLabel=hideLabel, tint=tint, glowRadius=glowRadius, hideBackground=hideBackground, iconMap=iconMap, colorMap=colorMap, haptic=haptic, renderingMode=renderingMode, palette=palette, weight=weight, variant=variant, size=size, effect=effect, particleColor=particleColor, particleIntensity=particleIntensity, particleAngle=particleAngle, effectOptions=effectOptions, loop=loop, loopCount=loopCount, loopDelay=loopDelay, speed=speed, activeWhen=activeWhen, variableMin=variableMin, variableMax=variableMax, transition=transition, tapEffect=tapEffect, triggers=triggers, symbolConfig=symbolConfig), props)
 
@@ -4137,22 +4401,25 @@ class BuildControls:
         (catalog type `textInput`)
 
         Fields:
-            placeholder: Placeholder text when empty
-            label: Display label
-            icon: SF Symbol shown in the field
-            defaultValue: Initial text
-            style: Display style variant
-            sendButton: Growing composer with a Send button (Return inserts a newline)
-            minLines: Composer starting line count
-            maxLines: Composer max lines before it scrolls internally
-            autocorrect: Default autocorrect/caps (off = ASCII keyboard, terminal-friendly)
-            autocorrectToggle: Inline Aa button that flips autocorrect on the live keyboard
-            keyboard: Keyboard type
-            clearOnSubmit: Clear the field after the return-key submit
-            tint: Accent color
-            hideBackground: Remove glass background
-            hideLabel: Hide the header label
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            placeholder (string): Placeholder text when empty.
+            label (string): Display label.
+            icon (string): SF Symbol shown in the field.
+            defaultValue (string): Initial text.
+            style (enum, default default): Display style variant. Values: default, search, multiline.
+            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline).
+            minLines (number, default 1): Composer starting line count.
+            maxLines (number, default 6): Composer max lines before it scrolls internally.
+            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly).
+            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard.
+            keyboard (enum): Keyboard type. Values: ascii, default, url, email, numbers.
+            clearOnSubmit (bool, default false): Clear the field after the return-key submit.
+            tint (color, default #667eea): Accent color.
+            hideBackground (bool, default false): Remove glass background.
+            hideLabel (bool, default false): Hide the header label.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
         """
         return self._ctl("textInput", dict(id=id, position=position, span=span, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
 
@@ -4182,21 +4449,24 @@ class BuildControls:
         (catalog type `toggle`)
 
         Fields:
-            animation: Motion profile for value changes
-            label: Toggle label text
-            icon: SF Symbol
-            style: Display style
-            defaultValue: Initial on/off state
-            onIcon: SF Symbol when on (button and icon-toggle styles)
-            offIcon: SF Symbol when off (button and icon-toggle styles)
-            tint: Accent color when on
-            hideBackground: Remove glass background
-            haptic: Default haptic on toggle
-            trackLength: Track extent tip-to-tip along its path (pt)
-            trackCurvature: Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more)
-            trackRadius: Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below)
-            knobRadius: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
-            confirm: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
+            label (string): Toggle label text.
+            icon (string): SF Symbol.
+            style (enum, default switch): Display style. Values: switch, button, icon-toggle.
+            defaultValue (bool, default false): Initial on/off state.
+            onIcon (string): SF Symbol when on (button and icon-toggle styles).
+            offIcon (string): SF Symbol when off (button and icon-toggle styles).
+            tint (color, default #667eea): Accent color when on.
+            hideBackground (bool, default false): Remove glass background.
+            haptic (enum, default rigid): Default haptic on toggle. Values: light, medium, heavy, rigid, success, warning, error, selection.
+            trackLength (number, default 51): Track extent tip-to-tip along its path (pt).
+            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more).
+            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below).
+            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+
+        Example:
+            ui.toggle('lr-main', position=[0, 0], label='Main Light', defaultValue=True, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'light', 'payload': {'room': 'living', 'fixture': 'main', 'command': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living', 'fixture': 'main'}, 'valuePath': 'state'}])
         """
         return self._ctl("toggle", dict(id=id, position=position, span=span, animation=animation, label=label, icon=icon, style=style, defaultValue=defaultValue, onIcon=onIcon, offIcon=offIcon, tint=tint, hideBackground=hideBackground, haptic=haptic, trackLength=trackLength, trackCurvature=trackCurvature, trackRadius=trackRadius, knobRadius=knobRadius, confirm=confirm), props)
 
@@ -4224,19 +4494,22 @@ class BuildControls:
         (catalog type `treemap`)
 
         Fields:
-            haptic: Touch feedback on interaction (supported hardware)
-            label: Header label above the map
-            treemapConfig: Full configuration object (see TreemapConfig section)
-            tint: First-item color and palette seed
-            formatValue: Formatter for item values
-            cellCornerRadius: Cell corner rounding
-            cellGap: Gap between cells
-            colors: Item color cycle (per-item color wins)
-            drillDown: Tap a parent to zoom into its children
-            itemAction: itemAction
-            scrub: Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap)
-            showLabels: Item labels inside cells that have room
-            showValues: Value under the label (taller cells only)
+            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
+            label (string): Header label above the map.
+            treemapConfig (object): Full configuration object (see TreemapConfig section).
+            tint (color, default #667eea): First-item color and palette seed.
+            formatValue (string): Formatter for item values.
+            cellCornerRadius (number, default 5): Cell corner rounding.
+            cellGap (number, default 2): Gap between cells.
+            colors (string[]): Item color cycle (per-item color wins).
+            drillDown (bool, default true): Tap a parent to zoom into its children.
+            itemAction (object): itemAction.
+            scrub (bool, default false): Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap).
+            showLabels (bool, default true): Item labels inside cells that have room.
+            showValues (bool, default false): Value under the label (taller cells only).
+
+        Example:
+            ui.treemap('storage', position=[0, 0], span=[3, 4], label='Storage', formatValue='suffix: GB', treemapConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'disk_usage'}, 'valuePath': 'tree'}])
         """
         return self._ctl("treemap", dict(id=id, position=position, span=span, haptic=haptic, label=label, treemapConfig=treemapConfig, tint=tint, formatValue=formatValue, cellCornerRadius=cellCornerRadius, cellGap=cellGap, colors=colors, drillDown=drillDown, itemAction=itemAction, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
 
@@ -4257,11 +4530,14 @@ class BuildControls:
         (catalog type `webView`)
 
         Fields:
-            url: URL to load
-            label: Header label
-            webInteractive: Allow user interaction
-            webScrollEnabled: Allow scrolling
-            webRefreshInterval: Auto-refresh interval in seconds
-            hideBackground: Remove glass card background
+            url (string): URL to load.
+            label (string): Header label.
+            webInteractive (bool, default true): Allow user interaction.
+            webScrollEnabled (bool, default true): Allow scrolling.
+            webRefreshInterval (number): Auto-refresh interval in seconds.
+            hideBackground (bool, default false): Remove glass card background.
+
+        Example:
+            ui.web_view('grafana', position=[0, 0], span=[4, 4], label='Metrics Dashboard', url='https://grafana.local/d/overview?kiosk', webInteractive=True, webScrollEnabled=False, webRefreshInterval=30)
         """
         return self._ctl("webView", dict(id=id, position=position, span=span, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideBackground=hideBackground), props)

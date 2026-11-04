@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · examples · validate · gen · explore · repl · new · share · local · relay · pager · version.
+Commands: catalog · doc · demo · examples · validate · gen · explore · repl · new · share · local · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -21,14 +21,51 @@ def _cmd_catalog(args) -> int:
     return 0
 
 
+def field_help(control: str, field: str) -> str | None:
+    """One field's full help (None when the control or field is unknown)."""
+    from carterkit import catalog, controldocs_dir
+    doc = catalog.resolve_doc(controldocs_dir(), control)
+    f = next((f for f in (doc or {}).get("fields", []) if f.get("name") == field), None)
+    if f is None:
+        return None
+    lines = [f"{doc['type']}.{field}  ({f.get('type', 'string')})"]
+    if f.get("default") not in (None, ""):
+        lines.append(f"default: {f['default']}")
+    for label, key in (("", "description"), ("summary: ", "summary"), ("does: ", "does")):
+        if f.get(key):
+            lines.append(label + f[key])
+    vh = f.get("valueHelp") or {}
+    if f.get("values"):
+        lines.append("values:")
+        lines += [f"  {v}" + (f" = {vh[v]}" if v in vh else "") for v in f["values"]]
+    return "\n".join(lines)
+
+
 def _cmd_doc(args) -> int:
     import carterkit
+    if getattr(args, "field", None):
+        text = field_help(args.control, args.field)
+        if text is None:
+            print(f"no field {args.field!r} on {args.control!r}", file=sys.stderr)
+            return 1
+        print(text)
+        return 0
     md = carterkit.doc_markdown(args.control)
     if md is None:
         print(f"no doc for {args.control!r}", file=sys.stderr)
         return 1
     print(md)
     return 0
+
+
+def _cmd_demo(args) -> int:
+    import asyncio
+    from . import start
+    try:
+        return asyncio.run(start.demo(args.control, example=args.example, host=args.host,
+                                      port=args.port, fresh=args.fresh, timeout=args.timeout))
+    except KeyboardInterrupt:
+        return 0
 
 
 def _cmd_examples(args) -> int:
@@ -261,7 +298,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     c = sub.add_parser("doc", help="print a control's documentation")
     c.add_argument("control")
+    c.add_argument("--field", help="print one field's full help")
     c.set_defaults(fn=_cmd_doc)
+
+    c = sub.add_parser("demo", help="serve a hub and push a control's example to the paired phone")
+    c.add_argument("control")
+    c.add_argument("--example", help="example name (default: the first)")
+    c.add_argument("--host")
+    c.add_argument("--port", type=int)
+    c.add_argument("--fresh", action="store_true", help="pair anew")
+    c.add_argument("--timeout", type=float)
+    c.set_defaults(fn=_cmd_demo)
 
     c = sub.add_parser("examples", help="list a control's examples, or print one with --name")
     c.add_argument("control")

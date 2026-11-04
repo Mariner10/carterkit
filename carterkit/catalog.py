@@ -74,6 +74,12 @@ def _make_field(raw: dict[str, str]) -> dict:
         field["title"] = raw["title"]
     if raw.get("summary"):
         field["summary"] = raw["summary"]
+    if raw.get("does"):
+        field["does"] = raw["does"]
+    if raw.get("valueHelp"):
+        vh = _parse_json(raw["valueHelp"], dict)
+        if vh:
+            field["valueHelp"] = {str(k): str(v) for k, v in vh.items()}
     if raw.get("simple", "").lower() == "hide":
         # `simple: hide` — the lay path sets this field, so Simple mode leaves it
         # off every inspector tab (Swift simpleHidden, carter-1cz0).

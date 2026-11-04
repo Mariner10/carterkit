@@ -39,3 +39,26 @@ def test_layout_and_build_runtime_unchanged():
     assert build.gauge(id="g", min=1) == {"type": "gauge", "id": "g", "min": 1}
     with pytest.raises(ValueError):
         build.gauge(id="g", gaugeStyle="bogus")
+
+
+def test_field_doc_renders_does_values_default():
+    gen = _gen()
+    f = {"name": "gaugeStyle", "type": "enum", "default": "half", "description": "Shape.",
+         "does": "draws the arc", "values": ["half", "full"], "valueHelp": {"half": "180-degree arc"}}
+    s = gen.field_doc(f)
+    assert s == ("gaugeStyle (enum, default half): Shape. Does: draws the arc. "
+                 "Values: half = 180-degree arc, full.")
+
+
+def test_docstring_ends_with_first_example_call():
+    doc = inspect.getdoc(build.gauge)
+    assert "Example:" in doc and "ui.gauge(" in doc.split("Example:")[1]
+    assert "(number" in doc or "(enum" in doc
+
+
+def test_doc_field_cli(capsys):
+    from carterkit import cli
+    assert cli.main(["doc", "gauge", "--field", "gaugeStyle"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("gauge.gaugeStyle") and "values:" in out and "half" in out
+    assert cli.main(["doc", "gauge", "--field", "nope"]) == 1

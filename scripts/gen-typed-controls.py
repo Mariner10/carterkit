@@ -77,6 +77,9 @@ _ObjList = list[dict[str, Any]]
 '''
 
 
+EXAMPLES: dict[str, list[dict]] = {}
+
+
 def snake(t: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", t).lower()
 
@@ -103,6 +106,43 @@ def fields_of(spec: dict, reserved: set[str]) -> list[dict]:
     return out
 
 
+def field_doc(f: dict) -> str:
+    """One field as ``name (type, default X): description. Does: ... Values: a = ..., b = ...``."""
+    meta = [f.get("type", "string")]
+    if f.get("default") not in (None, ""):
+        meta.append(f"default {f['default']}")
+    out = f"{f['name']} ({', '.join(meta)})"
+    d = (f.get("description") or f.get("title") or f.get("summary") or "").strip()
+    parts = [d.rstrip(".")] if d else []
+    if f.get("does"):
+        parts.append("Does: " + f["does"].strip().rstrip("."))
+    vh = f.get("valueHelp") or {}
+    vals = f.get("values") or []
+    if vals:
+        parts.append("Values: " + ", ".join(
+            f"{v} = {vh[v]}" if v in vh else str(v) for v in vals))
+    return out + (": " + ". ".join(parts) + "." if parts else "")
+
+
+def example_call(ctype: str, example: dict | None) -> str | None:
+    """The first example as a Python call carrying the same args."""
+    import json
+    try:
+        obj = json.loads(example["json"]) if example else None
+    except ValueError:
+        return None
+    if not isinstance(obj, dict):
+        return None
+    args = []
+    if isinstance(obj.get("id"), str):
+        args.append(repr(obj["id"]))
+    for k, v in obj.items():
+        if k in ("type", "id") or not k.isidentifier() or keyword.iskeyword(k):
+            continue
+        args.append(f"{k}={v!r}")
+    return f"ui.{snake(ctype)}({', '.join(args)})"
+
+
 def method(ctype: str, spec: dict, common, ret: str, call: str) -> str:
     reserved = {c[0] for c in common} | {"props", "self"}
     fs = fields_of(spec, reserved)
@@ -124,8 +164,11 @@ def method(ctype: str, spec: dict, common, ret: str, call: str) -> str:
         doc.append("")
         doc.append("Fields:")
         for f in fs:
-            d = (f.get("description") or f.get("title") or "").strip()
-            doc.append(f"    {f['name']}: {d}" if d else f"    {f['name']}")
+            doc.append("    " + field_doc(f))
+    exs = EXAMPLES.get(ctype) or []
+    ex_call = example_call(ctype, exs[0] if exs else None)
+    if ex_call:
+        doc += ["", "Example:", "    " + ex_call]
     doc_s = "\n".join(("        " + ln).rstrip() for ln in esc("\n".join(doc)).split("\n")).lstrip()
     names = [c[0] for c in common] + [f["name"] for f in fs]
     kw = ", ".join(f"{n}={n}" for n in names)
@@ -138,6 +181,10 @@ def generate() -> str:
     sys.path.insert(0, str(ROOT))
     import carterkit  # noqa: F401  (populates sys.modules)
     cat = sys.modules["carterkit.controls"]._catalog()
+    from carterkit import catalog as _cat, controldocs_dir
+    EXAMPLES.clear()
+    for d in _cat.parse_all(controldocs_dir()).values():
+        EXAMPLES[d["type"]] = d.get("examples") or []
     parts = [HEADER, "\nclass ScopeControls:\n"
              '    """Typed control methods for a placeable scope; subclasses supply `_ctl`."""\n\n'
              '    def _ctl(self, ctype: str, kw: dict[str, Any], props: dict[str, Any]) -> "Control":\n'

@@ -228,3 +228,31 @@ def test_cli_install_flags():
     assert p.parse_args(["start", "--install"]).install is True
     assert p.parse_args(["repl", "--install", "x.py"]).install is True
     assert p.parse_args(["repl"]).install is False
+
+
+def test_demo_layout_from_example_validates():
+    ui = start.demo_layout("gauge")
+    kids = [c for t in ui.layout["tabs"] for c in t["children"]]
+    assert kids and kids[0]["type"] == "gauge"
+    with pytest.raises(ValueError):
+        start.demo_layout("gauge", "no such example")
+    with pytest.raises(ValueError):
+        start.demo_layout("nope")
+
+
+def test_demo_pushes_the_example(monkeypatch):
+    monkeypatch.setattr(start, "serve_playground", _fake_serve(join=True))
+
+    async def fake_sleep(_):
+        raise asyncio.CancelledError
+
+    monkeypatch.setattr(start.asyncio, "sleep", fake_sleep)
+    out = []
+    rc = asyncio.run(start.demo("gauge", timeout=5, out=out.append))
+    assert rc == 0 and any("gauge demo" in s for s in out)
+    assert any("linked on the phone" in s for s in out)
+
+
+def test_cli_demo_registered():
+    a = cli.build_parser().parse_args(["demo", "gauge", "--example", "x"])
+    assert a.fn is cli._cmd_demo and a.example == "x"
