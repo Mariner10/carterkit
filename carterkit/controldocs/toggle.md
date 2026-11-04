@@ -10,6 +10,7 @@ friendlyName: Switch
 oneLiner: Turns something on or off
 aliases: [switch, on off, checkbox, enable, flip, boolean]
 addRank: 2
+depth: complete
 starterPreset: {"label": "Switch"}
 fields:
   - name: animation
@@ -18,16 +19,23 @@ fields:
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
+    summary: How the switch moves when it flips
+    does: Sets the speed and feel of the knob's travel between off and on, from instant to a slow ease.
+    valueHelp: {"smooth": "an even natural glide", "snappy": "quick with a crisp stop", "bouncy": "overshoots slightly and settles", "gentle": "slow and soft", "instant": "no travel, it jumps straight to the new state"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Toggle label text
+    summary: The name shown with the switch
+    does: Shows this text above the switch in the label font size (8-24 pt, default 12).
   - name: icon
     title: Symbol
     type: string
     description: SF Symbol
+    summary: A small picture beside the name
+    does: Draws this SF Symbol beside the label; leave it empty for no icon.
   - name: style
     edit: look
     depth: surface
@@ -37,22 +45,30 @@ fields:
     values: [switch, button, icon-toggle]
     default: switch
     description: Display style
+    summary: What the control looks like
+    does: Switches the whole control between an iOS-style sliding switch, a tappable button and a single icon that swaps.
+    valueHelp: {"switch": "a sliding track with a round knob", "button": "a tappable tile that glows in the on color when on", "icon-toggle": "one symbol that swaps between the on and off icons"}
   - name: defaultValue
     title: Initial on/off state
     type: bool
     default: false
     description: Initial on/off state
     summary: Whether it starts on or off
+    does: Starts the control on (true) or off (false) until the first tap or live update.
   - name: onIcon
     title: Symbol when on
     styles: [button, icon-toggle]
     type: string
     description: SF Symbol when on (button and icon-toggle styles)
+    summary: The picture shown when it is on
+    does: Shows this SF Symbol while the control is on, replacing the main icon in button and icon-toggle looks.
   - name: offIcon
     title: Symbol when off
     styles: [button, icon-toggle]
     type: string
     description: SF Symbol when off (button and icon-toggle styles)
+    summary: The picture shown when it is off
+    does: Shows this SF Symbol while the control is off, replacing the main icon in button and icon-toggle looks.
   - name: tint
     edit: color
     depth: surface
@@ -61,6 +77,8 @@ fields:
     type: color
     default: "#667eea"
     description: Accent color when on
+    summary: The color it lights up with
+    does: Colors the track, glow or icon in this color whenever the control is on.
   - name: hideBackground
     edit: part
     depth: hold
@@ -69,6 +87,8 @@ fields:
     type: bool
     default: false
     description: Remove glass background
+    summary: Whether the card behind it is drawn
+    does: Removes the frosted card behind the control so only the switch and label sit on the page.
   - name: haptic
     edit: look
     depth: hold
@@ -79,6 +99,9 @@ fields:
     values: [light, medium, heavy, rigid, success, warning, error, selection]
     default: rigid
     description: Default haptic on toggle
+    summary: The buzz you feel on a tap
+    does: Plays this haptic on the phone each time the control flips.
+    valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "rigid": "a firm sharp click", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error", "selection": "the faint tick of picking an item"}
   - name: trackLength
     edit: scrub
     depth: surface
@@ -91,6 +114,8 @@ fields:
     step: 1
     default: 51
     description: Track extent tip-to-tip along its path (pt)
+    summary: How long the switch track is
+    does: Stretches the track tip to tip along its path from 31 to 400 pt (default 51).
   - name: trackCurvature
     edit: scrub
     depth: hold
@@ -104,6 +129,8 @@ fields:
     step: 5
     default: 0
     description: Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more)
+    summary: How much the switch bends
+    does: Bends the track from -180 to 180 degrees; 0 is straight, positive bows up and negative bows down.
   - name: trackRadius
     title: Track roundness
     tab: style
@@ -114,6 +141,8 @@ fields:
     step: 0.5
     default: 15.5
     description: Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below)
+    summary: How round the switch ends are
+    does: Rounds the track corners from 0 (square) to 20 pt (fully round at default thickness).
   - name: knobRadius
     title: Knob roundness
     tab: style
@@ -124,13 +153,16 @@ fields:
     step: 0.5
     default: 13.5
     description: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
+    summary: How round the sliding knob is
+    does: Rounds the knob corners from 0 (square) to 13.5 pt (a circle).
   - name: confirm
     title: Show confirmation
     tab: action
     type: bool
     default: false
-    summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    summary: A short note with Undo after each tap
+    does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -140,6 +172,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -148,22 +182,29 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: The gap between card edge and contents
+    does: Sets the space inside the card around the label and switch from 0 to 24 pt (default 8).
   - name: surfacePrimary
     title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: Fills the card behind the control with this color, default a faint white wash.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The main highlight color
+    does: Sets the highlight color the control uses where no color is set for it.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline around the control
+    does: Draws the card outline in this color, default a faint white line.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -172,17 +213,23 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: How big the name text is
+    does: Sets the label text size from 8 to 24 pt (default 12).
   - name: trackColor
     title: Track color
     styles: [switch]
     type: color
     default: #39393D
     description: Track background color
+    summary: The switch color when off
+    does: Fills the empty switch track with this color while off, default dark grey.
   - name: trackActiveColor
     title: Track color when on
     type: color
     default: #667eea
     description: Track active/on color
+    summary: The switch color when on
+    does: Fills the switch track with this color while on, default the accent purple.
   - name: trackRadius
     title: Track roundness
     styles: [switch]
@@ -192,6 +239,8 @@ themeFields:
     type: number
     default: 15.5
     description: Track corner radius
+    summary: How round the track ends are in the theme
+    does: Rounds the track corners from 0 to 30 pt as a theme default (15.5 is a full pill).
   - name: trackHeight
     title: Track height
     styles: [switch]
@@ -202,6 +251,7 @@ themeFields:
     default: 31
     description: Track height
     summary: How tall the switch is
+    does: Sets the track thickness from 16 to 60 pt (default 31); the knob scales with it.
   - name: trackWidth
     title: Track width
     styles: [switch]
@@ -212,6 +262,7 @@ themeFields:
     default: 51
     description: Track width
     summary: How wide the switch is
+    does: Sets the track width from 30 to 100 pt (default 51).
   - name: knobColor
     edit: color
     depth: hold
@@ -221,6 +272,8 @@ themeFields:
     type: color
     default: #FFFFFF
     description: Knob fill color
+    summary: The color of the sliding knob
+    does: Fills the knob with this color, default white.
   - name: knobRadius
     title: Knob roundness
     styles: [switch]
@@ -230,12 +283,16 @@ themeFields:
     type: number
     default: 13.5
     description: Knob corner radius
+    summary: How round the knob is in the theme
+    does: Rounds the knob corners from 0 to 30 pt as a theme default (13.5 is a circle).
   - name: knobShadow
     title: Knob shadow
     styles: [switch]
     type: bool
     default: true
     description: Show knob shadow
+    summary: Whether the knob casts a shadow
+    does: Draws a soft shadow under the knob when on, flat when off.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -244,11 +301,15 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the card outline thickness from 0 (none) to 5 pt (default 1).
   - name: secondaryColor
     title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The color of the less important text
+    does: Colors the dimmer supporting text, default a soft translucent white.
 ---
 
 # Toggle
@@ -288,6 +349,7 @@ Icon that swaps between `onIcon` and `offIcon` with a symbol transition animatio
 ## Examples
 
 ### Standard switch
+Shows the default look wired both ways: flipping it sends the new on/off value to a light, and the switch follows the light's live state. Intended effect: the living-room light turns on or off with a tap, and the switch stays correct when someone else changes it.
 ```json
 {
   "type": "toggle",
@@ -300,7 +362,23 @@ Icon that swaps between `onIcon` and `offIcon` with a symbol transition animatio
 }
 ```
 
+### Button look
+Shows the button look, a tile that glows in the tint color while on. Intended effect: a bold, thumb-sized tile for a setting you flip often, starting off.
+```json
+{
+  "type": "toggle",
+  "id": "porch-light",
+  "position": [0, 0],
+  "label": "Porch",
+  "style": "button",
+  "icon": "lightbulb.fill",
+  "tint": "#FFCC00",
+  "defaultValue": false
+}
+```
+
 ### Icon-toggle with custom icons
+Shows the icon-toggle look, where the symbol swaps between the on and off icons. Intended effect: a red microphone that shows a slashed mic when muted.
 ```json
 {
   "type": "toggle",
@@ -315,7 +393,40 @@ Icon that swaps between `onIcon` and `offIcon` with a symbol transition animatio
 }
 ```
 
+### Curved, restyled switch track
+Shows the track fields: a longer track bent upward with a squarer knob. Intended effect: a 120 pt switch that bows 90 degrees, with its knob following the curve.
+```json
+{
+  "type": "toggle",
+  "id": "arc-switch",
+  "position": [0, 0],
+  "label": "Arc",
+  "style": "switch",
+  "trackLength": 120,
+  "trackCurvature": 90,
+  "trackRadius": 15.5,
+  "knobRadius": 4,
+  "animation": "bouncy"
+}
+```
+
+### Confirmation with Undo and custom haptic
+Shows the confirm option and a chosen haptic, with no background card. Intended effect: each flip gives a heavy buzz and a 3-second pill with Undo, so a risky switch can be reversed.
+```json
+{
+  "type": "toggle",
+  "id": "garage-lock",
+  "position": [0, 0],
+  "label": "Garage Lock",
+  "haptic": "heavy",
+  "confirm": true,
+  "hideBackground": true,
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "garage", "type": "lock", "payload": { "command": "{{value}}" } } }
+}
+```
+
 ### Conditionally visible toggle
+Shows the visible rule: the control appears only while another control has a given value. Intended effect: the Oscillate switch is hidden until the fan power switch is on.
 ```json
 {
   "type": "toggle",
@@ -324,6 +435,27 @@ Icon that swaps between `onIcon` and `offIcon` with a symbol transition animatio
   "label": "Oscillate",
   "defaultValue": false,
   "visible": { "when": "fan-power", "operator": "eq", "value": true }
+}
+```
+
+### Toggle with long-press detail
+Shows a long-press group opening a detail panel from the toggle. Intended effect: tap flips the heater, holding it opens a small panel of extra readouts.
+```json
+{
+  "type": "toggle",
+  "id": "heater",
+  "position": [0, 0],
+  "label": "Heater",
+  "longPressGroup": {
+    "position": [0, 0],
+    "span": [2, 1],
+    "id": "heater-detail",
+    "label": "Heater Detail",
+    "grid": { "columns": 2, "rows": 1 },
+    "children": [
+      { "type": "label", "id": "heater-note", "position": [0, 0], "text": "Runs until switched off" }
+    ]
+  }
 }
 ```
 

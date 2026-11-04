@@ -6,6 +6,7 @@ category: controls
 defaultSpan: [1, 2]
 addIntent: change
 pickerCategory: Inputs
+depth: complete
 friendlyName: Slider
 oneLiner: Slide to pick a number
 aliases: [range, dial, volume, brightness, scrub, level]
@@ -18,6 +19,9 @@ fields:
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
+    summary: How the handle glides when the value changes
+    does: "Sets how the handle and fill travel when the value changes, from instant jump to a soft glide."
+    valueHelp: {"smooth": "an even, natural glide", "snappy": "a quick, firm move", "bouncy": "overshoots slightly, then settles", "gentle": "a slow, soft drift", "instant": "jumps with no travel"}
   - name: min
     title: Lowest value
     bounds: none
@@ -25,6 +29,7 @@ fields:
     default: 0
     description: Minimum value
     summary: Where the slider starts
+    does: "Sets the value at the left end (or arc start) of the slider, in the slider's own units."
   - name: max
     title: Highest value
     bounds: none
@@ -32,6 +37,7 @@ fields:
     default: 100
     description: Maximum value
     summary: Where the slider ends
+    does: "Sets the value at the right end (or arc end) of the slider, in the slider's own units."
   - name: step
     edit: scrub
     depth: hold
@@ -41,11 +47,15 @@ fields:
     type: number
     default: 1
     description: Detent spacing measured from min; zero or negative allows continuous values
+    summary: How coarsely the slider snaps
+    does: "Makes the handle snap to values spaced this far apart from the lowest value; 0 or less slides smoothly."
   - name: continuous
     title: Send while dragging
     type: bool
     default: true
     description: Send actions while dragging; false previews locally and sends once on release
+    summary: Whether the change is sent live or only when you let go
+    does: "On, the new value is sent throughout the drag; off, it is sent once when you lift your finger."
   - name: hideValue
     edit: part
     depth: hold
@@ -53,17 +63,23 @@ fields:
     type: bool
     default: false
     description: Hide numeric readouts in every slider style; keep the label and interaction
+    summary: Takes the number off the slider
+    does: "Removes the number readout from the header and the radial center; the title and dragging still work."
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label
+    summary: The name shown above the slider
+    does: "Writes this text in the header above the slider."
   - name: defaultValue
     title: Starting value
     bounds: none
     type: number
     description: Initial value
+    summary: Where the handle rests until something else sets it
+    does: "Places the handle at this value (within lowest to highest) when the layout first appears."
   - name: tint
     edit: color
     depth: surface
@@ -72,6 +88,8 @@ fields:
     type: color
     default: "#667eea"
     description: Track fill color
+    summary: The color of the filled part
+    does: "Colors the filled portion of the track or arc with this color."
   - name: style
     edit: look
     depth: surface
@@ -81,6 +99,9 @@ fields:
     values: [default, scrubber, radial]
     default: default
     description: Display style
+    summary: Which kind of slider it is
+    does: "Switches between a bar with a big handle, a thin seek bar, or a circular arc."
+    valueHelp: {"default": "a bar with a round handle and optional end symbols", "scrubber": "a thin progress line with a small draggable dot", "radial": "a circular arc you drag around"}
   - name: formatValue
     title: Number format
     simple: hide
@@ -89,16 +110,23 @@ fields:
     values: [decimal, time, percent, none]
     default: decimal
     description: Value display format
+    summary: How the number is written
+    does: "Changes how the readout is written, such as 72, 3:45 or 80%, or hides it."
+    valueHelp: {"decimal": "a plain number like 72 or 3.5", "time": "minutes and seconds like 3:45, from a total in seconds", "percent": "a whole percentage like 80%", "none": "no number shown"}
   - name: minIcon
     title: Symbol at low end
     styles: [default]
     type: string
     description: SF Symbol at minimum end
+    summary: A small picture at the left end
+    does: "Shows this SF Symbol at the left end of the bar (default look only)."
   - name: maxIcon
     title: Symbol at high end
     styles: [default]
     type: string
     description: SF Symbol at maximum end
+    summary: A small picture at the right end
+    does: "Shows this SF Symbol at the right end of the bar (default look only)."
   - name: hideLabel
     edit: part
     depth: hold
@@ -106,6 +134,8 @@ fields:
     type: bool
     default: false
     description: Hide the header
+    summary: Takes the name off the top
+    does: "Removes the header row so only the slider itself shows."
   - name: hideBackground
     edit: part
     depth: hold
@@ -114,6 +144,8 @@ fields:
     type: bool
     default: false
     description: Remove glass background
+    summary: Lets the slider sit directly on the page
+    does: "Removes the frosted card behind the slider so it floats on the page."
   - name: arcAngle
     title: Arc length
     tab: style
@@ -124,6 +156,8 @@ fields:
     type: number
     default: 270
     description: Arc sweep in degrees (radial style only)
+    summary: How much of a circle the arc covers
+    does: "Sets how far the arc sweeps, from 1 to 360 degrees (270 leaves a gap at the bottom)."
   - name: arcRotation
     title: Arc turn
     tab: style
@@ -134,6 +168,8 @@ fields:
     type: number
     default: 0
     description: Arc start rotation (radial style only)
+    summary: Where the arc begins
+    does: "Turns the whole arc around its center by -180 to 180 degrees."
   - name: arcThickness
     edit: scrub
     depth: hold
@@ -148,13 +184,16 @@ fields:
     type: number
     default: 8
     description: Track stroke width (radial style only)
+    summary: How thick the arc line is
+    does: "Sets the arc line width from 1 to 40 points."
   - name: confirm
     title: Show confirmation
     tab: action
     type: bool
     default: false
-    summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    summary: A short note with Undo after each tap
+    does: "Shows a pill naming the change with an Undo button for 3 seconds after you set a value."
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -164,6 +203,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: "Rounds the card corners from 0 (square) to 30 points."
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -172,27 +213,36 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space between the card edge and the content
+    does: "Sets the padding inside the card from 0 to 24 points."
   - name: surfacePrimary
     title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: "Fills the card behind the slider with this color."
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The highlight color
+    does: "Sets the accent used for highlights on the slider."
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The main text color
+    does: "Colors the title and value text."
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline around the control
+    does: "Colors the card's outline."
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -201,6 +251,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: How big the title is
+    does: "Sets the title text size from 8 to 24 points."
   - name: trackColor
     edit: color
     depth: hold
@@ -209,6 +261,8 @@ themeFields:
     type: color
     default: #39393D
     description: Track background color
+    summary: The color of the empty part of the bar
+    does: "Colors the unfilled part of the track."
   - name: trackHeight
     edit: scrub
     depth: hold
@@ -223,6 +277,7 @@ themeFields:
     default: 31
     description: Track height
     summary: How thick the bar is
+    does: "Sets how tall the bar is, from 4 to 60 points."
   - name: thumbColor
     edit: color
     depth: hold
@@ -232,6 +287,8 @@ themeFields:
     type: color
     default: #FFFFFF
     description: Thumb fill color
+    summary: The color of the grab handle
+    does: "Fills the draggable handle with this color."
   - name: thumbRadius
     title: Handle roundness
     styles: [default]
@@ -241,6 +298,8 @@ themeFields:
     type: number
     default: 14
     description: Thumb corner radius
+    summary: How round the handle is
+    does: "Rounds the handle corners from 0 (square) to 30 points."
   - name: thumbSize
     edit: scrub
     depth: hold
@@ -254,12 +313,16 @@ themeFields:
     type: number
     default: 28
     description: Thumb diameter
+    summary: How big the grab handle is
+    does: "Sets the handle diameter from 12 to 50 points."
   - name: thumbShadow
     title: Handle shadow
     styles: [default]
     type: bool
     default: true
     description: Show thumb shadow
+    summary: A soft shadow under the handle
+    does: "Turns the shadow under the handle on or off."
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -268,11 +331,15 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How heavy the outline is
+    does: "Sets the outline thickness from 0 to 5 points."
   - name: secondaryColor
     title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The color of the less important text
+    does: "Colors the quieter text such as the value readout."
   - name: trackRadius
     title: Track roundness
     min: 0
@@ -281,6 +348,8 @@ themeFields:
     type: number
     default: 2
     description: Track corner radius
+    summary: How round the bar ends are
+    does: "Rounds the track corners from 0 to 20 points."
 ---
 
 # Slider
@@ -333,6 +402,8 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
 ## Examples
 
 ### Send a seek command only on release
+Shows `continuous: false`: the thumb previews while you drag, and the value is sent once when you let go.
+
 
 ```json
 {
@@ -344,6 +415,8 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
 
 
 ### Basic brightness slider
+Shows the default look with an action: dragging sets a room's brightness from 0 to 100, sending the number each step.
+
 ```json
 {
   "type": "slider",
@@ -360,6 +433,8 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
 ```
 
 ### Volume slider with icons
+Shows end symbols and a percent readout: a speaker icon at each end, with no header title, and the value written as a percentage.
+
 ```json
 {
   "type": "slider",
@@ -379,6 +454,8 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
 ```
 
 ### Seek scrubber with sync
+Shows the thin scrubber look with a time readout that follows live elapsed time from the network and sends a seek when you drag.
+
 ```json
 {
   "type": "slider",
@@ -396,6 +473,40 @@ Circular arc slider. The user drags around an arc to set the value. Configure th
   "hideBackground": true,
   "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "player", "type": "command", "payload": { "command": "seek", "position": "{{value}}" } } },
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "player_state" }, "valuePath": "elapsed" }]
+}
+```
+
+### Radial dial
+Shows the radial look: a 270-degree arc you drag around, with a thicker line, rotated so the gap sits at the bottom.
+
+```json
+{
+  "type": "slider", "id": "thermostat", "position": [0, 0], "span": [2, 2],
+  "label": "Target", "min": 10, "max": 30, "step": 0.5, "defaultValue": 21,
+  "style": "radial", "arcAngle": 270, "arcRotation": 0, "arcThickness": 14,
+  "tint": "#FF9500"
+}
+```
+
+### Quiet slider with undo
+Shows `hideValue` and `confirm`: the number is hidden, and after each change a pill with Undo appears for 3 seconds.
+
+```json
+{
+  "type": "slider", "id": "fan-speed", "position": [0, 0],
+  "label": "Fan", "min": 0, "max": 5, "step": 1, "defaultValue": 2,
+  "hideValue": true, "confirm": true, "animation": "snappy"
+}
+```
+
+### Themed slider
+Shows `theme` overrides: a tall track, a large square-ish handle with no shadow, and a custom accent, for a bolder bar.
+
+```json
+{
+  "type": "slider", "id": "bold-level", "position": [0, 0],
+  "label": "Level", "min": 0, "max": 10, "step": 1, "formatValue": "decimal",
+  "theme": { "trackHeight": 44, "thumbSize": 40, "thumbRadius": 8, "thumbShadow": false, "trackColor": "#2C2C2E", "thumbColor": "#FFFFFF", "cornerRadius": 20 }
 }
 ```
 

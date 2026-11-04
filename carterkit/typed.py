@@ -172,18 +172,18 @@ class ScopeControls:
         (catalog type `button`)
 
         Fields:
-            label (string, default Button): Button text.
-            icon (string): SF Symbol shown before label.
-            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Values: filled, outlined, outline, ghost, tinted, icon-only.
-            size (enum, default default): Size variant. Values: compact, default, large.
-            tint (color, default #667eea): Accent color.
-            hideLabel (bool, default false): Show icon only.
-            haptic (enum, default medium): Haptic feedback on press. Values: light, medium, heavy, success, warning, error, selection.
-            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set).
-            valueMap (object): Synced value → button text ("default" catches the rest).
-            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect).
-            colorMap (object): Synced value → hex tint.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            label (string, default Button): Button text. Does: Sets the text shown on the button; empty shows the control id.
+            icon (string): SF Symbol shown before label. Does: Draws the chosen SF Symbol before the label, or alone with Symbol only.
+            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Does: Switches the button between a solid fill, an outline, a faint tint, or just the symbol. Values: filled = solid colored block with light text, outlined = clear inside with a colored border, outline = same as outlined, ghost = no fill or border, just the colored text, tinted = soft wash of the color with colored text, icon-only = only the symbol, no text or block.
+            size (enum, default default): Size variant. Does: Scales the button's height and text between compact, normal and large. Values: compact = small and tight, for crowded grids, default = the normal size, large = tall and roomy, easy to hit.
+            tint (color, default #667eea): Accent color. Does: Recolors the fill, border or text (per Look) to the chosen color.
+            hideLabel (bool, default false): Show icon only. Does: When on, the label text disappears and only the symbol remains.
+            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
+            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set). Does: Holding the button refires its action repeatedly, speeding up the longer you hold.
+            valueMap (object): Synced value → button text ("default" catches the rest). Does: Replaces the label with the text matching the synced value, e.g. true shows Pause.
+            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect). Does: Swaps the symbol to the one matching the synced value, with a replace animation.
+            colorMap (object): Synced value → hex tint. Does: Recolors the button to the hex matching the synced value.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: A pill naming the change appears for 3 seconds with an Undo button after each tap.
 
         Example:
             ui.button('all-off', position=[0, 3], label='All Off', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'scene', 'payload': {'name': 'all_off'}}})
@@ -877,27 +877,27 @@ class ScopeControls:
         (catalog type `gauge`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Values: half, full.
-            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Values: round, butt, square.
-            segments (array): Color zone breakpoints [{limit, color}].
-            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
-            tint (color, default #667eea): Primary arc fill color (when no segments).
-            label (string): Text below the gauge.
-            icon (string): SF Symbol in the center.
-            step (number, default 1): Determines decimal formatting of center value.
-            arcAngle (number, default 180): Arc sweep in degrees (1-360).
-            arcRotation (number, default 0): Rotates the arc start position in degrees.
-            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size.
-            hideValue (bool, default false): Show just the arc — hide the center value.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            min (number, default 0): Minimum value. Does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
+            max (number, default 100): Maximum value. Does: The value shown at the full end of the arc; readings at or above it fill the arc completely.
+            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Does: Switches between a wide 180° half dial and a 360° square ring. Values: half = a half-circle dial that is wide and short, full = a closed ring that is square.
+            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the value arc, 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Does: Rounds, flattens or squares the ends of the track and the filled arc. Values: round = soft rounded ends, butt = flat ends cut exactly at the value, square = flat ends that stick out half a stroke past the value.
+            segments (array): Color zone breakpoints [{limit, color}]. Does: The arc changes color as the value crosses each limit, e.g. green to 60 then amber to 80 then red.
+            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments. Does: Softens the color changes between zones, from 0 (sharp steps) to 1 (one smooth gradient).
+            tint (color, default #667eea): Primary arc fill color (when no segments). Does: Paints the filled part of the arc in one color when there are no color zones.
+            label (string): Text below the gauge. Does: Shows this text beneath the gauge in the title text size.
+            icon (string): SF Symbol in the center. Does: Draws the chosen SF Symbol in the center of the dial next to the number.
+            step (number, default 1): Determines decimal formatting of center value. Does: Sets the rounding of the center number, e.g. 1 shows 72.5 and 0.1 shows 72.54.
+            arcAngle (number, default 180): Arc sweep in degrees (1-360). Does: Sets the sweep of the arc from 1° to 360°; 270 gives a three-quarter dial.
+            arcRotation (number, default 0): Rotates the arc start position in degrees. Does: Rotates the whole arc by -180° to 180° so its gap sits elsewhere.
+            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size. Does: Sets the stroke width from 1 to 40 points; left empty it scales with the gauge size.
+            hideValue (bool, default false): Show just the arc — hide the center value. Does: Removes the center number when on, leaving just the arc.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Counts the dial down to a time, or moves it toward a predicted value until a real reading arrives. Values: countdown = the value is a time; the dial counts down to it, reach = the value is expected to arrive at a target number or to keep changing at a set rate.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Moves the dial toward this value, between -1,000,000 and 1,000,000, until the real reading replaces it.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Keeps moving the dial by this much per second, -1000 to 1000, from the last real reading.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally. Does: Shows the number in the viewer's local unit, e.g. celsius reads 70.7°F in the US.
 
         Example:
             ui.gauge('cpu-temp', position=[0, 0], min=30, max=100, gaugeStyle='half', label='CPU Temp', icon='thermometer.medium', segments=[{'limit': 60, 'color': '#34C759'}, {'limit': 80, 'color': '#FF9500'}, {'limit': 100, 'color': '#FF3B30'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'device': 'server'}, 'valuePath': 'cpu_temp'}])
@@ -1929,25 +1929,25 @@ class ScopeControls:
         (catalog type `slider`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values.
-            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release.
-            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction.
-            label (string): Header label.
-            defaultValue (number): Initial value.
-            tint (color, default #667eea): Track fill color.
-            style (enum, default default): Display style. Values: default, scrubber, radial.
-            formatValue (enum, default decimal): Value display format. Values: decimal, time, percent, none.
-            minIcon (string): SF Symbol at minimum end.
-            maxIcon (string): SF Symbol at maximum end.
-            hideLabel (bool, default false): Hide the header.
-            hideBackground (bool, default false): Remove glass background.
-            arcAngle (number, default 270): Arc sweep in degrees (radial style only).
-            arcRotation (number, default 0): Arc start rotation (radial style only).
-            arcThickness (number, default 8): Track stroke width (radial style only).
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the handle and fill travel when the value changes, from instant jump to a soft glide. Values: smooth = an even, natural glide, snappy = a quick, firm move, bouncy = overshoots slightly, then settles, gentle = a slow, soft drift, instant = jumps with no travel.
+            min (number, default 0): Minimum value. Does: Sets the value at the left end (or arc start) of the slider, in the slider's own units.
+            max (number, default 100): Maximum value. Does: Sets the value at the right end (or arc end) of the slider, in the slider's own units.
+            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values. Does: Makes the handle snap to values spaced this far apart from the lowest value; 0 or less slides smoothly.
+            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release. Does: On, the new value is sent throughout the drag; off, it is sent once when you lift your finger.
+            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction. Does: Removes the number readout from the header and the radial center; the title and dragging still work.
+            label (string): Header label. Does: Writes this text in the header above the slider.
+            defaultValue (number): Initial value. Does: Places the handle at this value (within lowest to highest) when the layout first appears.
+            tint (color, default #667eea): Track fill color. Does: Colors the filled portion of the track or arc with this color.
+            style (enum, default default): Display style. Does: Switches between a bar with a big handle, a thin seek bar, or a circular arc. Values: default = a bar with a round handle and optional end symbols, scrubber = a thin progress line with a small draggable dot, radial = a circular arc you drag around.
+            formatValue (enum, default decimal): Value display format. Does: Changes how the readout is written, such as 72, 3:45 or 80%, or hides it. Values: decimal = a plain number like 72 or 3.5, time = minutes and seconds like 3:45, from a total in seconds, percent = a whole percentage like 80%, none = no number shown.
+            minIcon (string): SF Symbol at minimum end. Does: Shows this SF Symbol at the left end of the bar (default look only).
+            maxIcon (string): SF Symbol at maximum end. Does: Shows this SF Symbol at the right end of the bar (default look only).
+            hideLabel (bool, default false): Hide the header. Does: Removes the header row so only the slider itself shows.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the slider so it floats on the page.
+            arcAngle (number, default 270): Arc sweep in degrees (radial style only). Does: Sets how far the arc sweeps, from 1 to 360 degrees (270 leaves a gap at the bottom).
+            arcRotation (number, default 0): Arc start rotation (radial style only). Does: Turns the whole arc around its center by -180 to 180 degrees.
+            arcThickness (number, default 8): Track stroke width (radial style only). Does: Sets the arc line width from 1 to 40 points.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you set a value.
 
         Example:
             ui.slider('seek', position=[0, 0], label='Playback', min=0, max=300, step=1, style='scrubber', formatValue='time', continuous=False)
@@ -2440,21 +2440,21 @@ class ScopeControls:
         (catalog type `toggle`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            label (string): Toggle label text.
-            icon (string): SF Symbol.
-            style (enum, default switch): Display style. Values: switch, button, icon-toggle.
-            defaultValue (bool, default false): Initial on/off state.
-            onIcon (string): SF Symbol when on (button and icon-toggle styles).
-            offIcon (string): SF Symbol when off (button and icon-toggle styles).
-            tint (color, default #667eea): Accent color when on.
-            hideBackground (bool, default false): Remove glass background.
-            haptic (enum, default rigid): Default haptic on toggle. Values: light, medium, heavy, rigid, success, warning, error, selection.
-            trackLength (number, default 51): Track extent tip-to-tip along its path (pt).
-            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more).
-            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below).
-            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets the speed and feel of the knob's travel between off and on, from instant to a slow ease. Values: smooth = an even natural glide, snappy = quick with a crisp stop, bouncy = overshoots slightly and settles, gentle = slow and soft, instant = no travel, it jumps straight to the new state.
+            label (string): Toggle label text. Does: Shows this text above the switch in the label font size (8-24 pt, default 12).
+            icon (string): SF Symbol. Does: Draws this SF Symbol beside the label; leave it empty for no icon.
+            style (enum, default switch): Display style. Does: Switches the whole control between an iOS-style sliding switch, a tappable button and a single icon that swaps. Values: switch = a sliding track with a round knob, button = a tappable tile that glows in the on color when on, icon-toggle = one symbol that swaps between the on and off icons.
+            defaultValue (bool, default false): Initial on/off state. Does: Starts the control on (true) or off (false) until the first tap or live update.
+            onIcon (string): SF Symbol when on (button and icon-toggle styles). Does: Shows this SF Symbol while the control is on, replacing the main icon in button and icon-toggle looks.
+            offIcon (string): SF Symbol when off (button and icon-toggle styles). Does: Shows this SF Symbol while the control is off, replacing the main icon in button and icon-toggle looks.
+            tint (color, default #667eea): Accent color when on. Does: Colors the track, glow or icon in this color whenever the control is on.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the control so only the switch and label sit on the page.
+            haptic (enum, default rigid): Default haptic on toggle. Does: Plays this haptic on the phone each time the control flips. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, rigid = a firm sharp click, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            trackLength (number, default 51): Track extent tip-to-tip along its path (pt). Does: Stretches the track tip to tip along its path from 31 to 400 pt (default 51).
+            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more). Does: Bends the track from -180 to 180 degrees; 0 is straight, positive bows up and negative bows down.
+            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below). Does: Rounds the track corners from 0 (square) to 20 pt (fully round at default thickness).
+            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial. Does: Rounds the knob corners from 0 (square) to 13.5 pt (a circle).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.toggle('lr-main', position=[0, 0], label='Main Light', defaultValue=True, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'light', 'payload': {'room': 'living', 'fixture': 'main', 'command': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living', 'fixture': 'main'}, 'valuePath': 'state'}])
@@ -2671,18 +2671,18 @@ class BuildControls:
         (catalog type `button`)
 
         Fields:
-            label (string, default Button): Button text.
-            icon (string): SF Symbol shown before label.
-            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Values: filled, outlined, outline, ghost, tinted, icon-only.
-            size (enum, default default): Size variant. Values: compact, default, large.
-            tint (color, default #667eea): Accent color.
-            hideLabel (bool, default false): Show icon only.
-            haptic (enum, default medium): Haptic feedback on press. Values: light, medium, heavy, success, warning, error, selection.
-            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set).
-            valueMap (object): Synced value → button text ("default" catches the rest).
-            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect).
-            colorMap (object): Synced value → hex tint.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            label (string, default Button): Button text. Does: Sets the text shown on the button; empty shows the control id.
+            icon (string): SF Symbol shown before label. Does: Draws the chosen SF Symbol before the label, or alone with Symbol only.
+            style (enum, default filled): Visual style variant ("outline" and "outlined" are both accepted). Does: Switches the button between a solid fill, an outline, a faint tint, or just the symbol. Values: filled = solid colored block with light text, outlined = clear inside with a colored border, outline = same as outlined, ghost = no fill or border, just the colored text, tinted = soft wash of the color with colored text, icon-only = only the symbol, no text or block.
+            size (enum, default default): Size variant. Does: Scales the button's height and text between compact, normal and large. Values: compact = small and tight, for crowded grids, default = the normal size, large = tall and roomy, easy to hit.
+            tint (color, default #667eea): Accent color. Does: Recolors the fill, border or text (per Look) to the chosen color.
+            hideLabel (bool, default false): Show icon only. Does: When on, the label text disappears and only the symbol remains.
+            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
+            repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set). Does: Holding the button refires its action repeatedly, speeding up the longer you hold.
+            valueMap (object): Synced value → button text ("default" catches the rest). Does: Replaces the label with the text matching the synced value, e.g. true shows Pause.
+            iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect). Does: Swaps the symbol to the one matching the synced value, with a replace animation.
+            colorMap (object): Synced value → hex tint. Does: Recolors the button to the hex matching the synced value.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: A pill naming the change appears for 3 seconds with an Undo button after each tap.
 
         Example:
             ui.button('all-off', position=[0, 3], label='All Off', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'scene', 'payload': {'name': 'all_off'}}})
@@ -3208,27 +3208,27 @@ class BuildControls:
         (catalog type `gauge`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Values: half, full.
-            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Values: round, butt, square.
-            segments (array): Color zone breakpoints [{limit, color}].
-            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments.
-            tint (color, default #667eea): Primary arc fill color (when no segments).
-            label (string): Text below the gauge.
-            icon (string): SF Symbol in the center.
-            step (number, default 1): Determines decimal formatting of center value.
-            arcAngle (number, default 180): Arc sweep in degrees (1-360).
-            arcRotation (number, default 0): Rotates the arc start position in degrees.
-            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size.
-            hideValue (bool, default false): Show just the arc — hide the center value.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            min (number, default 0): Minimum value. Does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
+            max (number, default 100): Maximum value. Does: The value shown at the full end of the arc; readings at or above it fill the arc completely.
+            gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Does: Switches between a wide 180° half dial and a 360° square ring. Values: half = a half-circle dial that is wide and short, full = a closed ring that is square.
+            glowRadius (number, default 0): Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the value arc, 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control. Does: Rounds, flattens or squares the ends of the track and the filled arc. Values: round = soft rounded ends, butt = flat ends cut exactly at the value, square = flat ends that stick out half a stroke past the value.
+            segments (array): Color zone breakpoints [{limit, color}]. Does: The arc changes color as the value crosses each limit, e.g. green to 60 then amber to 80 then red.
+            colorBlend (number, default 0): How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments. Does: Softens the color changes between zones, from 0 (sharp steps) to 1 (one smooth gradient).
+            tint (color, default #667eea): Primary arc fill color (when no segments). Does: Paints the filled part of the arc in one color when there are no color zones.
+            label (string): Text below the gauge. Does: Shows this text beneath the gauge in the title text size.
+            icon (string): SF Symbol in the center. Does: Draws the chosen SF Symbol in the center of the dial next to the number.
+            step (number, default 1): Determines decimal formatting of center value. Does: Sets the rounding of the center number, e.g. 1 shows 72.5 and 0.1 shows 72.54.
+            arcAngle (number, default 180): Arc sweep in degrees (1-360). Does: Sets the sweep of the arc from 1° to 360°; 270 gives a three-quarter dial.
+            arcRotation (number, default 0): Rotates the arc start position in degrees. Does: Rotates the whole arc by -180° to 180° so its gap sits elsewhere.
+            arcThickness (number, default auto): Arc stroke width in points. Omit to auto-scale with the gauge's size. Does: Sets the stroke width from 1 to 40 points; left empty it scales with the gauge size.
+            hideValue (bool, default false): Show just the arc — hide the center value. Does: Removes the center number when on, leaving just the arc.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Counts the dial down to a time, or moves it toward a predicted value until a real reading arrives. Values: countdown = the value is a time; the dial counts down to it, reach = the value is expected to arrive at a target number or to keep changing at a set rate.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Moves the dial toward this value, between -1,000,000 and 1,000,000, until the real reading replaces it.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Keeps moving the dial by this much per second, -1000 to 1000, from the last real reading.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally. Does: Shows the number in the viewer's local unit, e.g. celsius reads 70.7°F in the US.
 
         Example:
             ui.gauge('cpu-temp', position=[0, 0], min=30, max=100, gaugeStyle='half', label='CPU Temp', icon='thermometer.medium', segments=[{'limit': 60, 'color': '#34C759'}, {'limit': 80, 'color': '#FF9500'}, {'limit': 100, 'color': '#FF3B30'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'device': 'server'}, 'valuePath': 'cpu_temp'}])
@@ -4044,25 +4044,25 @@ class BuildControls:
         (catalog type `slider`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value.
-            max (number, default 100): Maximum value.
-            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values.
-            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release.
-            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction.
-            label (string): Header label.
-            defaultValue (number): Initial value.
-            tint (color, default #667eea): Track fill color.
-            style (enum, default default): Display style. Values: default, scrubber, radial.
-            formatValue (enum, default decimal): Value display format. Values: decimal, time, percent, none.
-            minIcon (string): SF Symbol at minimum end.
-            maxIcon (string): SF Symbol at maximum end.
-            hideLabel (bool, default false): Hide the header.
-            hideBackground (bool, default false): Remove glass background.
-            arcAngle (number, default 270): Arc sweep in degrees (radial style only).
-            arcRotation (number, default 0): Arc start rotation (radial style only).
-            arcThickness (number, default 8): Track stroke width (radial style only).
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the handle and fill travel when the value changes, from instant jump to a soft glide. Values: smooth = an even, natural glide, snappy = a quick, firm move, bouncy = overshoots slightly, then settles, gentle = a slow, soft drift, instant = jumps with no travel.
+            min (number, default 0): Minimum value. Does: Sets the value at the left end (or arc start) of the slider, in the slider's own units.
+            max (number, default 100): Maximum value. Does: Sets the value at the right end (or arc end) of the slider, in the slider's own units.
+            step (number, default 1): Detent spacing measured from min; zero or negative allows continuous values. Does: Makes the handle snap to values spaced this far apart from the lowest value; 0 or less slides smoothly.
+            continuous (bool, default true): Send actions while dragging; false previews locally and sends once on release. Does: On, the new value is sent throughout the drag; off, it is sent once when you lift your finger.
+            hideValue (bool, default false): Hide numeric readouts in every slider style; keep the label and interaction. Does: Removes the number readout from the header and the radial center; the title and dragging still work.
+            label (string): Header label. Does: Writes this text in the header above the slider.
+            defaultValue (number): Initial value. Does: Places the handle at this value (within lowest to highest) when the layout first appears.
+            tint (color, default #667eea): Track fill color. Does: Colors the filled portion of the track or arc with this color.
+            style (enum, default default): Display style. Does: Switches between a bar with a big handle, a thin seek bar, or a circular arc. Values: default = a bar with a round handle and optional end symbols, scrubber = a thin progress line with a small draggable dot, radial = a circular arc you drag around.
+            formatValue (enum, default decimal): Value display format. Does: Changes how the readout is written, such as 72, 3:45 or 80%, or hides it. Values: decimal = a plain number like 72 or 3.5, time = minutes and seconds like 3:45, from a total in seconds, percent = a whole percentage like 80%, none = no number shown.
+            minIcon (string): SF Symbol at minimum end. Does: Shows this SF Symbol at the left end of the bar (default look only).
+            maxIcon (string): SF Symbol at maximum end. Does: Shows this SF Symbol at the right end of the bar (default look only).
+            hideLabel (bool, default false): Hide the header. Does: Removes the header row so only the slider itself shows.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the slider so it floats on the page.
+            arcAngle (number, default 270): Arc sweep in degrees (radial style only). Does: Sets how far the arc sweeps, from 1 to 360 degrees (270 leaves a gap at the bottom).
+            arcRotation (number, default 0): Arc start rotation (radial style only). Does: Turns the whole arc around its center by -180 to 180 degrees.
+            arcThickness (number, default 8): Track stroke width (radial style only). Does: Sets the arc line width from 1 to 40 points.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you set a value.
 
         Example:
             ui.slider('seek', position=[0, 0], label='Playback', min=0, max=300, step=1, style='scrubber', formatValue='time', continuous=False)
@@ -4449,21 +4449,21 @@ class BuildControls:
         (catalog type `toggle`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            label (string): Toggle label text.
-            icon (string): SF Symbol.
-            style (enum, default switch): Display style. Values: switch, button, icon-toggle.
-            defaultValue (bool, default false): Initial on/off state.
-            onIcon (string): SF Symbol when on (button and icon-toggle styles).
-            offIcon (string): SF Symbol when off (button and icon-toggle styles).
-            tint (color, default #667eea): Accent color when on.
-            hideBackground (bool, default false): Remove glass background.
-            haptic (enum, default rigid): Default haptic on toggle. Values: light, medium, heavy, rigid, success, warning, error, selection.
-            trackLength (number, default 51): Track extent tip-to-tip along its path (pt).
-            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more).
-            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below).
-            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets the speed and feel of the knob's travel between off and on, from instant to a slow ease. Values: smooth = an even natural glide, snappy = quick with a crisp stop, bouncy = overshoots slightly and settles, gentle = slow and soft, instant = no travel, it jumps straight to the new state.
+            label (string): Toggle label text. Does: Shows this text above the switch in the label font size (8-24 pt, default 12).
+            icon (string): SF Symbol. Does: Draws this SF Symbol beside the label; leave it empty for no icon.
+            style (enum, default switch): Display style. Does: Switches the whole control between an iOS-style sliding switch, a tappable button and a single icon that swaps. Values: switch = a sliding track with a round knob, button = a tappable tile that glows in the on color when on, icon-toggle = one symbol that swaps between the on and off icons.
+            defaultValue (bool, default false): Initial on/off state. Does: Starts the control on (true) or off (false) until the first tap or live update.
+            onIcon (string): SF Symbol when on (button and icon-toggle styles). Does: Shows this SF Symbol while the control is on, replacing the main icon in button and icon-toggle looks.
+            offIcon (string): SF Symbol when off (button and icon-toggle styles). Does: Shows this SF Symbol while the control is off, replacing the main icon in button and icon-toggle looks.
+            tint (color, default #667eea): Accent color when on. Does: Colors the track, glow or icon in this color whenever the control is on.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the control so only the switch and label sit on the page.
+            haptic (enum, default rigid): Default haptic on toggle. Does: Plays this haptic on the phone each time the control flips. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, rigid = a firm sharp click, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            trackLength (number, default 51): Track extent tip-to-tip along its path (pt). Does: Stretches the track tip to tip along its path from 31 to 400 pt (default 51).
+            trackCurvature (number, default 0): Degrees of bend; 0 straight, positive bows up. Clamped to what the length can bend (lengthen the track to curve it more). Does: Bends the track from -180 to 180 degrees; 0 is straight, positive bows up and negative bows down.
+            trackRadius (number, default 15.5): Track corner radius; on a curved track resolves to round caps (within 0.5 pt of half thickness) or sharp square ends (below). Does: Rounds the track corners from 0 (square) to 20 pt (fully round at default thickness).
+            knobRadius (number, default 13.5): Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial. Does: Rounds the knob corners from 0 (square) to 13.5 pt (a circle).
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.toggle('lr-main', position=[0, 0], label='Main Light', defaultValue=True, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'light', 'payload': {'room': 'living', 'fixture': 'main', 'command': '{{value}}'}}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'room': 'living', 'fixture': 'main'}, 'valuePath': 'state'}])

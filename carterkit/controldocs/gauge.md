@@ -1,5 +1,6 @@
 ---
 type: gauge
+depth: complete
 label: Gauge
 icon: gauge.medium
 category: controls
@@ -20,6 +21,9 @@ fields:
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
+    summary: How the dial moves when the number changes
+    does: The needle or arc eases to each new value; instant jumps with no travel.
+    valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
   - name: min
     title: Lowest value
     default: 0
@@ -27,6 +31,7 @@ fields:
     type: number
     description: Minimum value
     summary: Where the dial starts
+    does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
   - name: max
     title: Highest value
     default: 100
@@ -34,6 +39,7 @@ fields:
     type: number
     description: Maximum value
     summary: Where the dial fills up
+    does: The value shown at the full end of the arc; readings at or above it fill the arc completely.
   - name: gaugeStyle
     edit: look
     title: Shape
@@ -42,6 +48,9 @@ fields:
     values: [half, full]
     default: half
     description: "Shorthand: half = 180° arc, full = 360° circle"
+    summary: Half dial or full ring
+    does: Switches between a wide 180° half dial and a 360° square ring.
+    valueHelp: {"half": "a half-circle dial that is wide and short", "full": "a closed ring that is square"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -55,6 +64,8 @@ fields:
     type: number
     default: 0
     description: Soft glow behind the value arc in its own colour, in points (0 = none). Cross-control, same on every control
+    summary: A soft halo around the fill
+    does: Adds a glow behind the value arc, 0 (off) to 30 points wide.
   - name: lineCap
     edit: look
     depth: hold
@@ -65,6 +76,9 @@ fields:
     values: [round, butt, square]
     default: round
     description: End shape of the track, value arc and segment arcs (the blended gradient arc keeps its butt ends until set). Cross-control, same on every control
+    summary: The shape of the arc's ends
+    does: Rounds, flattens or squares the ends of the track and the filled arc.
+    valueHelp: {"round": "soft rounded ends", "butt": "flat ends cut exactly at the value", "square": "flat ends that stick out half a stroke past the value"}
   - name: segments
     edit: stops
     axis: value
@@ -74,6 +88,7 @@ fields:
     type: array
     description: Color zone breakpoints [{limit, color}]
     summary: Colors for different ranges of values
+    does: The arc changes color as the value crosses each limit, e.g. green to 60 then amber to 80 then red.
   - name: colorBlend
     facet: colorByValue
     title: Zone blending
@@ -84,6 +99,8 @@ fields:
     type: number
     default: 0
     description: "How much the segment colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient, between = feathered edges. Needs segments."
+    summary: Hard bands or a smooth fade between colors
+    does: Softens the color changes between zones, from 0 (sharp steps) to 1 (one smooth gradient).
   - name: tint
     edit: color
     title: Color
@@ -91,22 +108,30 @@ fields:
     type: color
     default: "#667eea"
     description: Primary arc fill color (when no segments)
+    summary: The color of the filled arc
+    does: Paints the filled part of the arc in one color when there are no color zones.
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Text below the gauge
+    summary: The caption under the dial
+    does: Shows this text beneath the gauge in the title text size.
   - name: icon
     title: Symbol
     type: string
     description: SF Symbol in the center
+    summary: A small picture in the middle
+    does: Draws the chosen SF Symbol in the center of the dial next to the number.
   - name: step
     title: Decimal places
     bounds: none
     type: number
     default: 1
     description: Determines decimal formatting of center value
+    summary: How many digits after the point
+    does: Sets the rounding of the center number, e.g. 1 shows 72.5 and 0.1 shows 72.54.
   - name: arcAngle
     edit: scrub
     depth: hold
@@ -119,6 +144,8 @@ fields:
     type: number
     default: 180
     description: Arc sweep in degrees (1-360)
+    summary: How much of a circle the arc covers
+    does: Sets the sweep of the arc from 1° to 360°; 270 gives a three-quarter dial.
   - name: arcRotation
     edit: scrub
     depth: hold
@@ -131,6 +158,8 @@ fields:
     type: number
     default: 0
     description: Rotates the arc start position in degrees
+    summary: Where the arc begins around the circle
+    does: Rotates the whole arc by -180° to 180° so its gap sits elsewhere.
   - name: arcThickness
     edit: scrub
     depth: hold
@@ -144,6 +173,8 @@ fields:
     type: number
     default: auto
     description: Arc stroke width in points. Omit to auto-scale with the gauge's size.
+    summary: How fat the arc stroke is
+    does: Sets the stroke width from 1 to 40 points; left empty it scales with the gauge size.
   - name: hideValue
     edit: part
     depth: hold
@@ -151,13 +182,17 @@ fields:
     type: bool
     default: false
     description: Show just the arc — hide the center value
+    summary: Dial only, no number
+    does: Removes the center number when on, leaving just the arc.
   - name: forecast
     title: Look ahead
     tab: data
     type: enum
     values: [countdown, reach]
     description: "Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale."
-    summary: Show as a countdown, or show where the value is expected to reach
+    summary: A guess drawn beside the real reading
+    does: Counts the dial down to a time, or moves it toward a predicted value until a real reading arrives.
+    valueHelp: {"countdown": "the value is a time; the dial counts down to it", "reach": "the value is expected to arrive at a target number or to keep changing at a set rate"}
   - name: forecastTarget
     title: Expected to reach
     tab: data
@@ -167,12 +202,15 @@ fields:
     step: 1
     description: The value this one is expected to arrive at (with forecast "reach")
     summary: The number it should reach
+    does: Moves the dial toward this value, between -1,000,000 and 1,000,000, until the real reading replaces it.
   - name: forecastTimeFrom
     title: Arrival time from
     tab: data
     simple: hide
     type: string
     description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
+    summary: Which control says when it arrives
+    does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
   - name: forecastRate
     title: Change per second
     tab: data
@@ -182,10 +220,14 @@ fields:
     max: 1000
     step: 0.01
     description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
+    summary: How fast it is expected to change
+    does: Keeps moving the dial by this much per second, -1000 to 1000, from the last real reading.
   - name: unit
     title: Unit
     type: string
     description: "Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). The readout converts to the device locale (°C → °F in the US); min, max and segments stay in this unit, so the arc is the same everywhere. Unknown strings show literally."
+    summary: What the number is measured in
+    does: Shows the number in the viewer's local unit, e.g. celsius reads 70.7°F in the US.
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -195,6 +237,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How rounded the corners are
+    does: Rounds the control's corners from square (0) to 30 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -203,32 +247,43 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Breathing room inside the edge
+    does: Adds 0 to 24 points between the control's edge and its content.
   - name: surfacePrimary
     title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The fill behind the dial
+    does: Paints the control's background in this color, including transparency.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The theme's highlight color
+    does: Tints the dial's fill and accents wherever no color is set directly.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The main text color
+    does: Colors the center number and primary text.
   - name: secondaryColor
     title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The quieter text color
+    does: Colors the caption and other supporting text.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline around the control
+    does: Draws the control's outline in this color.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -237,6 +292,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the outline width from 0 (none) to 5 points.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -245,6 +302,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: How big the caption is
+    does: Sets the caption's text size from 8 to 24 points.
 ---
 
 # Gauge
@@ -300,6 +359,7 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
 ## Examples
 
 ### Temperature gauge with color zones
+Demonstrates `segments`: the arc turns green, amber or red depending on which zone the live CPU temperature falls in.
 ```json
 {
   "type": "gauge",
@@ -320,6 +380,7 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
 ```
 
 ### Full circle gauge (battery level)
+Demonstrates a `full` ring with a single `tint` and a center `icon`, reading a live battery percentage.
 ```json
 {
   "type": "gauge",
@@ -336,6 +397,7 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
 ```
 
 ### Gauge with long-press detail
+Demonstrates `longPressGroup`: holding the dial opens a popup with a history sparkline and min/max labels.
 ```json
 {
   "type": "gauge",
@@ -359,6 +421,74 @@ Each segment fills from the previous segment's limit (or min) up to its own limi
     ]
   }
 }
+```
+
+### Ring look (full circle)
+Demonstrates the Ring look: `gaugeStyle: "full"` closes the dial into a square 360° ring, with the title under it.
+```json
+{ "type": "gauge", "id": "ring-demo", "position": [0, 0], "span": [2, 3], "min": 0, "max": 100, "gaugeStyle": "full", "label": "Disk used", "tint": "#667eea" }
+```
+
+### Bar look
+Demonstrates the Bar look, which swaps the control for a progress bar (`type: progressRing`, `progressStyle: "bar"`) that fills left to right.
+```json
+{ "type": "progressRing", "id": "bar-demo", "position": [0, 0], "progressStyle": "bar", "min": 0, "max": 100, "label": "Upload" }
+```
+
+### Smooth color blend and bold look
+Demonstrates `colorBlend: 1` turning the zones into one gradient, with `arcThickness: 16` (the Bold look) for a heavier stroke.
+```json
+{ "type": "gauge", "id": "blend-demo", "position": [0, 0], "min": 0, "max": 100, "label": "Load", "arcThickness": 16, "colorBlend": 1,
+  "segments": [ { "limit": 50, "color": "#34C759" }, { "limit": 80, "color": "#FF9500" }, { "limit": 100, "color": "#FF3B30" } ] }
+```
+
+### Quiet look: arc only
+Demonstrates `hideValue: true` (the Quiet look): the center number disappears and only the arc shows, handy as a compact glyph.
+```json
+{ "type": "gauge", "id": "quiet-demo", "position": [0, 0], "min": 0, "max": 100, "hideValue": true, "tint": "#34C759" }
+```
+
+### Glow and line ends
+Demonstrates `glowRadius: 12` adding a soft halo and `lineCap: "butt"` cutting the arc ends flat.
+```json
+{ "type": "gauge", "id": "glow-demo", "position": [0, 0], "min": 0, "max": 100, "glowRadius": 12, "lineCap": "butt", "tint": "#00D4FF", "label": "Signal" }
+```
+
+### Custom arc shape
+Demonstrates `arcAngle: 270`, `arcRotation: 0` and `animation: "bouncy"`: a three-quarter dial whose needle overshoots and settles on each change.
+```json
+{ "type": "gauge", "id": "arc-demo", "position": [0, 0], "min": 0, "max": 8000, "arcAngle": 270, "arcRotation": 0, "animation": "bouncy", "step": 0, "label": "RPM" }
+```
+
+### Converted unit
+Demonstrates `unit: "celsius"`: the value arrives in °C but reads 70.7°F in the US; min and max stay in °C so the arc looks the same everywhere.
+```json
+{ "type": "gauge", "id": "unit-demo", "position": [0, 0], "min": 0, "max": 40, "unit": "celsius", "step": 0, "label": "Outside" }
+```
+
+### Forecast: countdown
+Demonstrates `forecast: "countdown"`: the value is a time, so the widget counts down to it between real readings.
+```json
+{ "type": "gauge", "id": "countdown-demo", "position": [0, 0], "min": 0, "max": 3600, "forecast": "countdown", "label": "Oven ready" }
+```
+
+### Forecast: reach a target at a time
+Demonstrates `forecast: "reach"` with `forecastTarget` and `forecastTimeFrom`: the dial moves toward 100 so it arrives when the `eta` control says; a real value replaces the guess.
+```json
+{ "type": "gauge", "id": "charge-demo", "position": [0, 0], "min": 0, "max": 100, "forecast": "reach", "forecastTarget": 100, "forecastTimeFrom": "eta", "label": "Charging" }
+```
+
+### Forecast: keep moving at a rate
+Demonstrates `forecast: "reach"` with `forecastRate: 0.5`: with no arrival time, the dial keeps climbing 0.5 per second from the last real reading.
+```json
+{ "type": "gauge", "id": "rate-demo", "position": [0, 0], "min": 0, "max": 100, "forecast": "reach", "forecastRate": 0.5, "label": "Tank fill" }
+```
+
+### Themed gauge
+Demonstrates the theme fields: rounder corners, more inner spacing, a custom background, border and larger title text.
+```json
+{ "type": "gauge", "id": "theme-demo", "position": [0, 0], "min": 0, "max": 100, "label": "Humidity",
+  "theme": { "cornerRadius": 20, "controlPadding": 12, "surfacePrimary": "#1C1C2E", "accentColor": "#34C759", "foregroundColor": "#FFFFFF", "secondaryColor": "#FFFFFF99", "borderColor": "#34C75966", "borderWidth": 2, "labelFontSize": 16 } }
 ```
 
 ## Behavior
