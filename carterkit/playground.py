@@ -25,3 +25,30 @@ def build_playground(name: str = "Playground") -> Layout:
         ui.slider("dial", label="Dial", min=0, max=100, span=(2, 1), send="dial")
         ui.button("tap", label="Tap me", icon="hand.tap", span=(2, 1), send="tap")
     return ui
+
+
+async def live_prompt(send, *, read=input, write=print, prompt: str = "playground> ") -> int:
+    """A live prompt: each entry goes to the playground through ``send`` (an async
+    callable taking the text, e.g. ``lambda t: hub.push(hello_ref, t)``) and the
+    result is shown. A blank line is skipped; ``exit``/``quit``/EOF ends it.
+    A failing send is reported and the prompt carries on. Returns the entries sent."""
+    import asyncio
+    sent = 0
+    while True:
+        try:
+            line = await asyncio.to_thread(read, prompt)
+        except EOFError:
+            break
+        line = line.strip()
+        if not line:
+            continue
+        if line in ("exit", "quit"):
+            break
+        try:
+            result = await send(line)
+        except Exception as e:  # keep the prompt alive
+            write(f"error: {e}")
+            continue
+        sent += 1
+        write(f"-> {result!r}")
+    return sent
