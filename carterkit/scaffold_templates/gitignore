@@ -1,0 +1,2 @@
+# carterkit keeps the LAN pairing (relay key) here; never commit it
+.carterkit/

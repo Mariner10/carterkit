@@ -461,6 +461,10 @@ class Hub:
                 self._demux.setdefault(ev, []).append(fn)
         return fn
 
+    def reset_handlers(self) -> None:
+        """Forget every ``on()`` demux (a live reload re-registers the file's handlers)."""
+        self._demux.clear()
+
     def on_broadcast(self, fn):
         """Raw hook: every broadcast that no `on()` demux consumed."""
         self._user_broadcast = fn

@@ -11,7 +11,7 @@ def test_new_creates_project(tmp_path, capsys):
     d = tmp_path / "demo"
     assert cli.main(["new", str(d)]) == 0
     hello = (d / "hello.py").read_text()
-    assert "secrets" in hello and "Add Hub" in hello and "asyncio.sleep(2)" in hello
+    assert "secrets" in hello and "Scan the QR" in hello and "asyncio.sleep(2)" in hello
     py_compile.compile(str(d / "hello.py"), doraise=True)
     assert (d / "secrets" / ".gitignore").read_text().splitlines() == ["*", "!.gitignore"]
     s = json.loads((d / ".vscode" / "settings.json").read_text())
@@ -37,10 +37,17 @@ def test_new_refuses_non_empty(tmp_path, capsys):
         scaffold.scaffold(str(d))
 
 
-def test_hello_hint_without_credential(tmp_path):
+def test_hello_without_credential_prints_the_qr_and_waits(tmp_path):
     import subprocess, sys
     d = tmp_path / "demo"
     scaffold.scaffold(str(d))
+    import os
+    env = {"PYTHONPATH": os.getcwd(), "PATH": "", "CARTERKIT_HOST": "127.0.0.1",
+           "CARTERKIT_PAIR_TIMEOUT": "1"}
     r = subprocess.run([sys.executable, str(d / "hello.py")], capture_output=True, text=True,
-                       env={"PYTHONPATH": ".", "PATH": ""}, timeout=60)
-    assert "Hubs -> Add Hub" in r.stdout
+                       env=env, cwd=str(d), timeout=60)
+    assert (d / ".carterkit" / "session.json").is_file()     # the pairing lives in the project
+    assert ".carterkit/" in (d / ".gitignore").read_text()
+    assert "Scan this with the CAR-TER app" in r.stdout
+    assert "Hubs -> Add Hub" not in r.stdout
+    assert "No phone joined" in r.stdout and r.returncode == 1

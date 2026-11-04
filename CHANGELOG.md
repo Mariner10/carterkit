@@ -5,6 +5,36 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.18.0] — 2026-11-04
+
+The pairing release: `pip install carterkit && carterkit start` puts a layout on the phone
+from a QR, no account and no credential.
+
+### Added
+
+- **`carterkit start`**: serves a hub on the LAN, prints a pairing QR, waits for the phone, pushes
+  the bundled **Playground** layout (a label, a gauge, a slider and a button) and opens the live
+  prompt with those controls bound. The pairing is kept in `.carterkit/session.json` so the next
+  start reconnects without a scan (`--fresh` forgets it; `--no-repl` sweeps the gauge instead).
+- **Live files**: `carterkit repl hello.py` and `python hello.py` (via `carterkit.livefile.main(__file__)`)
+  pair by QR when needed, push the layout, run the file's `async def run(hub)` and watch the file:
+  every save is imported again, the new layout is pushed, handlers are re-armed and `run()` restarts.
+  An import error prints one line and keeps the last good version (`carterkit.livefile`, `Hub.reset_handlers()`).
+- **Tab completion in `carterkit repl`** over `hub`, `ui` and every control (readline/editline), a
+  `help(<control>)` docstring that says what push/on do, and a banner line that says so.
+- `carterkit repl` with no file and no `secrets/hub.json` opens on the Playground instead of exiting.
+- `carterkit.playground.build_playground()` and `carterkit.start.pairing_lines()` for scripts that
+  want the same door; `$CARTERKIT_HOST` / `$CARTERKIT_PAIR_TIMEOUT` override the bind address and the
+  wait.
+
+### Changed
+
+- **`carterkit new` / `hello.py` are LAN-first and live**: without `secrets/hub.json` the script serves
+  on the LAN, prints the QR and pushes its layout after the scan; behaviour lives in `run(hub)` so a save
+  reaches the phone; a credential file still switches it to the managed relay. The old "No hub
+  credential yet" stop is gone.
+- README quickstart: three lines to a live prompt; Connect+ is the alternative, not the first step.
+
 ## [0.17.0] — 2026-11-03
 
 The new-developer release: everything a first `pip install carterkit` hits, fixed in one pass

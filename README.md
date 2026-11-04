@@ -19,46 +19,42 @@ pip install carterkit
 
 ```bash
 pip install carterkit
+carterkit start
 ```
 
-**1. Make a hub credential.** In CAR-TER on the phone open **Hubs -> Add Hub**
-(Connect+) and save the JSON it shows as `secrets/hub.json`.
+`carterkit start` prints a QR. On the phone open CAR-TER, open the layout list (tap the
+title) and tap **Scan** (or Settings -> Studio Session -> Open Scanner), and point it at
+the QR. The Playground layout lands on the phone and you are at a live prompt with its
+controls bound by id:
 
-**2. Scaffold and run a starter project**
+```
+>>> await level.push(42)        # the gauge moves
+>>> await hello.push("hi there") # the label changes
+>>> @tap.on
+... async def tapped(frame): print("tapped!")
+```
+
+Tab completes names, `help(level)` says what a control can do, Ctrl-D disconnects. The
+pairing is kept in `.carterkit/session.json`, so the next `carterkit start` in the same
+folder reconnects without a scan (`--fresh` starts over). No account and no credential:
+the hub runs on your LAN and the QR carries its address and a random key.
+
+**Make it yours, live.** Scaffold a project and edit `hello.py` while it runs:
 
 ```bash
 carterkit new demo
-mkdir -p demo/secrets && mv secrets/hub.json demo/secrets/   # wherever you saved it
 cd demo
-python3 hello.py
+carterkit repl hello.py   # QR once, then a live prompt on that layout
 ```
 
-A gauge updates every 2 s on the phone and the button resets it. `secrets/` is
-git-ignored; `hello.py` is the file to edit (`carterkit repl hello.py` gives you a
-live prompt on the same hub).
+Every save of `hello.py` is pushed to the phone: the layout (a new label, a moved
+gauge) and the behaviour (`async def run(hub)` holds the handlers and loops; it is
+restarted on each save). `python hello.py` does the same without the prompt. An import
+error prints one line and keeps the last good version running.
 
-**No Connect+? Use the LAN Studio path.** The embedded relay binds `127.0.0.1` by
-default, so a phone cannot reach its QR. Bind the LAN explicitly:
-
-```python
-import asyncio
-from carterkit import Layout
-
-with Layout("Hello", cols=4, rows=3) as ui:
-    level = ui.gauge("level", label="Level", min=0, max=100, listen="level")
-
-async def main():
-    async with ui.serve(host="0.0.0.0") as hub:   # 0.0.0.0: reachable from the phone
-        print("pair the app with:", hub.qr_json())
-        await hub.wait_for_device()
-        await hub.push_layout()
-        await level.push(42)
-        await asyncio.sleep(60)
-
-asyncio.run(main())
-```
-
-The pairing QR then carries your LAN address and the shared key.
+**Connect+ instead of the LAN** (a managed relay, works away from home): in CAR-TER open
+**Hubs -> Add Hub** and save the JSON it shows as `secrets/hub.json`; `hello.py` and
+`carterkit repl` pick it up.
 
 ## Build a layout
 

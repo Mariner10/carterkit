@@ -156,6 +156,41 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+  - name: cornerRadius
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
+    title: Corner roundness
+    min: 0
+    max: 30
+    step: 1
+    type: number
+    default: 12
+    description: Control corner radius (card behind the text, when a background is set)
+  - name: surfacePrimary
+    title: Background color
+    type: color
+    default: #FFFFFF0F
+    description: Background fill
+  - name: borderColor
+    title: Border color
+    type: color
+    default: #FFFFFF1A
+    description: Border color
+    summary: The outline around the control
+  - name: borderWidth
+    edit: scrub
+    depth: hold
+    under: style
+    unit: pt
+    title: Border thickness
+    min: 0
+    max: 5
+    step: 0.5
+    type: number
+    default: 1
+    description: Border width
   - name: foregroundColor
     title: Text color
     type: color

@@ -46,12 +46,12 @@ if [ "$CHECK" = 1 ]; then
     REL="${REL%/}"
     git -C "$TOP" rev-parse --verify -q "$APP_REF^{commit}" >/dev/null \
       || { echo "unknown app ref: $APP_REF" >&2; exit 2; }
-    app_names() { git -C "$TOP" ls-tree --name-only "$APP_REF:$REL" | grep '\.md$' || true; }
+    app_names() { git -C "$TOP" ls-tree -r --name-only "$APP_REF:$REL" | grep '\.md$' || true; }
     app_has() { git -C "$TOP" cat-file -e "$APP_REF:$REL/$1" 2>/dev/null; }
     app_cat() { git -C "$TOP" show "$APP_REF:$REL/$1"; }
     SOURCE="$APP_REPO @ $APP_REF"
   else
-    app_names() { for f in "$APP_REPO"/*.md; do basename "$f"; done; }
+    app_names() { (cd "$APP_REPO" && find . -name '*.md' | sed 's#^\./##' | sort); }
     app_has() { [ -f "$APP_REPO/$1" ]; }
     app_cat() { cat "$APP_REPO/$1"; }
     SOURCE="$APP_REPO"
@@ -66,8 +66,8 @@ if [ "$CHECK" = 1 ]; then
       echo "differs:                $name"; drift=$((drift + 1))
     fi
   done < <(app_names)
-  for kit in "$DEST"/*.md; do
-    name="$(basename "$kit")"
+  for kit in $(cd "$DEST" && find . -name '*.md' | sed 's#^\./##' | sort); do
+    name="$kit"
     if ! app_has "$name"; then
       echo "only in carterkit:      $name"; drift=$((drift + 1))
     fi
@@ -81,6 +81,10 @@ if [ "$CHECK" = 1 ]; then
 fi
 
 [ "$REF_EXPLICIT" = 0 ] || [ -z "$APP_REF" ] || { echo "APP_REF only applies to --check" >&2; exit 2; }
-rm -f "$DEST"/*.md
-cp "$APP_REPO"/*.md "$DEST"/
-echo "vendored $(ls "$DEST"/*.md | wc -l | tr -d ' ') docs into carterkit/controldocs/"
+# The whole tree: top-level control docs plus subfolders (patterns/ since CAR-TER 2.0.1).
+find "$DEST" -name '*.md' -delete
+(cd "$APP_REPO" && find . -name '*.md' | sed 's#^\./##') | while IFS= read -r rel; do
+  mkdir -p "$DEST/$(dirname "$rel")"
+  cp "$APP_REPO/$rel" "$DEST/$rel"
+done
+echo "vendored $(find "$DEST" -name '*.md' | wc -l | tr -d ' ') docs into carterkit/controldocs/"

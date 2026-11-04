@@ -73,11 +73,39 @@ def test_plain_exception_one_line(monkeypatch, capsys):
     assert "Traceback" not in out.err and "error: ZeroDivisionError" in out.err
 
 
-def test_cli_registered_and_missing_hub(tmp_path, monkeypatch):
+def test_cli_registered_and_missing_hub_opens_the_playground(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    from carterkit import start
+    called = []
+
+    async def fake_run(**kw):
+        called.append(kw)
+        return 0
+
+    monkeypatch.setattr(start, "run", fake_run)
+    assert cli.main(["repl"]) == 0
+    assert called == [{}]
+
+
+def test_missing_hub_with_a_file_still_says_so(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "empty.py").write_text("x = 1\n")
     with pytest.raises(SystemExit) as e:
-        cli.main(["repl"])
-    assert "hub.json" in str(e.value)
+        cli.main(["repl", "empty.py"])
+    assert "no Layout found" in str(e.value)
+
+
+def test_completion_binds_the_namespace(monkeypatch):
+    pytest.importorskip("readline")
+    import readline
+    ns = {"level": object(), "hub": object()}
+    assert repl.enable_completion(ns) is True
+    comp = readline.get_completer()
+    assert comp is not None and comp("lev", 0) == "level"
+
+
+def test_handle_help_says_what_a_control_does():
+    assert "push" in repl._Handle.__doc__ and ".on" in repl._Handle.__doc__
 
 
 def test_find_targets_from_module(tmp_path):

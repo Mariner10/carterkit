@@ -1,43 +1,36 @@
-"""__NAME__: a CAR-TER layout with one gauge and one button.
+"""__NAME__: a CAR-TER layout with one gauge and one button, live.
 
 Run:  python hello.py
-First time: on the phone open Hubs -> Add Hub, save the credential as secrets/hub.json.
+Scan the QR it prints with the CAR-TER app (layout list -> Scan, or
+Settings -> Studio Session -> Open Scanner). The layout lands on the phone, the
+gauge starts moving, and every save of this file is pushed to the phone: change a
+label, add a control, edit run() below.
+
+`carterkit repl hello.py` does the same with a live prompt (`await gauge.push(7)`).
+Have a Connect+ hub credential? Save it as secrets/hub.json to use the managed relay.
 """
 import asyncio
-import os
 import random
-import sys
 
-from carterkit import Connection, Layout
-
-CREDENTIAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "secrets", "hub.json")
+from carterkit import Layout
 
 with Layout("__NAME__", id="__ID__", cols=4, rows=3) as ui:
     gauge = ui.gauge("level", label="Level", min=0, max=100, listen="level")
     button = ui.button("reset", label="Reset", send="reset")
 
 
-async def main():
-    if not os.path.isfile(CREDENTIAL):
-        print("No hub credential yet. On the phone open Hubs -> Add Hub, "
-              f"then save the credential as {CREDENTIAL}")
-        return 1
-    hub = ui.serve(Connection.parse(CREDENTIAL))
-
+async def run(hub):
+    """Behaviour: handlers and loops. Restarted on every save."""
     @button.on
     async def reset(frame):
         await gauge.push(0)
         return {"ok": True}
 
-    async with hub:
-        print("Connected. Pushing a value every 2 s; Ctrl-C stops.")
-        while True:
-            await gauge.push(random.randint(0, 100))
-            await asyncio.sleep(2)
+    while True:
+        await gauge.push(random.randint(0, 100))
+        await asyncio.sleep(2)
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(asyncio.run(main()))
-    except KeyboardInterrupt:
-        pass
+    from carterkit import livefile
+    raise SystemExit(livefile.main(__file__))

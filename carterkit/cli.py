@@ -220,6 +220,11 @@ def _cmd_repl(args) -> int:
     return repl.main(args.file)
 
 
+def _cmd_start(args) -> int:
+    from . import start
+    return start.main(args)
+
+
 def _cmd_new(args) -> int:
     from . import scaffold
     try:
@@ -227,7 +232,7 @@ def _cmd_new(args) -> int:
     except FileExistsError as e:
         print(f"carterkit new: {e}", file=sys.stderr)
         return 1
-    print(f"created {args.name}/  -> cd {args.name} && python hello.py")
+    print(f"created {args.name}/  -> cd {args.name} && python hello.py  (then scan the QR with the app)")
     return 0
 
 
@@ -359,9 +364,21 @@ def build_parser() -> argparse.ArgumentParser:
                     help="auto-deny seconds (default: install's, else 90)")
     pr.set_defaults(fn=_cmd_pager)
 
+    c = sub.add_parser("start", help="pair a phone over the LAN with a QR, push the Playground "
+                       "layout and open the live prompt (no credential needed)")
+    c.add_argument("--fresh", action="store_true", help="forget the saved pairing and start over")
+    c.add_argument("--no-repl", action="store_true",
+                   help="after pairing, sweep the gauge and echo taps instead of a prompt")
+    c.add_argument("--timeout", type=float, default=None,
+                   help="seconds to wait for the phone (default 600, or $CARTERKIT_PAIR_TIMEOUT)")
+    c.add_argument("--host", default=None,
+                   help="bind address (default 0.0.0.0 so the phone can reach it, or $CARTERKIT_HOST)")
+    c.add_argument("--port", type=int, default=None, help="relay port (default 8765)")
+    c.set_defaults(fn=_cmd_start)
+
     c = sub.add_parser("repl", help="live prompt with the hub connected and controls bound by id")
     c.add_argument("file", nargs="?", help="a module defining the Layout/Hub (e.g. hello.py); "
-                   "omit to use secrets/hub.json")
+                   "omit to use secrets/hub.json, or the Playground when there is none")
     c.set_defaults(fn=_cmd_repl)
 
     c = sub.add_parser("new", help="scaffold a starter project (hello.py, secrets/, VS Code settings)")

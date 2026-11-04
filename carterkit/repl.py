@@ -2,7 +2,10 @@
 
 Imports the module, finds its Layout and Hub (or builds a Hub from
 ``secrets/hub.json``), connects, then opens a stdlib ``code`` console with
-top-level ``await``. ``hub``, ``ui`` and every control (by id) are bound as names.
+top-level ``await``. ``hub``, ``ui`` and every control (by id) are bound as names,
+Tab completes them (and their methods), and ``help(<control>)`` says what one can
+do. With no file and no credential the prompt opens on the Playground instead
+(``carterkit start``: LAN hub + pairing QR), so nothing has to exist first.
 Ctrl-D disconnects cleanly; errors print as one line, never a traceback.
 """
 from __future__ import annotations
@@ -23,7 +26,12 @@ _RESERVED = {"hub", "ui", "asyncio"}
 
 
 class _Handle:
-    """A control by id when only a layout dict (no Layout object) is known."""
+    """A control on the phone, by id.
+
+    ``await <control>.push(value)`` sends a value into it (a gauge level, a label's
+    text); ``@<control>.on`` registers the handler for what it sends back (a button
+    tap, a slider move). ``<control>.ref`` is its layout JSON.
+    """
 
     def __init__(self, hub, d: dict):
         self._hub, self.ref = hub, d
@@ -80,7 +88,8 @@ def banner_lines(ns: dict, names: list[str]) -> list[str]:
     return [
         "carterkit repl: hub connected" + ("" if "ui" in ns else " (no layout loaded)"),
         f"bound: hub{', ui' if 'ui' in ns else ''} · {len(names)} control(s): {shown or '(none)'}",
-        "top-level await works, e.g. `await temp.push(21.5)`; Ctrl-D disconnects",
+        "top-level await works, e.g. `await temp.push(21.5)`; Tab completes names; "
+        "help(<control>) explains one; Ctrl-D disconnects",
     ]
 
 
@@ -113,19 +122,47 @@ class _AsyncConsole(code.InteractiveConsole):
         print(f"error: {type(e).__name__}: {e}".rstrip(": "), file=sys.stderr)
 
 
+def enable_completion(ns: dict) -> bool:
+    """Tab completion over the REPL names and their attributes (``level.pu<Tab>``).
+    Returns False where readline is unavailable (then the prompt still works)."""
+    try:
+        import readline
+        import rlcompleter
+    except ImportError:
+        return False
+    readline.set_completer(rlcompleter.Completer(ns).complete)
+    if "libedit" in (getattr(readline, "__doc__", "") or ""):
+        readline.parse_and_bind("bind ^I rl_complete")       # macOS editline
+    else:
+        readline.parse_and_bind("tab: complete")
+    return True
+
+
+async def serve_console(hub, ui=None, *, intro: list[str] | None = None,
+                        ns: dict | None = None) -> None:
+    """The prompt on an already-connected `hub`, until EOF (no connect, no close).
+    ``ns`` is a namespace to serve in place (a live file refreshes it on reload)."""
+    if ns is None:
+        ns, names = build_namespace(hub, ui)
+    else:
+        names = sorted(n for n, v in ns.items()
+                       if not n.startswith("_") and n not in ("hub", "ui", "asyncio"))
+    for line in banner_lines(ns, names) + list(intro or []):
+        print(line, file=sys.stderr)
+    enable_completion(ns)
+    loop = asyncio.get_running_loop()
+    console = _AsyncConsole(ns, loop)
+    try:
+        await loop.run_in_executor(None, lambda: console.interact(banner="", exitmsg=""))
+    except (SystemExit, KeyboardInterrupt):
+        pass
+
+
 async def run_repl(hub, ui=None) -> None:
     """Connect `hub`, serve the prompt until EOF, then disconnect."""
     await hub.start()
     try:
-        ns, names = build_namespace(hub, ui)
-        for line in banner_lines(ns, names):
-            print(line, file=sys.stderr)
-        loop = asyncio.get_running_loop()
-        console = _AsyncConsole(ns, loop)
-        try:
-            await loop.run_in_executor(None, lambda: console.interact(banner="", exitmsg=""))
-        except (SystemExit, KeyboardInterrupt):
-            pass
+        await serve_console(hub, ui)
     finally:
         await hub.close()
 
@@ -181,6 +218,18 @@ def prepare(path: str | None, hub_json: str = HUB_JSON):
 
 
 def main(path: str | None = None, hub_json: str = HUB_JSON) -> int:
+    if path is None and not os.path.isfile(hub_json):
+        # Nothing to attach to: open the prompt on the Playground (LAN hub + QR).
+        from . import start
+        print("carterkit repl: no file and no secrets/hub.json; starting the Playground "
+              "(`carterkit start`) instead.", file=sys.stderr)
+        return asyncio.run(start.run())
+    if path is not None:
+        # A file: serve it live (QR pairing when needed, every save pushed), with the prompt.
+        from . import livefile as live
+        if not os.path.isfile(path):
+            raise SystemExit(f"carterkit repl: no such file {path!r}")
+        return live.main(path, repl=True)
     hub, ui = prepare(path, hub_json)
     try:
         asyncio.run(run_repl(hub, ui))

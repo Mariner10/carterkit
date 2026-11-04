@@ -10,6 +10,7 @@ _FILES = (
     ("hello.py", "hello.py"),
     ("README.md", "README.md"),
     ("secrets_gitignore", os.path.join("secrets", ".gitignore")),
+    ("gitignore", ".gitignore"),
     ("vscode_settings.json", os.path.join(".vscode", "settings.json")),
 )
 

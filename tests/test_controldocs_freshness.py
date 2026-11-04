@@ -43,7 +43,7 @@ def _app_docs_at_ref(docs_dir, ref):
     top = subprocess.run(["git", "-C", str(docs_dir), "rev-parse", "--show-toplevel"],
                          capture_output=True, text=True, check=True).stdout.strip()
     rel = Path(docs_dir).resolve().relative_to(Path(top).resolve()).as_posix()
-    names = subprocess.run(["git", "-C", top, "ls-tree", "--name-only", f"{ref}:{rel}"],
+    names = subprocess.run(["git", "-C", top, "ls-tree", "-r", "--name-only", f"{ref}:{rel}"],
                            capture_output=True, text=True, check=True).stdout.split()
     return {n: subprocess.run(["git", "-C", top, "show", f"{ref}:{rel}/{n}"],
                               capture_output=True, check=True).stdout
@@ -73,7 +73,9 @@ def _resolve_ref(docs_dir, env=None):
 
 
 def _docs(directory):
-    return {p.name: p.read_bytes() for p in Path(directory).glob("*.md")}
+    """Every *.md under the directory, keyed by its relative path (patterns/x.md too)."""
+    root = Path(directory)
+    return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*.md")}
 
 
 def drift(app, kit):
@@ -144,6 +146,7 @@ def test_sync_script_check_mode(tmp_path):
     app = tmp_path / "ControlDocs"
     app.mkdir()
     for name, data in _docs(VENDORED).items():
+        (app / name).parent.mkdir(parents=True, exist_ok=True)
         (app / name).write_bytes(data)
     clean = _check(app)
     assert clean.returncode == 0, clean.stdout + clean.stderr
@@ -164,6 +167,7 @@ def test_sync_script_check_reports_kit_only_docs(tmp_path):
     app.mkdir()
     names = sorted(_docs(VENDORED))
     for name in names[1:]:                      # the app "deleted" the first doc
+        (app / name).parent.mkdir(parents=True, exist_ok=True)
         (app / name).write_bytes((VENDORED / name).read_bytes())
     res = _check(app)
     assert res.returncode == 1
@@ -179,6 +183,7 @@ def test_check_against_a_git_ref_ignores_the_working_tree(tmp_path):
     _git(repo, "init", "-q", "-b", "master")
     vendored = _docs(VENDORED)
     for name, data in vendored.items():
+        (docs / name).parent.mkdir(parents=True, exist_ok=True)
         (docs / name).write_bytes(data)
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "docs")
@@ -203,6 +208,7 @@ def _app_repo(tmp_path, branch="master"):
     docs.mkdir(parents=True)
     _git(repo, "init", "-q", "-b", branch)
     for name, data in _docs(VENDORED).items():
+        (docs / name).parent.mkdir(parents=True, exist_ok=True)
         (docs / name).write_bytes(data)
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "docs")

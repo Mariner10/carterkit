@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carterkit"
-version = "0.17.0"
+version = "0.18.0"
 description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,4 +40,4 @@ carterkit = "carterkit.cli:main"
 packages = ["carterkit"]
 
 [tool.setuptools.package-data]
-carterkit = ["controldocs/*.md", "explore_assets/*", "py.typed", "app_features.json", "scaffold_templates/*"]
+carterkit = ["controldocs/*.md", "controldocs/*/*.md", "explore_assets/*", "py.typed", "app_features.json", "scaffold_templates/*"]
