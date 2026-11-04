@@ -418,41 +418,41 @@ class ScopeControls:
         (catalog type `chart`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Header label above the chart.
-            chartConfig (object): Full configuration object (see ChartConfig section).
-            tint (color, default #667eea): First-series color and palette seed.
-            formatValue (string): Formatter for axis/readout numbers (see control-def).
-            barCornerRadius (number, default 3): Bar corner rounding.
-            bins (number): Bin count for histogram series.
-            colors (string[]): Series color cycle (per-series color wins).
-            datumAction (object): datumAction.
-            horizontal (bool, default false): Horizontal bars — categories run down the leading edge.
-            lineWidth (number, default 2): Line/area stroke width.
-            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Values: round, butt, square.
-            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes.
-            negativeColor (color): Falling waterfall delta.
-            pointSize (number, default 6): Scatter point / vertex dot diameter.
-            positiveColor (color): Rising waterfall delta.
-            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick).
-            showGrid (bool, default true): Horizontal grid lines.
-            showLegend (bool, default false): Series legend under the plot.
-            showValues (bool, default false): Numeric value above each bar / on each vertex.
-            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal).
-            showYAxis (bool, default true): Value labels down the left gutter.
-            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series.
-            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying.
-            totalColor (color): Waterfall running-total bars.
-            yMax (number): Pin the value axis (bars baseline at 0 by default).
-            yMin (number): Pin the value axis (bars baseline at 0 by default).
-            name (string): Legend name and append routing key.
-            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Values: bar, line, area, scatter, histogram, waterfall.
-            color (color): Series colour (hex); wins over chartConfig.colors.
-            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas.
-            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series.
-            sizes (number[]): Per-point size multipliers (bubble scatter).
-            totals (number[]): Waterfall only: indices drawn as running totals from zero.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: Plays a vibration of the chosen strength when someone touches the chart on supported phones. Values: none = no vibration, light = a faint tap, medium = a clear tap, heavy = a strong thump, soft = a muffled cushioned tap, rigid = a sharp crisp tap, selection = the tiny tick used for scrolling pickers, success = a short double pulse for good news, warning = a firm pulse for caution, error = a harsh triple pulse for failure.
+            label (string): Header label above the chart. Does: Shows this text at the top left of the chart; the selected reading appears beside it.
+            chartConfig (object): Full configuration object (see ChartConfig section). Does: Groups the axis, series, streaming and tap options below; any entry left out uses its default.
+            tint (color, default #667eea): First-series color and palette seed. Does: Colors the first series and seeds the colors of the rest, as any hex color.
+            formatValue (string): Formatter for axis/readout numbers (see control-def). Does: Formats the axis labels and the selection readout, for example with units or fixed decimals.
+            barCornerRadius (number, default 3): Bar corner rounding. Does: Rounds the corners of every bar from square (0) to 30 points.
+            bins (number): Bin count for histogram series. Does: Splits the histogram samples into 1 to 50 bars; left unset it uses about the square root of the sample count.
+            colors (string[]): Series color cycle (per-series color wins). Does: Gives series one, two, three and so on these hex colors in order; a color set on a series itself wins.
+            datumAction (object): datumAction. Does: Runs this action on tap with the tapped datum as JSON in the value placeholder.
+            horizontal (bool, default false): Horizontal bars — categories run down the leading edge. Does: Turns the bars to run left to right with the categories listed down the left edge.
+            lineWidth (number, default 2): Line/area stroke width. Does: Sets the stroke of line and area series from 0.5 to 12 points.
+            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the marks in their own colors, 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends and the default, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
+            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes. Does: Caps a streaming series at 10 to 1000 points so the oldest drop off as new ones are appended.
+            negativeColor (color): Falling waterfall delta. Does: Paints waterfall bars with a negative change in this color instead of system red.
+            pointSize (number, default 6): Scatter point / vertex dot diameter. Does: Sets the diameter of scatter points and line vertex dots from 2 to 20 points.
+            positiveColor (color): Rising waterfall delta. Does: Paints waterfall bars with a positive change in this color instead of system green.
+            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick). Does: When on, dragging shows a dashed crosshair and a live readout with a tick at each point instead of tap selection.
+            showGrid (bool, default true): Horizontal grid lines. Does: Shows or hides the horizontal grid lines across the plot.
+            showLegend (bool, default false): Series legend under the plot. Does: Shows or hides a row under the plot listing every series with its color.
+            showValues (bool, default false): Numeric value above each bar / on each vertex. Does: Prints each value above its bar or on its line vertex when on.
+            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal). Does: Shows or hides the category labels along the bottom (down the left edge for horizontal bars).
+            showYAxis (bool, default true): Value labels down the left gutter. Does: Shows or hides the value labels in the left gutter.
+            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series. Does: Draws line and area series as smooth curves rather than straight segments.
+            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying. Does: Stacks bar and area series so they add up, instead of sitting side by side or overlapping.
+            totalColor (color): Waterfall running-total bars. Does: Paints waterfall total bars in this color instead of the series color.
+            yMax (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the highest value on the vertical axis instead of fitting the data.
+            yMin (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the lowest value on the vertical axis instead of fitting the data.
+            name (string): Legend name and append routing key. Does: Labels the series in the legend and is the key a streamed append uses to find it.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars and the default, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
+            color (color): Series colour (hex); wins over chartConfig.colors. Does: Paints that series in this hex color, overriding the color list.
+            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas. Does: Gives the height at each position in order lined up with the categories; null leaves a gap.
+            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series. Does: Places each mark at its own x and y pair, for scatter or unevenly spaced data.
+            sizes (number[]): Per-point size multipliers (bubble scatter). Does: Scales each scatter dot by the matching multiplier, so 2 draws twice the normal size.
+            totals (number[]): Waterfall only: indices drawn as running totals from zero. Does: Draws the bars at these positions as running totals from zero instead of changes.
 
         Example:
             ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
@@ -961,40 +961,40 @@ class ScopeControls:
         (catalog type `graph`)
 
         Fields:
-            label (string): Header label above the graph.
-            graphConfig (object): Full configuration object (see GraphConfig section).
-            tint (color, default #667eea): Fallback node color.
-            attractionForce (number, default 0.01): How strongly connected nodes pull together.
-            backgroundColor (color): Graph canvas background.
-            centerForce (number, default 0.02): How strongly nodes are pulled toward center.
-            contentEvent (string): (Reserved) Event for content-push model.
-            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction).
-            draggable (bool, default true): Allow dragging individual nodes.
-            edgeColor (color): Default edge line color.
-            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight.
-            edgeOpacity (number, default 0.4): Edge line opacity (0-1).
-            edgeWidth (number, default 1.0): Edge line width.
-            glowColor (color): Glow color.
-            glowEnabled (bool, default true): Node glow effect.
-            glowRadius (number, default 6.0): Glow blur radius.
-            groupColors (object): groupColors.
-            interactive (bool, default true): Allow pan and zoom.
-            labelColor (color): Label text color.
-            labelOffset (number, default 12.0): Distance from node center to label.
-            labelSize (number, default 10.0): Label font size.
-            nodeAction (object): nodeAction.
-            nodeBorderColor (color): Border stroke color.
-            nodeBorderWidth (number, default 0): Border stroke width around nodes.
-            nodeColor (color): Default node fill color (hex).
-            nodeHighlightColor (color): Color when node is active/selected.
-            nodeSize (number, default 8.0): Base node radius in points.
-            particleColor (color): (Reserved) Particle color.
-            particleSpeed (number): (Reserved) Particle animation speed.
-            repulsionForce (number, default 100): How strongly nodes push apart.
-            showLabels (bool, default true): Show text labels under nodes.
-            showParticles (bool, default false): Animated particles travelling along edges.
-            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling).
-            zoomRange (object): Pinch zoom limits.
+            label (string): Header label above the graph. Does: Shows this text as the header above the graph in the label font size (8-24 pt).
+            graphConfig (object): Full configuration object (see GraphConfig section). Does: Holds every graph setting below; any setting left out uses its default.
+            tint (color, default #667eea): Fallback node color. Does: Colors the nodes with this hex color when graphConfig sets no node color.
+            attractionForce (number, default 0.01): How strongly connected nodes pull together. Does: Pulls connected nodes closer together; 0.01 is gentle and larger values draw linked dots into tight clusters.
+            backgroundColor (color): Graph canvas background. Does: Fills the graph canvas with this hex color; the default is a near-black navy.
+            centerForce (number, default 0.02): How strongly nodes are pulled toward center. Does: Pulls every node toward the canvas center; 0.02 keeps it loose and larger values squeeze the cloud into the middle.
+            contentEvent (string): (Reserved) Event for content-push model. Does: Reserved for a future content-push feature, so setting it changes nothing on screen.
+            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction). Does: Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner.
+            draggable (bool, default true): Allow dragging individual nodes. Does: On lets a finger drag a single node and the rest follow; off keeps every dot where physics puts it.
+            edgeColor (color): Default edge line color. Does: Colors every line between nodes with this hex color unless an edge sets its own.
+            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight. Does: On bends each line into a gentle curve; off draws straight lines.
+            edgeOpacity (number, default 0.4): Edge line opacity (0-1). Does: Sets line opacity from 0 (invisible) to 1 (solid); the default 0.4 keeps lines soft.
+            edgeWidth (number, default 1.0): Edge line width. Does: Sets the line thickness in points, 0.5 to 12; an edge can override it.
+            glowColor (color): Glow color. Does: Tints the glow behind nodes with this hex color; it only shows while glow is on.
+            glowEnabled (bool, default true): Node glow effect. Does: On draws a blurred glow behind every node; off leaves flat dots.
+            glowRadius (number, default 6.0): Glow blur radius. Does: Sets the glow blur in points, 0 to 30; larger values spread a softer, wider halo.
+            groupColors (object): groupColors. Does: Maps group names to hex colors so nodes whose group matches are filled with that color.
+            interactive (bool, default true): Allow pan and zoom. Does: On lets a drag move the canvas and a pinch zoom it; off freezes the view.
+            labelColor (color): Label text color. Does: Colors the text under each node with this hex color.
+            labelOffset (number, default 12.0): Distance from node center to label. Does: Moves each label this many points away from its node center, 0 to 40.
+            labelSize (number, default 10.0): Label font size. Does: Sets the node label font size in points, 8 to 24.
+            nodeAction (object): nodeAction. Does: Runs this action when any node is tapped, with the node id available as {{value}}; a node's own onTap wins.
+            nodeBorderColor (color): Border stroke color. Does: Colors the outline drawn around nodes; it only shows when the outline width is above 0.
+            nodeBorderWidth (number, default 0): Border stroke width around nodes. Does: Draws an outline of this thickness in points, 0 to 5; 0 means no outline.
+            nodeColor (color): Default node fill color (hex). Does: Fills every node with this hex color unless its group or its own color overrides it.
+            nodeHighlightColor (color): Color when node is active/selected. Does: Switches a node to this hex color while it is active or selected.
+            nodeSize (number, default 8.0): Base node radius in points. Does: Sets the base node radius in points, 2 to 40; a node's size multiplier scales it.
+            particleColor (color): (Reserved) Particle color. Does: Reserved for the particle color, so setting it changes nothing on screen.
+            particleSpeed (number): (Reserved) Particle animation speed. Does: Reserved for the particle speed, so setting it changes nothing on screen.
+            repulsionForce (number, default 100): How strongly nodes push apart. Does: Pushes every pair of nodes apart; larger values spread the network out and smaller ones pack it tight.
+            showLabels (bool, default true): Show text labels under nodes. Does: On writes each node's label under it; off shows bare dots.
+            showParticles (bool, default false): Animated particles travelling along edges. Does: On animates small particles running along the edges; off leaves the lines still.
+            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling). Does: Sets how quickly dot speed fades, 0 to 1; lower values let the layout come to rest sooner.
+            zoomRange (object): Pinch zoom limits. Does: Sets the smallest and largest pinch zoom as [min, max], default [0.3, 3.0].
 
         Example:
             ui.graph('network-topology', position=[0, 0], span=[4, 4], label='Network Topology', graphConfig={'nodeColor': '#667eea', 'nodeSize': 10, 'nodeBorderWidth': 1.5, 'nodeBorderColor': '#FFFFFF', 'edgeColor': '#FFFFFF', 'edgeWidth': 1.0, 'edgeOpacity': 0.3, 'edgeCurved': True, 'showLabels': True, 'labelColor': '#AAAAAA', 'labelSize': 9, 'repulsionForce': 120, 'attractionForce': 0.015, 'centerForce': 0.03, 'damping': 0.85, 'velocityDecay': 0.5, 'interactive': True, 'draggable': True, 'zoomRange': [0.5, 2.5], 'backgroundColor': '#0A0A1A', 'glowEnabled': True, 'glowRadius': 8, 'glowColor': '#667eea', 'groupColors': {'hub': '#FF6B6B', 'bridge': '#FFD93D', 'device': '#6BCB77', 'mobile': '#4D96FF'}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'network_graph'}, 'valuePath': 'graph_data'}])
@@ -1207,20 +1207,20 @@ class ScopeControls:
         (catalog type `keyValue`)
 
         Fields:
-            label (string): Header label.
-            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }].
-            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Values: rows, chips, grid.
-            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2).
-            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order.
-            hideEmpty (bool, default true): Skip rows whose value is null or an empty string.
-            maxRows (number, default 0): Cap on rendered rows (0 = all of them).
-            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …).
-            colorMap (object): Value → hex tint, so a value can carry its own status color.
-            tint (color): Value color when no colorMap entry matches.
-            keyTint (color): Color of the key names (default: the theme's secondary color).
-            valueTint (color): Color of the values when no colorMap entry matches (default: tint).
-            hideLabel (bool, default false): Hide the header label.
-            hideBackground (bool, default false): Draw without the card surface.
+            label (string): Header label. Does: Shows this text as the header line on the card; empty leaves the header blank.
+            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }]. Does: Limits the table to the listed keys in that order with their own names, icons and units; leave it out to show every key.
+            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Does: Redraws the same readings as a list of lines, wrapping pills or small cards. Values: rows = one line per reading with the name on the left and the value on the right, chips = short wrapping pills that are good for scanning many values, grid = small cards that suit a handful of headline numbers.
+            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2). Does: Sets 1 to 4 columns of rows or cards across the control; the grid layout starts at 2.
+            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order. Does: When on the readings are listed alphabetically by key; off keeps the order the feed sent.
+            hideEmpty (bool, default true): Skip rows whose value is null or an empty string. Does: When on rows with no value disappear; off keeps them in place with a dash.
+            maxRows (number, default 0): Cap on rendered rows (0 = all of them). Does: Stops drawing after this many rows (0 to 200); 0 shows them all.
+            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …). Does: Prints every number in rows without their own format as a percent, duration, size or with a unit suffix such as °C.
+            colorMap (object): Value → hex tint, so a value can carry its own status color. Does: Tints a value with the color listed for it (for example true green and false red); unlisted values use the normal value color.
+            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color; the key names follow it unless they have their own.
+            keyTint (color): Color of the key names (default: the theme's secondary color). Does: Colors the names of the readings; unset uses the softer theme text color.
+            valueTint (color): Color of the values when no colorMap entry matches (default: tint). Does: Colors the values that have no status color; unset follows the accent color.
+            hideLabel (bool, default false): Hide the header label. Does: When on the header line is removed and the table moves up to fill the space.
+            hideBackground (bool, default false): Draw without the card surface. Does: When on the fill and border are removed so the readings sit straight on the page.
 
         Example:
             ui.key_value('health', position=[0, 0], span=[3, 4], label='Pi Health', rows=[{'key': 'cpu', 'label': 'CPU', 'format': 'percent', 'icon': 'cpu'}, {'key': 'temp', 'label': 'Temp', 'format': 'suffix:°C', 'icon': 'thermometer.medium'}, {'key': 'uptime', 'label': 'Uptime', 'format': 'duration', 'icon': 'clock'}, {'key': 'ip', 'label': 'IP', 'icon': 'network'}, {'key': 'online', 'label': 'Link', 'icon': 'antenna.radiowaves.left.and.right'}], colorMap={'true': '#34C759', 'false': '#FF3B30'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'health'}, 'valuePath': 'stats'}])
@@ -1651,24 +1651,24 @@ class ScopeControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value (0%).
-            max (number, default 100): Maximum value (100%).
-            progressStyle (enum, default ring): Circular ring or linear bar. Values: ring, bar.
-            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Values: round, butt, square.
-            tint (color, default #667eea): Fill color.
-            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
-            label (string): Center text (ring) or header text (bar).
-            icon (string): SF Symbol in center (ring only).
-            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size.
-            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar).
-            hideValue (bool, default false): Show just the arc — hide the center value.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            min (number, default 0): Minimum value (0%). Does: Sets the value at 0% fill, in the control's unit (e.g. 0).
+            max (number, default 100): Maximum value (100%). Does: Sets the value at 100% fill, in the control's unit (e.g. 100).
+            progressStyle (enum, default ring): Circular ring or linear bar. Does: Switches the display between a circular ring and a horizontal bar. Values: ring = a circular ring with the number in the middle, bar = a thin horizontal bar with the title and number above.
+            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow of this many points (0 to 30) behind the fill in its own colour; 0 is none.
+            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Does: Rounds, flattens or squares the ends of the ring or the bar corners. Values: round = soft rounded ends, butt = flat ends cut exactly at the value, square = flat ends that stick out half a stroke past the value.
+            tint (color, default #667eea): Fill color. Does: Paints the fill in this colour (e.g. green #34C759).
+            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint. Does: The fill changes colour as the value crosses each limit, e.g. red to 30 then amber to 70 then green.
+            label (string): Center text (ring) or header text (bar). Does: Shows this text in the middle of the ring or above the bar.
+            icon (string): SF Symbol in center (ring only). Does: Draws this SF Symbol in the centre of the ring; a bar ignores it.
+            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size. Does: Sets ring stroke width or bar height in points, 2 to 40; unset scales with the size.
+            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar). Does: Rounds the bar's corners by this many points, 0 to 30 (4 by default).
+            hideValue (bool, default false): Show just the arc — hide the center value. Does: Removes the centre number when on, leaving just the arc.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Counts the fill down to a time, or moves it toward a predicted value until a real reading arrives. Values: countdown = the value is a time and the control counts down to it, reach = the value is expected to arrive at a target number or to keep changing at a set rate.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Moves the fill toward this value, between -1,000,000 and 1,000,000, until a real reading replaces it.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Keeps moving the fill by this much per second, -1000 to 1000, from the last real reading.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally. Does: Shows the number in the viewer's local unit, e.g. celsius reads 356°F in the US; min and max stay in that unit.
 
         Example:
             ui.progress_ring('download-progress', position=[0, 0], min=0, max=100, progressStyle='ring', tint='#34C759', label='Download', icon='arrow.down.circle', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'task': 'firmware_update'}, 'valuePath': 'percent'}])
@@ -2126,27 +2126,27 @@ class ScopeControls:
         (catalog type `statTile`)
 
         Fields:
-            label (string): Title above the number.
-            hideLabel (bool, default false): Hide the title.
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
-            valueSize (number, default 34): Point size of the big number.
-            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1).
-            step (number): Determines decimal formatting of the number when formatValue is unset.
-            sparklinePoints (number, default 50): Max values kept in the faint history sparkline.
-            lineWidth (number, default 2): Stroke width of the faint trend line, in points.
-            tint (color): Sparkline colour when no thresholds are set.
-            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Values: round, butt, square.
-            hideBackground (bool, default false): Remove the card (and its threshold tint).
-            animation (enum): Motion profile for the number roll. Values: smooth, snappy, bouncy, gentle, instant.
-            reference (number): The value the change is measured against (yesterday, target…).
-            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives.
-            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Values: percent, absolute.
-            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate).
-            thresholds (array): Background bands [{limit, color}], gauge segment semantics.
-            criticalAbove (number): At or above this value the tile fills solid with its band colour.
-            criticalBelow (number): At or below this value the tile fills solid with its band colour.
-            showSparkline (bool, default true): Draw the faint history sparkline under the number.
+            label (string): Title above the number. Does: Shows this text as the tile's title in the title text size.
+            hideLabel (bool, default false): Hide the title. Does: Removes the title line when on, leaving the number alone.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally. Does: Shows the unit small beside the number in the viewer's local unit, e.g. celsius reads \\u00b0F in the US.
+            valueSize (number, default 34): Point size of the big number. Does: Sets the big number's size from 14 to 80 points.
+            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1). Does: Formats the big number, e.g. decimal:1 shows 72.5 and decimal:0 shows 73.
+            step (number): Determines decimal formatting of the number when formatValue is unset. Does: Rounds the number when no format is set, e.g. 1 shows 72.5 and 0 shows 73.
+            sparklinePoints (number, default 50): Max values kept in the faint history sparkline. Does: Keeps the last 5 to 500 readings in the trend line; more points show a longer history.
+            lineWidth (number, default 2): Stroke width of the faint trend line, in points. Does: Sets the trend line stroke from 0.5 to 12 points.
+            tint (color): Sparkline colour when no thresholds are set. Does: Paints the faint trend line in one color when there are no color zones.
+            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the trend line from 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Does: Rounds, flattens or squares the two ends of the trend line. Values: round = soft rounded ends, butt = flat ends cut exactly at the data point, square = flat ends that stick out half a stroke past the data point.
+            hideBackground (bool, default false): Remove the card (and its threshold tint). Does: Removes the card fill and its zone tint when on so the number floats on the layout.
+            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll and the default, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
+            reference (number): The value the change is measured against (yesterday, target…). Does: Sets the baseline in the tile's unit; the arrow and change show the value minus this.
+            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives. Does: Reads the baseline from this dot path in the same data as the value and replaces Compare against once it arrives.
+            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Does: Shows the change as a percent of the baseline or as the plain difference in the tile's unit. Values: percent = change as a percent of the baseline, absolute = change as the plain difference in the value's unit.
+            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate). Does: When on a rise is drawn red and a fall green instead of the reverse.
+            thresholds (array): Background bands [{limit, color}], gauge segment semantics. Does: Tints the card with the color of the zone the value sits in, e.g. green to 250 then amber to 600 then red.
+            criticalAbove (number): At or above this value the tile fills solid with its band colour. Does: At or above this value the whole tile fills solid with its zone color and white text.
+            criticalBelow (number): At or below this value the tile fills solid with its band colour. Does: At or below this value the whole tile fills solid with its zone color and white text.
+            showSparkline (bool, default true): Draw the faint history sparkline under the number. Does: Draws the recent-history line under the number when on and hides it when off.
             statTileConfig (object): grouped config object (see grouped fields).
 
         Example:
@@ -2184,16 +2184,16 @@ class ScopeControls:
         (catalog type `statusLight`)
 
         Fields:
-            label (string): Text beside the indicator.
-            tint (color, default #34C759): Default indicator color.
-            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}.
-            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Values: small, default, large.
-            style (enum, default dot): dot (circle) or badge (pill with state text). Values: dot, badge.
-            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
-            defaultValue (string): Initial state key.
+            label (string): Text beside the indicator. Does: Shows this text beside the dot in the label font size (8-24 pt, default 12).
+            tint (color, default #34C759): Default indicator color. Does: Colors the dot or badge and its glow in this color until a state with its own color in statusColors is received.
+            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}. Does: Recolors the light to the color matching the current state text; a state with no entry keeps the tint color.
+            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Does: Sets the dot diameter to 8, 12 or 18 points; the badge style scales with it. Values: small = a tiny 8 pt dot for dense rows, default = a standard 12 pt dot, large = a bold 18 pt dot you can read across the room.
+            style (enum, default dot): dot (circle) or badge (pill with state text). Does: Switches between a round dot beside the label and a capsule that spells out the current state in text. Values: dot = a round colored light with the label beside it, badge = a rounded pill that shows the state name in its tint.
+            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount. Does: Sets the halo strength from 0 (flat) to 1 (full); in the badge shape it sets how strongly the pill is tinted.
+            defaultValue (string): Initial state key. Does: Picks which statusColors entry the light shows at first, until a synced value or a live update replaces it.
 
         Example:
-            ui.status_light('server-status', position=[0, 0], label='API Server', statusColors={'online': '#34C759', 'degraded': '#FF9500', 'offline': '#FF3B30'}, size='large', style='badge', pulse=True, defaultValue='offline', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'server_health'}, 'valuePath': 'state'}])
+            ui.status_light('power-light', position=[0, 0], label='Power', tint='#34C759')
         """
         return self._ctl("statusLight", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, statusColors=statusColors, size=size, style=style, glow=glow, defaultValue=defaultValue), props)
 
@@ -2857,41 +2857,41 @@ class BuildControls:
         (catalog type `chart`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Header label above the chart.
-            chartConfig (object): Full configuration object (see ChartConfig section).
-            tint (color, default #667eea): First-series color and palette seed.
-            formatValue (string): Formatter for axis/readout numbers (see control-def).
-            barCornerRadius (number, default 3): Bar corner rounding.
-            bins (number): Bin count for histogram series.
-            colors (string[]): Series color cycle (per-series color wins).
-            datumAction (object): datumAction.
-            horizontal (bool, default false): Horizontal bars — categories run down the leading edge.
-            lineWidth (number, default 2): Line/area stroke width.
-            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Values: round, butt, square.
-            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes.
-            negativeColor (color): Falling waterfall delta.
-            pointSize (number, default 6): Scatter point / vertex dot diameter.
-            positiveColor (color): Rising waterfall delta.
-            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick).
-            showGrid (bool, default true): Horizontal grid lines.
-            showLegend (bool, default false): Series legend under the plot.
-            showValues (bool, default false): Numeric value above each bar / on each vertex.
-            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal).
-            showYAxis (bool, default true): Value labels down the left gutter.
-            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series.
-            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying.
-            totalColor (color): Waterfall running-total bars.
-            yMax (number): Pin the value axis (bars baseline at 0 by default).
-            yMin (number): Pin the value axis (bars baseline at 0 by default).
-            name (string): Legend name and append routing key.
-            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Values: bar, line, area, scatter, histogram, waterfall.
-            color (color): Series colour (hex); wins over chartConfig.colors.
-            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas.
-            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series.
-            sizes (number[]): Per-point size multipliers (bubble scatter).
-            totals (number[]): Waterfall only: indices drawn as running totals from zero.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: Plays a vibration of the chosen strength when someone touches the chart on supported phones. Values: none = no vibration, light = a faint tap, medium = a clear tap, heavy = a strong thump, soft = a muffled cushioned tap, rigid = a sharp crisp tap, selection = the tiny tick used for scrolling pickers, success = a short double pulse for good news, warning = a firm pulse for caution, error = a harsh triple pulse for failure.
+            label (string): Header label above the chart. Does: Shows this text at the top left of the chart; the selected reading appears beside it.
+            chartConfig (object): Full configuration object (see ChartConfig section). Does: Groups the axis, series, streaming and tap options below; any entry left out uses its default.
+            tint (color, default #667eea): First-series color and palette seed. Does: Colors the first series and seeds the colors of the rest, as any hex color.
+            formatValue (string): Formatter for axis/readout numbers (see control-def). Does: Formats the axis labels and the selection readout, for example with units or fixed decimals.
+            barCornerRadius (number, default 3): Bar corner rounding. Does: Rounds the corners of every bar from square (0) to 30 points.
+            bins (number): Bin count for histogram series. Does: Splits the histogram samples into 1 to 50 bars; left unset it uses about the square root of the sample count.
+            colors (string[]): Series color cycle (per-series color wins). Does: Gives series one, two, three and so on these hex colors in order; a color set on a series itself wins.
+            datumAction (object): datumAction. Does: Runs this action on tap with the tapped datum as JSON in the value placeholder.
+            horizontal (bool, default false): Horizontal bars — categories run down the leading edge. Does: Turns the bars to run left to right with the categories listed down the left edge.
+            lineWidth (number, default 2): Line/area stroke width. Does: Sets the stroke of line and area series from 0.5 to 12 points.
+            glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the marks in their own colors, 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends and the default, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
+            maxPoints (number, default 100): Rolling window applied to {'append': …} pushes. Does: Caps a streaming series at 10 to 1000 points so the oldest drop off as new ones are appended.
+            negativeColor (color): Falling waterfall delta. Does: Paints waterfall bars with a negative change in this color instead of system red.
+            pointSize (number, default 6): Scatter point / vertex dot diameter. Does: Sets the diameter of scatter points and line vertex dots from 2 to 20 points.
+            positiveColor (color): Rising waterfall delta. Does: Paints waterfall bars with a positive change in this color instead of system green.
+            scrub (bool, default false): Drag shows a dashed crosshair + live readout (with a selection tick). Does: When on, dragging shows a dashed crosshair and a live readout with a tick at each point instead of tap selection.
+            showGrid (bool, default true): Horizontal grid lines. Does: Shows or hides the horizontal grid lines across the plot.
+            showLegend (bool, default false): Series legend under the plot. Does: Shows or hides a row under the plot listing every series with its color.
+            showValues (bool, default false): Numeric value above each bar / on each vertex. Does: Prints each value above its bar or on its line vertex when on.
+            showXAxis (bool, default true): Category/x labels along the bottom (leading edge when horizontal). Does: Shows or hides the category labels along the bottom (down the left edge for horizontal bars).
+            showYAxis (bool, default true): Value labels down the left gutter. Does: Shows or hides the value labels in the left gutter.
+            smooth (bool, default false): Catmull-Rom curve smoothing for line/area series. Does: Draws line and area series as smooth curves rather than straight segments.
+            stacked (bool, default false): Stack bar/area series instead of grouping/overlaying. Does: Stacks bar and area series so they add up, instead of sitting side by side or overlapping.
+            totalColor (color): Waterfall running-total bars. Does: Paints waterfall total bars in this color instead of the series color.
+            yMax (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the highest value on the vertical axis instead of fitting the data.
+            yMin (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the lowest value on the vertical axis instead of fitting the data.
+            name (string): Legend name and append routing key. Does: Labels the series in the legend and is the key a streamed append uses to find it.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars and the default, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
+            color (color): Series colour (hex); wins over chartConfig.colors. Does: Paints that series in this hex color, overriding the color list.
+            values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas. Does: Gives the height at each position in order lined up with the categories; null leaves a gap.
+            points (array): Explicit [x, y] pairs for scatter or unevenly sampled series. Does: Places each mark at its own x and y pair, for scatter or unevenly spaced data.
+            sizes (number[]): Per-point size multipliers (bubble scatter). Does: Scales each scatter dot by the matching multiplier, so 2 draws twice the normal size.
+            totals (number[]): Waterfall only: indices drawn as running totals from zero. Does: Draws the bars at these positions as running totals from zero instead of changes.
 
         Example:
             ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
@@ -3280,40 +3280,40 @@ class BuildControls:
         (catalog type `graph`)
 
         Fields:
-            label (string): Header label above the graph.
-            graphConfig (object): Full configuration object (see GraphConfig section).
-            tint (color, default #667eea): Fallback node color.
-            attractionForce (number, default 0.01): How strongly connected nodes pull together.
-            backgroundColor (color): Graph canvas background.
-            centerForce (number, default 0.02): How strongly nodes are pulled toward center.
-            contentEvent (string): (Reserved) Event for content-push model.
-            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction).
-            draggable (bool, default true): Allow dragging individual nodes.
-            edgeColor (color): Default edge line color.
-            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight.
-            edgeOpacity (number, default 0.4): Edge line opacity (0-1).
-            edgeWidth (number, default 1.0): Edge line width.
-            glowColor (color): Glow color.
-            glowEnabled (bool, default true): Node glow effect.
-            glowRadius (number, default 6.0): Glow blur radius.
-            groupColors (object): groupColors.
-            interactive (bool, default true): Allow pan and zoom.
-            labelColor (color): Label text color.
-            labelOffset (number, default 12.0): Distance from node center to label.
-            labelSize (number, default 10.0): Label font size.
-            nodeAction (object): nodeAction.
-            nodeBorderColor (color): Border stroke color.
-            nodeBorderWidth (number, default 0): Border stroke width around nodes.
-            nodeColor (color): Default node fill color (hex).
-            nodeHighlightColor (color): Color when node is active/selected.
-            nodeSize (number, default 8.0): Base node radius in points.
-            particleColor (color): (Reserved) Particle color.
-            particleSpeed (number): (Reserved) Particle animation speed.
-            repulsionForce (number, default 100): How strongly nodes push apart.
-            showLabels (bool, default true): Show text labels under nodes.
-            showParticles (bool, default false): Animated particles travelling along edges.
-            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling).
-            zoomRange (object): Pinch zoom limits.
+            label (string): Header label above the graph. Does: Shows this text as the header above the graph in the label font size (8-24 pt).
+            graphConfig (object): Full configuration object (see GraphConfig section). Does: Holds every graph setting below; any setting left out uses its default.
+            tint (color, default #667eea): Fallback node color. Does: Colors the nodes with this hex color when graphConfig sets no node color.
+            attractionForce (number, default 0.01): How strongly connected nodes pull together. Does: Pulls connected nodes closer together; 0.01 is gentle and larger values draw linked dots into tight clusters.
+            backgroundColor (color): Graph canvas background. Does: Fills the graph canvas with this hex color; the default is a near-black navy.
+            centerForce (number, default 0.02): How strongly nodes are pulled toward center. Does: Pulls every node toward the canvas center; 0.02 keeps it loose and larger values squeeze the cloud into the middle.
+            contentEvent (string): (Reserved) Event for content-push model. Does: Reserved for a future content-push feature, so setting it changes nothing on screen.
+            damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction). Does: Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner.
+            draggable (bool, default true): Allow dragging individual nodes. Does: On lets a finger drag a single node and the rest follow; off keeps every dot where physics puts it.
+            edgeColor (color): Default edge line color. Does: Colors every line between nodes with this hex color unless an edge sets its own.
+            edgeCurved (bool, default false): Use curved (quadratic) edges instead of straight. Does: On bends each line into a gentle curve; off draws straight lines.
+            edgeOpacity (number, default 0.4): Edge line opacity (0-1). Does: Sets line opacity from 0 (invisible) to 1 (solid); the default 0.4 keeps lines soft.
+            edgeWidth (number, default 1.0): Edge line width. Does: Sets the line thickness in points, 0.5 to 12; an edge can override it.
+            glowColor (color): Glow color. Does: Tints the glow behind nodes with this hex color; it only shows while glow is on.
+            glowEnabled (bool, default true): Node glow effect. Does: On draws a blurred glow behind every node; off leaves flat dots.
+            glowRadius (number, default 6.0): Glow blur radius. Does: Sets the glow blur in points, 0 to 30; larger values spread a softer, wider halo.
+            groupColors (object): groupColors. Does: Maps group names to hex colors so nodes whose group matches are filled with that color.
+            interactive (bool, default true): Allow pan and zoom. Does: On lets a drag move the canvas and a pinch zoom it; off freezes the view.
+            labelColor (color): Label text color. Does: Colors the text under each node with this hex color.
+            labelOffset (number, default 12.0): Distance from node center to label. Does: Moves each label this many points away from its node center, 0 to 40.
+            labelSize (number, default 10.0): Label font size. Does: Sets the node label font size in points, 8 to 24.
+            nodeAction (object): nodeAction. Does: Runs this action when any node is tapped, with the node id available as {{value}}; a node's own onTap wins.
+            nodeBorderColor (color): Border stroke color. Does: Colors the outline drawn around nodes; it only shows when the outline width is above 0.
+            nodeBorderWidth (number, default 0): Border stroke width around nodes. Does: Draws an outline of this thickness in points, 0 to 5; 0 means no outline.
+            nodeColor (color): Default node fill color (hex). Does: Fills every node with this hex color unless its group or its own color overrides it.
+            nodeHighlightColor (color): Color when node is active/selected. Does: Switches a node to this hex color while it is active or selected.
+            nodeSize (number, default 8.0): Base node radius in points. Does: Sets the base node radius in points, 2 to 40; a node's size multiplier scales it.
+            particleColor (color): (Reserved) Particle color. Does: Reserved for the particle color, so setting it changes nothing on screen.
+            particleSpeed (number): (Reserved) Particle animation speed. Does: Reserved for the particle speed, so setting it changes nothing on screen.
+            repulsionForce (number, default 100): How strongly nodes push apart. Does: Pushes every pair of nodes apart; larger values spread the network out and smaller ones pack it tight.
+            showLabels (bool, default true): Show text labels under nodes. Does: On writes each node's label under it; off shows bare dots.
+            showParticles (bool, default false): Animated particles travelling along edges. Does: On animates small particles running along the edges; off leaves the lines still.
+            velocityDecay (number, default 0.6): Velocity decay rate (0-1, lower = faster settling). Does: Sets how quickly dot speed fades, 0 to 1; lower values let the layout come to rest sooner.
+            zoomRange (object): Pinch zoom limits. Does: Sets the smallest and largest pinch zoom as [min, max], default [0.3, 3.0].
 
         Example:
             ui.graph('network-topology', position=[0, 0], span=[4, 4], label='Network Topology', graphConfig={'nodeColor': '#667eea', 'nodeSize': 10, 'nodeBorderWidth': 1.5, 'nodeBorderColor': '#FFFFFF', 'edgeColor': '#FFFFFF', 'edgeWidth': 1.0, 'edgeOpacity': 0.3, 'edgeCurved': True, 'showLabels': True, 'labelColor': '#AAAAAA', 'labelSize': 9, 'repulsionForce': 120, 'attractionForce': 0.015, 'centerForce': 0.03, 'damping': 0.85, 'velocityDecay': 0.5, 'interactive': True, 'draggable': True, 'zoomRange': [0.5, 2.5], 'backgroundColor': '#0A0A1A', 'glowEnabled': True, 'glowRadius': 8, 'glowColor': '#667eea', 'groupColors': {'hub': '#FF6B6B', 'bridge': '#FFD93D', 'device': '#6BCB77', 'mobile': '#4D96FF'}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'network_graph'}, 'valuePath': 'graph_data'}])
@@ -3478,20 +3478,20 @@ class BuildControls:
         (catalog type `keyValue`)
 
         Fields:
-            label (string): Header label.
-            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }].
-            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Values: rows, chips, grid.
-            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2).
-            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order.
-            hideEmpty (bool, default true): Skip rows whose value is null or an empty string.
-            maxRows (number, default 0): Cap on rendered rows (0 = all of them).
-            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …).
-            colorMap (object): Value → hex tint, so a value can carry its own status color.
-            tint (color): Value color when no colorMap entry matches.
-            keyTint (color): Color of the key names (default: the theme's secondary color).
-            valueTint (color): Color of the values when no colorMap entry matches (default: tint).
-            hideLabel (bool, default false): Hide the header label.
-            hideBackground (bool, default false): Draw without the card surface.
+            label (string): Header label. Does: Shows this text as the header line on the card; empty leaves the header blank.
+            rows (array): Row whitelist and order: [{ key, label, format, icon, unit }]. Does: Limits the table to the listed keys in that order with their own names, icons and units; leave it out to show every key.
+            keyValueStyle (enum, default rows): rows = label left / value right; chips = wrapping pills; grid = cards. Does: Redraws the same readings as a list of lines, wrapping pills or small cards. Values: rows = one line per reading with the name on the left and the value on the right, chips = short wrapping pills that are good for scanning many values, grid = small cards that suit a handful of headline numbers.
+            columns (number, default 1): How many columns of rows or cards to lay out (grid defaults to 2). Does: Sets 1 to 4 columns of rows or cards across the control; the grid layout starts at 2.
+            sortKeys (bool, default false): Sort keys alphabetically instead of keeping the feed's own order. Does: When on the readings are listed alphabetically by key; off keeps the order the feed sent.
+            hideEmpty (bool, default true): Skip rows whose value is null or an empty string. Does: When on rows with no value disappear; off keeps them in place with a dash.
+            maxRows (number, default 0): Cap on rendered rows (0 = all of them). Does: Stops drawing after this many rows (0 to 200); 0 shows them all.
+            format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …). Does: Prints every number in rows without their own format as a percent, duration, size or with a unit suffix such as °C.
+            colorMap (object): Value → hex tint, so a value can carry its own status color. Does: Tints a value with the color listed for it (for example true green and false red); unlisted values use the normal value color.
+            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color; the key names follow it unless they have their own.
+            keyTint (color): Color of the key names (default: the theme's secondary color). Does: Colors the names of the readings; unset uses the softer theme text color.
+            valueTint (color): Color of the values when no colorMap entry matches (default: tint). Does: Colors the values that have no status color; unset follows the accent color.
+            hideLabel (bool, default false): Hide the header label. Does: When on the header line is removed and the table moves up to fill the space.
+            hideBackground (bool, default false): Draw without the card surface. Does: When on the fill and border are removed so the readings sit straight on the page.
 
         Example:
             ui.key_value('health', position=[0, 0], span=[3, 4], label='Pi Health', rows=[{'key': 'cpu', 'label': 'CPU', 'format': 'percent', 'icon': 'cpu'}, {'key': 'temp', 'label': 'Temp', 'format': 'suffix:°C', 'icon': 'thermometer.medium'}, {'key': 'uptime', 'label': 'Uptime', 'format': 'duration', 'icon': 'clock'}, {'key': 'ip', 'label': 'IP', 'icon': 'network'}, {'key': 'online', 'label': 'Link', 'icon': 'antenna.radiowaves.left.and.right'}], colorMap={'true': '#34C759', 'false': '#FF3B30'}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'health'}, 'valuePath': 'stats'}])
@@ -3826,24 +3826,24 @@ class BuildControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            min (number, default 0): Minimum value (0%).
-            max (number, default 100): Maximum value (100%).
-            progressStyle (enum, default ring): Circular ring or linear bar. Values: ring, bar.
-            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Values: round, butt, square.
-            tint (color, default #667eea): Fill color.
-            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint.
-            label (string): Center text (ring) or header text (bar).
-            icon (string): SF Symbol in center (ring only).
-            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size.
-            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar).
-            hideValue (bool, default false): Show just the arc — hide the center value.
-            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Values: countdown, reach.
-            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach").
-            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach.
-            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed).
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally.
+            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            min (number, default 0): Minimum value (0%). Does: Sets the value at 0% fill, in the control's unit (e.g. 0).
+            max (number, default 100): Maximum value (100%). Does: Sets the value at 100% fill, in the control's unit (e.g. 100).
+            progressStyle (enum, default ring): Circular ring or linear bar. Does: Switches the display between a circular ring and a horizontal bar. Values: ring = a circular ring with the number in the middle, bar = a thin horizontal bar with the title and number above.
+            glowRadius (number, default 0): Soft glow behind the ring or bar fill in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow of this many points (0 to 30) behind the fill in its own colour; 0 is none.
+            lineCap (enum, default round): End shape of the ring (the linear bar rounds its corners for round, squares them for butt and square). Cross-control, same on every control. Does: Rounds, flattens or squares the ends of the ring or the bar corners. Values: round = soft rounded ends, butt = flat ends cut exactly at the value, square = flat ends that stick out half a stroke past the value.
+            tint (color, default #667eea): Fill color. Does: Paints the fill in this colour (e.g. green #34C759).
+            colorByValue (array): Color zones [{limit, color}] in the min–max unit — the fill takes the zone colour of the current value (gauge semantics). Overrides tint. Does: The fill changes colour as the value crosses each limit, e.g. red to 30 then amber to 70 then green.
+            label (string): Center text (ring) or header text (bar). Does: Shows this text in the middle of the ring or above the bar.
+            icon (string): SF Symbol in center (ring only). Does: Draws this SF Symbol in the centre of the ring; a bar ignores it.
+            arcThickness (number): Ring stroke width, or bar height, in points. Absent scales with the control size. Does: Sets ring stroke width or bar height in points, 2 to 40; unset scales with the size.
+            barCornerRadius (number, default 4): Corner rounding of the linear bar (progressStyle bar). Does: Rounds the bar's corners by this many points, 0 to 30 (4 by default).
+            hideValue (bool, default false): Show just the arc — hide the center value. Does: Removes the centre number when on, leaving just the arc.
+            forecast (enum): Look ahead beside the real reading: countdown = the value is a time and the widget counts down to it; reach = the value is expected to arrive at forecastTarget (at the time forecastTimeFrom holds) or to keep moving by forecastRate per second. A newer real value always replaces the guess; past its end the value reads stale. Does: Counts the fill down to a time, or moves it toward a predicted value until a real reading arrives. Values: countdown = the value is a time and the control counts down to it, reach = the value is expected to arrive at a target number or to keep changing at a set rate.
+            forecastTarget (number): The value this one is expected to arrive at (with forecast "reach"). Does: Moves the fill toward this value, between -1,000,000 and 1,000,000, until a real reading replaces it.
+            forecastTimeFrom (string): Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach. Does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
+            forecastRate (number): Keep moving by this much per second from the last real reading (forecast "reach", no time needed). Does: Keeps moving the fill by this much per second, -1000 to 1000, from the last real reading.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. celsius, km/h). With a unit the readout shows the value itself (converted to the device locale) instead of the fill percentage; min and max stay in this unit. Unknown strings show literally. Does: Shows the number in the viewer's local unit, e.g. celsius reads 356°F in the US; min and max stay in that unit.
 
         Example:
             ui.progress_ring('download-progress', position=[0, 0], min=0, max=100, progressStyle='ring', tint='#34C759', label='Download', icon='arrow.down.circle', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'task': 'firmware_update'}, 'valuePath': 'percent'}])
@@ -4193,27 +4193,27 @@ class BuildControls:
         (catalog type `statTile`)
 
         Fields:
-            label (string): Title above the number.
-            hideLabel (bool, default false): Hide the title.
-            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally.
-            valueSize (number, default 34): Point size of the big number.
-            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1).
-            step (number): Determines decimal formatting of the number when formatValue is unset.
-            sparklinePoints (number, default 50): Max values kept in the faint history sparkline.
-            lineWidth (number, default 2): Stroke width of the faint trend line, in points.
-            tint (color): Sparkline colour when no thresholds are set.
-            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control.
-            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Values: round, butt, square.
-            hideBackground (bool, default false): Remove the card (and its threshold tint).
-            animation (enum): Motion profile for the number roll. Values: smooth, snappy, bouncy, gentle, instant.
-            reference (number): The value the change is measured against (yesterday, target…).
-            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives.
-            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Values: percent, absolute.
-            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate).
-            thresholds (array): Background bands [{limit, color}], gauge segment semantics.
-            criticalAbove (number): At or above this value the tile fills solid with its band colour.
-            criticalBelow (number): At or below this value the tile fills solid with its band colour.
-            showSparkline (bool, default true): Draw the faint history sparkline under the number.
+            label (string): Title above the number. Does: Shows this text as the tile's title in the title text size.
+            hideLabel (bool, default false): Hide the title. Does: Removes the title line when on, leaving the number alone.
+            unit (string): Measurement unit the value arrives in ([[values#Units]] name or symbol, e.g. milliseconds, celsius). Shown small beside the number and converted to the device locale; thresholds, reference and delta stay in this unit. Unknown strings show literally. Does: Shows the unit small beside the number in the viewer's local unit, e.g. celsius reads \\u00b0F in the US.
+            valueSize (number, default 34): Point size of the big number. Does: Sets the big number's size from 14 to 80 points.
+            formatValue (string): Number format for the big number (see the formatValue table, e.g. decimal:1). Does: Formats the big number, e.g. decimal:1 shows 72.5 and decimal:0 shows 73.
+            step (number): Determines decimal formatting of the number when formatValue is unset. Does: Rounds the number when no format is set, e.g. 1 shows 72.5 and 0 shows 73.
+            sparklinePoints (number, default 50): Max values kept in the faint history sparkline. Does: Keeps the last 5 to 500 readings in the trend line; more points show a longer history.
+            lineWidth (number, default 2): Stroke width of the faint trend line, in points. Does: Sets the trend line stroke from 0.5 to 12 points.
+            tint (color): Sparkline colour when no thresholds are set. Does: Paints the faint trend line in one color when there are no color zones.
+            glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the trend line from 0 (off) to 30 points wide.
+            lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Does: Rounds, flattens or squares the two ends of the trend line. Values: round = soft rounded ends, butt = flat ends cut exactly at the data point, square = flat ends that stick out half a stroke past the data point.
+            hideBackground (bool, default false): Remove the card (and its threshold tint). Does: Removes the card fill and its zone tint when on so the number floats on the layout.
+            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll and the default, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
+            reference (number): The value the change is measured against (yesterday, target…). Does: Sets the baseline in the tile's unit; the arrow and change show the value minus this.
+            referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives. Does: Reads the baseline from this dot path in the same data as the value and replaces Compare against once it arrives.
+            deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Does: Shows the change as a percent of the baseline or as the plain difference in the tile's unit. Values: percent = change as a percent of the baseline, absolute = change as the plain difference in the value's unit.
+            invertDelta (bool, default false): Colour a rise red and a fall green (latency, error rate). Does: When on a rise is drawn red and a fall green instead of the reverse.
+            thresholds (array): Background bands [{limit, color}], gauge segment semantics. Does: Tints the card with the color of the zone the value sits in, e.g. green to 250 then amber to 600 then red.
+            criticalAbove (number): At or above this value the tile fills solid with its band colour. Does: At or above this value the whole tile fills solid with its zone color and white text.
+            criticalBelow (number): At or below this value the tile fills solid with its band colour. Does: At or below this value the whole tile fills solid with its zone color and white text.
+            showSparkline (bool, default true): Draw the faint history sparkline under the number. Does: Draws the recent-history line under the number when on and hides it when off.
             statTileConfig (object): grouped config object (see grouped fields).
 
         Example:
@@ -4240,17 +4240,17 @@ class BuildControls:
         (catalog type `statusLight`)
 
         Fields:
-            label (string): Text beside the indicator.
-            tint (color, default #34C759): Default indicator color.
-            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}.
-            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Values: small, default, large.
-            style (enum, default dot): dot (circle) or badge (pill with state text). Values: dot, badge.
-            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount.
-            pulse (bool, default false): Pulse animation when active.
-            defaultValue (string): Initial state key.
+            label (string): Text beside the indicator. Does: Shows this text beside the dot in the label font size (8-24 pt, default 12).
+            tint (color, default #34C759): Default indicator color. Does: Colors the dot or badge and its glow in this color until a state with its own color in statusColors is received.
+            statusColors (object): Map state strings to hex colors: {\\"online\\": \\"#34C759\\", \\"offline\\": \\"#FF3B30\\"}. Does: Recolors the light to the color matching the current state text; a state with no entry keeps the tint color.
+            size (enum, default default): Indicator size: small (8pt), default (12pt), large (18pt). Does: Sets the dot diameter to 8, 12 or 18 points; the badge style scales with it. Values: small = a tiny 8 pt dot for dense rows, default = a standard 12 pt dot, large = a bold 18 pt dot you can read across the room.
+            style (enum, default dot): dot (circle) or badge (pill with state text). Does: Switches between a round dot beside the label and a capsule that spells out the current state in text. Values: dot = a round colored light with the label beside it, badge = a rounded pill that shows the state name in its tint.
+            glow (number, default 0.3): Halo strength behind the light, 0 (none) to 1 (full). The badge style tints its pill by the same amount. Does: Sets the halo strength from 0 (flat) to 1 (full); in the badge shape it sets how strongly the pill is tinted.
+            pulse (bool, default false): Pulse animation when active. Does: Makes the light fade in and out continuously while true; false keeps it steady.
+            defaultValue (string): Initial state key. Does: Picks which statusColors entry the light shows at first, until a synced value or a live update replaces it.
 
         Example:
-            ui.status_light('server-status', position=[0, 0], label='API Server', statusColors={'online': '#34C759', 'degraded': '#FF9500', 'offline': '#FF3B30'}, size='large', style='badge', pulse=True, defaultValue='offline', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'server_health'}, 'valuePath': 'state'}])
+            ui.status_light('power-light', position=[0, 0], label='Power', tint='#34C759')
         """
         return self._ctl("statusLight", dict(id=id, position=position, span=span, label=label, tint=tint, statusColors=statusColors, size=size, style=style, glow=glow, pulse=pulse, defaultValue=defaultValue), props)
 

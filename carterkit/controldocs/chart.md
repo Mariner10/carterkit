@@ -1,5 +1,6 @@
 ---
 type: chart
+depth: complete
 label: Chart
 icon: chart.bar.xaxis
 category: controls
@@ -16,15 +17,22 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: "The tap buzz on the phone"
+    does: "Plays a vibration of the chosen strength when someone touches the chart on supported phones."
+    valueHelp: {"none": "no vibration", "light": "a faint tap", "medium": "a clear tap", "heavy": "a strong thump", "soft": "a muffled cushioned tap", "rigid": "a sharp crisp tap", "selection": "the tiny tick used for scrolling pickers", "success": "a short double pulse for good news", "warning": "a firm pulse for caution", "error": "a harsh triple pulse for failure"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the chart
+    summary: "The heading above the plot"
+    does: "Shows this text at the top left of the chart; the selected reading appears beside it."
   - name: chartConfig
     type: object
     description: Full configuration object (see ChartConfig section)
+    summary: "All the look and behavior settings in one bundle"
+    does: "Groups the axis, series, streaming and tap options below; any entry left out uses its default."
   - name: tint
     edit: color
     title: Color
@@ -32,10 +40,14 @@ fields:
     type: color
     default: "#667eea"
     description: First-series color and palette seed
+    summary: "The main color of the chart"
+    does: "Colors the first series and seeds the colors of the rest, as any hex color."
   - name: formatValue
     tab: data
     type: string
     description: Formatter for axis/readout numbers (see control-def)
+    summary: "How numbers are written on the axis and readout"
+    does: "Formats the axis labels and the selection readout, for example with units or fixed decimals."
   - name: barCornerRadius
     edit: scrub
     depth: hold
@@ -49,6 +61,8 @@ fields:
     type: number
     default: 3
     description: Bar corner rounding
+    summary: "How round the bar tops are"
+    does: "Rounds the corners of every bar from square (0) to 30 points."
     group: chartConfig
   - name: bins
     edit: scrub
@@ -59,6 +73,8 @@ fields:
     step: 1
     type: number
     description: Bin count for histogram series
+    summary: "How many buckets a histogram has"
+    does: "Splits the histogram samples into 1 to 50 bars; left unset it uses about the square root of the sample count."
     group: chartConfig
   - name: colors
     edit: list
@@ -66,16 +82,22 @@ fields:
     tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
+    summary: "The colors the series take in turn"
+    does: "Gives series one, two, three and so on these hex colors in order; a color set on a series itself wins."
     group: chartConfig
   - name: datumAction
     tab: action
     type: object
     description: datumAction
+    summary: "What happens when a bar or point is tapped"
+    does: "Runs this action on tap with the tapped datum as JSON in the value placeholder."
     group: chartConfig
   - name: horizontal
     type: bool
     default: false
     description: Horizontal bars — categories run down the leading edge
+    summary: "Bars lying sideways"
+    does: "Turns the bars to run left to right with the categories listed down the left edge."
     group: chartConfig
   - name: lineWidth
     edit: scrub
@@ -88,6 +110,8 @@ fields:
     type: number
     default: 2
     description: Line/area stroke width
+    summary: "How thick the lines are"
+    does: "Sets the stroke of line and area series from 0.5 to 12 points."
     group: chartConfig
   - name: glowRadius
     edit: scrub
@@ -102,6 +126,8 @@ fields:
     type: number
     default: 0
     description: Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control
+    summary: "A soft halo around bars lines and points"
+    does: "Adds a glow behind the marks in their own colors, 0 (off) to 30 points wide."
   - name: lineCap
     edit: look
     depth: hold
@@ -112,6 +138,9 @@ fields:
     values: [round, butt, square]
     default: round
     description: End shape of the lines. Cross-control, same on every control
+    summary: "The shape of the line ends"
+    does: "Rounds, flattens or squares the ends of line strokes."
+    valueHelp: {"round": "soft half-circle ends and the default", "butt": "flat ends cut exactly at the last point", "square": "flat ends that extend a little past the last point"}
   - name: maxPoints
     edit: scrub
     depth: ai
@@ -122,12 +151,15 @@ fields:
     type: number
     default: 100
     description: "Rolling window applied to {'append': …} pushes"
-    summary: Maximum number of recent points to keep
+    summary: "How many recent points are kept"
+    does: "Caps a streaming series at 10 to 1000 points so the oldest drop off as new ones are appended."
     group: chartConfig
   - name: negativeColor
     tab: style
     type: color
     description: Falling waterfall delta
+    summary: "The color of falling steps in a waterfall"
+    does: "Paints waterfall bars with a negative change in this color instead of system red."
     group: chartConfig
   - name: pointSize
     edit: scrub
@@ -141,16 +173,22 @@ fields:
     type: number
     default: 6
     description: Scatter point / vertex dot diameter
+    summary: "How big the dots are"
+    does: "Sets the diameter of scatter points and line vertex dots from 2 to 20 points."
     group: chartConfig
   - name: positiveColor
     tab: style
     type: color
     description: Rising waterfall delta
+    summary: "The color of rising steps in a waterfall"
+    does: "Paints waterfall bars with a positive change in this color instead of system green."
     group: chartConfig
   - name: scrub
     type: bool
     default: false
     description: Drag shows a dashed crosshair + live readout (with a selection tick)
+    summary: "Drag your finger along the chart to read values"
+    does: "When on, dragging shows a dashed crosshair and a live readout with a tick at each point instead of tap selection."
     group: chartConfig
   - name: showGrid
     edit: part
@@ -159,6 +197,8 @@ fields:
     type: bool
     default: true
     description: Horizontal grid lines
+    summary: "The faint guide lines behind the plot"
+    does: "Shows or hides the horizontal grid lines across the plot."
     group: chartConfig
   - name: showLegend
     edit: part
@@ -167,6 +207,8 @@ fields:
     type: bool
     default: false
     description: Series legend under the plot
+    summary: "A key naming each series"
+    does: "Shows or hides a row under the plot listing every series with its color."
     group: chartConfig
   - name: showValues
     edit: part
@@ -175,6 +217,8 @@ fields:
     type: bool
     default: false
     description: Numeric value above each bar / on each vertex
+    summary: "Numbers printed on the marks"
+    does: "Prints each value above its bar or on its line vertex when on."
     group: chartConfig
   - name: showXAxis
     edit: part
@@ -183,6 +227,8 @@ fields:
     type: bool
     default: true
     description: Category/x labels along the bottom (leading edge when horizontal)
+    summary: "The labels along the bottom"
+    does: "Shows or hides the category labels along the bottom (down the left edge for horizontal bars)."
     group: chartConfig
   - name: showYAxis
     edit: part
@@ -191,6 +237,8 @@ fields:
     type: bool
     default: true
     description: Value labels down the left gutter
+    summary: "The number scale on the left"
+    does: "Shows or hides the value labels in the left gutter."
     group: chartConfig
   - name: smooth
     edit: part
@@ -199,16 +247,22 @@ fields:
     type: bool
     default: false
     description: Catmull-Rom curve smoothing for line/area series
+    summary: "Curved instead of angular lines"
+    does: "Draws line and area series as smooth curves rather than straight segments."
     group: chartConfig
   - name: stacked
     type: bool
     default: false
     description: Stack bar/area series instead of grouping/overlaying
+    summary: "Piling series on top of each other"
+    does: "Stacks bar and area series so they add up, instead of sitting side by side or overlapping."
     group: chartConfig
   - name: totalColor
     tab: style
     type: color
     description: Waterfall running-total bars
+    summary: "The color of the running-total bars in a waterfall"
+    does: "Paints waterfall total bars in this color instead of the series color."
     group: chartConfig
   - name: yMax
     edit: scrub
@@ -218,6 +272,8 @@ fields:
     bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
+    summary: "The top of the value scale"
+    does: "Fixes the highest value on the vertical axis instead of fitting the data."
     group: chartConfig
   - name: yMin
     edit: scrub
@@ -227,37 +283,54 @@ fields:
     bounds: none
     type: number
     description: Pin the value axis (bars baseline at 0 by default)
+    summary: "The bottom of the value scale"
+    does: "Fixes the lowest value on the vertical axis instead of fitting the data."
     group: chartConfig
   - name: name
     group: data.series
     type: string
     description: Legend name and append routing key
+    summary: "The series name"
+    does: "Labels the series in the legend and is the key a streamed append uses to find it."
   - name: type
     group: data.series
     values: [bar, line, area, scatter, histogram, waterfall]
     default: bar
     type: enum
     description: Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely
+    summary: "What kind of marks a series draws"
+    does: "Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart."
+    valueHelp: {"bar": "vertical bars and the default", "line": "a line joining the points", "area": "a line with the space beneath it filled", "scatter": "loose dots at x and y positions", "histogram": "raw samples grouped into frequency bars", "waterfall": "bars that step up and down from a running level"}
   - name: color
     group: data.series
     type: color
     description: Series colour (hex); wins over chartConfig.colors
+    summary: "The color of one series"
+    does: "Paints that series in this hex color, overriding the color list."
   - name: values
     group: data.series
     type: number[]
     description: Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas
+    summary: "The numbers to plot"
+    does: "Gives the height at each position in order lined up with the categories; null leaves a gap."
   - name: points
     group: data.series
     type: array
     description: Explicit [x, y] pairs for scatter or unevenly sampled series
+    summary: "Exact x and y positions"
+    does: "Places each mark at its own x and y pair, for scatter or unevenly spaced data."
   - name: sizes
     group: data.series
     type: number[]
     description: Per-point size multipliers (bubble scatter)
+    summary: "Dot sizes for a bubble plot"
+    does: "Scales each scatter dot by the matching multiplier, so 2 draws twice the normal size."
   - name: totals
     group: data.series
     type: number[]
     description: "Waterfall only: indices drawn as running totals from zero"
+    summary: "Which waterfall steps are totals"
+    does: "Draws the bars at these positions as running totals from zero instead of changes."
 themeFields:
   - name: cornerRadius
     min: 0
@@ -266,6 +339,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: "How rounded the corners are"
+    does: "Rounds the chart card corners from square (0) to 30 points."
   - name: controlPadding
     min: 0
     max: 24
@@ -273,14 +348,20 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: "Breathing room inside the edge"
+    does: "Adds 0 to 24 points between the card edge and the plot."
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: "The fill behind the plot"
+    does: "Paints the chart card background in this color including transparency."
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: "The color of axis labels"
+    does: "Colors the axis and grid label text in this softer color."
   - name: labelFontSize
     min: 8
     max: 24
@@ -288,16 +369,22 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: "The size of the labels"
+    does: "Sets the heading and axis label text from 8 to 24 points."
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: "The theme highlight"
+    does: "Colors the first series and selection highlights when no tint is set."
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: "The outline color"
+    does: "Draws the card outline in this color."
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -306,16 +393,22 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: "How heavy the outline is"
+    does: "Sets the card outline from none (0) to 5 points."
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: "The main text color"
+    does: "Colors the heading and the selection readout."
   - name: tertiaryColor
     title: Faint text color
     type: color
     default: #FFFFFF4D
     description: Tertiary text and ink color
+    summary: "The faintest ink"
+    does: "Colors the grid lines and the least prominent text."
 ---
 
 # Chart
@@ -506,6 +599,128 @@ Forms: `{"CPU": 63.2}` (per-series by name — unknown names create new series),
   "defaultValue": "{\"categories\":[\"System\",\"Media\",\"Docs\"],\"series\":[{\"values\":[128,412,64]}]}"
 }
 ```
+
+Each example below shows one capability and the effect to expect on the phone.
+
+### Stacked areas, smoothed
+Demonstrates `stacked`, `smooth` and `colors`: two area series pile into one curved band, tinted from the color list.
+```json
+{
+  "type": "chart",
+  "id": "traffic",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Traffic",
+  "chartConfig": { "stacked": true, "smooth": true, "colors": ["#667eea", "#f6ad55"], "showLegend": true },
+  "defaultValue": "{\"categories\":[\"Mon\",\"Tue\",\"Wed\"],\"series\":[{\"name\":\"Web\",\"type\":\"area\",\"values\":[10,14,12]},{\"name\":\"API\",\"type\":\"area\",\"values\":[5,8,9]}]}"
+}
+```
+
+### Scatter with bubble sizes
+Demonstrates `points`, `sizes` and `pointSize`: loose dots at exact x and y positions, the larger multipliers drawing bigger bubbles.
+```json
+{
+  "type": "chart",
+  "id": "bubbles",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Latency vs load",
+  "chartConfig": { "pointSize": 8 },
+  "defaultValue": "{\"series\":[{\"name\":\"Hosts\",\"type\":\"scatter\",\"points\":[[1,20],[2,35],[4,50]],\"sizes\":[1,2,3]}]}"
+}
+```
+
+### Histogram of samples
+Demonstrates the `histogram` series and `bins`: raw samples are grouped into six frequency bars.
+```json
+{
+  "type": "chart",
+  "id": "latency-hist",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Response times",
+  "chartConfig": { "bins": 6 },
+  "defaultValue": "{\"series\":[{\"type\":\"histogram\",\"values\":[42.1,38.9,44.6,51.2,40.3,43.8,47.5]}]}"
+}
+```
+
+### Waterfall
+Demonstrates `waterfall`, `totals`, `positiveColor`, `negativeColor` and `totalColor`: green rises, red falls, and the first and last bars are totals.
+```json
+{
+  "type": "chart",
+  "id": "cashflow",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Cash flow",
+  "chartConfig": { "positiveColor": "#48bb78", "negativeColor": "#f56565", "totalColor": "#667eea", "showValues": true },
+  "defaultValue": "{\"categories\":[\"Start\",\"Sales\",\"Refunds\",\"Costs\",\"Net\"],\"series\":[{\"type\":\"waterfall\",\"values\":[1200,480,-160,-390,0],\"totals\":[0,4]}]}"
+}
+```
+
+### Scrub crosshair with pinned axis
+Demonstrates `scrub`, `yMin`, `yMax` and `formatValue`: dragging shows a dashed crosshair with a live readout, on a value axis fixed from 0 to 100.
+```json
+{
+  "type": "chart",
+  "id": "battery-trend",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Battery",
+  "haptic": "selection",
+  "formatValue": "%.0f%%",
+  "chartConfig": { "scrub": true, "yMin": 0, "yMax": 100, "showGrid": false },
+  "defaultValue": "{\"series\":[{\"type\":\"line\",\"values\":[92,88,80,71,65,52]}]}"
+}
+```
+
+### Streaming append
+Demonstrates `maxPoints` and the append push: each tick adds a reading, and the oldest drop off past 30 points. The payload below is what the server pushes over [[sync]].
+```json
+{
+  "type": "chart",
+  "id": "live-cpu",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "CPU live",
+  "chartConfig": { "maxPoints": 30, "smooth": true },
+  "defaultValue": "{\"series\":[{\"name\":\"CPU\",\"type\":\"line\",\"values\":[40,44]}]}",
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "cpu_tick" }, "valuePath": "append" }]
+}
+```
+
+### Glow, line ends and thick lines
+Demonstrates `glowRadius`, `lineCap`, `lineWidth` and `tint`: a thick glowing line with flat ends.
+```json
+{
+  "type": "chart",
+  "id": "neon",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Neon trend",
+  "tint": "#00e5ff",
+  "glowRadius": 10,
+  "lineCap": "butt",
+  "chartConfig": { "lineWidth": 4, "showGrid": false },
+  "defaultValue": "{\"series\":[{\"type\":\"line\",\"values\":[3,7,4,9,6]}]}"
+}
+```
+
+### Themed chart
+Demonstrates the theme fields: a squarer card with a heavier border, tinted background and softer axis text.
+```json
+{
+  "type": "chart",
+  "id": "themed-chart",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Themed",
+  "theme": { "cornerRadius": 4, "borderWidth": 2, "borderColor": "#667eea", "surfacePrimary": "#667eea22", "secondaryColor": "#A0AEC0", "labelFontSize": 14 },
+  "defaultValue": "{\"categories\":[\"A\",\"B\",\"C\"],\"series\":[{\"values\":[4,6,5]}]}"
+}
+```
+
+The chart has no look variants that change its type and no long-press detail; a tap or scrub drag is its only interaction (see the voting example above for `datumAction`).
 
 ## Behavior
 - Dataset changes animate smoothly (bars grow, lines morph) via the control's `animation` profile
