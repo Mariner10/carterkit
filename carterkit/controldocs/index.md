@@ -153,3 +153,20 @@ Tap any node in the graph to explore the full documentation for each control typ
 
 Full developer docs — building servers, the wire protocol, and the `carterkit`
 library — live at **carterbeaudoin.net/CAR-TER**.
+
+## Control doc schema: depth keys
+
+Each field in a control doc's frontmatter may carry these authored keys:
+
+- `summary` — plain-language subtitle shown in Simple mode.
+- `does` — one sentence: what visibly changes on the phone when the field is set
+  (e.g. "Rounds the card behind the text; 0 is square"). Hold and scrub rows show it
+  as their help text. (`effect:` is taken: it is the look/behavior category.)
+- `valueHelp` — enum fields only; one-line JSON mapping each value to one line of
+  help, e.g. `valueHelp: {"half": "a 180-degree arc", "full": "a closed ring"}`.
+  The editor shows it under the options.
+
+A doc may declare `depth: complete` at the top level of its frontmatter. The depth
+lint (`ControlDocDepthTests`) then requires `summary` and `does` on every field, a
+`valueHelp` line for every value of every enum field, at least three `### ` examples
+under `## Examples`, and no `summary`/`does` that just repeats the field title.
