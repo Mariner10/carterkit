@@ -34,9 +34,9 @@ class _Pushes:
     def __init__(self):
         self.count = 0
 
-    async def __call__(self):
+    async def __call__(self, *, install=False):
         self.count += 1
-        return {"ok": True}
+        return {"ok": True, "linked": True}
 
 
 def _write(path, text):

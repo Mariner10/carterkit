@@ -78,9 +78,19 @@ class _FakeHub:
             raise HubError("no device joined")
         return {"name": "Thunk"}
 
-    async def push_layout(self):
+    async def push_layout(self, *, install=False):
         self.calls.append("push_layout")
-        return {}
+        return {"ok": True, "linked": True}
+
+    def _control(self, target):
+        return {"id": target}
+
+    def on(self, target, fn=None):
+        return fn
+
+    async def push(self, target, value):
+        self.calls.append(f"push:{target}")
+        return {"ok": True}
 
 
 def _fake_serve(join):
@@ -104,7 +114,7 @@ def test_run_pairs_pushes_and_opens_the_prompt(monkeypatch):
     assert rc == 0
     assert seen and seen[0][1] == ["start", "wait:7", "push_layout"]
     assert any("Paired with Thunk" in s for s in out)
-    assert any("Playground is on the phone" in s for s in out)
+    assert any("linked on the phone" in s for s in out)
 
 
 def test_run_no_phone_is_exit_1_with_a_fix(monkeypatch):
@@ -180,7 +190,7 @@ def test_start_hub_names_a_held_port(monkeypatch):
 
 def test_run_reports_a_failed_first_push(monkeypatch):
     class Hub(_FakeHub):
-        async def push_layout(self):
+        async def push_layout(self, *, install=False):
             from carterkit.hub import HubError
             raise HubError("no device on the channel")
 
@@ -188,3 +198,33 @@ def test_run_reports_a_failed_first_push(monkeypatch):
     out = []
     rc = asyncio.run(start.run(timeout=3, out=out.append))
     assert rc == 1 and any("did not land" in s for s in out)
+
+
+def test_run_passes_install_through_and_reports_the_reply(monkeypatch):
+    class Hub(_FakeHub):
+        async def push_layout(self, *, install=False):
+            self.calls.append(f"push:{install}")
+            return {"ok": True, "installed": True} if install else {"ok": True, "linked": True}
+
+    hubs = []
+
+    def serve_playground(**kw):
+        hub = Hub(join=True)
+        hubs.append(hub)
+        return object(), hub, False
+
+    monkeypatch.setattr(start, "serve_playground", serve_playground)
+    out = []
+    assert asyncio.run(start.run(timeout=3, repl=False, demo_seconds=0, out=out.append,
+                                 install=True)) == 0
+    assert "push:True" in hubs[-1].calls and any("installed on the phone" in s for s in out)
+    out.clear()
+    assert asyncio.run(start.run(timeout=3, repl=False, demo_seconds=0, out=out.append)) == 0
+    assert "push:False" in hubs[-1].calls and any("linked on the phone" in s for s in out)
+
+
+def test_cli_install_flags():
+    p = cli.build_parser()
+    assert p.parse_args(["start", "--install"]).install is True
+    assert p.parse_args(["repl", "--install", "x.py"]).install is True
+    assert p.parse_args(["repl"]).install is False

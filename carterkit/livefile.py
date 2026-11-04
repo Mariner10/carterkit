@@ -49,7 +49,8 @@ def refresh_namespace(ns: dict, hub, ui) -> list[str]:
 class LiveFile:
     """One layout file served live. ``serve()`` below drives it."""
 
-    def __init__(self, path: str, *, session_path: str = SESSION, out=None):
+    def __init__(self, path: str, *, session_path: str = SESSION, out=None, install: bool = False):
+        self.install = install
         self.path = os.path.abspath(path)
         self.name = os.path.basename(self.path)
         self.session_path = session_path
@@ -148,16 +149,19 @@ class LiveFile:
             self.hub.reset_handlers()
             self.attach(ui)
             try:
-                await self.hub.push_layout()
+                res = await self.hub.push_layout(install=self.install)
             except Exception as e:  # noqa: BLE001
                 self.out(f"{self.name}: push failed: {type(e).__name__}: {e}")
+                res = None
             await self.start_run(run)
             if self.ns is not None:
                 refresh_namespace(self.ns, self.hub, ui)
         except Exception as e:  # noqa: BLE001 — the watcher must survive any save
             self.out(f"{self.name}: reload failed: {type(e).__name__}: {e} (still watching)")
             return False
-        self.out(f"{self.name}: reloaded, {len(self.hub._index)} control(s) on the phone")
+        from .hub import describe_push_reply
+        outcome = describe_push_reply(res, "it") if res is not None else "the push failed"
+        self.out(f"{self.name}: reloaded, {len(self.hub._index)} control(s); {outcome}")
         return True
 
     async def watch(self, interval: float = 0.5) -> None:
@@ -178,10 +182,12 @@ class LiveFile:
 
 
 async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
-                session_path: str = SESSION, out=None) -> int:
-    """Serve ``path`` live until Ctrl-C (or EOF at the prompt). Returns an exit code."""
-    from .hub import HubError
-    live = LiveFile(path, session_path=session_path, out=out)
+                session_path: str = SESSION, out=None, install: bool = False) -> int:
+    """Serve ``path`` live until Ctrl-C (or EOF at the prompt). ``install=True`` keeps the
+    layout in the phone's layouts (otherwise it is linked: transient, updated in place).
+    Returns an exit code."""
+    from .hub import HubError, describe_push_reply
+    live = LiveFile(path, session_path=session_path, out=out, install=install)
     out = live.out
     quiet_logs()
     ui, module_hub, run = live.load()
@@ -211,8 +217,9 @@ async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
                 return 1
             out(f"Paired with {peer.get('name') or 'your phone'}.")
         try:
-            await hub.push_layout()
-            out(f"{live.name} is on the phone ({len(hub._index)} control(s)); watching it for saves.")
+            res = await hub.push_layout(install=install)
+            out(f"{describe_push_reply(res, live.name)} ({len(hub._index)} control(s)); "
+                "watching it for saves.")
         except Exception as e:  # noqa: BLE001 — a bad first version still gets watched
             out(f"{live.name}: push failed: {type(e).__name__}: {e}; fix the file and save, "
                 "it is being watched.")
@@ -238,10 +245,10 @@ async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
         await hub.close()
 
 
-def main(path: str, *, repl: bool = False) -> int:
+def main(path: str, *, repl: bool = False, install: bool = False) -> int:
     """Entry point for a file's ``if __name__ == "__main__":`` block."""
     try:
-        return asyncio.run(serve(path, repl=repl))
+        return asyncio.run(serve(path, repl=repl, install=install))
     except KeyboardInterrupt:
         print("", file=sys.stderr)
         return 0

@@ -230,19 +230,19 @@ def prepare(path: str | None, hub_json: str = HUB_JSON):
     return hub, ui
 
 
-def main(path: str | None = None, hub_json: str = HUB_JSON) -> int:
+def main(path: str | None = None, hub_json: str = HUB_JSON, *, install: bool = False) -> int:
     if path is None and not os.path.isfile(hub_json):
         # Nothing to attach to: open the prompt on the Playground (LAN hub + QR).
         from . import start
         print("carterkit repl: no file and no secrets/hub.json; starting the Playground "
               "(`carterkit start`) instead.", file=sys.stderr)
-        return asyncio.run(start.run())
+        return asyncio.run(start.run(install=install))
     if path is not None:
         # A file: serve it live (QR pairing when needed, every save pushed), with the prompt.
         from . import livefile as live
         if not os.path.isfile(path):
             raise SystemExit(f"carterkit repl: no such file {path!r}")
-        return live.main(path, repl=True)
+        return live.main(path, repl=True, install=install)
     hub, ui = prepare(path, hub_json)
     try:
         asyncio.run(run_repl(hub, ui))

@@ -350,3 +350,66 @@ def test_push_tab_warns_and_requires_a_registered_event(caplog):
     assert "dynamic tab 'extra'" in " ".join(r.getMessage() for r in caplog.records)
     with pytest.raises(HubError, match="dynamicTabs"):
         asyncio.run(hub.push_tab("nope", tab))
+
+
+class _PushSock(_FakeSock):
+    """get_nodes answers with one phone; apply-layout answers with `reply`."""
+
+    def __init__(self, reply):
+        super().__init__()
+        self.apply_reply = reply
+
+    async def request(self, t, payload=None, timeout=5.0):
+        self.sent.append(("REQ:" + t, payload))
+        if t == "get_nodes":
+            return {"clients": [{"name": "Thunk", "id": "phone-1"}]}
+        return self.apply_reply
+
+
+def _pushing_hub(reply):
+    ui, *_ = _thermostat()
+    hub = ui.serve()
+    hub.client._sock = _PushSock(reply)
+    return hub
+
+
+def test_push_layout_links_by_default_and_installs_on_request():
+    hub = _pushing_hub({"ok": True, "linked": True, "rendered": ["temp"]})
+    res = asyncio.run(hub.push_layout())
+    req = [p for t, p in hub.client._sock.sent if t == "REQ:route_msg"][-1]
+    assert req["type"] == "apply-layout" and req["target_id"] == "phone-1"
+    assert "install" not in req["payload"] and "connection" in req["payload"]
+    assert res["linked"] is True
+    res = asyncio.run(hub.install())
+    req = [p for t, p in hub.client._sock.sent if t == "REQ:route_msg"][-1]
+    assert req["payload"]["install"] is True and req["payload"]["hub"] == hub.name
+
+
+def test_push_layout_refusal_reasons_are_actionable():
+    from carterkit.hub import HubError
+    hub = _pushing_hub({"ok": False, "reason": "editing"})
+    with pytest.raises(HubError, match="editing this layout"):
+        asyncio.run(hub.push_layout())
+    hub = _pushing_hub({"ok": False, "reason": "not-member"})
+    with pytest.raises(HubError, match="scan the pairing QR"):
+        asyncio.run(hub.push_layout())
+    hub = _pushing_hub({"ok": False, "error": "could not decode layout"})
+    with pytest.raises(HubError, match="could not decode"):
+        asyncio.run(hub.push_layout())
+
+
+def test_adopt_layout_stamps_the_hub_connection():
+    hub = _pushing_hub({"ok": True})
+    bare = {"name": "Pulled", "tabs": [{"id": "t", "title": "T", "children": []}]}
+    hub.adopt_layout(bare)
+    assert "connection" in hub.layout and "connection" not in bare
+    assert hub.layout["connection"]["identity"]["channel"] == hub.connection.channel
+
+
+def test_describe_push_reply_lines():
+    from carterkit.hub import describe_push_reply as d
+    assert "linked" in d({"ok": True, "linked": True}, "X")
+    assert "installed" in d({"ok": True, "installed": True}, "X")
+    assert "updated" in d({"ok": True, "updated": True}, "X")
+    assert "unchanged" in d({"ok": True, "skipped": True}, "X")
+    assert "Studio session" in d({"ok": True}, "X") and "Studio session" in d(None, "X")

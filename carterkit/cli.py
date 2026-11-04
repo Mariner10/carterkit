@@ -217,7 +217,7 @@ def _cmd_pager(args) -> int:
 
 def _cmd_repl(args) -> int:
     from . import repl
-    return repl.main(args.file)
+    return repl.main(args.file, install=getattr(args, "install", False))
 
 
 def _cmd_start(args) -> int:
@@ -374,11 +374,15 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--host", default=None,
                    help="bind address (default 0.0.0.0 so the phone can reach it, or $CARTERKIT_HOST)")
     c.add_argument("--port", type=int, default=None, help="relay port (default 8765)")
+    c.add_argument("--install", action="store_true",
+                   help="keep the Playground in the phone's layouts (default: linked, transient)")
     c.set_defaults(fn=_cmd_start)
 
     c = sub.add_parser("repl", help="live prompt with the hub connected and controls bound by id")
     c.add_argument("file", nargs="?", help="a module defining the Layout/Hub (e.g. hello.py); "
                    "omit to use secrets/hub.json, or the Playground when there is none")
+    c.add_argument("--install", action="store_true",
+                   help="keep the file's layout in the phone's layouts (default: linked, transient)")
     c.set_defaults(fn=_cmd_repl)
 
     c = sub.add_parser("new", help="scaffold a starter project (hello.py, secrets/, VS Code settings)")

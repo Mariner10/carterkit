@@ -5,6 +5,26 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.18.1] — 2026-11-04
+
+The rest of the pairing loop: what a push means on the phone.
+
+### Added
+
+- **Linked layouts**: `push_layout()` (the default for `carterkit start`, live files and the REPL)
+  links the layout on the phone: on screen, updated in place by every push, actions routed back to
+  the hub, not written into the phone's layouts. `await hub.install()` / `push_layout(install=True)` /
+  `carterkit start --install` / `carterkit repl --install` keep it as a real layout (the app's
+  Keep step); later pushes with the same id update that file. The reply says which happened
+  (`linked`, `installed`, `updated`; `describe_push_reply()` turns it into one line) and the
+  CLI prints it. Refusals carry a reason: `editing` (close the editor and push again), `not-member`
+  (scan the pairing QR again).
+- `Hub.adopt_layout()` stamps the hub's connection block on a layout that has none, so a pushed
+  layout always dials back to the hub.
+
+Needs CAR-TER with the linked loop (aif-qu39o); an older app shows the push in its Studio session
+and the kit says so.
+
 ## [0.18.0] — 2026-11-04
 
 The pairing release: `pip install carterkit && carterkit start` puts a layout on the phone

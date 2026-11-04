@@ -13,7 +13,7 @@ class FakeHub:
     def reset_handlers(self):
         pass
 
-    async def push_layout(self):
+    async def push_layout(self, *, install=False):
         self.pushes.append(self.live.path_text())
 
 

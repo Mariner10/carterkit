@@ -84,7 +84,7 @@ def test_cli_registered_and_missing_hub_opens_the_playground(tmp_path, monkeypat
 
     monkeypatch.setattr(start, "run", fake_run)
     assert cli.main(["repl"]) == 0
-    assert called == [{}]
+    assert called == [{"install": False}]
 
 
 def test_missing_hub_with_a_file_still_says_so(tmp_path, monkeypatch):

@@ -39,6 +39,13 @@ pairing is kept in `.carterkit/session.json`, so the next `carterkit start` in t
 folder reconnects without a scan (`--fresh` starts over). No account and no credential:
 the hub runs on your LAN and the QR carries its address and a random key.
 
+**Linked, or kept.** A pushed layout is *linked* on the phone: it is the layout on screen,
+every push updates it in place, its taps and slider moves come back to Python, and it is
+not written into the phone's layouts (it waits for your laptop when the hub is away).
+`await hub.install()` at the prompt, or `carterkit start --install`, keeps it as a real
+layout; from then on pushes update that file. (An app older than the linked loop shows
+the push in its Studio session; `carterkit` says which happened.)
+
 **Make it yours, live.** Scaffold a project and edit `hello.py` while it runs:
 
 ```bash

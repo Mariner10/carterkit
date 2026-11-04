@@ -164,9 +164,9 @@ async def start_hub(hub, out, *, name: str = "carterkit start", timeout: float =
 
 async def run(*, host: str | None = None, port: int | None = None, session_path: str = SESSION,
               fresh: bool = False, timeout: float | None = None, repl: bool = True,
-              demo_seconds: float | None = None, out=None) -> int:
-    """Serve, pair, push the Playground, then the prompt (or a value loop with
-    ``repl=False``). Returns a process exit code."""
+              install: bool = False, demo_seconds: float | None = None, out=None) -> int:
+    """Serve, pair, push the Playground (``install=True`` keeps it in the phone's layouts),
+    then the prompt (or a value loop with ``repl=False``). Returns a process exit code."""
     from .hub import HubError
     out = out or (lambda s: print(s, flush=True))
     timeout = default_timeout() if timeout is None else timeout
@@ -189,15 +189,17 @@ async def run(*, host: str | None = None, port: int | None = None, session_path:
             return 1
         out(f"Paired with {peer.get('name') or 'your phone'}. Sending the Playground...")
         try:
-            await hub.push_layout()
+            res = await hub.push_layout(install=install)
         except Exception as e:  # noqa: BLE001
             out(f"carterkit start: the Playground did not land: {type(e).__name__}: {e}")
             return 1
-        out("The Playground is on the phone.")
+        from .hub import describe_push_reply
+        out(describe_push_reply(res, "The Playground").capitalize())
         if repl:
             from .repl import serve_console
             await serve_console(hub, ui, intro=[
-                "try: await level.push(42)   await hello.push('hi')   @tap.on",
+                "try: await level.push(42)   await hello.push('hi')   @tap.on   "
+                "await hub.install()  (keep it on the phone)",
             ])
             return 0
         return await _demo_loop(hub, ui, demo_seconds, out)
@@ -235,7 +237,8 @@ async def _demo_loop(hub, ui, seconds: float | None, out) -> int:
 def main(args) -> int:
     try:
         return asyncio.run(run(host=args.host, port=args.port, fresh=args.fresh,
-                               timeout=args.timeout, repl=not args.no_repl))
+                               timeout=args.timeout, repl=not args.no_repl,
+                               install=getattr(args, "install", False)))
     except KeyboardInterrupt:
         print("", file=sys.stderr)
         return 0

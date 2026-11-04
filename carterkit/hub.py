@@ -52,6 +52,21 @@ LAN_HINT = ("embedded relay is bound to 127.0.0.1 — only this machine can reac
             "stubs) or `carterkit relay --lan`.")
 
 
+def describe_push_reply(res: dict | None, what: str = "the layout") -> str:
+    """One line for a :meth:`Hub.push_layout` reply: what the phone did with it."""
+    res = res or {}
+    if res.get("skipped"):
+        return f"{what} is unchanged on the phone"
+    if res.get("installed"):
+        return f"{what} is installed on the phone (kept in its layouts)"
+    if res.get("updated"):
+        return f"{what} is updated on the phone"
+    if res.get("linked"):
+        return f"{what} is linked on the phone (every push updates it; actions come back here)"
+    return (f"{what} is on the phone (shown in the app's Studio session on this app version; "
+            "a newer CAR-TER links it and routes actions back)")
+
+
 class HubError(RuntimeError):
     """A driving call that cannot work — wrong binding shape, no device, etc."""
 
@@ -220,7 +235,10 @@ class Hub:
     def adopt_layout(self, layout: dict) -> None:
         """Adopt a layout after construction — e.g. one pulled off a paired
         device via `get-layout` — reindexing controls so push()/on()/frame_for()
-        resolve against it."""
+        resolve against it. A layout without a ``connection`` block gets this hub's,
+        so a push of it dials back here (actions reach the hub)."""
+        if layout and "connection" not in layout and self.connection is not None:
+            layout = dict(layout, connection=self.connection.layout_block())
         self.layout = layout
         self._last_layout_push = None
         self._index = {ch["id"]: ch for ch in _walk_children(layout or {})
@@ -251,9 +269,16 @@ class Hub:
                 return c
         return None
 
-    async def push_layout(self) -> dict:
+    async def push_layout(self, *, install: bool = False) -> dict:
         """Send this hub's layout to the paired device (routed apply-layout; the
-        reply echoes what actually rendered). Requires a device on the channel."""
+        reply echoes what actually rendered). Requires a device on the channel.
+
+        By default the phone shows the layout as the hub's linked layout (updated in
+        place on every push, actions routed back here; an app without that support
+        shows it in its Studio session). ``install=True`` asks the phone to keep it:
+        it is written into the library like an import and later pushes with the same
+        id update that file (:meth:`install`). The reply carries ``linked``,
+        ``installed`` or ``updated`` (see :func:`describe_push_reply`)."""
         if not self.layout:
             raise HubError("this hub has no layout to push")
         self.__dict__.setdefault("_last_layout_push", None)
@@ -270,6 +295,10 @@ class Hub:
                              for f in findings))
         req = dict(self.layout)
         req.pop("msg_type", None)
+        if install:
+            # Read by the app inside the apply-layout payload (CAR-TER aif-qu39o): keep it.
+            req["install"] = True
+            req["hub"] = self.name
         if self._last_layout_push == req:
             log.info("skipped: identical to the last push")
             return dict(self._last_layout_reply or {"ok": True, "skipped": True},
@@ -278,11 +307,21 @@ class Hub:
             "route_msg", {"target_id": peer.get("id"), "type": "apply-layout",
                           "payload": req}, timeout=10.0)
         if not isinstance(res, dict) or not res.get("ok"):
+            reason = (res or {}).get("reason") if isinstance(res, dict) else None
+            if reason == "editing":
+                raise HubError("the phone is editing this layout; close the editor (Done) "
+                               "and push again")
+            if reason == "not-member":
+                raise HubError("the phone is not on this hub's channel; scan the pairing QR again")
             raise HubError(f"device rejected the layout: "
-                           f"{(res or {}).get('error', 'no reply')}")
+                           f"{(res or {}).get('error') or reason or 'no reply'}")
         self._last_layout_push = _json.loads(_json.dumps(req))
         self._last_layout_reply = res
         return res
+
+    async def install(self) -> dict:
+        """Keep this hub's layout on the phone: ``push_layout(install=True)``."""
+        return await self.push_layout(install=True)
 
     def validate(self) -> list:
         """Lint this hub's layout against the bundled catalog."""
