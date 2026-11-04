@@ -291,8 +291,42 @@ async def _(offset, limit, cursor, query):
     return rows[offset:offset + limit], None, len(rows)
 ```
 
-`hub.open_sheet()` is not here yet: its frame is being redefined (open a group expanded
-by id) in the app's `HUB-SHEET.md`, tracked by bead aif-3618x.5. TODO once that lands.
+`hub.open_sheet()` opens a group in the app's foreground container (full screen or a
+sheet; app doc `HUB-SHEET.md`) and returns the sheet id; `hub.close_sheet(id)` closes it.
+Open a group of the layout (laid out by its `expand` block) or one of your own, and listen
+for the close:
+
+```python
+from carterkit import Layout, expand_block, bind
+
+with Layout("Packages") as ui:
+    with ui.tab("Main"):
+        ui.button("more", label="More", action=bind.expand("pkg"))
+        with ui.group("Example package", id="pkg", cols=4, rows=1,
+                      expand=expand_block(trigger=["tap", "more"], style="sheet",
+                                          grid={"columns": 4, "rows": 3},
+                                          children=[bind.place("name", [0, 0], [1, 4]),
+                                                    {"type": "label", "position": [1, 0],
+                                                     "span": [2, 4], "text": "Only when expanded"}])) as g:
+            g.label("name", position=[0, 0], span=[1, 4])
+hub = ui.serve()
+
+@hub.on("sheet_closed")
+def closed(data):                      # {"id": ..., "reason": "user"|"hub"|"replaced"|"busy"}
+    print(data["id"], data["reason"])
+
+# inside an async handler:
+sid = await hub.open_sheet(group_id="pkg", title="Example package", style="sheet")
+sid = await hub.open_sheet(group={"grid": {"columns": 4, "rows": 1},
+                                  "children": [{"type": "label", "position": [0, 0],
+                                                "span": [1, 4], "text": "Hello"}]})
+await hub.close_sheet(sid)
+```
+
+`bind.expand(id)`, `bind.collapse(id)` and `bind.toggle_expand(id)` are the matching action
+kinds (a control inside a list row names the list's id). A refused sheet (`not-hub`,
+`invalid`, `not-found`, `busy`) raises `HubError`; sending `open_sheet(..., id=sid)` again
+replaces an open sheet in place.
 
 ## Explore the controls (zero config)
 

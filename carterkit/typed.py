@@ -1327,6 +1327,8 @@ class ScopeControls:
         window: _Num | None = None,
         queryFrom: _Str | None = None,
         itemTemplate: _Obj | None = None,
+        itemSpacing: _Num | None = None,
+        itemStyle: Literal['plain', 'card'] | None = None,
         **props: Any,
     ) -> "Control":
         """Table: Rows of information
@@ -1349,11 +1351,13 @@ class ScopeControls:
             window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
             queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
             itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
+            itemSpacing (number, default 2): Points between rows (0-64, default 2). Does: Opens up space between rows, so card-style rows stand apart from each other.
+            itemStyle (enum, default plain): plain: rows sit inside the list's card. card: each itemTemplate row draws its template group's own card (fill, corners, theme), so rows read as separate cards; pair it with hideBackground: true and an itemSpacing. See [[#Card rows]]. Does: Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card. Values: plain = rows sit inside the list's own card, as before, card = each templated row is its own card, styled by the template group.
 
         Example:
-            ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
+            ui.list('packages', position=[0, 0], span=[6, 4], hideBackground=True, itemStyle='card', itemSpacing=10, itemTemplate={'grid': {'columns': 4, 'rows': 1}, 'children': [{'type': 'image', 'id': 'icon', 'position': [0, 0], 'systemName': 'shippingbox'}, {'type': 'label', 'id': 'name', 'position': [0, 1], 'span': [1, 2], 'text': '{{item.name}} {{item.version}}'}, {'type': 'button', 'id': 'install', 'position': [0, 3], 'label': 'Install', 'action': {'method': 'meshsocket', 'event': 'install', 'payload': {'id': '{{item.id}}'}}}], 'expand': {'title': '{{item.name}}', 'grid': {'columns': 4, 'rows': 5}, 'children': [{'ref': 'icon', 'position': [0, 0], 'span': [2, 2]}, {'ref': 'name', 'position': [0, 2], 'span': [1, 2]}, {'ref': 'install', 'position': [1, 2], 'span': [1, 2]}, {'type': 'label', 'position': [2, 0], 'span': [3, 4], 'text': '{{item.notes}}'}]}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'packages'}, 'valuePath': 'items'}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate, itemSpacing=itemSpacing, itemStyle=itemStyle), props)
 
     def log_console(
         self, id: str | None = None, *,
@@ -3589,6 +3593,8 @@ class BuildControls:
         window: _Num | None = None,
         queryFrom: _Str | None = None,
         itemTemplate: _Obj | None = None,
+        itemSpacing: _Num | None = None,
+        itemStyle: Literal['plain', 'card'] | None = None,
         **props: Any,
     ) -> dict[str, Any]:
         """Table: Rows of information
@@ -3612,11 +3618,13 @@ class BuildControls:
             window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
             queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
             itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
+            itemSpacing (number, default 2): Points between rows (0-64, default 2). Does: Opens up space between rows, so card-style rows stand apart from each other.
+            itemStyle (enum, default plain): plain: rows sit inside the list's card. card: each itemTemplate row draws its template group's own card (fill, corners, theme), so rows read as separate cards; pair it with hideBackground: true and an itemSpacing. See [[#Card rows]]. Does: Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card. Values: plain = rows sit inside the list's own card, as before, card = each templated row is its own card, styled by the template group.
 
         Example:
-            ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
+            ui.list('packages', position=[0, 0], span=[6, 4], hideBackground=True, itemStyle='card', itemSpacing=10, itemTemplate={'grid': {'columns': 4, 'rows': 1}, 'children': [{'type': 'image', 'id': 'icon', 'position': [0, 0], 'systemName': 'shippingbox'}, {'type': 'label', 'id': 'name', 'position': [0, 1], 'span': [1, 2], 'text': '{{item.name}} {{item.version}}'}, {'type': 'button', 'id': 'install', 'position': [0, 3], 'label': 'Install', 'action': {'method': 'meshsocket', 'event': 'install', 'payload': {'id': '{{item.id}}'}}}], 'expand': {'title': '{{item.name}}', 'grid': {'columns': 4, 'rows': 5}, 'children': [{'ref': 'icon', 'position': [0, 0], 'span': [2, 2]}, {'ref': 'name', 'position': [0, 2], 'span': [1, 2]}, {'ref': 'install', 'position': [1, 2], 'span': [1, 2]}, {'type': 'label', 'position': [2, 0], 'span': [3, 4], 'text': '{{item.notes}}'}]}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'packages'}, 'valuePath': 'items'}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, request=request, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, request=request, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate, itemSpacing=itemSpacing, itemStyle=itemStyle), props)
 
     def log_console(
         self, *,

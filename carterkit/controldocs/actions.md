@@ -97,6 +97,27 @@ fields:
     type: bool
     default: false
     description: Red confirm button in the confirmation dialog
+  - name: expand
+    summary: "Open a group's expanded view"
+    does: "Expands the group (or, from a control inside a list row, that list's row) with this id, as if its card was tapped. No transport is used, so `method` can be left out."
+    valueHelp: "A group id, or a list id from a control inside one of its rows"
+    title: Expand group
+    type: string
+    description: Expand the group with this id (see group-def Expand). No method needed
+  - name: collapse
+    summary: "Close a group's expanded view"
+    does: "Closes the expanded view when it was opened from the group (or list row) with this id; nothing happens otherwise."
+    valueHelp: "A group id, or a list id from a control inside one of its rows"
+    title: Collapse group
+    type: string
+    description: Close the expanded view of the group with this id
+  - name: toggleExpand
+    summary: "Open or close a group's expanded view"
+    does: "Closes the group's expanded view when it is open, opens it when it is not."
+    valueHelp: "A group id, or a list id from a control inside one of its rows"
+    title: Toggle expand
+    type: string
+    description: Expand the group with this id, or collapse it when already expanded
 ---
 
 How controls send commands — the outbound half of the **standardized connection
@@ -270,6 +291,15 @@ This is a different option from the control's `"confirm": true` (the Undo pill
 above): the pill reports a local write after it lands, the dialog stops an action
 before it is sent. Shortcuts, widgets and Control Center do not offer an action that
 asks first: it fires only in the app.
+
+## Expand and collapse
+
+`{"expand": "<group id>"}`, `{"collapse": "<group id>"}` and `{"toggleExpand": "<group id>"}` act
+on the app's expanded view instead of a transport (leave `method` out). Any control can carry
+one: a "More" button with `"action": {"expand": "pkg"}` opens group `pkg` from anywhere in the
+layout. A control inside a list row names the list's id (`{"expand": "packages"}`) and opens its
+own row. They are the same path as the group's own tap, an `expand.trigger` control and the hub's
+`sheet` frame ([[group-def#Expand]]). An id that matches nothing on screen does nothing.
 
 ## Hub prompts
 

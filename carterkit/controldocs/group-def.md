@@ -75,6 +75,22 @@ fields:
     title: Theme
     type: object
     description: Theme overrides for the group's header, card and every child (same keys as a control's theme)
+  - name: expand
+    title: Expand
+    tab: advanced
+    type: object
+    description: "Let the group grow into a foreground container with a corner close (X): {trigger: tap|hold|both, style: fullScreen|sheet, grid, children, title}. children are {ref, position, span} placements that move the group's own children, or controls that exist only when expanded. See Expand"
+    valueHelp: "trigger: tap (default), hold, both, none, a control id, or an array like [\"hold\", \"more\"]"
+    summary: Let the group open up full screen
+    does: "Tapping the card (a tap no child claims), holding it, or both: the group's card grows from where it sits into the whole screen (or a large sheet), its controls laid out bigger with more of them, and shrinks back when closed."
+  - name: action
+    title: Action
+    tab: advanced
+    type: object
+    description: "Fired by a tap on the group that no child claims (static text, images, gauges without an action, the card background and padding). Same shape as a control's action. A child's own taps and holds win. Ignored when `expand` also opens on tap"
+    summary: Make the whole card tappable
+    does: "Taps on the card's non-interactive parts send the action; buttons, toggles, sliders, inputs and rows with their own action keep their own taps. The card dips slightly while pressed."
+    valueHelp: "{method, event, payload} like a button's action"
   - name: extensions
     title: Extensions
     tab: advanced
@@ -105,6 +121,8 @@ A visual container that clusters controls into a glass card with its own interna
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
 | `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
+| `action` | object | no | Fired by a tap no child claims (non-interactive content, the card background and padding); a child's own tap or hold wins. Same shape as a control's `action`. Ignored when `expand` opens on tap (expand wins) |
+| `expand` | object | no | Grow the group into a foreground container with a corner close, laid out again with more controls. See [[#Expand]] |
 | `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Editing a group
@@ -223,6 +241,86 @@ which payloads trigger it, matching keys the same way a [[sync]] filter does.
 ## Theming
 
 A group renders as a glass card whose surface, corner radius, border, and padding come from the active [[theming|theme]] (`surfacePrimary`, `cornerRadius`, `borderColor`, `borderWidth`, `cardPadding`). Set `hideBackground: true` for a transparent group (no card), e.g. a hero row of status lights. A group's own `theme` overrides those keys for the card, its label and everything inside it, e.g. `"theme": {"accentColor": "$leaf", "surfacePrimary": "#1B2A1F"}`; per-control `theme` overrides on the children still apply on top. See [[theming#Cascade]].
+
+## Expand
+
+`expand` lets a person open a group up: tapping the card (a tap no child claims), or holding
+it, grows the card from where it sits, in one continuous motion, into a foreground
+container with a close (X) in its corner. As it grows, the group's own controls move from their
+cells to new ones on the expand `grid`: the same controls, not copies, so their live values,
+bindings and actions carry straight through. Controls that only make sense with room fade and
+scale in once it has grown. The X, a drag down on the container's top edge, or a tap on the
+dimmed page (sheet style) plays it backwards to where the group sits.
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `trigger` | `"tap"`, `"hold"`, `"both"`, `"none"`, a control id, or an array mixing them | `"tap"` | What opens it. `tap`: a tap on the card; `hold`: a hold on the card; `both`: either; `none`: only buttons, actions or the hub. A control id (a child of the group or any control in the layout; inside a list's `itemTemplate` the id resolves in the same row) expands the group when that control is tapped, and the control's own `action` still fires. Examples: `"hold"`, `"more"`, `["hold", "more"]`. A child's own tap or hold always wins over the card's; only a tap on non-interactive content, the background or the padding opens it. An id that matches no control never fires. An old `"icon"` reads as `"tap"`. Edits take effect live |
+| `style` | `"fullScreen"` or `"sheet"` | `"fullScreen"` | The whole screen, or a large card up from the bottom over the dimmed page |
+| `grid` | [[grid-dimensions]] | the group's `grid` | The grid the expanded layout is placed on |
+| `children` | object[] | — | Placements and expanded-only controls, below |
+| `title` | string | the group's `label` | Text beside the close button |
+
+Each entry of `children` is one of two things:
+
+- **A placement** of one of the group's children: `{"ref": "<child id>", "position": [row, col],
+  "span": [rows, cols]}`. Other fields in it are laid over that child while expanded (a bigger
+  `size`, another `style`); `id` and `type` are ignored. A `ref` that names no child of this
+  group is skipped.
+- **A control or group** of its own (it needs a `type`; the `id` may be left out). It exists only
+  while expanded.
+
+A child that no entry refers to fades out while expanded and comes back on collapse. An
+`expand` with no `children` keeps every child where it is, on the expand `grid`. While a group
+expands its controls are laid out on grid cells (the expand grid's rows), even when the group's
+own grid is a `flow` grid.
+
+A one-row card (an image, a label with two lines of text, two buttons) that opens into a page:
+the image large at the top left, the text beside it, the buttons below, and a description only
+the page has.
+
+```json
+{ "type": "group", "id": "pkg", "position": [0, 0], "span": [2, 4],
+  "grid": { "columns": 4, "rows": 2 },
+  "expand": {
+    "trigger": ["tap", "more"], "style": "fullScreen", "title": "Example package",
+    "grid": { "columns": 4, "rows": 6 },
+    "children": [
+      { "ref": "icon", "position": [0, 0], "span": [2, 2] },
+      { "ref": "name", "position": [0, 2], "span": [2, 2] },
+      { "ref": "install", "position": [2, 0], "span": [1, 2] },
+      { "ref": "share", "position": [2, 2], "span": [1, 2] },
+      { "type": "label", "id": "about", "position": [3, 0], "span": [3, 4],
+        "text": "A longer description that only the expanded page shows." }
+    ]
+  },
+  "children": [
+    { "type": "image", "id": "icon", "position": [0, 0], "systemName": "shippingbox" },
+    { "type": "label", "id": "name", "position": [0, 1], "label": "Version 1.2.0", "text": "Example package" },
+    { "type": "button", "id": "more", "position": [1, 0], "span": [1, 4], "label": "More" },
+    { "type": "button", "id": "install", "position": [0, 2], "label": "Install",
+      "action": { "method": "meshsocket", "event": "install", "payload": { "id": "pkg" } } },
+    { "type": "button", "id": "share", "position": [0, 3], "label": "Share",
+      "action": { "method": "meshsocket", "event": "share", "payload": { "id": "pkg" } } }
+  ] }
+```
+
+A [[list]]'s `itemTemplate` is a group too: give it an `expand` and every row grows the same
+way. Its refs are the template's child ids (each row's own controls move), and its placements
+and new controls are filled in from the row (`{{item.<field>}}`). Nothing inside an
+expanded group offers to expand again, except a templated row of a list in it, which opens on
+top with a back button.
+
+## Hub sheets
+
+The hub of the layout on screen can expand a group itself, with the routed `sheet` verb on the
+layout's own socket: `{id, groupId}` expands that group of the layout (live, from where it sits
+when it is on screen); `{id, group}` opens a group definition of the hub's own, drawn from its
+fields like a list's [[list#Item templates|item template]] and replaced in place when a frame
+with the same `id` arrives again. `title` and `style` are optional and `{id, close: true}`
+closes it. A hub's own group sends only to the hub: actions of any other method are dropped, as
+are `sync` and `form`, and `{{secret:…}}` never resolves in it. When it closes the app
+broadcasts `sheet_closed {id, reason}`. Wire contract: `docs/HUB-SHEET.md` in the app
+repository.
 
 ## Rendering
 - Groups render as a glass card (frosted material + subtle border)

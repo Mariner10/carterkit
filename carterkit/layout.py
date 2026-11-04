@@ -288,7 +288,8 @@ class _GridScope(ScopeControls):
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
               hide_background=None, mode: str | None = None, row_height: int | None = None,
-              name: str | None = None, form: dict | None = None) -> "GroupHandle":
+              name: str | None = None, form: dict | None = None,
+              expand: dict | None = None, action: dict | None = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
@@ -296,7 +297,11 @@ class _GridScope(ScopeControls):
         `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
         2-D row unit in points (default 56). `name` is the readable name the app's
         editor shows (never identity; controls take `name=` the same way). `form` is a
-        block from :func:`carterkit.form` making the group a form (draft + submit)."""
+        block from :func:`carterkit.form` making the group a form (draft + submit).
+        `expand` lets the group grow into a foreground container: build it with
+        :func:`carterkit.expand_block` (trigger keyword/control id/list, style, grid,
+        children of {ref, position, span} placements and expanded-only controls).
+        `action` is what a tap no child claims fires."""
         gid = self._owner._unique_id(id or "group")
         grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
@@ -320,6 +325,10 @@ class _GridScope(ScopeControls):
             g["form"] = form
         if hide_background is not None:
             g["hideBackground"] = hide_background
+        if expand is not None:
+            g["expand"] = expand
+        if action is not None:
+            g["action"] = action
         self._place(g, position, span)
         self._children.append(g)
         gscope = _GridScope(g["children"], cols, rows, self._owner)

@@ -1,5 +1,8 @@
 """Hub helpers for the app's generic controls: the confirm prompt and list paging.
 
+Also ``open_sheet()`` / ``close_sheet()`` (routed ``sheet`` frame, answered by the
+``sheet_closed`` broadcast; app doc HUB-SHEET.md).
+
 Mixed into :class:`carterkit.hub.Hub`. App contracts (ControlDocs `list.md`, app docs
 HUB-PROMPT.md): ``hub.confirm()`` sends the routed ``prompt`` frame and awaits the
 ``prompt_reply`` broadcast; ``@hub.pages(...)`` answers a paged list's request action.
@@ -177,3 +180,55 @@ class HubExtras:
 
         self._demux.setdefault(mt, []).append(_serve)
         return fn
+
+    # ─── sheet (routed `sheet` → `sheet_closed`) ─────────────────────────────
+    async def _route_sheet(self, payload: dict) -> dict:
+        from .hub import HubError
+        peer = await self._first_peer()
+        if not peer:
+            raise HubError("no device on the channel — have the phone connect first")
+        payload.setdefault("from", self.name)
+        res = await self.client._sock.request(
+            "route_msg", {"target_id": peer.get("id"), "type": "sheet", "payload": payload},
+            timeout=10.0)
+        res = res if isinstance(res, dict) else {}
+        if res.get("ok") is False:
+            raise HubError(f"the app refused the sheet: {res.get('reason') or 'no reason'}")
+        return res
+
+    async def open_sheet(self, group_id: str | None = None, group: dict | None = None,
+                         title: str | None = None, style: str | None = None, *,
+                         id: str | None = None) -> str:
+        """Open a group in the app's foreground container (full screen or a large sheet).
+
+        Give ``group_id`` (a group of the layout on screen, laid out by its ``expand``
+        block) or ``group`` (a group definition of your own: ``{grid, children}``).
+        ``style`` is ``"fullScreen"`` (default) or ``"sheet"``. Returns the sheet id
+        (generated unless ``id`` is given; send the same ``id`` again to replace an open
+        sheet's content in place). Handle the close with
+        ``@hub.on("sheet_closed")`` (``{"id", "reason"}``). Raises :class:`HubError` when
+        the app refuses (``not-hub``, ``invalid``, ``not-found``, ``busy``)."""
+        from .hub import HubError
+        if (group_id is None) == (group is None):
+            raise HubError("open_sheet needs exactly one of group_id or group")
+        if style is not None and style not in ("fullScreen", "sheet"):
+            raise HubError(f"style must be 'fullScreen' or 'sheet', got {style!r}")
+        sid = (id or uuid.uuid4().hex[:16])[:64]
+        payload: dict = {"id": sid}
+        if group_id is not None:
+            payload["groupId"] = group_id
+        else:
+            payload["group"] = {"type": "group", **group}
+        if title:
+            payload["title"] = title[:80]
+        if style:
+            payload["style"] = style
+        await self._route_sheet(payload)
+        return sid
+
+    async def close_sheet(self, id: str) -> bool:
+        """Close the hub's open sheet ``id``. Returns True when it was closed; the
+        app answers ``not-found`` for a sheet that isn't open, which raises
+        :class:`HubError`."""
+        res = await self._route_sheet({"id": id, "close": True})
+        return bool(res.get("closed", True))

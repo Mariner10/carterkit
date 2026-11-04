@@ -57,6 +57,8 @@ GROUP_FIELDS = {
     "type", "id", "name", "position", "span", "label", "grid", "children", "dynamic",
     "visible", "enabled", "theme", "hideBackground", "pulse", "icon", "tint", "controlHeight",
     "landscape", "regular", "extensions",
+    # Expand (group-def.md): grow into a foreground container; `action` = unclaimed tap.
+    "expand", "action",
     # A group with a `form` block is a form (form.md).
     "form",
 }
@@ -1246,6 +1248,9 @@ def _validate_local_sync(s, ctype, spot, i, findings, sources):
     _local_problems(localmod.lint_stage(stage, fields), "bad_stage", spot, what, findings)
 
 
+_EXPAND_ACTIONS = ("expand", "collapse", "toggleExpand")
+
+
 def _validate_action_entry(a, ctype, akey, spot, findings, sources):
     method = a.get("method", "meshsocket")
     if method == "local":
@@ -1265,6 +1270,12 @@ def _validate_action_entry(a, ctype, akey, spot, findings, sources):
                                f"{ctype}.{akey} http action needs a 'path' or 'url'"))
         _source_ref_findings(a, "http", spot, ctype, akey, findings, sources)
         return
+    for ek in _EXPAND_ACTIONS:        # app-local: acts on the expanded view, no transport
+        if ek in a:
+            if not (isinstance(a[ek], str) and a[ek]):
+                findings.append(_f("error", "bad_action", spot,
+                                   f"{ctype}.{akey} '{ek}' needs a group id string"))
+            return
     # MeshSocket (default): the `event` is the wire frame type — must be a relay verb.
     if not a.get("event"):
         findings.append(_f("error", "bad_action", spot,

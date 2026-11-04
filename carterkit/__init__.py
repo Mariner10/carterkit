@@ -55,6 +55,7 @@ from . import canonical
 from .canonical import canonical_json, content_digest
 from . import patch
 from .forms import form, rules as form_rules
+from .bind import expand_block
 from .patch import PatchError
 
 try:
@@ -111,7 +112,7 @@ def lint_dynamic_traffic(layout: dict, observed, catalog_: dict | None = None) -
 
 
 __all__ = [
-    "form", "form_rules",
+    "form", "form_rules", "expand_block",
     "__version__", "PROTOCOL_VERSION",
     "CarterClient", "notify_http", "CarterNotifyError",
     "device_refresh_http", "CarterDeviceRevoked", "CommandDedupe",

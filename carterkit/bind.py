@@ -52,6 +52,49 @@ def action(event: str, *, payload: dict | None = None, mode: str = "broadcast",
     return a
 
 
+def expand(group_id: str) -> dict:
+    """An `action` that opens group `group_id`'s expanded view (app-local, no transport).
+    From a control inside a list row, pass the list's id to open that row."""
+    return {"expand": group_id}
+
+
+def collapse(group_id: str) -> dict:
+    """An `action` that closes the expanded view opened from `group_id`."""
+    return {"collapse": group_id}
+
+
+def toggle_expand(group_id: str) -> dict:
+    """An `action` that opens `group_id`'s expanded view, or closes it when open."""
+    return {"toggleExpand": group_id}
+
+
+def place(ref: str, position, span=None, **overlay) -> dict:
+    """An `expand.children` placement: move the group's child `ref` to `position`
+    (and `span`) while expanded; extra keywords (a bigger `size`, another `style`)
+    are laid over it. Controls that exist only when expanded are plain dicts with a `type`."""
+    p: dict = {"ref": ref, "position": list(position)}
+    if span is not None:
+        p["span"] = list(span)
+    p.update(overlay)
+    return p
+
+
+def expand_block(*, trigger=None, style: str | None = None, grid: dict | None = None,
+                 children: list | None = None, title: str | None = None) -> dict:
+    """A group's `expand` block (pass to ``ui.group(expand=...)``). `trigger` is
+    ``"tap"|"hold"|"both"|"none"``, a control id, or a list mixing them; `style` is
+    ``"fullScreen"`` or ``"sheet"``; `children` mixes :func:`place` placements and
+    expanded-only controls."""
+    if style is not None and style not in ("fullScreen", "sheet"):
+        raise ValueError(f"style must be 'fullScreen' or 'sheet', got {style!r}")
+    e: dict = {}
+    for k, v in (("trigger", trigger), ("style", style), ("grid", grid),
+                 ("children", children), ("title", title)):
+        if v is not None:
+            e[k] = list(v) if k == "children" else v
+    return e
+
+
 def command(name: str, *, payload: dict | None = None, method: str = "meshsocket") -> dict:
     """An `action` for a named command that actually crosses the relay.
 

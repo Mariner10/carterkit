@@ -162,6 +162,27 @@ fields:
     description: "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
     summary: Draw each row from controls instead of columns
     does: "Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data."
+  - name: itemSpacing
+    title: Row gap
+    tab: style
+    min: 0
+    max: 64
+    step: 1
+    type: number
+    default: 2
+    description: "Points between rows (0-64, default 2)."
+    summary: How far apart the rows sit
+    does: "Opens up space between rows, so card-style rows stand apart from each other."
+  - name: itemStyle
+    title: Row look
+    tab: style
+    values: [plain, card]
+    type: enum
+    default: plain
+    description: "plain: rows sit inside the list's card. card: each itemTemplate row draws its template group's own card (fill, corners, theme), so rows read as separate cards; pair it with hideBackground: true and an itemSpacing. See [[#Card rows]]."
+    summary: Plain rows or a card per row
+    does: "Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card."
+    valueHelp: {"plain": "rows sit inside the list's own card, as before", "card": "each templated row is its own card, styled by the template group"}
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -241,6 +262,8 @@ Inherits all [[shared-properties]]. Key fields:
 | `defaultValue` | object[] | — | Seed rows shown before the first sync, the same row objects a sync delivers. See [[control-def#defaultValue per type]] |
 | `paging` | object | — | Rows fed by the hub a page at a time as the list scrolls — see [[#Paging]] |
 | `itemTemplate` | [[group-def\|GroupDefinition]] | — | Each row drawn from controls bound to `{{item.<field>}}` — see [[#Item templates]] |
+| `itemSpacing` | number | `2` | Points between rows (0-64) |
+| `itemStyle` | `"plain"` or `"card"` | `"plain"` | `card`: each templated row draws its template group's own card — see [[#Card rows]] |
 
 ## Column keys
 
@@ -363,7 +386,59 @@ fields: `{{item.meta.author}}`), and an exact token keeps its type, so
 
 Without `itemTemplate`, rows are columns (`listColumns`), paged or not.
 
+## Card rows
+
+With `"itemStyle": "card"` every templated row is a container of its own: the template group's
+card (the theme's surface, corners and border, or the template's own `theme`), padded like any
+group, instead of a line inside the list's card. Turn the list's own card off with
+`"hideBackground": true` and set an `itemSpacing` so the cards stand apart. A template with
+`"hideBackground": true` draws no card even here. Placeholder rows of a paged list take the
+card's height too.
+
+### Expanding a row
+
+An `expand` block on the `itemTemplate` ([[group-def#Expand]]) lets each row grow, from where it
+sits, into a full-screen (or sheet) container with a corner close. Its `{"ref": …}` entries name
+the template's child ids and move that row's own controls to new cells; its other entries are
+controls only the expanded row has. `{{item.<field>}}` is filled in from the row in all of them
+and in `title`. The row's tap still sends its `id`; a row with an `expand` opens it on a tap no child claims (trigger `tap`, the default) or a hold.
+The expanded row shows the row as it was when opened.
+
 ## Examples
+
+### Package cards that expand
+Shows templated rows drawn as separate cards that each grow into a full-screen page. Intended effect: a scrolling column of package cards (icon, name, version, Install); tapping a card (anywhere but the Install button) or holding it grows that card to full screen with a bigger icon, the name beside it and the notes below.
+```json
+{
+  "type": "list",
+  "id": "packages",
+  "position": [0, 0],
+  "span": [6, 4],
+  "hideBackground": true,
+  "itemStyle": "card",
+  "itemSpacing": 10,
+  "itemTemplate": {
+    "grid": { "columns": 4, "rows": 1 },
+    "children": [
+      { "type": "image", "id": "icon", "position": [0, 0], "systemName": "shippingbox" },
+      { "type": "label", "id": "name", "position": [0, 1], "span": [1, 2], "text": "{{item.name}} {{item.version}}" },
+      { "type": "button", "id": "install", "position": [0, 3], "label": "Install",
+        "action": { "method": "meshsocket", "event": "install", "payload": { "id": "{{item.id}}" } } }
+    ],
+    "expand": {
+      "title": "{{item.name}}",
+      "grid": { "columns": 4, "rows": 5 },
+      "children": [
+        { "ref": "icon", "position": [0, 0], "span": [2, 2] },
+        { "ref": "name", "position": [0, 2], "span": [1, 2] },
+        { "ref": "install", "position": [1, 2], "span": [1, 2] },
+        { "type": "label", "position": [2, 0], "span": [3, 4], "text": "{{item.notes}}" }
+      ]
+    }
+  },
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "packages" }, "valuePath": "items" }]
+}
+```
 
 ### Device status list
 Shows a list fed live from a hub, with a number column. Intended effect: three columns of device name, status and ping that refresh whenever the hub broadcasts.
