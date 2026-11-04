@@ -267,6 +267,33 @@ contract: `Hub("dashboard.json").push("temp", 21.5)`. Dynamic groups fill with
 `hub.fill(group, fragment)`; the hub answers late joiners with the last pushed values
 (control-state authority) by default.
 
+### Ask the user to confirm, and page long lists
+
+`hub.confirm()` shows the app's own confirm frame (it names this hub) and returns
+`'confirm'`, `'cancel'`, `'timeout'` or `'busy'`. `hub.confirm_sync()` is the blocking form
+for code on another thread than the hub's loop.
+
+```python
+choice = await hub.confirm("Remove the package?", "You can add it again later.",
+                           confirm_label="Remove", destructive=True, timeout_s=60)
+if choice == "confirm":
+    remove_package()
+```
+
+A list with `paging` asks for rows a page at a time. `@hub.pages` answers it: the handler
+gets `(offset, limit, cursor, query)` and returns the items, or `(items, next_cursor, total)`.
+The reply is broadcast as the list's `replyType` with `req` and `query` echoed.
+
+```python
+@hub.pages("my-list")            # the list's id, or its paging.replyType
+async def _(offset, limit, cursor, query):
+    rows = search(query)         # your data source
+    return rows[offset:offset + limit], None, len(rows)
+```
+
+`hub.open_sheet()` is not here yet: its frame is being redefined (open a group expanded
+by id) in the app's `HUB-SHEET.md`, tracked by bead aif-3618x.5. TODO once that lands.
+
 ## Explore the controls (zero config)
 
 ```python

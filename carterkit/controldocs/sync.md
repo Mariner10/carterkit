@@ -304,6 +304,25 @@ A top-level layout key, not a per-control sync — the app↔server session cont
   `control_authority_hello {epoch, from}` / `command_ack` and the `_cmd`/`_from` stamps
   are **wire API** — never rename them.
 
+## Across launches (what the app remembers)
+
+A layout with a `connection` block keeps what it last showed, on this device only:
+its control values and the selected tab. They are saved
+about a second after values settle (at least every 10 s while they stream), and again
+when the app leaves the foreground or switches layouts. On the next launch the layout opens with them at once, even while
+the hub is away, each value dated at its real arrival so `staleAfter` marks old ones
+stale; a toggle a sync drives does not send until live data confirms it. Then live
+data wins: the first frame or `control_snapshot` overwrites any remembered value.
+
+- Never saved: a control with a `secure`, `secret` or `password` style, and a text
+  input whose id, label or placeholder names a credential (password, passcode,
+  secret, token, API key...).
+- Limits: a value over 512 KB is skipped, a layout keeps at most 4 MB (the largest
+  values go first), values older than 30 days are ignored, and a control whose type
+  changed since starts from its default.
+- Deleting the layout deletes them. A glance snapshot (`glance.warmOpen`) is
+  applied over them, as before.
+
 ## Notes
 
 - Multiple syncs per [[control-def]] allowed — and they may mix transports

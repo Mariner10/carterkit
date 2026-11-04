@@ -6,6 +6,7 @@ category: controls
 defaultSpan: [3, 3]
 addIntent: show
 pickerCategory: Charts
+depth: complete
 friendlyName: Pie
 oneLiner: Parts of a whole
 aliases: [pie, donut, doughnut, share, breakdown, proportion]
@@ -16,12 +17,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: "How a touch feels"
+    does: "Plays the chosen buzz on the phone when a slice is tapped or a wheel lands; none stays silent."
+    valueHelp: {"none": "no buzz", "light": "a faint tick", "medium": "a normal tap", "heavy": "a firm thump", "soft": "a muffled cushioned bump", "rigid": "a crisp hard click", "selection": "a tiny click like scrolling a picker", "success": "a short double-tap for done", "warning": "a sharper alert buzz", "error": "a harsh triple buzz for failure"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Label under the chart
+    summary: "The name shown under the chart"
+    does: "Writes this text under the chart in the title size; empty shows no title."
   - name: pieStyle
     edit: look
     title: Shape
@@ -30,6 +36,9 @@ fields:
     values: [pie, donut, wheel, menu]
     default: pie
     description: Classic pie, donut, spin-to-select wheel, or radial menu
+    summary: "Which kind of round chart it is"
+    does: "Switches the control between a solid pie, a ring with a hole, a spinning wheel and a radial button pad."
+    valueHelp: {"pie": "a solid chart with no hole", "donut": "a ring with a hole and a center readout", "wheel": "a wheel you flick to spin and pick a winner", "menu": "equal slices that each act as a button"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -43,9 +52,13 @@ fields:
     type: number
     default: 0
     description: Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control
+    summary: "A soft halo behind the slices"
+    does: "Adds a blurred glow in each slice's own color that reaches this many points out, from 0 (none) to 30."
   - name: pieConfig
     type: object
     description: Full configuration object (see PieConfig section)
+    summary: "The detailed chart settings in one bundle"
+    does: "Holds the options below (hole size and gaps and labels and legend and spin and actions); each one changes the chart as listed."
   - name: tint
     edit: color
     title: Color
@@ -53,14 +66,19 @@ fields:
     type: color
     default: "#667eea"
     description: First-slice color and palette seed
+    summary: "The main slice color"
+    does: "Colors the first slice and seeds the palette used for the other slices when no colors are listed."
   - name: formatValue
     tab: data
     type: string
     description: Formatter for slice/center values
+    summary: "How numbers are written"
+    does: "Reformats the numbers shown on slices and in the center, for example as a currency or a rounded figure."
   - name: centerText
     type: string
     description: Donut center text; {{total}} interpolates the slice sum
-    summary: Text shown in the middle of the donut
+    summary: "Text shown in the middle of the donut"
+    does: "Replaces the center readout of a donut with this text; {{total}} becomes the sum of all slices."
     group: pieConfig
   - name: colors
     edit: list
@@ -68,6 +86,8 @@ fields:
     tab: style
     type: string[]
     description: Slice color cycle (per-slice color wins)
+    summary: "The colors the slices take in turn"
+    does: "Colors slice one with the first entry, slice two with the second and so on, repeating when slices outnumber colors."
     group: pieConfig
   - name: donutRatio
     edit: scrub
@@ -80,6 +100,8 @@ fields:
     step: 0.05
     type: number
     description: Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3)
+    summary: "How big the hole in the middle is"
+    does: "Sets the hole width as a fraction of the radius from 0 (solid) to 0.85 (thin ring); the default depends on the shape."
     group: pieConfig
   - name: sliceGap
     edit: scrub
@@ -94,6 +116,8 @@ fields:
     type: number
     default: 0
     description: Even-width gap between neighbouring slices in points (slices narrower than the gap drop it)
+    summary: "Space between slices"
+    does: "Leaves an even gap of this many points between neighbouring slices, from 0 to 12."
     group: pieConfig
   - name: sliceCornerRadius
     edit: scrub
@@ -108,10 +132,14 @@ fields:
     type: number
     default: 0
     description: Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices
+    summary: "How round the slice corners are"
+    does: "Rounds the outer and inner corners of every slice by up to 16 points; tiny slices get less."
     group: pieConfig
   - name: explodeSelected
     type: bool
     description: Tapped slice pops outward (**wheels default false)
+    summary: "Whether a tapped slice pops out"
+    does: "On, the tapped slice slides outward from the center; off, it only highlights."
     group: pieConfig
   - name: percent
     edit: part
@@ -120,6 +148,8 @@ fields:
     type: bool
     default: false
     description: Show values as % of the total
+    summary: "Numbers as shares of the whole"
+    does: "On, slice values read as a percentage of the total instead of raw numbers."
     group: pieConfig
   - name: showLabels
     edit: part
@@ -127,6 +157,8 @@ fields:
     title: Labels
     type: bool
     description: Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead)
+    summary: "Names written on the slices"
+    does: "On, each slice shows its label; slices under about 4 percent of the circle hide theirs."
     group: pieConfig
   - name: showLegend
     edit: part
@@ -135,6 +167,8 @@ fields:
     type: bool
     default: false
     description: Wrapping dot-chip legend under the chart
+    summary: "A key of the slices under the chart"
+    does: "On, adds a wrapping row of colored dots with slice names below the chart."
     group: pieConfig
   - name: showValues
     edit: part
@@ -143,11 +177,15 @@ fields:
     type: bool
     default: false
     description: Append each slice's value to its label
+    summary: "Numbers next to the slice names"
+    does: "On, each slice label also shows that slice's value."
     group: pieConfig
   - name: sliceAction
     tab: action
     type: object
     description: sliceAction
+    summary: "What happens when a slice is chosen"
+    does: "Runs this action on a slice tap or wheel landing, with {{value}} set to the slice label."
     group: pieConfig
   - name: spinDuration
     min: 0.1
@@ -156,11 +194,15 @@ fields:
     type: number
     default: 4
     description: Approximate seconds a full-strength spin takes to settle
+    summary: "How long the wheel keeps turning"
+    does: "Sets roughly how many seconds a full-strength spin takes to slow to a stop, from 0.1 to 10."
     group: pieConfig
   - name: spinTicks
     type: bool
     default: true
     description: Haptic tick per slice boundary while spinning
+    summary: "The clicks while the wheel turns"
+    does: "On, the phone ticks each time a slice boundary passes the pointer; off, the spin is silent."
     group: pieConfig
   - name: startAngle
     edit: scrub
@@ -173,14 +215,20 @@ fields:
     type: number
     default: 0
     description: Degrees the first slice starts at (0 = 12 o'clock, clockwise)
+    summary: "Where the first slice begins"
+    does: "Rotates the whole chart so the first slice starts at this many degrees clockwise from the top, 0 to 360."
     group: pieConfig
   - name: icon
     type: string
     description: SF Symbol in the wheel/menu hub before a result lands
+    summary: "The symbol in the middle of the wheel"
+    does: "Draws this SF Symbol in the wheel or menu hub until a result lands."
   - name: hideValue
     type: bool
     default: false
     description: Suppress the donut/hub center readout
+    summary: "Hides the center number"
+    does: "On, removes the readout from the donut center or hub; the slices still draw."
 themeFields:
   - name: cornerRadius
     min: 0
@@ -189,24 +237,34 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: "How round the card corners are"
+    does: "Rounds the card corners from 0 (square) to 30 points."
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill (also the hairline slice gap color)
+    summary: "The card's fill color"
+    does: "Fills the card behind the chart; it is also the hairline color between slices."
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Label text color
+    summary: "The softer text color"
+    does: "Colors the slice labels and legend text."
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: "The highlight color"
+    does: "Sets the accent used for the selected slice and highlights."
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: "The outline around the card"
+    does: "Colors the card's outline."
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -215,6 +273,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: "How thick the outline is"
+    does: "Sets the card outline width from 0 to 5 points."
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -223,11 +283,15 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: "Space inside the card"
+    does: "Sets the padding between the card edge and the chart from 0 to 24 points."
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: "The main text color"
+    does: "Colors the title and the center readout."
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -236,6 +300,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: "How big the title is"
+    does: "Sets the title text size from 8 to 24 points."
 ---
 
 # Pie Chart
@@ -365,6 +431,56 @@ what `"groupBy": "genre"` delivers) also reads: one slice per category, sized by
 }
 ```
 
+### Plain pie with fixed slices
+Shows a value on screen with no data source: a solid pie of three coloured shares with a legend, so the person sees parts of a whole at a glance.
+```json
+{
+  "type": "pieChart",
+  "id": "budget-pie",
+  "position": [0, 0],
+  "span": [3, 3],
+  "label": "Budget",
+  "pieStyle": "pie",
+  "pieConfig": { "showLegend": true, "showValues": true, "startAngle": 90 },
+  "defaultValue": "{\"slices\":[{\"label\":\"Rent\",\"value\":50,\"color\":\"#FF6B6B\"},{\"label\":\"Food\",\"value\":30,\"color\":\"#667eea\"},{\"label\":\"Fun\",\"value\":20}]}"
+}
+```
+
+### Polished donut look
+Shows the look settings together: a thin ring with rounded, separated slices and a soft glow, so the chart reads as a refined ring rather than a flat disc.
+```json
+{
+  "type": "pieChart",
+  "id": "polished-donut",
+  "position": [0, 0],
+  "span": [3, 3],
+  "label": "Storage",
+  "pieStyle": "donut",
+  "glowRadius": 10,
+  "pieConfig": { "donutRatio": 0.7, "sliceGap": 4, "sliceCornerRadius": 8, "colors": ["#4ECDC4", "#FFE66D", "#FF6B6B"], "centerText": "{{total}} GB" },
+  "defaultValue": "{\"slices\":[{\"label\":\"Photos\",\"value\":64},{\"label\":\"Apps\",\"value\":32},{\"label\":\"Other\",\"value\":16}]}"
+}
+```
+
+### Tap a slice to act
+Shows the tap action and haptic: tapping a slice pops it outward, buzzes lightly and broadcasts that slice's label, so a pie doubles as a filter picker.
+```json
+{
+  "type": "pieChart",
+  "id": "room-filter",
+  "position": [0, 0],
+  "span": [3, 3],
+  "label": "Rooms",
+  "pieStyle": "donut",
+  "haptic": "light",
+  "pieConfig": {
+    "explodeSelected": true,
+    "sliceAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "room_focus", "room": "{{value}}" } }
+  },
+  "defaultValue": "{\"slices\":[{\"label\":\"Kitchen\",\"value\":3},{\"label\":\"Den\",\"value\":2},{\"label\":\"Garage\",\"value\":1}]}"
+}
+```
+
 ## Behavior
 - Slice datasets animate between pushes; taps highlight (and optionally explode) a slice
 - **Wheel**: flick to spin with your own force, or tap for a strong randomized spin; the pointer sits at 12 o'clock; each boundary crossing ticks; settling fires a success haptic + the action with the winner, and the hub shows the result
@@ -372,6 +488,8 @@ what `"groupBy": "genre"` delivers) also reads: one slice per category, sized by
 - The wheel result is delivered via action only — the control's value stays the dataset, so a re-render never re-fires a pick
 
 ## Notes
+- `hideValue`, `centerText` and `donutRatio` show nothing on a plain `pie` (no hole) or `menu`; they matter on `donut` and `wheel` hubs
+- `spinDuration` and `spinTicks` only change the `wheel`; the other shapes never spin
 - Wheel odds follow `value` weights — equal weights = fair spin, and the server can re-weight live between spins
 - Slices under ~4% of the circle drop their inline label; use `showLegend` for long tails
 - A polar/rose chart is a pie whose values map to radius — out of scope v1

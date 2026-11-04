@@ -6,6 +6,7 @@ category: controls
 defaultSpan: [1, 2]
 addIntent: change
 pickerCategory: Inputs
+depth: complete
 friendlyName: Menu
 oneLiner: Pick one from a list
 aliases: [dropdown, select, menu, choose, options, combo box]
@@ -13,26 +14,40 @@ addRank: 7
 starterPreset: {"label": "Menu","options": ["One","Two","Three"]}
 fields:
   - name: animation
+    title: Motion
     tab: style
     type: enum
     values: [smooth, snappy, bouncy, gentle, instant]
     description: Motion profile for value changes
+    summary: How the choice change animates
+    does: "Sets how the shown choice transitions when the value changes, from instant swap to a soft glide."
+    valueHelp: {"smooth": "an even natural transition", "snappy": "a quick firm change", "bouncy": "overshoots slightly then settles", "gentle": "a slow soft change", "instant": "swaps with no transition"}
   - name: optionIcons
+    title: Choice symbols
     type: array
     description: Optional SF Symbols parallel to options, supported in every picker style
+    summary: A small picture beside each choice
+    does: "Shows the SF Symbol at the same position next to each choice, in every look; a blank or missing entry shows no icon."
   - name: optionLabels
+    title: Choice names
     type: array
     description: Display labels parallel to options; actions and sync use the original option values
     summary: Display names for the choices, in the same order
+    does: "Shows these names instead of the stored values; the original value is still what is saved and sent."
   - name: placeholder
+    title: Empty text
     type: string
     description: Text shown when no options are available or a picker has no selection
+    summary: What shows when nothing is chosen
+    does: "Writes this text when the list is empty (default No options) or nothing is selected (default Choose…)."
   - name: options
     edit: options
     depth: surface
     title: Choices
     type: array
     description: Available choices (string array)
+    summary: The list of things you can pick
+    does: "Fills the menu, wheel or list with one row per entry; the picked entry is the value stored and sent."
   - name: pickerStyle
     edit: look
     depth: surface
@@ -42,23 +57,35 @@ fields:
     values: [menu, wheel, inline]
     default: menu
     description: Display style
+    summary: How the list is shown
+    does: "Switches between a compact dropdown, a spinning wheel, or a list shown in full."
+    valueHelp: {"menu": "a compact button that opens a dropdown", "wheel": "a spinning drum you scroll to a choice", "inline": "every choice shown as a tappable list"}
   - name: label
     edit: inline
     depth: surface
     title: Label
     type: string
     description: Display label
+    summary: The name shown with the picker
+    does: "Writes this text as the picker title."
   - name: tint
+    title: Color
     edit: color
     depth: surface
     tab: style
     type: color
     default: "#667eea"
     description: Accent color
+    summary: The highlight color
+    does: "Colors the selected choice and the picker accent with this color."
   - name: defaultValue
+    title: Starting choice
     type: string
     description: Initially selected option
+    summary: Which choice is picked at first
+    does: "Selects this choice when the layout first appears; it should match one of the stored values."
   - name: haptic
+    title: Tap feel
     edit: look
     depth: hold
     under: pickerStyle
@@ -67,15 +94,20 @@ fields:
     values: [light, medium, heavy, success, warning, error, selection]
     default: selection
     description: Default haptic on change
+    summary: The buzz felt when you change the choice
+    does: "Plays this haptic on the phone each time a new choice is picked (default selection)."
+    valueHelp: {"light": "a faint tap", "medium": "a firm tap", "heavy": "a strong thud", "success": "a happy double tap", "warning": "a cautionary buzz", "error": "a sharp triple buzz", "selection": "a tiny tick like scrolling a wheel"}
   - name: confirm
     title: Show confirmation
     tab: action
     type: bool
     default: false
-    summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    summary: A short note with Undo after each tap
+    does: "Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice."
 themeFields:
   - name: cornerRadius
+    title: Corner roundness
     edit: scrub
     depth: hold
     under: pickerStyle
@@ -86,30 +118,48 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: "Rounds the card corners from 0 (square) to 30 points."
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
     type: number
     default: 8
     description: Internal padding
+    summary: Space between the card edge and the content
+    does: "Sets the padding inside the card from 0 to 24 points."
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: "Fills the card behind the picker with this color."
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The highlight color
+    does: "Sets the accent used for the picker highlights."
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The color of the less important text
+    does: "Colors the quieter text such as the placeholder and value."
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline around the control
+    does: "Colors the card's outline."
   - name: borderWidth
+    title: Border thickness
     edit: scrub
     depth: hold
     under: pickerStyle
@@ -120,13 +170,18 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How heavy the outline is
+    does: "Sets the outline thickness from 0 to 5 points."
   - name: labelFontSize
+    title: Label text size
     min: 8
     max: 24
     step: 1
     type: number
     default: 12
     description: Label text size
+    summary: How big the label is
+    does: "Sets the label text size from 8 to 24 points."
 ---
 
 # Picker
@@ -160,6 +215,7 @@ Inherits all [[shared-properties]]. Key fields:
 ## Examples
 
 ### Friendly labels with stable server values
+Shows `optionLabels` and `optionIcons`: the menu reads Economy, Comfort and Sport with a symbol each, while `eco`, `comfort` or `sport` is what is stored and sent.
 
 ```json
 {
@@ -170,8 +226,9 @@ Inherits all [[shared-properties]]. Key fields:
 }
 ```
 
-
 ### Room selector (menu)
+Shows the default menu look with an action: picking a room broadcasts a `switch_room` message carrying the chosen name.
+
 ```json
 {
   "type": "picker",
@@ -186,6 +243,8 @@ Inherits all [[shared-properties]]. Key fields:
 ```
 
 ### Playlist picker (wheel)
+Shows the wheel look: a spinning drum you scroll to a playlist, starting on Chill.
+
 ```json
 {
   "type": "picker",
@@ -199,7 +258,41 @@ Inherits all [[shared-properties]]. Key fields:
 }
 ```
 
+### Inline list
+Shows the inline look: every choice is visible as a tappable list, with a custom tint and a success haptic on change.
+
+```json
+{
+  "type": "picker", "id": "fan-mode", "position": [0, 0], "span": [2, 3],
+  "options": ["Auto", "Low", "Medium", "High"], "pickerStyle": "inline",
+  "label": "Fan", "tint": "#34C759", "haptic": "success", "defaultValue": "Auto"
+}
+```
+
+### Placeholder with undo
+Shows `placeholder` and `confirm`: with no starting choice the picker reads "Pick a scene", and each pick shows an Undo pill for 3 seconds.
+
+```json
+{
+  "type": "picker", "id": "scene", "position": [0, 0],
+  "options": ["Movie", "Dinner", "Reading"], "placeholder": "Pick a scene",
+  "label": "Scene", "confirm": true, "animation": "snappy"
+}
+```
+
+### Themed picker
+Shows `theme` overrides: rounder corners, more padding and a thicker border in a custom accent for a bolder card.
+
+```json
+{
+  "type": "picker", "id": "themed-pick", "position": [0, 0],
+  "options": ["Day", "Night"], "label": "Mode",
+  "theme": { "cornerRadius": 24, "controlPadding": 14, "borderWidth": 2, "borderColor": "#667eea", "accentColor": "#FF9500", "labelFontSize": 16 }
+}
+```
+
 ## Notes
+- `haptic` and `animation` have no visible effect in the wheel look beyond the system wheel feel; the picker has no long-press or detail view
 - For 2-5 options, prefer [[segmented-control]] for better space efficiency
 - Value is the string text of the selected option
 

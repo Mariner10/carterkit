@@ -64,6 +64,39 @@ fields:
     type: number
     default: 1
     description: Step for increment/decrement; any non-zero number or an exact token such as {{value}}; decrement subtracts it; integer fields take whole steps only (local)
+  - name: confirm
+    summary: "Ask before sending"
+    does: "Shows the app's own confirmation dialog first; the action goes out only when the user taps the confirm button."
+    title: Confirm first
+    type: enum
+    values: [dialog]
+    valueHelp: {"dialog": "a dialog drawn by the app that names this layout and where the action goes; Cancel sends nothing"}
+    description: dialog = ask in the app's confirmation dialog before sending; Cancel, or 60 s without an answer, sends nothing (the control's own confirm true is the Undo pill)
+  - name: confirmTitle
+    summary: "The dialog's question"
+    does: "The headline of the confirmation dialog; without it the control's label is used."
+    title: Dialog title
+    type: string
+    description: Confirmation dialog headline (default the control's label; up to 80 characters)
+  - name: confirmMessage
+    summary: "More detail under the question"
+    does: "A line or two under the headline that says what will happen."
+    title: Dialog message
+    type: string
+    description: Confirmation dialog body text (up to 600 characters)
+  - name: confirmLabel
+    summary: "The word on the confirm button"
+    does: "The text on the button that sends the action, such as Remove or Restart; Confirm when unset."
+    title: Confirm button
+    type: string
+    description: Confirm button text (default Confirm; up to 24 characters)
+  - name: destructive
+    summary: "Mark it as hard to undo"
+    does: "Draws the dialog's confirm button in red, for removals and other changes that cannot be taken back."
+    title: Destructive
+    type: bool
+    default: false
+    description: Red confirm button in the confirmation dialog
 ---
 
 How controls send commands — the outbound half of the **standardized connection
@@ -210,6 +243,54 @@ own adds, edits and deletes.
 { "method": "local", "op": "increment", "collection": "counter", "field": "count" }
 { "method": "local", "op": "toggle", "collection": "settings", "field": "muted" }
 ```
+
+### Confirm dialog
+
+`"confirm": "dialog"` on an action asks first: the app draws its own confirmation
+dialog over the whole screen and sends the action only when the user taps the
+confirm button. **Cancel**, or 60 seconds without an answer, sends nothing, and a
+[[toggle]] the tap already flipped goes back. It works on any action and any
+transport (a [[long-press]] action, a row or chart tap, a local write). The dialog is
+app chrome, not layout styling: it names the layout and where the action goes
+(`Workshop` over `Layout · Connect+ · lights`), with `confirmTitle` (default the
+control's label), `confirmMessage`, `confirmLabel` (default `Confirm`) and
+`destructive: true` for a red confirm button.
+
+```json
+"action": {
+  "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+  "payload": { "msg_type": "item.remove", "id": "{{value}}" },
+  "confirm": "dialog", "confirmTitle": "Remove this item?",
+  "confirmMessage": "It is removed from the hub.", "confirmLabel": "Remove",
+  "destructive": true
+}
+```
+
+This is a different option from the control's `"confirm": true` (the Undo pill
+above): the pill reports a local write after it lands, the dialog stops an action
+before it is sent. Shortcuts, widgets and Control Center do not offer an action that
+asks first: it fires only in the app.
+
+## Hub prompts
+
+A layout's hub can ask the user to confirm something (before it installs, removes or
+deletes anything) with the routed `prompt` verb on the layout's socket. The app draws
+the same frame, naming the hub and its connection (`Example hub` over
+`Hub · Connect+ · lights`), one prompt at a time, and answers with a
+`broadcast_request` the hub receives like any action:
+
+```json
+{ "id": "req-7", "title": "Remove the package?", "message": "You can install it again later.",
+  "confirm": { "label": "Remove", "role": "destructive" }, "cancel": { "label": "Keep" },
+  "timeoutS": 60, "hub": "Example hub" }
+
+{ "msg_type": "prompt_reply", "id": "req-7", "choice": "confirm", "from": "<device>" }
+```
+
+`choice` is `confirm`, `cancel`, `timeout` or `busy`. Only the layout on screen's own
+connection may ask (and, when the layout names a `state.authority`, only a frame whose
+`from` is that authority); at most 3 wait behind the one shown and 5 are taken per 30
+seconds, the rest answer `busy`. The full wire contract is in `docs/HUB-PROMPT.md`.
 
 ## Related
 

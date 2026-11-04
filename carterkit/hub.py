@@ -43,6 +43,7 @@ import logging
 from .client import CarterClient
 from .connection import Connection
 from .contract import is_group
+from .hub_extras import HubExtras
 
 log = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ def _walk_children(layout: dict):
         yield from walk(tab.get("children"))
 
 
-class Hub:
+class Hub(HubExtras):
     """The driving side of a layout: push values into syncs, handle actions.
 
     ``layout`` may be a :class:`carterkit.Layout`, a layout dict, or a path to a
@@ -204,6 +205,7 @@ class Hub:
 
     # ─── lifecycle ───────────────────────────────────────────────────────────
     async def start(self) -> "Hub":
+        self._loop = asyncio.get_running_loop()
         if self.connection.kind == "local":
             from .relay import LocalRelay, port_in_use
             # An already-listening port means a relay is running (the CLI's, another

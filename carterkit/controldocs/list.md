@@ -84,6 +84,84 @@ fields:
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
     summary: A short note with Undo after each tap
     does: "After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button."
+  - name: paging
+    title: Load as you scroll
+    tab: advanced
+    simple: hide
+    type: object
+    description: "Rows fed by the hub a page at a time: {pageSize, request, replyType, replyPath, window, queryFrom}. Absent: the list shows the rows its sync delivers. See [[#Paging]]."
+    summary: Load rows from the hub a page at a time as you scroll
+    does: "Asks the hub for the first rows when the list appears and for more as you near the end, so a list of any length scrolls without the phone holding every row."
+  - name: pageSize
+    group: paging
+    title: Rows per page
+    tab: advanced
+    simple: hide
+    type: number
+    min: 5
+    max: 200
+    step: 5
+    default: 50
+    description: "Rows asked for per request, sent as {{limit}} (5-200). A hub may send fewer."
+    summary: How many rows each request asks for
+    does: "Asks the hub for this many rows at a time, e.g. 50; the next request goes out when you are half a page from the last row."
+  - name: request
+    group: paging
+    title: Page request
+    tab: advanced
+    simple: hide
+    type: object
+    description: "The action sent for each page (meshsocket; `method` may be left out), with {{cursor}}, {{offset}}, {{limit}}, {{query}} and {{req}} filled into its payload. See [[#Paging]]."
+    summary: The message that asks the hub for rows
+    does: "Sends this message for every page with the position, the page size and the search text filled in."
+  - name: replyType
+    group: paging
+    title: Reply type
+    tab: advanced
+    simple: hide
+    type: string
+    description: "msg_type of the hub's page broadcasts. A page is {items (or rows), cursor?, total?, more?, offset?, query?, req?}; a frame of this type without items or rows is ignored."
+    summary: Which hub messages carry the rows
+    does: "Takes rows only from hub messages of this type and leaves every other message alone."
+  - name: replyPath
+    group: paging
+    title: Page inside the reply
+    tab: advanced
+    simple: hide
+    type: string
+    description: "Dot path from the reply frame to the page object, e.g. result for {msg_type, req, result: {rows, total}}. Absent: the frame is the page."
+    summary: Where the rows sit inside a reply
+    does: "Reads the page from this part of each reply, e.g. result, instead of from the top of the message."
+  - name: window
+    group: paging
+    title: Rows kept
+    tab: advanced
+    simple: hide
+    type: number
+    min: 20
+    max: 5000
+    step: 50
+    default: 600
+    description: "Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back."
+    summary: How many rows the phone keeps at once
+    does: "Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to."
+  - name: queryFrom
+    group: paging
+    title: Search field
+    tab: advanced
+    simple: hide
+    type: string
+    description: "Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing."
+    summary: The field whose text filters the rows
+    does: "Sends that field's text as the search with every request, and starts the list over from the top when the text changes."
+  - name: itemTemplate
+    title: Row design
+    tab: advanced
+    simple: hide
+    type: object
+    description: "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
+    summary: Draw each row from controls instead of columns
+    does: "Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data."
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -161,6 +239,8 @@ Inherits all [[shared-properties]]. Key fields:
 | `hideLabel` | bool | `false` | Hide header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
 | `defaultValue` | object[] | — | Seed rows shown before the first sync, the same row objects a sync delivers. See [[control-def#defaultValue per type]] |
+| `paging` | object | — | Rows fed by the hub a page at a time as the list scrolls — see [[#Paging]] |
+| `itemTemplate` | [[group-def\|GroupDefinition]] | — | Each row drawn from controls bound to `{{item.<field>}}` — see [[#Item templates]] |
 
 ## Column keys
 
@@ -205,6 +285,83 @@ or removes it with `op: "delete"`. To edit a row elsewhere on the screen, select
 selection cursor, and every control bound with `"where": {"id": "{{selected}}"}` refills
 with the tapped row. Rows without an `id` aren't tappable. Without an `action` the list
 stays read-only.
+
+## Paging
+
+A list with `paging` asks its hub for rows a page at a time instead of holding the whole
+set, so a catalogue of tens of thousands of rows scrolls and searches smoothly. Its `sync`
+is not needed (rows come from the replies).
+
+**Requests.** The list sends `paging.request` (a meshsocket action, normally a
+`broadcast_request`) when it first appears, and again when the user is half a page from
+the last loaded row. Its payload is filled in with:
+
+| Token | Value |
+|-------|-------|
+| `{{offset}}` | Index of the first row asked for (0 for the first page) |
+| `{{limit}}` | `pageSize` |
+| `{{cursor}}` | The `cursor` the hub sent with the page that ended at `{{offset}}`; `null` for the first page and for hubs that page by offset |
+| `{{query}}` | The search text (`""` for none) |
+| `{{req}}` | A request id, unique per request |
+
+An exact token keeps its type (`"offset": "{{offset}}"` sends a number). A request with no
+reply after 8 seconds is sent again while the list is on screen.
+
+**Replies.** The hub answers with a broadcast whose `msg_type` is `paging.replyType`. The
+page is the frame itself, or the object `paging.replyPath` names in it:
+
+```json
+{ "msg_type": "catalogue_page", "req": "…", "items": [{ "id": "a1", "name": "…" }],
+  "cursor": "…", "total": 48211, "more": true, "offset": 0, "query": "" }
+```
+
+- `items` (or `rows`): the rows, in order, from `offset`. Required; a frame of this type
+  without them is not a page (an error reply, another method's reply) and is ignored.
+- `req`: echo `{{req}}` (on the page or on the frame). With it, only the reply to a request
+  still waiting is taken: a reply to an older search, or to another list sharing the
+  `replyType`, is dropped. Without it, a page whose `query` differs from the current search
+  is dropped, and the page goes to the oldest waiting request (or to `offset`, when echoed).
+- `offset`: where the rows go; default, the requested `{{offset}}`.
+- The end of the list is the first of: `more: false`; `total` reached; a `cursor` of `null`;
+  none of these and fewer rows than `{{limit}}`. An empty page ends the list where it starts.
+  `total` also tells VoiceOver how many rows there are.
+
+**Search.** `paging.queryFrom` names a text input (a search field) in the layout. When its
+text changes, the list waits 250 ms without typing, then drops its rows and asks for the
+first page of the new search; the hub does the matching.
+
+**Window.** The phone keeps at most `paging.window` rows (default 600) around the rows on
+screen. Rows far away are let go but keep their place, so the scroll position holds; when
+the user scrolls back to one, the list asks again for the page that held it (with that
+page's `{{cursor}}` and `{{offset}}`). A loading row shows while a page is on its way, the
+row count at the end, and `emptyText` when the search matches nothing. Row taps send the
+row `id` as usual (see [[#Row taps]]).
+
+The rows of a paged list live only on the phone for the layout on screen: switching tabs
+keeps them; a new connection or a layout change starts over.
+
+## Item templates
+
+`itemTemplate` draws every row from controls instead of columns. It is a group definition
+([[group-def]]): a `grid` (default 4 columns × 1 row, 56 pt rows) and `children` placed on
+it; `id` and `position` may be left out. In the children's text, values, images, colors and
+action payloads, `{{item.<field>}}` is replaced from the row (a dot path reaches nested
+fields: `{{item.meta.author}}`), and an exact token keeps its type, so
+`"defaultValue": "{{item.percent}}"` feeds a gauge a number.
+
+- The row is the template's grid: one row of a 4-column grid is 56 pt tall.
+- Children read the row, not live values: each shows what its fields and `defaultValue`
+  say for that row; inputs in a row don't keep what is typed. Buttons fire their actions,
+  with the row's fields already in the payload and `{{value}}` left for the tap.
+- A tap elsewhere on the row sends the row `id` through the list's `action`, as for column
+  rows.
+- Ids are scoped to the row (`<id>@<row id>`), so they need not be unique in the layout.
+  A child that doesn't decode once filled in (a text field where a number belongs) is
+  left out of that row.
+- Text from the row is shown as written but never becomes a token itself (`{{` in a row's
+  data can't pull in a secret).
+
+Without `itemTemplate`, rows are columns (`listColumns`), paged or not.
 
 ## Examples
 
@@ -302,6 +459,37 @@ Shows the select binding that moves the selection cursor. Intended effect: tappi
   "sync": [{ "method": "local", "collection": "books" }]
 }
 ```
+
+### Paged catalogue with a row design
+Shows `paging` with a search field and an `itemTemplate`. Intended effect: a catalogue of any size scrolls with rows of name, detail and version, the hub sends 50 rows at a time, typing in the `catalogue-search` text input searches on the hub, and tapping a row sends its id.
+```json
+{
+  "type": "list",
+  "id": "catalogue",
+  "position": [1, 0],
+  "span": [7, 4],
+  "label": "Catalogue",
+  "emptyText": "Nothing matches",
+  "action": { "method": "meshsocket", "event": "broadcast_request", "payload": { "msg_type": "item_open", "id": "{{value}}" } },
+  "paging": {
+    "pageSize": 50,
+    "replyType": "catalogue_page",
+    "queryFrom": "catalogue-search",
+    "request": { "method": "meshsocket", "event": "broadcast_request",
+                 "payload": { "msg_type": "catalogue_pages", "offset": "{{offset}}", "limit": "{{limit}}",
+                              "cursor": "{{cursor}}", "query": "{{query}}", "req": "{{req}}" } }
+  },
+  "itemTemplate": {
+    "grid": { "columns": 4, "rows": 1 },
+    "children": [
+      { "type": "label", "id": "name", "position": [0, 0], "span": [1, 3], "label": "{{item.detail}}", "text": "{{item.name}}" },
+      { "type": "label", "id": "version", "position": [0, 3], "label": "Version", "text": "{{item.version}}" }
+    ]
+  }
+}
+```
+
+The hub answers `catalogue_pages` with `{"msg_type": "catalogue_page", "req": "<the req>", "items": [...], "total": 48211, "more": true}`. A hub that wraps its replies, like `{"msg_type": "daemon-reply", "req": "…", "result": {"rows": [...], "offset": 0, "more": true}}`, sets `"replyType": "daemon-reply"` and `"replyPath": "result"`.
 
 The list has no look that switches it to another control type, and no long-press or detail view.
 

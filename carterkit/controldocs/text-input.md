@@ -6,6 +6,7 @@ category: controls
 defaultSpan: [1, 2]
 addIntent: change
 pickerCategory: Inputs
+depth: complete
 friendlyName: Text box
 oneLiner: Type something in
 aliases: [text field, input, textbox, entry, type, search box]
@@ -17,20 +18,28 @@ fields:
     depth: surface
     type: string
     description: Placeholder text when empty
+    summary: The faint hint inside an empty box
+    does: "Shows this text in grey inside the field until something is typed."
   - name: label
     edit: inline
     depth: surface
     type: string
     description: Display label
+    summary: The name shown above the box
+    does: "Writes this text in the header above the field."
   - name: icon
     edit: symbol
     depth: hold
     under: label
     type: string
     description: SF Symbol shown in the field
+    summary: A small picture at the start of the box
+    does: "Shows this SF Symbol at the left inside the field."
   - name: defaultValue
     type: string
     description: Initial text
+    summary: What is already typed when it first appears
+    does: "Pre-fills the field with this text when the layout first appears."
   - name: style
     edit: look
     depth: surface
@@ -39,10 +48,15 @@ fields:
     values: [default, search, multiline]
     default: default
     description: Display style variant
+    summary: Which kind of box it is
+    does: "Switches between a plain field, a search field, or a tall multi-line field."
+    valueHelp: {"default": "a plain single-line field with a rounded background", "search": "a field with a magnifying glass and a clear button", "multiline": "a tall field that grows for several lines of text"}
   - name: sendButton
     type: bool
     default: false
     description: Growing composer with a Send button (Return inserts a newline)
+    summary: A chat-style box with a Send button
+    does: "On, adds a Send button and makes Return start a new line; off, Return submits."
   - name: minLines
     min: 1
     max: 20
@@ -50,6 +64,8 @@ fields:
     type: number
     default: 1
     description: Composer starting line count
+    summary: How tall the box starts
+    does: "Sets how many text lines tall the composer is when empty, from 1 to 20."
   - name: maxLines
     min: 1
     max: 50
@@ -57,23 +73,34 @@ fields:
     type: number
     default: 6
     description: Composer max lines before it scrolls internally
+    summary: How tall the box can grow
+    does: "Lets the composer grow up to this many lines (1 to 50) before it scrolls inside."
   - name: autocorrect
     type: bool
     default: false
     description: Default autocorrect/caps (off = ASCII keyboard, terminal-friendly)
+    summary: Whether the keyboard fixes your typing
+    does: "On, the keyboard corrects and capitalizes words; off, it uses a plain ASCII keyboard."
   - name: autocorrectToggle
     type: bool
     default: false
     description: Inline Aa button that flips autocorrect on the live keyboard
+    summary: A tiny button to switch typing help on the fly
+    does: "Shows an Aa button that turns autocorrect on or off while the keyboard is open."
   - name: keyboard
     type: enum
     values: [ascii, default, url, email, numbers]
     description: Keyboard type
+    summary: Which keys appear when you tap the box
+    does: "Chooses the on-screen keyboard layout, such as email or number keys."
+    valueHelp: {"ascii": "plain letters and symbols with no suggestions", "default": "the standard iPhone keyboard", "url": "keys for web addresses with a slash and dot", "email": "keys for email with an at sign", "numbers": "a number pad"}
   - name: clearOnSubmit
     tab: action
     type: bool
     default: false
     description: Clear the field after the return-key submit
+    summary: Whether the box empties after sending
+    does: "Empties the field right after you press return to submit."
   - name: tint
     edit: color
     depth: surface
@@ -81,6 +108,8 @@ fields:
     type: color
     default: "#667eea"
     description: Accent color
+    summary: The accent color of the box
+    does: "Colors the cursor, search icon and Send button with this color."
   - name: hideBackground
     edit: part
     depth: hold
@@ -88,12 +117,16 @@ fields:
     type: bool
     default: false
     description: Remove glass background
+    summary: Lets the box sit directly on the page
+    does: "Removes the frosted card behind the field so it floats on the page."
   - name: hideLabel
     edit: part
     depth: hold
     type: bool
     default: false
     description: Hide the header label
+    summary: Takes the name off the top
+    does: "Removes the header row so only the field itself shows."
   - name: confirm
     title: Show confirmation
     tab: action
@@ -101,6 +134,7 @@ fields:
     default: false
     summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    does: "Shows a pill naming the change with an Undo button for 3 seconds after you submit."
 themeFields:
   - name: cornerRadius
     edit: scrub
@@ -113,6 +147,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: "Rounds the card corners from 0 (square) to 30 points."
   - name: controlPadding
     min: 0
     max: 24
@@ -120,22 +156,32 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Breathing room inside the card
+    does: "Adds 0 to 24 points of space between the card edge and the field."
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The fill behind the box
+    does: "Paints the card behind the field with this color."
   - name: foregroundColor
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The color of typed text
+    does: "Colors the typed text and label with this color."
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The color of the hint text
+    does: "Colors the placeholder and secondary icons with this color."
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline color
+    does: "Draws the card outline in this color."
   - name: borderWidth
     min: 0
     max: 5
@@ -143,6 +189,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: "Sets the outline thickness from 0 (none) to 5 points."
   - name: labelFontSize
     min: 8
     max: 24
@@ -150,6 +198,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: How big the name above the box is
+    does: "Sets the header label text size from 8 to 24 points."
 ---
 
 # Text Input
@@ -212,6 +262,8 @@ Keyboard behaviour, tuned for command entry:
 
 ### Device name field
 
+Shows a pre-filled value (`defaultValue`), an icon and a placeholder; pressing return broadcasts the typed text through `{{value}}`.
+
 ```json
 {
   "type": "textInput",
@@ -226,6 +278,9 @@ Keyboard behaviour, tuned for command entry:
 ```
 
 ### Command composer
+
+A growing chat-style box: Send submits, Return adds a newline, and the **Aa** button flips autocorrect on the live keyboard.
+
 ```json
 {
   "type": "textInput",
@@ -241,6 +296,69 @@ Keyboard behaviour, tuned for command entry:
   "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "command", "text": "{{value}}" } }
 }
 ```
+
+### Search box
+
+The `search` look adds a magnifying glass and a clear button, and the field empties itself after each submit (`clearOnSubmit`).
+
+```json
+{
+  "type": "textInput",
+  "id": "search-box",
+  "position": [2, 0],
+  "span": [1, 2],
+  "label": "Search",
+  "placeholder": "Search…",
+  "style": "search",
+  "clearOnSubmit": true,
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "search", "q": "{{value}}" } }
+}
+```
+
+### Notes area
+
+The `multiline` look gives a tall field for several lines of prose, with autocorrect on and the header label hidden.
+
+```json
+{
+  "type": "textInput",
+  "id": "notes",
+  "position": [3, 0],
+  "span": [2, 2],
+  "placeholder": "Jot a note",
+  "style": "multiline",
+  "autocorrect": true,
+  "hideLabel": true,
+  "hideBackground": true
+}
+```
+
+### Email field with confirmation
+
+The `email` keyboard shows the @ key, and `confirm` pops an Undo pill for 3 seconds after submit; `tint` colors the accent.
+
+```json
+{
+  "type": "textInput",
+  "id": "email-entry",
+  "position": [4, 0],
+  "span": [1, 2],
+  "label": "Email",
+  "placeholder": "you@example.com",
+  "keyboard": "email",
+  "tint": "#34c759",
+  "confirm": true,
+  "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "email", "address": "{{value}}" } }
+}
+```
+
+### Other keyboards
+
+`keyboard` can also be `url` (web address keys) or `numbers` (number pad); `ascii` and `default` pick plain or standard keys. Use the email example above as the pattern and change only `keyboard`.
+
+### Notes on hidden-looking fields
+
+`minLines` and `maxLines` only matter when `sendButton` is on; `icon` shows in the default and search looks.
 
 ## Behavior
 - Default field: the action fires when the user presses return/submit

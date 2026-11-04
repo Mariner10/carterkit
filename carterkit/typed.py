@@ -58,12 +58,12 @@ class ScopeControls:
         (catalog type `accordion`)
 
         Fields:
-            accordionMode (enum, default single): Whether one or many sections can be open. Values: single, multi.
-            expandedIndex (number, default 0): Section open on load (-1 = all collapsed).
-            showChevron (bool, default true): Show the disclosure chevron.
-            panels (object): The panel groups this container pages through (group defs with children).
-            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
-            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed).
+            accordionMode (enum, default single): Whether one or many sections can be open. Does: Single keeps one section open at a time; multi lets any number stay open together. Values: single = opening a section closes the one that was open, multi = every section opens and closes on its own.
+            expandedIndex (number, default 0): Section open on load (-1 = all collapsed). Does: Opens the section at this position on load, counting from 0; -1 starts with every section closed.
+            showChevron (bool, default true): Show the disclosure chevron. Does: Shows or hides the arrow at the end of each heading; hidden leaves just the heading text.
+            panels (object): The panel groups this container pages through (group defs with children). Does: Each entry becomes one heading row that expands to show its own controls.
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the spring and speed of expanding and collapsing, e.g. profile smooth or duration 0.3 seconds.
+            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed). Does: Opens the section at this position on load (from 0) and wins over the open-on-load index; -1 starts all closed.
 
         Example:
             ui.accordion('settings', position=[0, 0], span=[4, 2], accordionMode='single', expandedIndex=0, containerAnimation={'profile': 'smooth', 'chevronRotation': 90}, panels=[{'type': 'group', 'id': 'display', 'label': 'Display', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'slider', 'id': 'bright', 'position': [0, 0], 'label': 'Brightness', 'min': 0, 'max': 100}]}, {'type': 'group', 'id': 'network', 'label': 'Network', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'toggle', 'id': 'wifi', 'position': [0, 0], 'label': 'Wi-Fi'}]}])
@@ -347,16 +347,16 @@ class ScopeControls:
         (catalog type `carousel`)
 
         Fields:
-            carouselMode (enum, default paged): Presentation style for the panels. Values: paged, coverflow, deck.
-            indicator (enum, default dots): Page indicator style. Values: dots, bars, none.
-            autoAdvance (number, default 0): Seconds between auto-advances (0 = off).
-            loop (bool, default false): Wrap past the first/last page.
-            panels (object): The panel groups this container pages through (group defs with children).
-            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
-            defaultValue (number, default 0): Initial page index.
+            carouselMode (enum, default paged): Presentation style for the panels. Does: Switches between one full page at a time, a tilted row of neighbors, or a stack of cards. Values: paged = one full-width page at a time that snaps into place, coverflow = the active page centered with smaller tilted neighbors at the sides, deck = pages stacked like cards; the front card swipes away to show the next.
+            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, none = no page marks shown.
+            autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
+            loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
+            panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the page transition: motion profile, duration, bounce and the side or stack shape in coverflow and deck.
+            defaultValue (number, default 0): Initial page index. Does: Opens on this page number when the layout appears, counting from 0 for the first page.
 
         Example:
-            ui.carousel('scenes', position=[0, 0], span=[3, 4], carouselMode='coverflow', indicator='dots', loop=True, containerAnimation={'profile': 'smooth', 'sideScale': 0.78, 'sideRotation': 50}, defaultValue=0, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'scene'}, 'valuePath': 'index'}], action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'scene', 'payload': {'index': '{{value}}'}}}, panels=[{'type': 'group', 'id': 'home', 'label': 'Home', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'home-l', 'position': [0, 0], 'text': 'Home scene'}]}, {'type': 'group', 'id': 'away', 'label': 'Away', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'away-l', 'position': [0, 0], 'text': 'Away scene'}]}])
+            ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
         return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -683,15 +683,15 @@ class ScopeControls:
         (catalog type `datePicker`)
 
         Fields:
-            datePickerStyle (enum, default compact): Display style. Values: compact, wheel, graphical.
-            datePickerMode (enum, default dateAndTime): Date/time components. Values: date, time, dateAndTime.
-            dateMin (string): Minimum date (ISO 8601).
-            dateMax (string): Maximum date (ISO 8601).
-            label (string): Display label.
-            tint (color, default #667eea): Accent color.
-            defaultValue (string): Initial ISO 8601 date string.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            datePickerStyle (enum, default compact): Display style. Does: Switches between a small tappable field, a spinning wheel, or a full calendar grid. Values: compact = a small field that opens a pop-up when tapped, wheel = spinning columns you scroll to pick, graphical = a full month calendar shown inline.
+            datePickerMode (enum, default dateAndTime): Date/time components. Does: Chooses which parts can be picked: the day only, the clock time only, or both together. Values: date = day month and year only, time = hour and minute only, dateAndTime = both a day and a clock time.
+            dateMin (string): Minimum date (ISO 8601). Does: Greys out and blocks dates before this ISO 8601 moment, such as 2026-01-01T00:00:00Z.
+            dateMax (string): Maximum date (ISO 8601). Does: Greys out and blocks dates after this ISO 8601 moment, such as 2026-12-31T23:59:59Z.
+            label (string): Display label. Does: Writes this text next to the date or time field.
+            tint (color, default #667eea): Accent color. Does: Colors the selected day and highlights in the picker with this color.
+            defaultValue (string): Initial ISO 8601 date string. Does: Starts the picker on this ISO 8601 moment when the layout first appears.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
@@ -1048,30 +1048,30 @@ class ScopeControls:
         (catalog type `heatmap`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Header label above the grid.
-            heatmapConfig (object): Full configuration object (see HeatmapConfig section).
-            tint (color, default #667eea): Ramp/palette seed color.
-            formatValue (string): Formatter for scale/cell values.
-            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it.
-            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Values: monday, sunday.
-            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106).
-            cellAction (object): cellAction.
-            cellCornerRadius (number, default 3): Cell corner rounding (square cells only).
-            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set.
-            cellGap (number, default 2): Gap between cells.
-            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Values: square, circle.
-            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index).
-            discrete (bool, default false): Treat values as palette indices instead of a continuous range.
-            drag (bool, default true): Drag paints the first-touched cell's new value across cells.
-            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle).
-            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s).
-            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned).
-            showRowLabels (bool, default true): Row labels down the leading edge (when rows present).
-            showScale (bool, default false): Gradient scale legend under the grid (continuous only).
-            showValues (bool, default false): Numeric value inside each cell (when cells are large enough).
-            vMax (number): Continuous color-scale bounds.
-            vMin (number): Continuous color-scale bounds.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: A tap on the phone gives a short vibration of the chosen strength; none is silent. Values: none = no vibration, light = a faint tap, medium = a medium tap, heavy = a strong thud, soft = a muffled cushioned tap, rigid = a sharp crisp tap, selection = a tiny tick like a picker moving, success = a happy double pulse, warning = a cautionary pulse, error = a harsh triple buzz.
+            label (string): Header label above the grid. Does: Shows this text as the header above the grid in the title text size.
+            heatmapConfig (object): Full configuration object (see HeatmapConfig section). Does: Holds the cell look, labels, editing and calendar options below; leave it out for a plain read-only grid.
+            tint (color, default #667eea): Ramp/palette seed color. Does: Colors the top of the default ramp or the palette accent when no scale colors are set.
+            formatValue (string): Formatter for scale/cell values. Does: Formats the scale legend and in-cell numbers, e.g. suffix:°C turns 24 into 24°C.
+            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it. Does: Lays day-keyed data out as 7 weekday rows by week columns with month labels; tapping a day shows its date and value.
+            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Does: Sets the top row of each calendar column to Monday or Sunday. Values: monday = weeks run Monday to Sunday, sunday = weeks run Sunday to Saturday.
+            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106). Does: Keeps only the most recent N weeks (1 to 106) and drops older ones.
+            cellAction (object): cellAction. Does: Fires this action for every edit with {{value}} holding the row, column and new value as JSON.
+            cellCornerRadius (number, default 3): Cell corner rounding (square cells only). Does: Rounds each square cell from sharp (0) to 30 points; circle cells ignore it.
+            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set. Does: Rounds square cells from 0 to 30 points; cellCornerRadius wins when both are set.
+            cellGap (number, default 2): Gap between cells. Does: Sets the gap between neighbouring cells from 0 to 40 points.
+            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Does: Draws each cell as a rounded square or as a circle for a dot-matrix look. Values: square = rounded squares that tile the grid, circle = round dots like an LED matrix.
+            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index). Does: Continuous mode blends across these gradient stops (2 or more); stepped mode picks the color at each value's index.
+            discrete (bool, default false): Treat values as palette indices instead of a continuous range. Does: When on each value is a whole-number index into the colors list so cells show flat palette colors instead of a gradient.
+            drag (bool, default true): Drag paints the first-touched cell's new value across cells. Does: When on a drag copies the first-touched cell's new value across every cell the finger crosses; off limits edits to single taps.
+            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle). Does: When on tapping a cell cycles it to the next palette color or toggles between 0 and the top value.
+            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once.
+            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned). Does: Shows the column names above the grid and thins them out when space is tight.
+            showRowLabels (bool, default true): Row labels down the leading edge (when rows present). Does: Shows the row names at the left edge of the grid.
+            showScale (bool, default false): Gradient scale legend under the grid (continuous only). Does: Adds a gradient legend beneath a continuous grid or a Less to More row in calendar mode.
+            showValues (bool, default false): Numeric value inside each cell (when cells are large enough). Does: Prints each cell's number on it when the cells are big enough to read.
+            vMax (number): Continuous color-scale bounds. Does: Sets the number that maps to the last scale color; larger values stay at that color.
+            vMin (number): Continuous color-scale bounds. Does: Sets the number that maps to the first scale color; smaller values stay at that color.
 
         Example:
             ui.heatmap('rack-temps', defaultValue='{"rows":["Mon","Tue","Wed"],"cols":["00","06","12","18"],"values":[[24,31,62,45],[28,55,81,49],[22,38,74,68]]}', position=[0, 0], span=[3, 4], label='Rack temperatures', formatValue='suffix:°C', heatmapConfig={'colors': ['#1B2845', '#667eea', '#FF9500', '#FF6B6B'], 'showScale': True, 'vMin': 20, 'vMax': 90}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'rack_temps'}, 'valuePath': 'grid'}])
@@ -1320,6 +1320,13 @@ class ScopeControls:
         hideBackground: _Bool | None = None,
         defaultValue: _ObjList | None = None,
         confirm: _Bool | None = None,
+        paging: _Obj | None = None,
+        pageSize: _Num | None = None,
+        replyType: _Str | None = None,
+        replyPath: _Str | None = None,
+        window: _Num | None = None,
+        queryFrom: _Str | None = None,
+        itemTemplate: _Obj | None = None,
         **props: Any,
     ) -> "Control":
         """Table: Rows of information
@@ -1335,11 +1342,18 @@ class ScopeControls:
             hideBackground (bool, default false): Remove glass card background. Does: Drops the frosted card fill so the rows sit directly on the screen background.
             defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers). Does: Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button.
+            paging (object): Rows fed by the hub a page at a time: {pageSize, request, replyType, replyPath, window, queryFrom}. Absent: the list shows the rows its sync delivers. See [[#Paging]]. Does: Asks the hub for the first rows when the list appears and for more as you near the end, so a list of any length scrolls without the phone holding every row.
+            pageSize (number, default 50): Rows asked for per request, sent as {{limit}} (5-200). A hub may send fewer. Does: Asks the hub for this many rows at a time, e.g. 50; the next request goes out when you are half a page from the last row.
+            replyType (string): msg_type of the hub's page broadcasts. A page is {items (or rows), cursor?, total?, more?, offset?, query?, req?}; a frame of this type without items or rows is ignored. Does: Takes rows only from hub messages of this type and leaves every other message alone.
+            replyPath (string): Dot path from the reply frame to the page object, e.g. result for {msg_type, req, result: {rows, total}}. Absent: the frame is the page. Does: Reads the page from this part of each reply, e.g. result, instead of from the top of the message.
+            window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
+            queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
+            itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
 
         Example:
             ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate), props)
 
     def log_console(
         self, id: str | None = None, *,
@@ -1467,17 +1481,17 @@ class ScopeControls:
         (catalog type `picker`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style.
-            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
-            placeholder (string): Text shown when no options are available or a picker has no selection.
-            options (array): Available choices (string array).
-            pickerStyle (enum, default menu): Display style. Values: menu, wheel, inline.
-            label (string): Display label.
-            tint (color, default #667eea): Accent color.
-            defaultValue (string): Initially selected option.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the shown choice transitions when the value changes, from instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft change, instant = swaps with no transition.
+            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style. Does: Shows the SF Symbol at the same position next to each choice, in every look; a blank or missing entry shows no icon.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Shows these names instead of the stored values; the original value is still what is saved and sent.
+            placeholder (string): Text shown when no options are available or a picker has no selection. Does: Writes this text when the list is empty (default No options) or nothing is selected (default Choose…).
+            options (array): Available choices (string array). Does: Fills the menu, wheel or list with one row per entry; the picked entry is the value stored and sent.
+            pickerStyle (enum, default menu): Display style. Does: Switches between a compact dropdown, a spinning wheel, or a list shown in full. Values: menu = a compact button that opens a dropdown, wheel = a spinning drum you scroll to a choice, inline = every choice shown as a tappable list.
+            label (string): Display label. Does: Writes this text as the picker title.
+            tint (color, default #667eea): Accent color. Does: Colors the selected choice and the picker accent with this color.
+            defaultValue (string): Initially selected option. Does: Selects this choice when the layout first appears; it should match one of the stored values.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice.
 
         Example:
             ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
@@ -1530,29 +1544,29 @@ class ScopeControls:
         (catalog type `pieChart`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Label under the chart.
-            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Values: pie, donut, wheel, menu.
-            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control.
-            pieConfig (object): Full configuration object (see PieConfig section).
-            tint (color, default #667eea): First-slice color and palette seed.
-            formatValue (string): Formatter for slice/center values.
-            centerText (string): Donut center text; {{total}} interpolates the slice sum.
-            colors (string[]): Slice color cycle (per-slice color wins).
-            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3).
-            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it).
-            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices.
-            explodeSelected (bool): Tapped slice pops outward (**wheels default false).
-            percent (bool, default false): Show values as % of the total.
-            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead).
-            showLegend (bool, default false): Wrapping dot-chip legend under the chart.
-            showValues (bool, default false): Append each slice's value to its label.
-            sliceAction (object): sliceAction.
-            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle.
-            spinTicks (bool, default true): Haptic tick per slice boundary while spinning.
-            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise).
-            icon (string): SF Symbol in the wheel/menu hub before a result lands.
-            hideValue (bool, default false): Suppress the donut/hub center readout.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: Plays the chosen buzz on the phone when a slice is tapped or a wheel lands; none stays silent. Values: none = no buzz, light = a faint tick, medium = a normal tap, heavy = a firm thump, soft = a muffled cushioned bump, rigid = a crisp hard click, selection = a tiny click like scrolling a picker, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure.
+            label (string): Label under the chart. Does: Writes this text under the chart in the title size; empty shows no title.
+            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Does: Switches the control between a solid pie, a ring with a hole, a spinning wheel and a radial button pad. Values: pie = a solid chart with no hole, donut = a ring with a hole and a center readout, wheel = a wheel you flick to spin and pick a winner, menu = equal slices that each act as a button.
+            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a blurred glow in each slice's own color that reaches this many points out, from 0 (none) to 30.
+            pieConfig (object): Full configuration object (see PieConfig section). Does: Holds the options below (hole size and gaps and labels and legend and spin and actions); each one changes the chart as listed.
+            tint (color, default #667eea): First-slice color and palette seed. Does: Colors the first slice and seeds the palette used for the other slices when no colors are listed.
+            formatValue (string): Formatter for slice/center values. Does: Reformats the numbers shown on slices and in the center, for example as a currency or a rounded figure.
+            centerText (string): Donut center text; {{total}} interpolates the slice sum. Does: Replaces the center readout of a donut with this text; {{total}} becomes the sum of all slices.
+            colors (string[]): Slice color cycle (per-slice color wins). Does: Colors slice one with the first entry, slice two with the second and so on, repeating when slices outnumber colors.
+            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3). Does: Sets the hole width as a fraction of the radius from 0 (solid) to 0.85 (thin ring); the default depends on the shape.
+            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it). Does: Leaves an even gap of this many points between neighbouring slices, from 0 to 12.
+            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices. Does: Rounds the outer and inner corners of every slice by up to 16 points; tiny slices get less.
+            explodeSelected (bool): Tapped slice pops outward (**wheels default false). Does: On, the tapped slice slides outward from the center; off, it only highlights.
+            percent (bool, default false): Show values as % of the total. Does: On, slice values read as a percentage of the total instead of raw numbers.
+            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead). Does: On, each slice shows its label; slices under about 4 percent of the circle hide theirs.
+            showLegend (bool, default false): Wrapping dot-chip legend under the chart. Does: On, adds a wrapping row of colored dots with slice names below the chart.
+            showValues (bool, default false): Append each slice's value to its label. Does: On, each slice label also shows that slice's value.
+            sliceAction (object): sliceAction. Does: Runs this action on a slice tap or wheel landing, with {{value}} set to the slice label.
+            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle. Does: Sets roughly how many seconds a full-strength spin takes to slow to a stop, from 0.1 to 10.
+            spinTicks (bool, default true): Haptic tick per slice boundary while spinning. Does: On, the phone ticks each time a slice boundary passes the pointer; off, the spin is silent.
+            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise). Does: Rotates the whole chart so the first slice starts at this many degrees clockwise from the top, 0 to 360.
+            icon (string): SF Symbol in the wheel/menu hub before a result lands. Does: Draws this SF Symbol in the wheel or menu hub until a result lands.
+            hideValue (bool, default false): Suppress the donut/hub center readout. Does: On, removes the readout from the donut center or hub; the slices still draw.
 
         Example:
             ui.pie_chart('power-split', position=[0, 0], span=[3, 3], label='Power draw', pieStyle='donut', pieConfig={'centerText': '{{total}}W', 'showLegend': True, 'percent': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power'}, 'valuePath': 'split'}])
@@ -1704,12 +1718,12 @@ class ScopeControls:
         (catalog type `qrCode`)
 
         Fields:
-            label (string): Label below the QR code.
-            text (string): Static content to encode (overridden by sync).
-            tint (color, default #FFFFFF): QR code foreground color.
-            qrBackground (color): Fill behind the code (default: none, the card shows through).
-            correctionLevel (enum, default M): Error correction level. Values: L, M, Q, H.
-            hideBackground (bool, default false): Remove glass card background.
+            label (string): Label below the QR code. Does: Shows this text in a small line below the QR code.
+            text (string): Static content to encode (overridden by sync). Does: Sets the content the code encodes; a synced value replaces it as soon as one arrives.
+            tint (color, default #FFFFFF): QR code foreground color. Does: Recolors the dark squares of the code; keep it strongly different from the background so cameras can read it.
+            qrBackground (color): Fill behind the code (default: none, the card shows through). Does: Fills a solid color behind the squares; left empty, the card shows through.
+            correctionLevel (enum, default M): Error correction level. Does: Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans. Values: L = lowest correction, simplest code, for clean screens, M = medium correction, a good everyday balance, Q = higher correction, survives some smudging, H = highest correction, densest code, survives scratches or a logo over it.
+            hideBackground (bool, default false): Remove glass card background. Does: On removes the glass card so the code sits straight on the page; off keeps the card.
 
         Example:
             ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
@@ -2380,22 +2394,22 @@ class ScopeControls:
         (catalog type `textInput`)
 
         Fields:
-            placeholder (string): Placeholder text when empty.
-            label (string): Display label.
-            icon (string): SF Symbol shown in the field.
-            defaultValue (string): Initial text.
-            style (enum, default default): Display style variant. Values: default, search, multiline.
-            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline).
-            minLines (number, default 1): Composer starting line count.
-            maxLines (number, default 6): Composer max lines before it scrolls internally.
-            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly).
-            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard.
-            keyboard (enum): Keyboard type. Values: ascii, default, url, email, numbers.
-            clearOnSubmit (bool, default false): Clear the field after the return-key submit.
-            tint (color, default #667eea): Accent color.
-            hideBackground (bool, default false): Remove glass background.
-            hideLabel (bool, default false): Hide the header label.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            placeholder (string): Placeholder text when empty. Does: Shows this text in grey inside the field until something is typed.
+            label (string): Display label. Does: Writes this text in the header above the field.
+            icon (string): SF Symbol shown in the field. Does: Shows this SF Symbol at the left inside the field.
+            defaultValue (string): Initial text. Does: Pre-fills the field with this text when the layout first appears.
+            style (enum, default default): Display style variant. Does: Switches between a plain field, a search field, or a tall multi-line field. Values: default = a plain single-line field with a rounded background, search = a field with a magnifying glass and a clear button, multiline = a tall field that grows for several lines of text.
+            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline). Does: On, adds a Send button and makes Return start a new line; off, Return submits.
+            minLines (number, default 1): Composer starting line count. Does: Sets how many text lines tall the composer is when empty, from 1 to 20.
+            maxLines (number, default 6): Composer max lines before it scrolls internally. Does: Lets the composer grow up to this many lines (1 to 50) before it scrolls inside.
+            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly). Does: On, the keyboard corrects and capitalizes words; off, it uses a plain ASCII keyboard.
+            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard. Does: Shows an Aa button that turns autocorrect on or off while the keyboard is open.
+            keyboard (enum): Keyboard type. Does: Chooses the on-screen keyboard layout, such as email or number keys. Values: ascii = plain letters and symbols with no suggestions, default = the standard iPhone keyboard, url = keys for web addresses with a slash and dot, email = keys for email with an at sign, numbers = a number pad.
+            clearOnSubmit (bool, default false): Clear the field after the return-key submit. Does: Empties the field right after you press return to submit.
+            tint (color, default #667eea): Accent color. Does: Colors the cursor, search icon and Send button with this color.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the field so it floats on the page.
+            hideLabel (bool, default false): Hide the header label. Does: Removes the header row so only the field itself shows.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you submit.
 
         Example:
             ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
@@ -2581,12 +2595,12 @@ class BuildControls:
         (catalog type `accordion`)
 
         Fields:
-            accordionMode (enum, default single): Whether one or many sections can be open. Values: single, multi.
-            expandedIndex (number, default 0): Section open on load (-1 = all collapsed).
-            showChevron (bool, default true): Show the disclosure chevron.
-            panels (object): The panel groups this container pages through (group defs with children).
-            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
-            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed).
+            accordionMode (enum, default single): Whether one or many sections can be open. Does: Single keeps one section open at a time; multi lets any number stay open together. Values: single = opening a section closes the one that was open, multi = every section opens and closes on its own.
+            expandedIndex (number, default 0): Section open on load (-1 = all collapsed). Does: Opens the section at this position on load, counting from 0; -1 starts with every section closed.
+            showChevron (bool, default true): Show the disclosure chevron. Does: Shows or hides the arrow at the end of each heading; hidden leaves just the heading text.
+            panels (object): The panel groups this container pages through (group defs with children). Does: Each entry becomes one heading row that expands to show its own controls.
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the spring and speed of expanding and collapsing, e.g. profile smooth or duration 0.3 seconds.
+            defaultValue (number): Initial open index (overrides expandedIndex; -1 = all collapsed). Does: Opens the section at this position on load (from 0) and wins over the open-on-load index; -1 starts all closed.
 
         Example:
             ui.accordion('settings', position=[0, 0], span=[4, 2], accordionMode='single', expandedIndex=0, containerAnimation={'profile': 'smooth', 'chevronRotation': 90}, panels=[{'type': 'group', 'id': 'display', 'label': 'Display', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'slider', 'id': 'bright', 'position': [0, 0], 'label': 'Brightness', 'min': 0, 'max': 100}]}, {'type': 'group', 'id': 'network', 'label': 'Network', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'toggle', 'id': 'wifi', 'position': [0, 0], 'label': 'Wi-Fi'}]}])
@@ -2798,16 +2812,16 @@ class BuildControls:
         (catalog type `carousel`)
 
         Fields:
-            carouselMode (enum, default paged): Presentation style for the panels. Values: paged, coverflow, deck.
-            indicator (enum, default dots): Page indicator style. Values: dots, bars, none.
-            autoAdvance (number, default 0): Seconds between auto-advances (0 = off).
-            loop (bool, default false): Wrap past the first/last page.
-            panels (object): The panel groups this container pages through (group defs with children).
-            containerAnimation (object): Transition tuning, e.g. { profile, duration }.
-            defaultValue (number, default 0): Initial page index.
+            carouselMode (enum, default paged): Presentation style for the panels. Does: Switches between one full page at a time, a tilted row of neighbors, or a stack of cards. Values: paged = one full-width page at a time that snaps into place, coverflow = the active page centered with smaller tilted neighbors at the sides, deck = pages stacked like cards; the front card swipes away to show the next.
+            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, none = no page marks shown.
+            autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
+            loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
+            panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
+            containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the page transition: motion profile, duration, bounce and the side or stack shape in coverflow and deck.
+            defaultValue (number, default 0): Initial page index. Does: Opens on this page number when the layout appears, counting from 0 for the first page.
 
         Example:
-            ui.carousel('scenes', position=[0, 0], span=[3, 4], carouselMode='coverflow', indicator='dots', loop=True, containerAnimation={'profile': 'smooth', 'sideScale': 0.78, 'sideRotation': 50}, defaultValue=0, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'scene'}, 'valuePath': 'index'}], action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hub', 'type': 'scene', 'payload': {'index': '{{value}}'}}}, panels=[{'type': 'group', 'id': 'home', 'label': 'Home', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'home-l', 'position': [0, 0], 'text': 'Home scene'}]}, {'type': 'group', 'id': 'away', 'label': 'Away', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'away-l', 'position': [0, 0], 'text': 'Away scene'}]}])
+            ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
         return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
@@ -3062,15 +3076,15 @@ class BuildControls:
         (catalog type `datePicker`)
 
         Fields:
-            datePickerStyle (enum, default compact): Display style. Values: compact, wheel, graphical.
-            datePickerMode (enum, default dateAndTime): Date/time components. Values: date, time, dateAndTime.
-            dateMin (string): Minimum date (ISO 8601).
-            dateMax (string): Maximum date (ISO 8601).
-            label (string): Display label.
-            tint (color, default #667eea): Accent color.
-            defaultValue (string): Initial ISO 8601 date string.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            datePickerStyle (enum, default compact): Display style. Does: Switches between a small tappable field, a spinning wheel, or a full calendar grid. Values: compact = a small field that opens a pop-up when tapped, wheel = spinning columns you scroll to pick, graphical = a full month calendar shown inline.
+            datePickerMode (enum, default dateAndTime): Date/time components. Does: Chooses which parts can be picked: the day only, the clock time only, or both together. Values: date = day month and year only, time = hour and minute only, dateAndTime = both a day and a clock time.
+            dateMin (string): Minimum date (ISO 8601). Does: Greys out and blocks dates before this ISO 8601 moment, such as 2026-01-01T00:00:00Z.
+            dateMax (string): Maximum date (ISO 8601). Does: Greys out and blocks dates after this ISO 8601 moment, such as 2026-12-31T23:59:59Z.
+            label (string): Display label. Does: Writes this text next to the date or time field.
+            tint (color, default #667eea): Accent color. Does: Colors the selected day and highlights in the picker with this color.
+            defaultValue (string): Initial ISO 8601 date string. Does: Starts the picker on this ISO 8601 moment when the layout first appears.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
@@ -3355,30 +3369,30 @@ class BuildControls:
         (catalog type `heatmap`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Header label above the grid.
-            heatmapConfig (object): Full configuration object (see HeatmapConfig section).
-            tint (color, default #667eea): Ramp/palette seed color.
-            formatValue (string): Formatter for scale/cell values.
-            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it.
-            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Values: monday, sunday.
-            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106).
-            cellAction (object): cellAction.
-            cellCornerRadius (number, default 3): Cell corner rounding (square cells only).
-            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set.
-            cellGap (number, default 2): Gap between cells.
-            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Values: square, circle.
-            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index).
-            discrete (bool, default false): Treat values as palette indices instead of a continuous range.
-            drag (bool, default true): Drag paints the first-touched cell's new value across cells.
-            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle).
-            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s).
-            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned).
-            showRowLabels (bool, default true): Row labels down the leading edge (when rows present).
-            showScale (bool, default false): Gradient scale legend under the grid (continuous only).
-            showValues (bool, default false): Numeric value inside each cell (when cells are large enough).
-            vMax (number): Continuous color-scale bounds.
-            vMin (number): Continuous color-scale bounds.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: A tap on the phone gives a short vibration of the chosen strength; none is silent. Values: none = no vibration, light = a faint tap, medium = a medium tap, heavy = a strong thud, soft = a muffled cushioned tap, rigid = a sharp crisp tap, selection = a tiny tick like a picker moving, success = a happy double pulse, warning = a cautionary pulse, error = a harsh triple buzz.
+            label (string): Header label above the grid. Does: Shows this text as the header above the grid in the title text size.
+            heatmapConfig (object): Full configuration object (see HeatmapConfig section). Does: Holds the cell look, labels, editing and calendar options below; leave it out for a plain read-only grid.
+            tint (color, default #667eea): Ramp/palette seed color. Does: Colors the top of the default ramp or the palette accent when no scale colors are set.
+            formatValue (string): Formatter for scale/cell values. Does: Formats the scale legend and in-cell numbers, e.g. suffix:°C turns 24 into 24°C.
+            calendar (bool, default false): Activity calendar: lay a day-keyed payload out as 7 weekday rows x week columns, zero-filled, month labels; tap a day to read it. Does: Lays day-keyed data out as 7 weekday rows by week columns with month labels; tapping a day shows its date and value.
+            weekStartsOn (enum): Calendar week start (default: the bound local source's weekStartsOn, else monday). Does: Sets the top row of each calendar column to Monday or Sunday. Values: monday = weeks run Monday to Sunday, sunday = weeks run Sunday to Saturday.
+            weeks (number): Calendar shows only the most recent N weeks (default the whole span, up to 106). Does: Keeps only the most recent N weeks (1 to 106) and drops older ones.
+            cellAction (object): cellAction. Does: Fires this action for every edit with {{value}} holding the row, column and new value as JSON.
+            cellCornerRadius (number, default 3): Cell corner rounding (square cells only). Does: Rounds each square cell from sharp (0) to 30 points; circle cells ignore it.
+            cellCorner (number, default 3): Older name of cellCornerRadius; cellCornerRadius wins when both are set. Does: Rounds square cells from 0 to 30 points; cellCornerRadius wins when both are set.
+            cellGap (number, default 2): Gap between cells. Does: Sets the gap between neighbouring cells from 0 to 40 points.
+            cellShape (enum, default square): square or circle (circle reads as dot-matrix/LED). Does: Draws each cell as a rounded square or as a circle for a dot-matrix look. Values: square = rounded squares that tile the grid, circle = round dots like an LED matrix.
+            colors (string[]): Continuous: 2+ gradient stops. Discrete: the palette (value = index). Does: Continuous mode blends across these gradient stops (2 or more); stepped mode picks the color at each value's index.
+            discrete (bool, default false): Treat values as palette indices instead of a continuous range. Does: When on each value is a whole-number index into the colors list so cells show flat palette colors instead of a gradient.
+            drag (bool, default true): Drag paints the first-touched cell's new value across cells. Does: When on a drag copies the first-touched cell's new value across every cell the finger crosses; off limits edits to single taps.
+            editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle). Does: When on tapping a cell cycles it to the next palette color or toggles between 0 and the top value.
+            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once.
+            showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned). Does: Shows the column names above the grid and thins them out when space is tight.
+            showRowLabels (bool, default true): Row labels down the leading edge (when rows present). Does: Shows the row names at the left edge of the grid.
+            showScale (bool, default false): Gradient scale legend under the grid (continuous only). Does: Adds a gradient legend beneath a continuous grid or a Less to More row in calendar mode.
+            showValues (bool, default false): Numeric value inside each cell (when cells are large enough). Does: Prints each cell's number on it when the cells are big enough to read.
+            vMax (number): Continuous color-scale bounds. Does: Sets the number that maps to the last scale color; larger values stay at that color.
+            vMin (number): Continuous color-scale bounds. Does: Sets the number that maps to the first scale color; smaller values stay at that color.
 
         Example:
             ui.heatmap('rack-temps', defaultValue='{"rows":["Mon","Tue","Wed"],"cols":["00","06","12","18"],"values":[[24,31,62,45],[28,55,81,49],[22,38,74,68]]}', position=[0, 0], span=[3, 4], label='Rack temperatures', formatValue='suffix:°C', heatmapConfig={'colors': ['#1B2845', '#667eea', '#FF9500', '#FF6B6B'], 'showScale': True, 'vMin': 20, 'vMax': 90}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'rack_temps'}, 'valuePath': 'grid'}])
@@ -3567,6 +3581,14 @@ class BuildControls:
         hideBackground: _Bool | None = None,
         defaultValue: _ObjList | None = None,
         confirm: _Bool | None = None,
+        paging: _Obj | None = None,
+        pageSize: _Num | None = None,
+        request: _Obj | None = None,
+        replyType: _Str | None = None,
+        replyPath: _Str | None = None,
+        window: _Num | None = None,
+        queryFrom: _Str | None = None,
+        itemTemplate: _Obj | None = None,
         **props: Any,
     ) -> dict[str, Any]:
         """Table: Rows of information
@@ -3582,11 +3604,19 @@ class BuildControls:
             hideBackground (bool, default false): Remove glass card background. Does: Drops the frosted card fill so the rows sit directly on the screen background.
             defaultValue (object[]): Seed rows shown before the first sync (the same row objects a sync delivers). Does: Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button.
+            paging (object): Rows fed by the hub a page at a time: {pageSize, request, replyType, replyPath, window, queryFrom}. Absent: the list shows the rows its sync delivers. See [[#Paging]]. Does: Asks the hub for the first rows when the list appears and for more as you near the end, so a list of any length scrolls without the phone holding every row.
+            pageSize (number, default 50): Rows asked for per request, sent as {{limit}} (5-200). A hub may send fewer. Does: Asks the hub for this many rows at a time, e.g. 50; the next request goes out when you are half a page from the last row.
+            request (object): The action sent for each page (meshsocket; `method` may be left out), with {{cursor}}, {{offset}}, {{limit}}, {{query}} and {{req}} filled into its payload. See [[#Paging]]. Does: Sends this message for every page with the position, the page size and the search text filled in.
+            replyType (string): msg_type of the hub's page broadcasts. A page is {items (or rows), cursor?, total?, more?, offset?, query?, req?}; a frame of this type without items or rows is ignored. Does: Takes rows only from hub messages of this type and leaves every other message alone.
+            replyPath (string): Dot path from the reply frame to the page object, e.g. result for {msg_type, req, result: {rows, total}}. Absent: the frame is the page. Does: Reads the page from this part of each reply, e.g. result, instead of from the top of the message.
+            window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
+            queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
+            itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
 
         Example:
             ui.list('device-list', position=[0, 0], span=[2, 4], label='Connected Devices', listColumns=[{'key': 'name', 'label': 'Name'}, {'key': 'status', 'label': 'Status'}, {'key': 'latency', 'label': 'Ping', 'format': 'number'}], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'device_list'}, 'valuePath': 'devices'}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, request=request, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate), props)
 
     def log_console(
         self, *,
@@ -3678,17 +3708,17 @@ class BuildControls:
         (catalog type `picker`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Values: smooth, snappy, bouncy, gentle, instant.
-            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style.
-            optionLabels (array): Display labels parallel to options; actions and sync use the original option values.
-            placeholder (string): Text shown when no options are available or a picker has no selection.
-            options (array): Available choices (string array).
-            pickerStyle (enum, default menu): Display style. Values: menu, wheel, inline.
-            label (string): Display label.
-            tint (color, default #667eea): Accent color.
-            defaultValue (string): Initially selected option.
-            haptic (enum, default selection): Default haptic on change. Values: light, medium, heavy, success, warning, error, selection.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            animation (enum): Motion profile for value changes. Does: Sets how the shown choice transitions when the value changes, from instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft change, instant = swaps with no transition.
+            optionIcons (array): Optional SF Symbols parallel to options, supported in every picker style. Does: Shows the SF Symbol at the same position next to each choice, in every look; a blank or missing entry shows no icon.
+            optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Shows these names instead of the stored values; the original value is still what is saved and sent.
+            placeholder (string): Text shown when no options are available or a picker has no selection. Does: Writes this text when the list is empty (default No options) or nothing is selected (default Choose…).
+            options (array): Available choices (string array). Does: Fills the menu, wheel or list with one row per entry; the picked entry is the value stored and sent.
+            pickerStyle (enum, default menu): Display style. Does: Switches between a compact dropdown, a spinning wheel, or a list shown in full. Values: menu = a compact button that opens a dropdown, wheel = a spinning drum you scroll to a choice, inline = every choice shown as a tappable list.
+            label (string): Display label. Does: Writes this text as the picker title.
+            tint (color, default #667eea): Accent color. Does: Colors the selected choice and the picker accent with this color.
+            defaultValue (string): Initially selected option. Does: Selects this choice when the layout first appears; it should match one of the stored values.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice.
 
         Example:
             ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
@@ -3729,29 +3759,29 @@ class BuildControls:
         (catalog type `pieChart`)
 
         Fields:
-            haptic (enum): Touch feedback on interaction (supported hardware). Values: none, light, medium, heavy, soft, rigid, selection, success, warning, error.
-            label (string): Label under the chart.
-            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Values: pie, donut, wheel, menu.
-            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control.
-            pieConfig (object): Full configuration object (see PieConfig section).
-            tint (color, default #667eea): First-slice color and palette seed.
-            formatValue (string): Formatter for slice/center values.
-            centerText (string): Donut center text; {{total}} interpolates the slice sum.
-            colors (string[]): Slice color cycle (per-slice color wins).
-            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3).
-            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it).
-            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices.
-            explodeSelected (bool): Tapped slice pops outward (**wheels default false).
-            percent (bool, default false): Show values as % of the total.
-            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead).
-            showLegend (bool, default false): Wrapping dot-chip legend under the chart.
-            showValues (bool, default false): Append each slice's value to its label.
-            sliceAction (object): sliceAction.
-            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle.
-            spinTicks (bool, default true): Haptic tick per slice boundary while spinning.
-            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise).
-            icon (string): SF Symbol in the wheel/menu hub before a result lands.
-            hideValue (bool, default false): Suppress the donut/hub center readout.
+            haptic (enum): Touch feedback on interaction (supported hardware). Does: Plays the chosen buzz on the phone when a slice is tapped or a wheel lands; none stays silent. Values: none = no buzz, light = a faint tick, medium = a normal tap, heavy = a firm thump, soft = a muffled cushioned bump, rigid = a crisp hard click, selection = a tiny click like scrolling a picker, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure.
+            label (string): Label under the chart. Does: Writes this text under the chart in the title size; empty shows no title.
+            pieStyle (enum, default pie): Classic pie, donut, spin-to-select wheel, or radial menu. Does: Switches the control between a solid pie, a ring with a hole, a spinning wheel and a radial button pad. Values: pie = a solid chart with no hole, donut = a ring with a hole and a center readout, wheel = a wheel you flick to spin and pick a winner, menu = equal slices that each act as a button.
+            glowRadius (number, default 0): Soft glow behind the slices in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a blurred glow in each slice's own color that reaches this many points out, from 0 (none) to 30.
+            pieConfig (object): Full configuration object (see PieConfig section). Does: Holds the options below (hole size and gaps and labels and legend and spin and actions); each one changes the chart as listed.
+            tint (color, default #667eea): First-slice color and palette seed. Does: Colors the first slice and seeds the palette used for the other slices when no colors are listed.
+            formatValue (string): Formatter for slice/center values. Does: Reformats the numbers shown on slices and in the center, for example as a currency or a rounded figure.
+            centerText (string): Donut center text; {{total}} interpolates the slice sum. Does: Replaces the center readout of a donut with this text; {{total}} becomes the sum of all slices.
+            colors (string[]): Slice color cycle (per-slice color wins). Does: Colors slice one with the first entry, slice two with the second and so on, repeating when slices outnumber colors.
+            donutRatio (number): Inner-radius fraction 0–0.85 (pie 0, donut 0.62, wheel 0.18, menu 0.3). Does: Sets the hole width as a fraction of the radius from 0 (solid) to 0.85 (thin ring); the default depends on the shape.
+            sliceGap (number, default 0): Even-width gap between neighbouring slices in points (slices narrower than the gap drop it). Does: Leaves an even gap of this many points between neighbouring slices, from 0 to 12.
+            sliceCornerRadius (number, default 0): Rounds every slice corner (outer and donut inner) in points, clamped for tiny slices. Does: Rounds the outer and inner corners of every slice by up to 16 points; tiny slices get less.
+            explodeSelected (bool): Tapped slice pops outward (**wheels default false). Does: On, the tapped slice slides outward from the center; off, it only highlights.
+            percent (bool, default false): Show values as % of the total. Does: On, slice values read as a percentage of the total instead of raw numbers.
+            showLabels (bool): Slice labels (auto-hidden on thin slices; *menu defaults false — icons lead). Does: On, each slice shows its label; slices under about 4 percent of the circle hide theirs.
+            showLegend (bool, default false): Wrapping dot-chip legend under the chart. Does: On, adds a wrapping row of colored dots with slice names below the chart.
+            showValues (bool, default false): Append each slice's value to its label. Does: On, each slice label also shows that slice's value.
+            sliceAction (object): sliceAction. Does: Runs this action on a slice tap or wheel landing, with {{value}} set to the slice label.
+            spinDuration (number, default 4): Approximate seconds a full-strength spin takes to settle. Does: Sets roughly how many seconds a full-strength spin takes to slow to a stop, from 0.1 to 10.
+            spinTicks (bool, default true): Haptic tick per slice boundary while spinning. Does: On, the phone ticks each time a slice boundary passes the pointer; off, the spin is silent.
+            startAngle (number, default 0): Degrees the first slice starts at (0 = 12 o'clock, clockwise). Does: Rotates the whole chart so the first slice starts at this many degrees clockwise from the top, 0 to 360.
+            icon (string): SF Symbol in the wheel/menu hub before a result lands. Does: Draws this SF Symbol in the wheel or menu hub until a result lands.
+            hideValue (bool, default false): Suppress the donut/hub center readout. Does: On, removes the readout from the donut center or hub; the slices still draw.
 
         Example:
             ui.pie_chart('power-split', position=[0, 0], span=[3, 3], label='Power draw', pieStyle='donut', pieConfig={'centerText': '{{total}}W', 'showLegend': True, 'percent': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'power'}, 'valuePath': 'split'}])
@@ -3867,12 +3897,12 @@ class BuildControls:
         (catalog type `qrCode`)
 
         Fields:
-            label (string): Label below the QR code.
-            text (string): Static content to encode (overridden by sync).
-            tint (color, default #FFFFFF): QR code foreground color.
-            qrBackground (color): Fill behind the code (default: none, the card shows through).
-            correctionLevel (enum, default M): Error correction level. Values: L, M, Q, H.
-            hideBackground (bool, default false): Remove glass card background.
+            label (string): Label below the QR code. Does: Shows this text in a small line below the QR code.
+            text (string): Static content to encode (overridden by sync). Does: Sets the content the code encodes; a synced value replaces it as soon as one arrives.
+            tint (color, default #FFFFFF): QR code foreground color. Does: Recolors the dark squares of the code; keep it strongly different from the background so cameras can read it.
+            qrBackground (color): Fill behind the code (default: none, the card shows through). Does: Fills a solid color behind the squares; left empty, the card shows through.
+            correctionLevel (enum, default M): Error correction level. Does: Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans. Values: L = lowest correction, simplest code, for clean screens, M = medium correction, a good everyday balance, Q = higher correction, survives some smudging, H = highest correction, densest code, survives scratches or a logo over it.
+            hideBackground (bool, default false): Remove glass card background. Does: On removes the glass card so the code sits straight on the page; off keeps the card.
 
         Example:
             ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
@@ -4401,22 +4431,22 @@ class BuildControls:
         (catalog type `textInput`)
 
         Fields:
-            placeholder (string): Placeholder text when empty.
-            label (string): Display label.
-            icon (string): SF Symbol shown in the field.
-            defaultValue (string): Initial text.
-            style (enum, default default): Display style variant. Values: default, search, multiline.
-            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline).
-            minLines (number, default 1): Composer starting line count.
-            maxLines (number, default 6): Composer max lines before it scrolls internally.
-            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly).
-            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard.
-            keyboard (enum): Keyboard type. Values: ascii, default, url, email, numbers.
-            clearOnSubmit (bool, default false): Clear the field after the return-key submit.
-            tint (color, default #667eea): Accent color.
-            hideBackground (bool, default false): Remove glass background.
-            hideLabel (bool, default false): Hide the header label.
-            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off).
+            placeholder (string): Placeholder text when empty. Does: Shows this text in grey inside the field until something is typed.
+            label (string): Display label. Does: Writes this text in the header above the field.
+            icon (string): SF Symbol shown in the field. Does: Shows this SF Symbol at the left inside the field.
+            defaultValue (string): Initial text. Does: Pre-fills the field with this text when the layout first appears.
+            style (enum, default default): Display style variant. Does: Switches between a plain field, a search field, or a tall multi-line field. Values: default = a plain single-line field with a rounded background, search = a field with a magnifying glass and a clear button, multiline = a tall field that grows for several lines of text.
+            sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline). Does: On, adds a Send button and makes Return start a new line; off, Return submits.
+            minLines (number, default 1): Composer starting line count. Does: Sets how many text lines tall the composer is when empty, from 1 to 20.
+            maxLines (number, default 6): Composer max lines before it scrolls internally. Does: Lets the composer grow up to this many lines (1 to 50) before it scrolls inside.
+            autocorrect (bool, default false): Default autocorrect/caps (off = ASCII keyboard, terminal-friendly). Does: On, the keyboard corrects and capitalizes words; off, it uses a plain ASCII keyboard.
+            autocorrectToggle (bool, default false): Inline Aa button that flips autocorrect on the live keyboard. Does: Shows an Aa button that turns autocorrect on or off while the keyboard is open.
+            keyboard (enum): Keyboard type. Does: Chooses the on-screen keyboard layout, such as email or number keys. Values: ascii = plain letters and symbols with no suggestions, default = the standard iPhone keyboard, url = keys for web addresses with a slash and dot, email = keys for email with an at sign, numbers = a number pad.
+            clearOnSubmit (bool, default false): Clear the field after the return-key submit. Does: Empties the field right after you press return to submit.
+            tint (color, default #667eea): Accent color. Does: Colors the cursor, search icon and Send button with this color.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the field so it floats on the page.
+            hideLabel (bool, default false): Hide the header label. Does: Removes the header row so only the field itself shows.
+            confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you submit.
 
         Example:
             ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
