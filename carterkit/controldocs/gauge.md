@@ -193,34 +193,10 @@ fields:
     summary: A guess drawn beside the real reading
     does: Counts the dial down to a time, or moves it toward a predicted value until a real reading arrives.
     valueHelp: {"countdown": "the value is a time; the dial counts down to it", "reach": "the value is expected to arrive at a target number or to keep changing at a set rate"}
-  - name: forecastTarget
-    title: Expected to reach
-    tab: data
-    type: number
-    min: -1000000
-    max: 1000000
-    step: 1
-    description: The value this one is expected to arrive at (with forecast "reach")
-    summary: The number it should reach
+  - use: forecastTarget
     does: Moves the dial toward this value, between -1,000,000 and 1,000,000, until the real reading replaces it.
-  - name: forecastTimeFrom
-    title: Arrival time from
-    tab: data
-    simple: hide
-    type: string
-    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
-    summary: Which control says when it arrives
-    does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
-  - name: forecastRate
-    title: Change per second
-    tab: data
-    simple: hide
-    type: number
-    min: -1000
-    max: 1000
-    step: 0.01
-    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-    summary: How fast it is expected to change
+  - use: forecastTimeFrom
+  - use: forecastRate
     does: Keeps moving the dial by this much per second, -1000 to 1000, from the last real reading.
   - name: unit
     title: Unit
@@ -239,16 +215,7 @@ themeFields:
     description: Control corner radius
     summary: How rounded the corners are
     does: Rounds the control's corners from square (0) to 30 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: Breathing room inside the edge
-    does: Adds 0 to 24 points between the control's edge and its content.
+  - use: controlPadding
   - name: surfacePrimary
     title: Background color
     type: color
@@ -256,19 +223,9 @@ themeFields:
     description: Background fill
     summary: The fill behind the dial
     does: Paints the control's background in this color, including transparency.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
-    summary: The theme's highlight color
+  - use: accentColor
     does: Tints the dial's fill and accents wherever no color is set directly.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: The main text color
+  - use: foregroundColor
     does: Colors the center number and primary text.
   - name: secondaryColor
     title: Second text color
@@ -277,23 +234,9 @@ themeFields:
     description: Secondary text color
     summary: The quieter text color
     does: Colors the caption and other supporting text.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
+  - use: borderColor
     does: Draws the control's outline in this color.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
-    does: Sets the outline width from 0 (none) to 5 points.
+  - use: borderWidth
   - name: labelFontSize
     title: Title text size
     min: 8

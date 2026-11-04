@@ -9,6 +9,7 @@ pickerCategory: Inputs
 friendlyName: Free canvas
 oneLiner: Place things anywhere on a surface
 aliases: [draw, drawing, sketch, paint, shapes, freeform]
+depth: complete
 starterPreset: {"label": "Canvas"}
 fields:
   - name: haptic
@@ -19,12 +20,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: The buzz you feel on a lift
+    does: Plays this haptic on the phone when you long-press and lift a card.
+    valueHelp: {"none": "no vibration", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a muted cushioned bump", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Label
     type: string
     description: Header label
+    summary: The name shown with the canvas
+    does: Shows this text as the canvas header label.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -36,6 +42,8 @@ fields:
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids)
+    summary: How tall the canvas is
+    does: Sets the rendered height of the surface in points.
   - name: aspect
     edit: scrub
     depth: hold
@@ -47,6 +55,8 @@ fields:
     type: number
     default: 1.0
     description: Surface aspect ratio (width ÷ height)
+    summary: How wide versus tall the surface is
+    does: Reshapes the surface to this width-to-height ratio, fitted inside the available space.
     group: canvasConfig
   - name: editable
     edit: part
@@ -56,6 +66,7 @@ fields:
     default: false
     description: Long-press lifts a card; drags emit place/layout and round-trip the synced value
     summary: Touch and hold a card to move it
+    does: Lets you long-press a card to lift and drag it, firing place and layout actions on drop.
     group: canvasConfig
   - name: showGrid
     edit: part
@@ -64,6 +75,8 @@ fields:
     type: bool
     default: false
     description: Faint dot lattice on the surface (uses the snap increment when set)
+    summary: Dots to line things up
+    does: Draws a faint dot lattice on the surface, spaced by the snap step when set.
     group: canvasConfig
   - name: snap
     edit: scrub
@@ -76,6 +89,8 @@ fields:
     type: number
     default: 0
     description: Normalized snap increment applied on drop (0.05 = a 20×20 lattice; 0 = free)
+    summary: Snap cards to a grid
+    does: Rounds a dropped card to this fraction of the surface; 0 leaves it where you let go.
     group: canvasConfig
   - name: maxZoom
     effect: behavior
@@ -89,15 +104,21 @@ fields:
     type: number
     default: 3
     description: Max pinch-zoom scale (1 disables zoom and panning)
+    summary: How far you can pinch in
+    does: Caps how far a pinch can zoom the surface; 1 turns zoom and panning off.
     group: canvasConfig
   - name: items
     type: array
     description: The hosted controls with their normalized frames (see Config)
+    summary: The cards on the board
+    does: Places each listed control on the surface at its own position and size, later ones on top.
     group: canvasConfig
   - name: events
     tab: advanced
     type: object
     description: pickup / place / layout actions fired as cards are lifted and dropped
+    summary: What happens when you move a card
+    does: Runs the pickup, place and layout actions as a card is lifted and dropped.
     group: canvasConfig
 ---
 
@@ -222,6 +243,28 @@ frames the push omits fall back to the item's configured spot.
                               "payload": { "card": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
       "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "board_state" } }
     }
+  }
+}
+```
+
+### Static zoomable board
+A fixed single-card surface you can pinch to zoom but not rearrange.
+```json
+{
+  "type": "canvas",
+  "id": "static-board",
+  "position": [0, 0],
+  "span": [10, 4],
+  "controlHeight": 400,
+  "label": "Overview",
+  "haptic": "light",
+  "canvasConfig": {
+    "aspect": 1.5,
+    "maxZoom": 2,
+    "items": [
+      { "id": "note", "x": 0.1, "y": 0.1, "w": 0.5, "h": 0.3,
+        "control": { "type": "label", "id": "note-label", "label": "Hello" } }
+    ]
   }
 }
 ```

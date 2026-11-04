@@ -259,12 +259,7 @@ themeFields:
     description: Label text color
     summary: "The color of labels"
     does: "Colors the header and axis label text in this color."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
-    summary: "The theme's highlight color"
+  - use: accentColor
     does: "Tints the grid ramp wherever no color is set directly."
   - name: borderColor
     title: Border color
@@ -273,32 +268,11 @@ themeFields:
     description: Border color
     summary: "The outline color"
     does: "Draws the card's border line in this color."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: "How thick the outline is"
+  - use: borderWidth
     does: "Sets the border from 0 (none) to 5 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: "Breathing room inside the edge"
+  - use: controlPadding
     does: "Adds 0 to 24 points between the card's edge and the grid."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: "The main text color"
+  - use: foregroundColor
     does: "Colors the primary text such as the title and in-cell numbers."
   - name: labelFontSize
     title: Title text size
@@ -310,12 +284,7 @@ themeFields:
     description: Label text size
     summary: "How big the title text is"
     does: "Sets the header label size from 8 to 24 points."
-  - name: tertiaryColor
-    title: Faint text color
-    type: color
-    default: #FFFFFF4D
-    description: Tertiary text and ink color
-    summary: "The faintest text color"
+  - use: tertiaryColor
     does: "Colors the dimmest text and empty-cell ink in this color."
 ---
 

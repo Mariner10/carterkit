@@ -385,12 +385,7 @@ themeFields:
     description: Label text size
     summary: The size of the header text
     does: "Sets the header label size in points, 8 to 24."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: The main text color
+  - use: foregroundColor
     does: "Colors the header label and primary text with this color."
 ---
 

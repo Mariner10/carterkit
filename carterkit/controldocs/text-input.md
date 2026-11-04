@@ -127,13 +127,7 @@ fields:
     description: Hide the header label
     summary: Takes the name off the top
     does: "Removes the header row so only the field itself shows."
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    summary: A short note with Undo after each tap
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+  - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you submit."
 themeFields:
   - name: cornerRadius

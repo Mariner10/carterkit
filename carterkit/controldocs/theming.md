@@ -1,5 +1,6 @@
 ---
 type: theming
+depth: complete
 label: Theming
 icon: paintbrush.pointed.fill
 category: models
@@ -7,306 +8,472 @@ fields:
   - name: pageBackground
     type: color
     description: Page background
+    summary: The solid colour behind the whole page
+    does: Paints the page with one flat colour behind every control.
   - name: headerBackground
     type: color
     description: Header bar background
+    summary: The colour of the top bar
+    does: Fills the header bar with this colour in place of the default glass.
   - name: tabBarBackground
     type: color
     description: Tab bar background
+    summary: The colour of the bottom tab bar
+    does: Fills the tab bar strip with this colour.
   - name: tabBarTint
     type: color
     description: Tab bar selected tint
+    summary: The colour of the selected tab
+    does: Tints the selected tab icon and label; when unset the accent colour is used.
   - name: surfacePrimary
     type: color
     description: Card / control surface
+    summary: The colour of cards and controls
+    does: Fills cards and control backgrounds with this colour.
   - name: surfaceSecondary
     type: color
     description: Nested surface
+    summary: The colour of things inside a card
+    does: Fills surfaces nested inside a card, one level deeper than the card itself.
   - name: surfaceTertiary
     type: color
     description: Deepest surface
+    summary: The colour of the deepest layer
+    does: Fills the deepest nested surfaces, such as wells inside nested cards.
   - name: accentColor
+    edit: color
+    depth: surface
     type: color
     description: Primary accent
+    summary: Your main highlight colour
+    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own.
   - name: foregroundColor
     type: color
     description: Primary text
+    summary: The main text colour
+    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode.
   - name: onAccent
     type: color
     description: Text/icon colour drawn on an accent fill
+    summary: Text colour on top of accent fills
+    does: Draws the text or icon on a filled accent button or band; unset, it picks white or black for the best contrast on each fill.
   - name: secondaryColor
     type: color
     description: Secondary text
+    summary: The softer text colour
+    does: Draws secondary text such as captions and sub-labels in this colour.
   - name: tertiaryColor
     type: color
     description: Tertiary text
+    summary: The faintest text colour
+    does: Draws the least prominent text, such as hints, in this colour.
   - name: borderColor
     type: color
     description: Border stroke
+    summary: The colour of card outlines
+    does: Strokes the outline of cards and controls in this colour.
   - name: statusOK
     type: color
     description: OK / success status colour
+    summary: The good or success colour
+    does: Colours success states such as a status light that is on, a good change and success log lines.
   - name: statusWarn
     type: color
     description: Warning status colour
+    summary: The warning colour
+    does: Colours warning states such as warn log lines and attention markers.
   - name: statusError
     type: color
     description: Error status colour
+    summary: The error colour
+    does: Colours error states such as a status light that is off, a bad change and error log lines.
   - name: statusInfo
     type: color
     description: Info status colour
+    summary: The information colour
+    does: Colours info log lines and other neutral notices.
   - name: scrimColor
     type: color
     description: Dimming scrim behind sheets and popups
+    summary: The dimming colour behind pop-ups
+    does: Dims the content behind chips, sheets and overlays; by default black at 35 percent in dark mode and white at 60 percent in light mode.
   - name: pageBackgroundGradient
     type: string[]
     description: Page background gradient (2+ colours)
+    summary: A blend of colours behind the page
+    does: Paints the page with a gradient running from top-left to bottom-right through the listed colours.
   - name: headerBackgroundGradient
     type: string[]
     description: Header background gradient (2+ colours)
+    summary: A blend of colours in the top bar
+    does: Fills the header bar with a gradient through the listed colours.
   - name: accentGradient
     type: string[]
     description: Accent gradient (2+ colours)
+    summary: A blend of colours for highlights
+    does: Fills accent areas with a gradient through the listed colours instead of one flat accent.
   - name: borderWidth
     min: 0
     max: 6
     step: 0.5
     type: number
     description: Border width
+    summary: How thick card outlines are
+    does: Sets the stroke width of card and control outlines, with 0 meaning no outline.
   - name: cornerRadius
+    edit: scrub
+    unit: pt
+    depth: surface
+    default: 12
     min: 0
     max: 40
     step: 1
     type: number
     description: Control/card corner radius
+    summary: How round the corners are
+    does: Rounds every card and control by this many points, and the smaller radii derive from it unless set.
   - name: controlPadding
     min: 0
     max: 32
     step: 1
     type: number
     description: Inner control padding
+    summary: Space inside controls
+    does: Sets the gap between a control's edge and its content, and the spacing rungs derive from it unless set.
   - name: cardPadding
+    edit: scrub
+    unit: pt
+    depth: surface
+    default: 12
     min: 0
     max: 32
     step: 1
     type: number
     description: Group card padding
+    summary: Space inside group cards
+    does: Sets the gap between a group card's edge and the controls inside it.
   - name: compactRadius
     min: 0
     max: 40
     step: 1
     type: number
     description: Radius for compact elements
+    summary: Corner roundness for small bits
+    does: Rounds small chips, badges and tick marks; unset, it is a third of the corner radius.
   - name: controlRadius
     min: 0
     max: 40
     step: 1
     type: number
     description: Radius for controls
+    summary: Corner roundness for buttons and fields
+    does: Rounds buttons, fields and inner controls; unset, it is two thirds of the corner radius.
   - name: cardRadius
     min: 0
     max: 40
     step: 1
     type: number
     description: Radius for group cards
+    summary: Corner roundness for cards
+    does: Rounds group cards and containers; unset, it follows the corner radius.
   - name: compactSpacing
     min: 0
     max: 32
     step: 1
     type: number
     description: Tight spacing
+    summary: The tightest gap
+    does: Sets small gaps inside a control; unset, it is half the control padding.
   - name: standardSpacing
     min: 0
     max: 48
     step: 1
     type: number
     description: Standard spacing
+    summary: The normal gap
+    does: Sets the default gap between the parts of a control; unset, it equals the control padding.
   - name: sectionSpacing
     min: 0
     max: 64
     step: 1
     type: number
     description: Spacing between sections
+    summary: The big gap between sections
+    does: Sets the gap between groups or sections; unset, it is twice the control padding.
   - name: emphasizedBorderWidth
     min: 0
     max: 8
     step: 0.5
     type: number
     description: Border width for emphasised elements
+    summary: The thicker outline for emphasis
+    does: Sets the stroke width used for emphasised lines such as chart outlines, heavier than the normal border.
   - name: labelFontSize
     min: 8
     max: 32
     step: 1
     type: number
     description: Label font size
+    summary: Size of label text
+    does: Sets the size of control labels in points.
   - name: valueFontSize
     min: 8
     max: 72
     step: 1
     type: number
     description: Value font size
+    summary: Size of value text
+    does: Sets the size of values shown on controls in points.
   - name: readoutFontSize
     min: 8
     max: 96
     step: 1
     type: number
     description: Big readout font size
+    summary: Size of the big number
+    does: Sets the size of the main readout in gauges and stat values in points.
   - name: captionFontSize
     min: 8
     max: 24
     step: 1
     type: number
     description: Caption font size
+    summary: Size of small print
+    does: Sets the size of captions and small print in points.
   - name: blurEnabled
     type: bool
     description: Glass material blur
+    summary: Frosted-glass blur on or off
+    does: Turns the blurred glass material behind cards on or off; off gives flat surfaces.
   - name: accent
     type: color
     description: Theme token. Accent colour; overrides the pack, loses to a control's own look
+    summary: Pick one accent colour for the whole layout
+    does: Sets the accent from a colour name or hex, over the theme pack but under a control's own look.
   - name: surface
     values: [glass, solid, paper]
     type: enum
     description: Theme token. Surface material
+    summary: Glass, flat or paper cards
+    does: Switches the card material for the whole layout.
+    valueHelp: {"glass": "frosted translucent cards, the default look", "solid": "flat opaque grey cards with the blur turned off", "paper": "warm cream cards with the blur off and a hairline border"}
   - name: corners
     values: [sharp, soft, round]
     type: enum
     description: Theme token. Corner shape (4, 12 or 22 pt)
+    summary: Sharp, soft or round corners
+    does: Sets one corner shape for the whole layout, and the smaller radii follow it.
+    valueHelp: {"sharp": "4 pt corners", "soft": "12 pt corners", "round": "22 pt corners"}
   - name: type
     values: [system, rounded, serif, mono]
     type: enum
     description: Theme token. Type face
+    summary: The type style for the whole layout
+    does: Switches every text to one type design, replacing a custom font family.
+    valueHelp: {"system": "the normal system font", "rounded": "a rounded system font", "serif": "a serif font", "mono": "a monospaced font"}
   - name: density
     type: number
     min: 0.7
     max: 1.5
     step: 0.05
     description: Theme token. Padding scale
+    summary: How roomy or tight things are
+    does: Scales the control and card padding by this factor, so 0.7 is tighter and 1.5 is roomier.
   - name: fontFamily
     type: string
     description: Custom font family name (e.g. Times New Roman)
+    summary: A custom font by name
+    does: Draws text in the named font family instead of the system font.
   - name: fontDesign
     values: [default, rounded, serif, monospaced]
     type: enum
     description: Font design
+    summary: The look of the system font
+    does: Switches the system font between its default, rounded, serif and monospaced designs.
+    valueHelp: {"default": "the normal system design", "rounded": "a rounded design", "serif": "a serif design", "monospaced": "a fixed-width design"}
   - name: valueFontWeight
     type: string
     description: Value font weight (e.g. semibold, bold)
+    summary: How bold value text is
+    does: Sets the weight of value text, for example semibold or bold.
   - name: toggle
     type: object
     description: Per-type toggle sub-theme; keys are the toggle group fields
+    summary: Restyle every toggle
+    does: Holds the toggle look keys that apply to all toggles in this scope.
   - name: slider
     type: object
     description: Per-type slider sub-theme; keys are the slider group fields
+    summary: Restyle every slider
+    does: Holds the slider look keys that apply to all sliders in this scope.
   - name: stepper
     type: object
     description: Per-type stepper sub-theme; keys are the stepper group fields
+    summary: Restyle every stepper
+    does: Holds the stepper look keys that apply to all steppers in this scope.
   - name: segmented
     type: object
     description: Per-type segmented sub-theme; keys are the segmented group fields
+    summary: Restyle every segmented picker
+    does: Holds the segmented look keys that apply to all segmented pickers in this scope.
   - name: progressBar
     type: object
     description: Per-type progressBar sub-theme; keys are the progressBar group fields
+    summary: Restyle every progress bar
+    does: Holds the progress bar look keys that apply to all progress bars in this scope.
   - name: light
     type: object
     description: Overrides applied last when the app is in light mode; keys are the schemeOverride group fields
+    summary: Colours used only in light mode
+    does: Applies these colour overrides last, only while the app is showing light mode.
   - name: dark
     type: object
     description: Overrides applied last when the app is in dark mode; keys are the schemeOverride group fields
+    summary: Colours used only in dark mode
+    does: Applies these colour overrides last, only while the app is showing dark mode.
   - name: palette
     type: object
     description: Named colours written once, referenced as $name in any colour field
+    summary: Name your colours once
+    does: Defines named colours that any colour field can reuse as a dollar-name reference.
   - name: pageBackground
     group: schemeOverride
     type: color
     description: Page background (scheme override)
+    summary: The solid colour behind the whole page in this mode
+    does: When the app is in this block's mode, paints the page with one flat colour behind every control.
   - name: headerBackground
     group: schemeOverride
     type: color
     description: Header bar background (scheme override)
+    summary: The colour of the top bar in this mode
+    does: When the app is in this block's mode, fills the header bar with this colour in place of the default glass.
   - name: tabBarBackground
     group: schemeOverride
     type: color
     description: Tab bar background (scheme override)
+    summary: The colour of the bottom tab bar in this mode
+    does: When the app is in this block's mode, fills the tab bar strip with this colour.
   - name: tabBarTint
     group: schemeOverride
     type: color
     description: Tab bar selected tint (scheme override)
+    summary: The colour of the selected tab in this mode
+    does: When the app is in this block's mode, tints the selected tab icon and label; when unset the accent colour is used.
   - name: surfacePrimary
     group: schemeOverride
     type: color
     description: Card / control surface (scheme override)
+    summary: The colour of cards and controls in this mode
+    does: When the app is in this block's mode, fills cards and control backgrounds with this colour.
   - name: surfaceSecondary
     group: schemeOverride
     type: color
     description: Nested surface (scheme override)
+    summary: The colour of things inside a card in this mode
+    does: When the app is in this block's mode, fills surfaces nested inside a card, one level deeper than the card itself.
   - name: surfaceTertiary
     group: schemeOverride
     type: color
     description: Deepest surface (scheme override)
+    summary: The colour of the deepest layer in this mode
+    does: When the app is in this block's mode, fills the deepest nested surfaces, such as wells inside nested cards.
   - name: accentColor
     group: schemeOverride
     type: color
     description: Primary accent (scheme override)
+    summary: Your main highlight colour in this mode
+    does: When the app is in this block's mode, colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own.
   - name: foregroundColor
     group: schemeOverride
     type: color
     description: Primary text (scheme override)
+    summary: The main text colour in this mode
+    does: When the app is in this block's mode, draws primary text and icons in this colour; by default white in dark mode and black in light mode.
   - name: onAccent
     group: schemeOverride
     type: color
     description: Text/icon colour drawn on an accent fill (scheme override)
+    summary: Text colour on top of accent fills in this mode
+    does: When the app is in this block's mode, draws the text or icon on a filled accent button or band; unset, it picks white or black for the best contrast on each fill.
   - name: secondaryColor
     group: schemeOverride
     type: color
     description: Secondary text (scheme override)
+    summary: The softer text colour in this mode
+    does: When the app is in this block's mode, draws secondary text such as captions and sub-labels in this colour.
   - name: tertiaryColor
     group: schemeOverride
     type: color
     description: Tertiary text (scheme override)
+    summary: The faintest text colour in this mode
+    does: When the app is in this block's mode, draws the least prominent text, such as hints, in this colour.
   - name: borderColor
     group: schemeOverride
     type: color
     description: Border stroke (scheme override)
+    summary: The colour of card outlines in this mode
+    does: When the app is in this block's mode, strokes the outline of cards and controls in this colour.
   - name: statusOK
     group: schemeOverride
     type: color
     description: OK / success status colour (scheme override)
+    summary: The good or success colour in this mode
+    does: When the app is in this block's mode, colours success states such as a status light that is on, a good change and success log lines.
   - name: statusWarn
     group: schemeOverride
     type: color
     description: Warning status colour (scheme override)
+    summary: The warning colour in this mode
+    does: When the app is in this block's mode, colours warning states such as warn log lines and attention markers.
   - name: statusError
     group: schemeOverride
     type: color
     description: Error status colour (scheme override)
+    summary: The error colour in this mode
+    does: When the app is in this block's mode, colours error states such as a status light that is off, a bad change and error log lines.
   - name: statusInfo
     group: schemeOverride
     type: color
     description: Info status colour (scheme override)
+    summary: The information colour in this mode
+    does: When the app is in this block's mode, colours info log lines and other neutral notices.
   - name: scrimColor
     group: schemeOverride
     type: color
     description: Dimming scrim behind sheets and popups (scheme override)
+    summary: The dimming colour behind pop-ups in this mode
+    does: When the app is in this block's mode, dims the content behind chips, sheets and overlays; by default black at 35 percent in dark mode and white at 60 percent in light mode.
   - name: pageBackgroundGradient
     group: schemeOverride
     type: string[]
     description: Page background gradient (2+ colours) (scheme override)
+    summary: A blend of colours behind the page in this mode
+    does: When the app is in this block's mode, paints the page with a gradient running from top-left to bottom-right through the listed colours.
   - name: headerBackgroundGradient
     group: schemeOverride
     type: string[]
     description: Header background gradient (2+ colours) (scheme override)
+    summary: A blend of colours in the top bar in this mode
+    does: When the app is in this block's mode, fills the header bar with a gradient through the listed colours.
   - name: accentGradient
     group: schemeOverride
     type: string[]
     description: Accent gradient (2+ colours) (scheme override)
+    summary: A blend of colours for highlights in this mode
+    does: When the app is in this block's mode, fills accent areas with a gradient through the listed colours instead of one flat accent.
   - name: trackColor
     group: toggle
     type: color
     description: Track colour (off)
+    summary: Toggle colour when off
+    does: Fills the toggle's track while the switch is off.
   - name: trackActiveColor
     group: toggle
     type: color
     description: Track colour (on)
+    summary: Toggle colour when on
+    does: Fills the toggle's track while the switch is on; it follows the accent when unset.
   - name: trackRadius
     group: toggle
     min: 0
@@ -314,6 +481,8 @@ fields:
     step: 1
     type: number
     description: Track corner radius
+    summary: How round the toggle track is
+    does: Rounds the corners of the toggle's track.
   - name: trackHeight
     group: toggle
     min: 8
@@ -321,6 +490,8 @@ fields:
     step: 1
     type: number
     description: Track height
+    summary: How tall the toggle is
+    does: Sets the height of the toggle's track in points.
   - name: trackWidth
     group: toggle
     min: 20
@@ -328,14 +499,20 @@ fields:
     step: 1
     type: number
     description: Track width
+    summary: How wide the toggle is
+    does: Sets the width of the toggle's track in points.
   - name: knobColor
     group: toggle
     type: color
     description: Knob colour (off)
+    summary: Knob colour when off
+    does: Fills the sliding knob while the switch is off.
   - name: knobActiveColor
     group: toggle
     type: color
     description: Knob colour (on)
+    summary: Knob colour when on
+    does: Fades the knob to this colour as the switch moves to on.
   - name: knobRadius
     group: toggle
     min: 0
@@ -343,6 +520,8 @@ fields:
     step: 1
     type: number
     description: Knob corner radius
+    summary: How round the knob is
+    does: Rounds the corners of the toggle's knob.
   - name: knobSize
     group: toggle
     min: 8
@@ -350,18 +529,26 @@ fields:
     step: 1
     type: number
     description: Knob diameter
+    summary: How big the knob is
+    does: Sets the diameter of the toggle's knob in points.
   - name: knobShadow
     group: toggle
     type: bool
     description: Draw a shadow under the knob
+    summary: Shadow under the knob
+    does: Draws or hides a soft shadow beneath the toggle knob.
   - name: trackColor
     group: slider
     type: color
     description: Track colour
+    summary: Slider track colour
+    does: Fills the unfilled part of the slider's track.
   - name: trackActiveColor
     group: slider
     type: color
     description: Filled track colour
+    summary: Slider filled colour
+    does: Fills the part of the slider's track up to the thumb; it follows the accent when unset.
   - name: trackRadius
     group: slider
     min: 0
@@ -369,6 +556,8 @@ fields:
     step: 1
     type: number
     description: Track corner radius
+    summary: How round the slider track is
+    does: Rounds the corners of the slider's track.
   - name: trackHeight
     group: slider
     min: 2
@@ -376,10 +565,14 @@ fields:
     step: 1
     type: number
     description: Track height
+    summary: How thick the slider track is
+    does: Sets the height of the slider's track in points.
   - name: thumbColor
     group: slider
     type: color
     description: Thumb colour
+    summary: Slider handle colour
+    does: Fills the draggable thumb of the slider.
   - name: thumbRadius
     group: slider
     min: 0
@@ -387,6 +580,8 @@ fields:
     step: 1
     type: number
     description: Thumb corner radius
+    summary: How round the handle is
+    does: Rounds the corners of the slider's thumb.
   - name: thumbSize
     group: slider
     min: 8
@@ -394,14 +589,20 @@ fields:
     step: 1
     type: number
     description: Thumb diameter
+    summary: How big the handle is
+    does: Sets the diameter of the slider's thumb in points.
   - name: thumbShadow
     group: slider
     type: bool
     description: Draw a shadow under the thumb
+    summary: Shadow under the handle
+    does: Draws or hides a soft shadow beneath the slider thumb.
   - name: thumbBorderColor
     group: slider
     type: color
     description: Thumb border colour
+    summary: Outline colour of the handle
+    does: Strokes the edge of the slider thumb in this colour.
   - name: thumbBorderWidth
     group: slider
     min: 0
@@ -409,10 +610,14 @@ fields:
     step: 0.5
     type: number
     description: Thumb border width
+    summary: Outline thickness of the handle
+    does: Sets how thick the thumb's outline is; 0 draws none.
   - name: buttonColor
     group: stepper
     type: color
     description: Button fill colour
+    summary: Stepper button colour
+    does: Fills the plus and minus buttons; it follows the accent when unset.
   - name: buttonRadius
     group: stepper
     min: 0
@@ -420,6 +625,8 @@ fields:
     step: 1
     type: number
     description: Button corner radius
+    summary: How round the stepper buttons are
+    does: Rounds the corners of the plus and minus buttons.
   - name: buttonSize
     group: stepper
     min: 20
@@ -427,18 +634,26 @@ fields:
     step: 1
     type: number
     description: Button size
+    summary: How big the stepper buttons are
+    does: Sets the size of the plus and minus buttons in points.
   - name: iconColor
     group: stepper
     type: color
     description: Plus/minus icon colour
+    summary: Colour of the plus and minus
+    does: Draws the plus and minus symbols in this colour.
   - name: style
     group: stepper
     type: string
     description: Stepper style variant
+    summary: Which stepper layout to use
+    does: Names a stepper layout variant, horizontal unless set.
   - name: trackColor
     group: segmented
     type: color
     description: Track colour
+    summary: Segmented picker background
+    does: Fills the strip behind all the segments.
   - name: trackRadius
     group: segmented
     min: 0
@@ -446,10 +661,14 @@ fields:
     step: 1
     type: number
     description: Track corner radius
+    summary: How round the strip is
+    does: Rounds the corners of the strip behind the segments.
   - name: selectedColor
     group: segmented
     type: color
     description: Selected segment fill
+    summary: Colour of the chosen segment
+    does: Fills the pill behind the selected segment.
   - name: selectedRadius
     group: segmented
     min: 0
@@ -457,26 +676,38 @@ fields:
     step: 1
     type: number
     description: Selected segment corner radius
+    summary: How round the chosen pill is
+    does: Rounds the corners of the selected segment's pill.
   - name: selectedShadow
     group: segmented
     type: bool
     description: Draw a shadow under the selected segment
+    summary: Shadow under the chosen segment
+    does: Draws or hides a soft shadow beneath the selected segment's pill.
   - name: textColor
     group: segmented
     type: color
     description: Segment text colour
+    summary: Text colour of unchosen segments
+    does: Draws the labels of segments that are not selected.
   - name: selectedTextColor
     group: segmented
     type: color
     description: Selected segment text colour
+    summary: Text colour of the chosen segment
+    does: Draws the selected segment's label; unset, it picks black or white to suit the pill.
   - name: trackColor
     group: progressBar
     type: color
     description: Track colour
+    summary: Progress bar background
+    does: Fills the empty part of the progress bar.
   - name: trackActiveColor
     group: progressBar
     type: color
     description: Filled track colour
+    summary: Progress bar fill colour
+    does: Fills the completed part of the progress bar; it follows the accent when unset.
   - name: trackRadius
     group: progressBar
     min: 0
@@ -484,6 +715,8 @@ fields:
     step: 1
     type: number
     description: Track corner radius
+    summary: How round the bar is
+    does: Rounds the corners of the progress bar's track.
   - name: trackHeight
     group: progressBar
     min: 2
@@ -491,6 +724,8 @@ fields:
     step: 1
     type: number
     description: Track height
+    summary: How thick the bar is
+    does: Sets the height of the progress bar in points.
 ---
 
 The `theme` block on a [[layout-config|layout]] controls colors, fonts, spacing, and per-control-type styling. Every control resolves its appearance from the active theme, and any control can override it locally via its own `theme` field.
@@ -554,6 +789,7 @@ Colors are hex strings and may include alpha: `"#RRGGBB"` or `"#RRGGBBAA"`.
 Most palettes differ between modes. Put scheme-sensitive colors in `light` / `dark` sub-objects — they are applied **last**, on top of the base, for the active mode. Keep scheme-neutral values (accent, radius, fonts) in the base.
 
 ```json
+{
 "theme": {
   "accentColor": "#5AC8FA",
   "cornerRadius": 16,
@@ -570,6 +806,7 @@ Most palettes differ between modes. Put scheme-sensitive colors in `light` / `da
     "foregroundColor": "#0B1220",
     "borderColor": "#0B122014"
   }
+}
 }
 ```
 
@@ -603,9 +840,11 @@ Fine-tune a whole control family. Each is an object under the theme:
 | `progressBar` | `trackColor`, `trackActiveColor`, `trackHeight` |
 
 ```json
+{
 "theme": {
   "toggle": { "trackActiveColor": "#34C759", "knobShadow": true },
   "slider": { "thumbColor": "#FFFFFF", "trackActiveColor": "#5AC8FA" }
+}
 }
 ```
 
@@ -618,11 +857,13 @@ Any control can override the theme for itself via its `theme` field — same key
 Name your colours once in `theme.palette`, then write `"$name"` in any colour field instead of a hex. Recolouring the layout ("make it blue") is then a one-key edit: change the palette entry and every field that refers to it follows.
 
 ```json
+{
 "theme": {
   "palette": { "brand": "#0A84FF", "leaf": "#34C759", "ink": "#101418" },
   "accentColor": "$brand",
   "pageBackgroundGradient": ["$ink", "#1C2230"],
   "dark": { "foregroundColor": "$leaf" }
+}
 }
 ```
 
@@ -658,6 +899,62 @@ Two colour settings are **not** part of the cascade:
 - [[appearance]] holds the colour **scheme** and the header fills, not control colours.
 
 Theming levels 3–6 are Pro features: without Pro the layout renders with the default glass theme (level 1–2) and the `theme` fields are ignored. `tint` always applies.
+
+## Examples
+
+### One-accent dark layout
+Sets a single accent, rounder corners and a rounded font, with a dark page gradient that only applies in dark mode.
+```json
+{
+  "theme": {
+    "accentColor": "#5AC8FA",
+    "cornerRadius": 16,
+    "fontDesign": "rounded",
+    "dark": {
+      "pageBackgroundGradient": ["#0A0F1E", "#0E1A33"],
+      "foregroundColor": "#FFFFFF"
+    }
+  }
+}
+```
+
+### Palette tokens
+Names colours once in `palette` so changing one entry recolours every field that uses it.
+```json
+{
+  "theme": {
+    "palette": { "brand": "#0A84FF", "ink": "#101418" },
+    "accentColor": "$brand",
+    "pageBackgroundGradient": ["$ink", "#1C2230"]
+  }
+}
+```
+
+### Quick tokens
+Uses the short theme tokens to switch to paper cards, sharp corners, a serif face and a tighter density.
+```json
+{
+  "theme": {
+    "accent": "orange",
+    "surface": "paper",
+    "corners": "sharp",
+    "type": "serif",
+    "density": 0.85
+  }
+}
+```
+
+### Per-type sub-themes
+Restyles every toggle, slider and progress bar in one place.
+```json
+{
+  "theme": {
+    "toggle": { "trackActiveColor": "#34C759", "knobShadow": false },
+    "slider": { "thumbColor": "#FFFFFF", "trackHeight": 6 },
+    "progressBar": { "trackActiveColor": "#5AC8FA", "trackHeight": 10 }
+  }
+}
+```
 
 ## Related
 - [[style-rules]] — Machine-checkable style rules from the playbook

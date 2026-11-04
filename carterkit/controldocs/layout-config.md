@@ -1,5 +1,6 @@
 ---
 type: layout-config
+depth: complete
 label: Layout Config
 icon: square.grid.2x2
 category: models
@@ -7,113 +8,176 @@ fields:
   - name: name
     type: string
     description: Display name (required)
+    summary: The layout's name
+    does: Names the layout in the library and switcher.
   - name: version
     bounds: none
     type: number
     description: The author's revision label (required; never gates anything — see document-contract)
+    summary: Your revision number
+    does: Records your own revision label for the layout; it never changes how the layout loads.
   - name: schemaVersion
     tab: advanced
     min: 1
     max: 2
     type: number
     description: Grammar version, optional (absent = 1); set by writers, bumped only when an older app would misread the file
+    summary: Format version
+    does: Tells the app which layout grammar the file uses; leave it out for the original one.
   - name: extensions
     tab: advanced
     type: object
     description: Reverse-DNS keyed tool data the app preserves and never interprets (64 KB cap; see document-contract)
+    summary: Other tools' notes
+    does: Stores other tools' data in the file; the app keeps it and never uses it.
   - name: requires
     type: object
     description: "The app version and features this layout needs, e.g. {'app': '1.3', 'features': ['control.symbol']}; a soft gate, so an older app still renders what it can and shows one update banner (see Requires and fallback)"
+    summary: What the layout needs
+    does: Names the app version and features the layout needs; an older app still opens it and shows one update banner.
   - name: headerTitle
     type: string
     description: Title shown in the header bar
+    summary: Title at the top
+    does: Shows this text in the header bar.
   - name: accentColor
     tab: style
     type: string
     description: Hex accent for the layout's library card, switcher and glance fallback (e.g. "#5AC8FA"); controls use theme.accentColor (see theming#Cascade)
+    summary: Layout's signature color
+    does: Colors the layout's card in the library, the switcher and the glance fallback.
   - name: appearance
     type: object
     description: App shell appearance (color scheme, header, background image)
+    summary: Look of the app shell
+    does: Sets light or dark mode, the header, the status bar and the background image.
   - name: theme
     type: object
     description: Visual theme (colors, fonts, spacing, palette tokens)
+    summary: Colors, fonts and spacing
+    does: Sets the colors, fonts and spacing that every control in the layout inherits.
   - name: connection
     tab: advanced
     type: object
     description: WebSocket connection config
+    summary: Link to a server
+    does: Sets how the layout connects to a MeshSocket server.
   - name: tabs
     type: object[]
     description: Tab page definitions (required)
+    summary: The pages
+    does: Defines the tab pages that hold the layout's controls.
   - name: pollGroups
     tab: advanced
     type: object
     description: Periodic polling configuration
+    summary: Repeating refreshes
+    does: Defines groups of requests the app repeats on a timer.
   - name: dynamicTabs
     tab: advanced
     type: object[]
     description: Runtime-injected tabs
+    summary: Pages added while running
+    does: Lists tabs that a server can add to the layout while it is open.
   - name: sources
     type: object
     description: Named external data sources (MQTT brokers, HTTP APIs)
+    summary: Where data comes from
+    does: Names the MQTT brokers and web APIs that controls read from and write to.
   - name: secrets
     tab: advanced
     type: object[]
     description: "Credentials the layout's {{secret:name}} placeholders use: name, label, kind, hosts, mesh, allowInsecureHTTP. Names only; the values live in the phone's Keychain (see Secrets)"
+    summary: Passwords kept on the phone
+    does: Declares the secret names whose values stay in the phone's Keychain and fill in {{secret:name}} placeholders.
   - name: derive
     type: object
     description: "Values computed on the phone from other values, keyed by id, e.g. {'watts': {'mul': [{'control': 'volts'}, {'control': 'amps'}]}} (see derive)"
+    summary: Math on other values
+    does: Computes new values on the phone from other controls' values, for controls to show.
   - name: keepAwake
     type: bool
     description: Ask to suppress the iOS auto screen lock while this layout is open (a request the user can veto)
+    summary: Stop the screen sleeping
+    does: Asks the phone not to auto-lock while this layout is on screen, unless the user has turned this off.
   - name: liveness
     type: object
     description: "Layout-wide staleness default for sync bindings, e.g. {'staleAfter': 120} (opt-in; HTTP polls use max(this, 3x interval); see sync)"
+    summary: When data counts as old
+    does: Sets how many seconds a synced value may go without an update before it shows as stale.
   - name: batchPublishers
     tab: advanced
     type: bool
     description: Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)
+    summary: Send sensors together
+    does: Sends all sensor readings in one message per tick instead of one message per reading.
   - name: glance
     type: object
     description: Widgets, Dynamic Island, lock screen and Control Center surfaces projected from this layout (see glance)
+    summary: Outside-the-app views
+    does: Sets the widgets, Dynamic Island, lock screen and Control Center tiles built from this layout.
   - name: id
     type: string
     description: Stable layout identifier (see Identity); default scope for a local store namespace
+    summary: Layout's unique key
+    does: Identifies the layout for its saved data; installing a layout with the same id replaces the old one.
   - name: alerts
     type: object[]
     description: Alert rules the app evaluates on incoming events (id, event, valuePath, ...)
+    summary: Notification rules
+    does: Lists rules that check incoming events and raise an alert when one matches.
   - name: state
     type: object
     description: "State sync config: lets the layout's own control values sync through a mesh"
+    summary: Share control values
+    does: Lets the layout's own control values sync between devices through a mesh.
   - name: publishers
     type: object[]
     description: "Sensor publishers: device sensors streamed out as readings (see publishers)"
+    summary: Send sensor readings out
+    does: Streams the phone's sensors out as readings to a server.
   - name: sensorSetup
     type: object
     description: Which device sensors and permissions the layout asks the user to set up (see sensors)
+    summary: Sensors to set up
+    does: Lists the device sensors and permissions the layout asks the user to turn on.
   - name: sampleValues
     type: object
     description: Control id to sample value, shown by the designer and previews; never sent
+    summary: Preview numbers
+    does: Gives controls stand-in values for the designer and previews; they are never sent.
   - name: url
     group: connection
     type: string
     description: WebSocket URL of the mesh server
+    summary: Server address
+    does: Sets the WebSocket address of the mesh server to connect to.
   - name: token
     group: connection
     type: string
     description: Auth token; prefer a {{secret:name}} placeholder, never a literal secret
+    summary: Server password
+    does: Sends this token to authenticate with the server; use a secret placeholder, not the real value.
   - name: mode
     group: connection
     values: [pair, room]
     type: enum
     description: pair connects to one peer; room joins a shared room
+    summary: Pair or room
+    does: Chooses whether the layout connects to one peer or joins a shared room.
+    valueHelp: {"pair": "connects to a single other device", "room": "joins a shared room with many devices"}
   - name: identity
     group: connection
     type: object
     description: "Who this device presents as: {name, ...}"
+    summary: Who this device is
+    does: Sets the name and details this device presents to the others.
   - name: e2eeKey
     group: connection
     type: string
     description: End-to-end encryption key or {{secret:name}} placeholder
+    summary: Encryption key
+    does: Encrypts the messages end to end with this key, so only devices holding it can read them.
 ---
 
 Top-level JSON structure for a CAR-TER remote.
@@ -210,6 +274,71 @@ Controls visual styling — colors, fonts, spacing, and per-control type themes.
 Fonts set at the theme level propagate to all controls. Per-control overrides are supported via the `theme` field on any control definition.
 
 For **light/dark variants** (`light` / `dark` sub-objects), **per-type sub-themes** (`toggle`, `slider`, `stepper`, `segmented`, `progressBar`), and a live theme builder, see [[theming]].
+
+## Examples
+
+### A one-page remote
+A minimal layout with a header title, an accent color and a single dial on one page.
+```json
+{
+  "name": "Garage",
+  "version": 1,
+  "headerTitle": "Garage",
+  "accentColor": "#5AC8FA",
+  "tabs": [
+    {
+      "title": "Home",
+      "children": [
+        { "type": "gauge", "id": "temp", "position": [0, 0], "label": "Temperature", "min": 0, "max": 50 }
+      ]
+    }
+  ]
+}
+```
+
+### A wall display that stays on
+A dashboard that holds the screen awake, follows the device's light or dark setting and marks readings stale after two minutes.
+```json
+{
+  "name": "Wall Panel",
+  "version": 1,
+  "keepAwake": true,
+  "liveness": { "staleAfter": 120 },
+  "appearance": { "colorScheme": "system", "showHeader": false },
+  "tabs": [
+    {
+      "title": "Status",
+      "children": [
+        { "type": "gauge", "id": "load", "position": [0, 0], "label": "Load", "min": 0, "max": 100 }
+      ]
+    }
+  ]
+}
+```
+
+### A computed value with a secret
+A layout that reads from a web API with a token kept on the phone and shows a computed value on a dial.
+```json
+{
+  "name": "Power",
+  "version": 1,
+  "sources": {
+    "ha": { "type": "http", "baseURL": "https://ha.local:8123", "headers": { "Authorization": "Bearer {{secret:ha_token}}" } }
+  },
+  "secrets": [ { "name": "ha_token", "label": "Home Assistant token", "kind": "token" } ],
+  "derive": { "watts": { "mul": [ { "control": "volts" }, { "control": "amps" } ] } },
+  "tabs": [
+    {
+      "title": "Energy",
+      "children": [
+        { "type": "gauge", "id": "volts", "position": [0, 0], "label": "Volts", "min": 0, "max": 250 },
+        { "type": "gauge", "id": "amps", "position": [1, 0], "label": "Amps", "min": 0, "max": 30 },
+        { "type": "gauge", "id": "power", "position": [0, 1], "label": "Watts", "min": 0, "max": 7500, "sync": [ { "method": "derive", "from": "watts" } ] }
+      ]
+    }
+  ]
+}
+```
 
 ## Document contract
 

@@ -1,5 +1,6 @@
 ---
 type: control-def
+depth: complete
 label: Control Definition
 icon: square.dashed.inset.filled
 category: models
@@ -8,98 +9,159 @@ fields:
     values: [button, toggle, slider, label, textInput, stepper, segmentedControl, colorPicker, image, gauge, sparkline, progressRing, map, picker, datePicker, graph, chat, list, statusLight, logConsole, divider, spacer, webView, joystick, qrCode, carousel, flipCard, accordion, cardList, camera, chart, pieChart, heatmap, radar, boxPlot, gantt, sankey, treemap, chord, sortboard, compass, pinboard, canvas, symbol, statTile, keyValue]
     type: enum
     description: Control type (required); decides which per-type fields apply
+    summary: What kind of control this is
+    does: Decides which control is drawn and which other fields apply to it.
+    valueHelp: {"button": "a tap target that fires its action", "toggle": "an on/off switch", "slider": "drag to pick a number in a range", "label": "text, optionally live", "textInput": "a field to type text into", "stepper": "plus and minus buttons for a number", "segmentedControl": "a row of choices where one is selected", "colorPicker": "pick a color", "image": "a picture from a link or symbol", "gauge": "a number on a dial", "sparkline": "a small trend line", "progressRing": "progress as a ring or bar", "map": "a map with pins", "picker": "choose one option from a list", "datePicker": "pick a date or time", "graph": "nodes and links", "chat": "a message thread", "list": "rows of data", "statusLight": "a colored status dot", "logConsole": "a scrolling log of lines", "divider": "a thin separating line", "spacer": "empty space", "webView": "an embedded web page", "joystick": "a thumb-steered stick that sends direction", "qrCode": "a QR code showing text", "carousel": "swipeable pages of controls", "flipCard": "two sides that flip on tap", "accordion": "headings that open and close", "cardList": "a stack of cards", "camera": "scans barcodes and QR codes", "chart": "line, bar and area charts", "pieChart": "parts of a whole", "heatmap": "colored cells showing amounts", "radar": "several scores on one shape", "boxPlot": "spread of values per group", "gantt": "tasks laid out over time", "sankey": "amounts flowing between nodes", "treemap": "sizes compared as blocks", "chord": "how things connect to each other", "sortboard": "drag cards between columns", "compass": "a ring turned to pick an action", "pinboard": "pins placed on a picture", "canvas": "items placed anywhere on a surface", "symbol": "an icon that can animate", "statTile": "a big number with its change and trend", "keyValue": "labeled readings from one object"}
   - name: id
     type: string
     description: Unique identifier among the layout's controls and groups (required); used for value storage, sync targeting and visibility references
+    summary: The control's unique name
+    does: Lets stored values, sync targets and show/hide rules point at this control; it never appears on screen.
   - name: position
     type: array
     description: Zero-indexed [row, col] grid cell (required)
+    summary: Which cell it sits in
+    does: Places the control's top-left corner at this row and column of the grid, counting from 0.
   - name: span
     type: array
     description: "[rowSpan, colSpan] grid cells occupied (default [1, 1])"
+    summary: How many cells it covers
+    does: Makes the control cover this many rows and columns, so a larger span draws it bigger.
   - name: landscape
     type: object
     description: "Placement when an iPhone is on its side: {position, span} or {hidden: true}"
+    summary: Where it goes when the phone is on its side
+    does: Moves or hides the control while an iPhone is in landscape; portrait is unchanged.
   - name: regular
     type: object
     description: "Placement on an iPad-width page: {position, span} or {hidden: true}"
+    summary: Where it goes on an iPad
+    does: Moves or hides the control on a wide iPad page.
   - name: name
     type: string
     description: Readable name the editor shows; never used for identity or on the wire
+    summary: A friendly name for editing
+    does: Gives the control a readable name in the editor; it is not shown on the page.
   - name: action
+    edit: action
     type: object
     description: Command fired on interaction (an ActionDefinition, see actions)
+    summary: What happens when you tap it
+    does: Runs this command each time the control is used.
   - name: longPressAction
+    edit: action
     type: object
     description: Action fired on long-press (an ActionDefinition)
+    summary: What happens when you press and hold
+    does: Runs this command when the control is held down.
   - name: longPressGroup
     type: object
     description: Sub-group popup shown on long-press (a GroupDefinition, see long-press)
+    summary: A pop-up of extra controls on hold
+    does: Opens a small panel of more controls when the control is held down.
   - name: snapshotAction
     type: object
     description: "Camera only: action fired on shutter with {{image}} substitution"
+    summary: What happens when the camera takes a photo
+    does: Runs this command on the camera's shutter and passes the picture along as the image.
   - name: sync
     type: object[]
     description: Live state listeners (SyncDefinition list, see sync)
+    summary: Where live values come from
+    does: Listens for outside updates and shows each new value on the control.
   - name: visible
     type: object
     description: Show/hide condition (a VisibilityCondition, see visibility)
+    summary: When to show it
+    does: Shows the control only while the condition is true and hides it otherwise.
   - name: enabled
     type: object
     description: Enable/disable condition (a VisibilityCondition); false dims the control and ignores touches
+    summary: When it can be used
+    does: Dims the control and ignores touches while the condition is false.
   - name: role
     values: [submit]
     type: enum
     description: "On a button inside a form group: submit makes pressing it submit the form"
+    summary: Make a button submit a form
+    does: Makes pressing a button inside a form submit that form.
+    valueHelp: {"submit": "pressing the button submits the form it sits in"}
   - name: field
     type: string
     description: "Inside a form group: the draft field this input writes (default the id)"
+    summary: Which form entry it fills
+    does: Makes an input inside a form write to this draft field instead of one named after its id.
   - name: theme
     type: object
     description: Per-control theme overrides; same keys as the layout theme block plus per-type keys (see theming)
+    summary: Look overrides for this one control
+    does: Changes theme values such as colors and corner roundness for this control only.
   - name: unsupportedType
     type: string
     description: Written by the app when it replaces a control type it does not know; never authored
+    summary: Set by the app, not by you
+    does: Marks a control the app did not recognise and replaced; you never write it yourself.
   - name: carouselStyle
     values: [glass, translucent, liquidGlass]
     type: enum
     description: Carousel panel chrome (default glass; translucent and liquidGlass use the material-glass look)
+    summary: The look of a carousel's panel
+    does: Chooses the chrome drawn around a carousel's pages.
+    valueHelp: {"glass": "the standard glass panel and the default", "translucent": "a see-through material glass look", "liquidGlass": "the same material glass look as translucent"}
   - name: carouselPeek
     min: 0
     max: 0.3
     step: 0.05
     type: number
     description: Carousel paged mode - neighbour peek as a fraction of the container width, clamped 0 to 0.3
+    summary: How much of the next page shows
+    does: Lets a slice of the neighbouring page show at the edge of a carousel, as a share of its width.
   - name: sortboardConfig
     type: object
     description: Config object for the matching control type; its keys are the sortboardConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: compassConfig
     type: object
     description: Config object for the matching control type; its keys are the compassConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: pinboardConfig
     type: object
     description: Config object for the matching control type; its keys are the pinboardConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: canvasConfig
     type: object
     description: Config object for the matching control type; its keys are the canvasConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: symbolConfig
     type: object
     description: Config object for the matching control type; its keys are the symbolConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: statTileConfig
     type: object
     description: Config object for the matching control type; its keys are the statTileConfig group fields in that control's doc
+    summary: The extra settings for this control
+    does: Holds this control type's own settings; it only affects a control of the matching type.
   - name: hideBackground
     title: Background on/off
     tab: style
     type: bool
     default: false
     description: Remove the glass card behind the control. The on/off switch in the Background chip (inverted)
+    summary: Remove the card behind it
+    does: Turned on, the glass card disappears and the control floats on the page.
   - name: backgroundColor
     edit: background
     title: Background
     tab: style
     type: color
     description: Card fill colour, #RRGGBB or #RRGGBBAA. Absent = the theme surface. Edit hint background = the pose's Background chip (on/off, colour, opacity, glass or solid)
+    summary: The card's color
+    does: Fills the card behind the control with this color instead of the theme's.
   - name: backgroundOpacity
     title: Background opacity
     tab: style
@@ -107,12 +169,17 @@ fields:
     min: 0
     max: 1
     description: Card fill opacity, 0-1; multiplies any alpha in backgroundColor. Absent = 1
+    summary: How see-through the card is
+    does: Fades the card fill from clear (0) to solid (1).
   - name: backgroundMaterial
     title: Glass or solid
     tab: style
     type: enum
     values: [glass, solid]
     description: glass lays a translucent material under the fill; solid is a flat fill. Absent = the theme surface
+    summary: Frosted glass or a flat color
+    does: Chooses how the card fill is drawn.
+    valueHelp: {"glass": "a translucent material under the fill", "solid": "a flat opaque fill"}
   - name: backgroundPadding
     title: Padding
     tab: style
@@ -126,6 +193,8 @@ fields:
     under: backgroundColor
     unit: pt
     description: Space between the card edge and the control, in points. Absent = the theme's controlPadding (8)
+    summary: Space inside the card
+    does: Sets the gap between the card edge and the control, in points.
   - name: backgroundCornerRadius
     title: Corner radius
     tab: style
@@ -139,6 +208,8 @@ fields:
     under: backgroundColor
     unit: pt
     description: Card corner radius in points. Absent = the theme's cornerRadius (12)
+    summary: How rounded the card is
+    does: Rounds the card's corners, from square to 40 points.
   - name: backgroundBorderWidth
     title: Border width
     tab: style
@@ -152,6 +223,8 @@ fields:
     under: backgroundColor
     unit: pt
     description: Card border width in points; 0 removes the border. Absent = the theme's borderWidth (1)
+    summary: How thick the card outline is
+    does: Sets the card outline thickness in points; 0 removes it.
   - name: backgroundBorderColor
     title: Border colour
     tab: style
@@ -159,6 +232,8 @@ fields:
     edit: color
     depth: ai
     description: Card border colour, #RRGGBB or #RRGGBBAA. Absent = the theme border
+    summary: The card outline color
+    does: Colors the outline around the card.
   - name: backgroundShadow
     title: Shadow
     tab: style
@@ -172,6 +247,8 @@ fields:
     under: backgroundColor
     unit: pt
     description: Elevation, the blur radius of a soft drop shadow under the card, in points. 0 = none
+    summary: A soft shadow under the card
+    does: Lifts the card with a blurred drop shadow, 0 for none up to 24 points.
   - name: backgroundShadowOpacity
     title: Shadow opacity
     tab: style
@@ -184,6 +261,8 @@ fields:
     depth: hold
     under: backgroundColor
     description: Opacity of the card drop shadow, 0-1. Needs backgroundShadow above 0; off when hideBackground is true
+    summary: How dark the shadow is
+    does: Sets the shadow's strength from 0 to 1; needs a shadow size above 0.
 ---
 
 Every control — regardless of type — shares the same base fields. A control is one cell (or span of cells) in a tab or [[group-def|group]] grid.
@@ -325,6 +404,14 @@ The `theme` object overrides theme values for a single control. It accepts the s
 
 Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfacePrimary`, `borderColor`, `borderWidth`, `cornerRadius`, `controlPadding`, `fontFamily`, `fontDesign`, `labelFontSize`, `valueFontSize`. Toggle/slider/progress controls also accept `trackColor`, `trackActiveColor`, `thumbColor`, `knobColor`, etc. See each control's **Theme Overrides** table for its specific keys, and [[theming]] for the full system.
 
+## Shared field definitions (doc frontmatter)
+
+A field that many control docs describe the same way (the theme keys above, the Undo pill's `confirm`) is
+defined once, in `ControlDocs/shared-fields.md`. A doc's `fields:` or `themeFields:` entry then reads
+`- use: <name>`, with optional `default`, `min`, `max`, `step`, `does` and `since` overrides under it, and every
+parser expands it to the full field when it loads. `scripts/migrate-shared-fields.py` lists the copies that
+still differ from their shared entry.
+
 ## Look card formats and presets (doc frontmatter)
 
 A control doc may declare two optional one-line JSON lists that the editor's
@@ -340,6 +427,53 @@ an emoji), `set` maps field names to the values the chip writes, and `null` remo
 the field (back to the doc default). A `set` may change `type` between
 interchangeable controls (Dial's **Bar** turns a gauge into a `progressRing` bar).
 A chip shows as chosen when the control already carries every value in its `set`.
+
+## Examples
+
+### A placed control with a name
+Puts a toggle in the second column of the first row and gives it an editor name.
+```json
+{
+  "type": "toggle",
+  "id": "lamp",
+  "name": "Desk lamp",
+  "label": "Lamp",
+  "position": [0, 1],
+  "span": [1, 2]
+}
+```
+
+### A floating control with no card
+Removes the glass card so the control sits straight on the page, with its own spot when the phone is on its side.
+```json
+{
+  "type": "symbol",
+  "id": "status-icon",
+  "position": [0, 0],
+  "span": [2, 2],
+  "hideBackground": true,
+  "landscape": { "position": [0, 0], "span": [1, 1] }
+}
+```
+
+### A custom card
+Gives the card a solid navy fill, a larger corner radius, a thin border and a soft shadow.
+```json
+{
+  "type": "gauge",
+  "id": "cpu",
+  "label": "CPU",
+  "position": [0, 0],
+  "span": [2, 2],
+  "backgroundColor": "#14213D",
+  "backgroundMaterial": "solid",
+  "backgroundCornerRadius": 24,
+  "backgroundBorderWidth": 1,
+  "backgroundBorderColor": "#FFFFFF33",
+  "backgroundShadow": 12,
+  "backgroundShadowOpacity": 0.4
+}
+```
 
 ## Related
 - [[grid-dimensions]] — how `position` / `span` map to size; grid modes

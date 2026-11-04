@@ -1,5 +1,6 @@
 ---
 type: visibility
+depth: complete
 label: Visibility
 icon: eye.fill
 category: system
@@ -7,27 +8,43 @@ fields:
   - name: when
     type: string
     description: Legacy leaf — the control ID to watch (same as ref.control)
+    summary: The control to watch
+    does: Names the control whose current value the condition checks; the older short form of ref.control.
   - name: ref
     type: object
     description: "Leaf subject — exactly one of {control: id}, {selected: collection}, {field: formId.cell} or {derive: form.formId.cell}"
+    summary: What to look at
+    does: Points the condition at a control, a selected record, a form cell or a derived value.
   - name: operator
     type: string
     description: Comparison operator (eq, ne, gt, gte, lt, lte, in, exists; aliases neq, is, isNot). Omitted = eq
+    summary: How to compare
+    does: Chooses the test, such as equals, greater than, in a list or exists; equals when left out.
   - name: value
     type: any
     description: Value to compare against (required on every leaf)
+    summary: What to compare against
+    does: Sets the value the watched thing is tested against, e.g. true or 3.
   - name: all
     type: array
     description: Every listed condition must hold
+    summary: Every condition must be true
+    does: Shows or enables the control only while every listed condition holds.
   - name: any
     type: array
     description: At least one listed condition must hold
+    summary: At least one condition must be true
+    does: Shows or enables the control while any one of the listed conditions holds.
   - name: not
     type: object
     description: The listed condition must NOT hold
+    summary: Flip a condition
+    does: Holds only while the listed condition does not hold.
   - name: stale
     type: boolean
     description: With `when` — true shows only while that control's feed is stale (went quiet past its staleAfter); false only while it is not. No `operator` or `value`
+    summary: Only when the data went quiet
+    does: With when, true holds only while that control's feed has gone stale and false only while it has not.
 ---
 
 Show/hide or enable/disable controls and groups based on other values. The same
@@ -121,6 +138,42 @@ It takes no `operator` or `value`, and combines with `all`/`any`/`not` like any 
 - Hit testing disabled when hidden
 - Disabled controls (`enabled` false) render dimmed, ignore touches and read as dimmed
   to VoiceOver; a group's `enabled` covers every child inside it
+
+## Examples
+
+### Show a card when a toggle is on
+Demonstrates the simplest leaf: `when` watches a control and `value` is what it must equal.
+```json
+{ "type": "gauge", "id": "fan-speed", "position": [1, 0], "span": [2, 2], "label": "Fan",
+  "visible": { "when": "power-toggle", "operator": "eq", "value": true } }
+```
+
+### Disable Save until the form is valid
+Demonstrates `enabled` with a `ref` to a form cell: the button dims and ignores touches until the form is valid.
+```json
+{ "type": "button", "id": "save", "position": [4, 0], "label": "Save",
+  "enabled": { "ref": { "field": "plantForm.valid" }, "operator": "eq", "value": true } }
+```
+
+### Combine conditions
+Demonstrates `all`, `any`, `not` and `exists`: shown when a plant is selected and it is either dry for 3 days or healthy plants are not hidden.
+```json
+{ "type": "statusLight", "id": "water-alert", "position": [0, 0], "label": "Needs water",
+  "visible": { "all": [
+    { "ref": { "selected": "plants" }, "operator": "exists", "value": true },
+    { "any": [
+      { "ref": { "control": "daysDry" }, "operator": "gte", "value": 3 },
+      { "not": { "when": "hideHealthy", "value": true } }
+    ] }
+  ] } }
+```
+
+### Offline notice
+Demonstrates `stale`: the card shows only after the cpu feed went quiet past its staleAfter.
+```json
+{ "type": "label", "id": "offline", "position": [0, 0], "label": "Sensor offline",
+  "visible": { "when": "cpu", "stale": true } }
+```
 
 ## Related
 

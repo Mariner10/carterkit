@@ -120,12 +120,7 @@ themeFields:
     description: Label text size
     summary: How big the caption is
     does: Sizes the caption below the code from 8 to 24 points.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: The main text color
+  - use: foregroundColor
     does: Recolors the caption text below the code.
 ---
 

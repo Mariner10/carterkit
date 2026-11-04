@@ -1,5 +1,6 @@
 ---
 type: group-def
+depth: complete
 label: Group Definition
 icon: square.grid.3x3.square
 category: models
@@ -9,80 +10,206 @@ fields:
     values: [group]
     type: enum
     description: Discriminator; always group (required)
+    summary: Always group
+    does: Marks this entry as a group card rather than a control.
+    valueHelp: {"group": "the only value; a container card with its own grid"}
   - name: id
     title: ID
     type: string
     description: Unique identifier among the layout's controls and groups (required)
+    summary: Its unique name
+    does: Lets bindings, visibility and expand triggers point at this group; no two things in a layout share one.
   - name: name
     title: Name
     type: string
     description: Readable name the editor shows for this group; never used for identity
+    summary: A friendly name for the editor
+    does: Labels the group in the editor lists; nothing on the page shows it.
   - name: label
+    edit: inline
+    depth: surface
     title: Header
     type: string
     description: Header text shown above the group; absent or null for no header
+    summary: The title at the top of the card
+    does: Shows this text as a header above the group; leave it out for no header.
   - name: position
     title: Position
     type: array
     description: Zero-indexed [row, col] grid cell within the parent (required)
+    summary: Which cell it starts in
+    does: Puts the group's top-left corner at this row and column of the page.
   - name: span
     title: Size
     type: array
     description: "[rowSpan, colSpan] grid cells occupied (default [1, 1])"
+    summary: How many cells it covers
+    does: Makes the group this many rows and columns big on the page; default one cell.
   - name: landscape
     title: Landscape place
     type: object
     description: "This group's cell when an iPhone is on its side: {position, span} or {hidden: true}"
+    summary: Its place when the phone is on its side
+    does: Moves or hides the group when an iPhone is turned sideways.
   - name: regular
     title: Tablet place
     type: object
     description: "This group's cell on an iPad-width page: {position, span} or {hidden: true}"
+    summary: Its place on an iPad
+    does: Moves or hides the group on an iPad-width page.
   - name: grid
     title: Inner grid
     type: object
     description: Internal grid for the group's children (a grid-dimensions object; required)
+    summary: The cells inside the card
+    does: Sets the columns, rows, row height and scale the group's controls are laid out on.
+  - name: columns
+    group: grid
+    title: Columns
+    edit: scrub
+    depth: surface
+    min: 1
+    max: 12
+    step: 1
+    type: number
+    description: Columns of the group's inner grid (grid.columns; the editor offers 1 to 12, as for a tab)
+    summary: How many columns the group's controls share
+    does: "Splits the group's card into this many equal columns (1 to 12); its controls sit on them."
+  - name: rows
+    group: grid
+    title: Rows
+    edit: scrub
+    depth: surface
+    min: 1
+    max: 50
+    step: 1
+    type: number
+    description: Rows of the group's inner grid (grid.rows)
+    summary: How many rows the group's card holds
+    does: "Gives the group's card this many rows of cells (1 to 50); more rows fit more controls."
+  - name: rowHeight
+    group: grid
+    title: Row height
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: rows
+    min: 12
+    max: 200
+    step: 1
+    default: 56
+    type: number
+    description: Points per row of the group's inner grid (grid.rowHeight; default 56)
+    summary: How tall each row of the group is
+    does: "Makes every row of the group's card this many points tall (12 to 200); Default goes back to 56."
+  - name: scale
+    group: grid
+    title: Scale
+    edit: scrub
+    depth: hold
+    under: rows
+    min: 0.3
+    max: 1.5
+    step: 0.05
+    default: 1
+    type: number
+    description: "Size the group's controls draw at (grid.scale): a number from 0.3 to 1.5, or \"auto\" (rowHeight / 56); default 1. See Scale"
+    summary: How big the group's controls are drawn
+    does: "Draws every control in the group smaller or bigger, text, padding, corners and icons together, so a fine grid of short rows holds whole controls; taps still get a full-size target. Default goes back to 1."
   - name: children
     title: Contents
     type: object[]
     description: Controls and nested groups (required)
+    summary: What is inside the group
+    does: Lists the controls and smaller groups drawn in the card.
   - name: dynamic
     title: Live event
     tab: advanced
     type: string
     description: Event name whose broadcasts replace the children at runtime (see Dynamic Groups)
+    summary: Contents that arrive live
+    does: Replaces the children whenever a broadcast with this event name arrives.
   - name: visible
     title: Show when
     type: object
     description: Show/hide based on another control's value (a VisibilityCondition)
+    summary: Show only when...
+    does: Hides the whole group unless another control's value meets the condition.
   - name: enabled
     title: Enabled when
     type: object
     description: Enable/disable every child; false dims the group and ignores touches
+    summary: Allow touches only when...
+    does: Dims the group and ignores touches on all its controls while the condition is false.
   - name: form
     title: Form
     type: object
     description: Make the group a form whose inputs write a draft, written once by submit
+    summary: Turn the card into a form
+    does: Makes the inputs inside write to a draft that is saved once when submitted.
   - name: hideBackground
+    edit: background
+    depth: surface
     title: Background on/off
     type: bool
     default: false
     description: Remove the glass card behind the group
+    summary: Drop the glass card
+    does: Removes the card background so the controls sit directly on the page.
   - name: pulse
     title: Pulse
     type: object
     description: Flash a ring around the group when a live event lands
+    summary: Flash when something arrives
+    does: Flashes a ring around the group each time the chosen live event lands.
   - name: theme
+    edit: theme
     title: Theme
     type: object
     description: Theme overrides for the group's header, card and every child (same keys as a control's theme)
+    summary: Colours and style for the card
+    does: Overrides the header, card and every child's theme; a child's own theme still wins.
   - name: expand
     title: Expand
+    edit: pose
     tab: advanced
     type: object
     description: "Let the group grow into a foreground container with a corner close (X): {trigger: tap|hold|both, style: fullScreen|sheet, grid, children, title}. children are {ref, position, span} placements that move the group's own children, or controls that exist only when expanded. See Expand"
     valueHelp: "trigger: tap (default), hold, both, none, a control id, or an array like [\"hold\", \"more\"]"
     summary: Let the group open up full screen
     does: "Tapping the card (a tap no child claims), holding it, or both: the group's card grows from where it sits into the whole screen (or a large sheet), its controls laid out bigger with more of them, and shrinks back when closed."
+  - name: trigger
+    group: expand
+    title: Opens by
+    edit: pick-control
+    depth: surface
+    values: [tap, hold, both, none]
+    default: tap
+    type: string
+    description: "What opens the expanded group (expand.trigger): tap, hold, both, none, a control id, or an array like [\"hold\", \"more-button\"]"
+    summary: How the group opens
+    does: "Opens the group on a tap, a hold, either, or never from the card (none); or when a control you pick on the page is tapped. A keyword and controls can combine."
+  - name: style
+    group: expand
+    title: Style
+    edit: look
+    depth: hold
+    under: trigger
+    values: [fullScreen, sheet]
+    default: fullScreen
+    type: string
+    description: "Where the expanded group lands (expand.style): the whole screen, or a large sheet over a dimmed page"
+    summary: Full screen or a sheet
+    does: "Full screen takes the whole display; a sheet rises as a large card over the dimmed page. Both close with the corner X or a drag down."
+  - name: title
+    group: expand
+    title: Title
+    edit: inline
+    depth: surface
+    type: string
+    description: "Heading shown on the expanded group (expand.title); empty uses the group's own title"
+    summary: The expanded page's heading
+    does: "Types the heading the expanded group shows at its top; leave it empty to use the group's own title."
   - name: action
     title: Action
     tab: advanced
@@ -96,6 +223,8 @@ fields:
     tab: advanced
     type: object
     description: Tool data keyed by reverse-DNS name; preserved, never interpreted
+    summary: Notes for other tools
+    does: Stores tool data under reverse-DNS names that the app keeps but never uses.
 ---
 
 A visual container that clusters controls into a glass card with its own internal grid.
@@ -112,7 +241,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `span` | [rows, cols] | no | Grid cells occupied. Default: `[1, 1]` |
 | `landscape` | `{position, span}` or `{hidden: true}` | no | This group's cell when an iPhone is on its side; ignored in portrait. See [[grid-dimensions#Landscape and iPad]] |
 | `regular` | `{position, span}` or `{hidden: true}` | no | This group's cell on an iPad-width page |
-| `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children |
+| `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children; its `scale` draws them as miniatures (see [[#Scale]]) |
 | `children` | [[child-definition]][] | yes | Controls and nested groups |
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
@@ -127,9 +256,14 @@ A visual container that clusters controls into a glass card with its own interna
 
 ## Editing a group
 
-Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns, rows, row height, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
+Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns, rows, row height and scale under a hold on Rows, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
 
-## Example
+**Collapsed | Expanded** (the `expand` field's `edit: pose`) flips the pane to the group's expanded layout: the grown card's grid (`expand.grid`), with each child the expand does not place yet as a ghost at its collapsed cell. Dragging a child into cells writes its `{ref, position, span}` entry in `expand.children` (the first one creates `expand`: `trigger: "tap"`, `style: "fullScreen"`, the group's columns on a taller grid); the corner handle resizes it (its `span`); dragging it off the card removes the ref, and once the expand places any child the unplaced ones fade while expanded (the pose then shows them on a faded shelf below the card, to drag in from there). Columns and Rows on the bar size `expand.grid`; **Don't expand** removes `expand`. Each drag is one undo step. Controls that exist only while expanded show with an Only here mark.
+
+## Examples
+
+### Bedroom card
+A titled card with two switches and a brightness slider on a two-column grid.
 
 ```json
 {
@@ -143,6 +277,92 @@ Tapping a group in the editor opens its Group pane. It edits the group's scalar 
     { "type": "toggle", "id": "br-light", "position": [0, 0], "label": "Light" },
     { "type": "toggle", "id": "br-fan", "position": [0, 1], "label": "Fan" },
     { "type": "slider", "id": "br-dim", "position": [1, 0], "span": [1, 2], "min": 0, "max": 100, "label": "Brightness" }
+  ]
+}
+```
+
+### Hold to expand
+A card that opens as a large sheet when held, with the same toggle placed larger inside.
+
+```json
+{
+  "type": "group",
+  "id": "lamp",
+  "label": "Lamp",
+  "position": [0, 0],
+  "span": [1, 2],
+  "grid": { "columns": 2, "rows": 1 },
+  "expand": {
+    "trigger": "hold",
+    "style": "sheet",
+    "grid": { "columns": 2, "rows": 3 },
+    "children": [
+      { "ref": "lamp-power", "position": [0, 0], "span": [1, 2] }
+    ]
+  },
+  "children": [
+    { "type": "toggle", "id": "lamp-power", "position": [0, 0], "span": [1, 2], "label": "Power" }
+  ]
+}
+```
+
+### Quiet background-free group
+A group with no glass card and a pulse ring that flashes when a live event lands.
+
+```json
+{
+  "type": "group",
+  "id": "status",
+  "position": [1, 0],
+  "span": [1, 2],
+  "hideBackground": true,
+  "grid": { "columns": 2, "rows": 1 },
+  "pulse": { "event": "broadcast", "direction": "inward", "color": "34C759" },
+  "children": [
+    { "type": "label", "id": "status-text", "position": [0, 0], "span": [1, 2], "text": "Waiting for data" }
+  ]
+}
+```
+
+## Scale
+
+`grid.scale` draws the group's controls as proportional miniatures (or enlargements): text,
+padding, spacing, corner radii, icons and control sizes (toggle tracks, slider thumbs, stepper
+buttons) all scale together through the theme, so they stay crisp instead of being shrunk as a
+picture. It is what makes a fine grid work: a compact list card on 3 rows × 15 columns holds
+whole controls at a size that fits its short rows.
+
+| Value | Draws at |
+|-------|----------|
+| absent | 1 (as today) |
+| a number | that factor, clamped to 0.3 to 1.5 (0.5 = half size) |
+| `"auto"` | the row height over the default: `rowHeight / 56`, clamped (rows of 28 pt draw at 0.5). With `rowHeight: "auto"` it draws at 1 |
+
+- Taps stay full size: a button, toggle or stepper drawn smaller than 44 pt still takes a 44-pt
+  touch around its centre.
+- It scales what is inside the group, not the group's own card and header (those follow the
+  grid the group sits in). A group nested inside a scaled group is scaled with it (its rows
+  too), times its own `scale`.
+- Visual controls (rings, gauges, charts) already scale their insides to their cell, so they
+  look the same at any scale; the factor matters most for labels, buttons and inputs.
+- A list's `itemTemplate` grid takes `scale` too, so every row draws at it. An `expand` page
+  draws at its own `grid.scale`, and at 1 when it has no grid of its own.
+
+A compact card: 3 short rows on 15 columns, drawn at `auto` (40 / 56 ≈ 0.71):
+
+```json
+{
+  "type": "group",
+  "id": "compact-card",
+  "position": [0, 0],
+  "span": [3, 4],
+  "grid": { "columns": 15, "rows": 3, "rowHeight": 40, "scale": "auto" },
+  "children": [
+    { "type": "image", "id": "cc-icon", "position": [0, 0], "span": [3, 3], "systemName": "shippingbox" },
+    { "type": "label", "id": "cc-name", "position": [0, 3], "span": [1, 8], "text": "Example package", "subtitle": "1.2.0" },
+    { "type": "toggle", "id": "cc-auto", "position": [1, 3], "span": [1, 8], "label": "Auto update" },
+    { "type": "label", "id": "cc-size", "position": [2, 3], "span": [1, 8], "text": "Size: 1.1 MB", "style": "caption" },
+    { "type": "button", "id": "cc-go", "position": [0, 11], "span": [3, 4], "label": "Install" }
   ]
 }
 ```

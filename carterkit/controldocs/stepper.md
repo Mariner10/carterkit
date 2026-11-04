@@ -121,13 +121,7 @@ fields:
     summary: The buzz you feel on each tap
     does: "Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern."
     valueHelp: {"light": "a soft tap", "medium": "a firmer tap", "heavy": "a strong thump", "success": "a pleasant double tap", "warning": "a cautionary buzz", "error": "a sharp failure buzz", "selection": "a tiny tick like a picker"}
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each tap
+  - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you step."
 themeFields:
   - name: cornerRadius
@@ -150,12 +144,7 @@ themeFields:
     description: Internal padding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: "Fills the card behind the stepper with this color."
   - name: accentColor
     title: Accent color
@@ -164,23 +153,8 @@ themeFields:
     description: Accent/tint color
     summary: The highlight color
     does: "Sets the accent used for highlights on the stepper."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
-    does: "Colors the card's outline."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
-    does: "Sets the title text size from 8 to 24 points."
+  - use: borderColor
+  - use: labelFontSize
   - name: valueFontSize
     title: Number text size
     min: 8

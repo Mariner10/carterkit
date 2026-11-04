@@ -9,6 +9,7 @@ pickerCategory: Inputs
 friendlyName: Joystick
 oneLiner: Steer with your thumb
 aliases: [stick, pad, direction, steer, drive, gamepad]
+depth: complete
 starterPreset: {"label": "Joystick"}
 fields:
   - name: label
@@ -17,6 +18,8 @@ fields:
     title: Label
     type: string
     description: Header label
+    summary: The name shown under the stick
+    does: Shows this text under the stick, above the live x/y readout, in the label font size.
   - name: tint
     edit: color
     depth: surface
@@ -24,6 +27,8 @@ fields:
     type: color
     default: "#667eea"
     description: Stick and track color
+    summary: The stick color
+    does: Colors the stick, its track ring and the faint center dead-zone disc.
   - name: style
     edit: look
     depth: surface
@@ -32,6 +37,9 @@ fields:
     values: [analog, dpad]
     default: analog
     description: "analog (free) or dpad (4/8-direction snapping)"
+    summary: Free stick or 8-way pad
+    does: Chooses whether the stick moves freely or snaps to one of 8 directions, with a diagonal counting as full strength.
+    valueHelp: {"analog": "the stick moves freely and sends smooth x and y values", "dpad": "snaps to one of 8 directions, sending x and y of -1, 0 or 1 (diagonals scaled to unit length)"}
   - name: deadzone
     edit: scrub
     depth: surface
@@ -42,6 +50,8 @@ fields:
     type: number
     default: 0.1
     description: Center deadzone radius (0-1)
+    summary: How far to push before it counts
+    does: Draws a faint center disc and sends nothing until the stick is pushed past this fraction of its full travel (0-1, default 0.1).
   - name: sticky
     edit: part
     depth: hold
@@ -49,6 +59,8 @@ fields:
     type: bool
     default: false
     description: Stick stays where released instead of snapping to center
+    summary: Stay put when you let go
+    does: When on, the stick stays where you released it and sends that position once; when off, it springs back to center and sends x 0, y 0.
   - name: sendRate
     effect: behavior
     edit: scrub
@@ -62,6 +74,8 @@ fields:
     type: number
     default: 0.1
     description: Throttle interval in seconds for action firing
+    summary: How often it sends
+    does: Sets the minimum seconds between sends while you hold the stick outside the dead zone (0.1-10, default 0.1).
   - name: hideLabel
     edit: part
     depth: hold
@@ -69,6 +83,8 @@ fields:
     type: bool
     default: false
     description: Hide label and coordinate readout
+    summary: Hide the name and readout
+    does: When on, hides the label and the x/y readout under the stick.
 themeFields:
   - name: cornerRadius
     edit: scrub
@@ -81,6 +97,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
     min: 0
     max: 24
@@ -88,22 +106,32 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the card
+    does: Sets the padding between the card edge and the stick, from 0 to 24 pt (default 8).
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Card background
+    does: Fills the control's card background with this color.
   - name: accentColor
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight color
+    does: Sets the theme accent color for this control.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: Quiet text color
+    does: Colors the label text under the stick.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Card outline color
+    does: Colors the outline around the card.
   - name: borderWidth
     edit: scrub
     depth: hold
@@ -115,6 +143,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Card outline thickness
+    does: Sets the card outline thickness from 0 to 5 pt (default 1).
   - name: labelFontSize
     min: 8
     max: 24
@@ -122,6 +152,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the label text size from 8 to 24 pt (default 12).
 ---
 
 # Joystick
@@ -147,6 +179,7 @@ Inherits all [[shared-properties]]. Key fields:
 ## Examples
 
 ### Robot drive controller
+Drive a robot with a free analog stick.
 ```json
 {
   "type": "joystick",
@@ -159,6 +192,38 @@ Inherits all [[shared-properties]]. Key fields:
   "deadzone": 0.15,
   "sendRate": 0.05,
   "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "robot", "type": "drive", "payload": { "x": "$value.x", "y": "$value.y" } } }
+}
+```
+
+### Menu pad
+An 8-way pad that snaps to directions and stays where you leave it.
+```json
+{
+  "type": "joystick",
+  "id": "menu-pad",
+  "position": [0, 0],
+  "span": [3, 3],
+  "label": "Menu",
+  "style": "dpad",
+  "sticky": true,
+  "deadzone": 0.3,
+  "tint": "#667eea"
+}
+```
+
+### Quiet camera pan
+A slow-sending stick with no label for a clean card.
+```json
+{
+  "type": "joystick",
+  "id": "pan-stick",
+  "position": [0, 3],
+  "span": [3, 3],
+  "hideLabel": true,
+  "sendRate": 0.5,
+  "deadzone": 0.2,
+  "tint": "#34C759",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "camera", "type": "pan", "payload": { "x": "$value.x", "y": "$value.y" } } }
 }
 ```
 

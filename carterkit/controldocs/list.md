@@ -76,13 +76,7 @@ fields:
     description: Seed rows shown before the first sync (the same row objects a sync delivers)
     summary: Starting rows shown until new data arrives
     does: "Fills the list with these rows before the first sync, e.g. 3 sample rows, then new data replaces them."
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each tap
+  - use: confirm
     does: "After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button."
   - name: paging
     title: Load as you scroll
@@ -184,6 +178,15 @@ fields:
     does: "Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card."
     valueHelp: {"plain": "rows sit inside the list's own card, as before", "card": "each templated row is its own card, styled by the template group"}
 themeFields:
+  - name: cardPadding
+    type: number
+    min: 0
+    max: 32
+    step: 1
+    default: 12
+    description: Card item padding
+    summary: The room inside each card item
+    does: Pads the inside of every item when itemStyle is card, from 0 to 32 points.
   - name: cornerRadius
     title: Corner roundness
     min: 0
@@ -218,22 +221,9 @@ themeFields:
     description: Primary text color
     summary: The color of the row text
     does: "Colors the text in the rows with this color."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
+  - use: borderColor
     does: "Draws the card outline in this color."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: "Sets the outline thickness from 0 (none) to 5 points."
 ---
 
@@ -372,7 +362,9 @@ action payloads, `{{item.<field>}}` is replaced from the row (a dot path reaches
 fields: `{{item.meta.author}}`), and an exact token keeps its type, so
 `"defaultValue": "{{item.percent}}"` feeds a gauge a number.
 
-- The row is the template's grid: one row of a 4-column grid is 56 pt tall.
+- The row is the template's grid: one row of a 4-column grid is 56 pt tall. Set the grid's
+  `rowHeight` to `"auto"` ([[grid-dimensions#rowHeight]]) and rows take their content's
+  height instead, so a one-row card (icon, a label with a `subtitle`, a button) stays compact.
 - Children read the row, not live values: each shows what its fields and `defaultValue`
   say for that row; inputs in a row don't keep what is typed. Buttons fire their actions,
   with the row's fields already in the payload and `{{value}}` left for the tap.

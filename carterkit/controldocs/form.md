@@ -3,26 +3,39 @@ type: form
 label: Form
 icon: list.bullet.rectangle.portrait
 category: system
+depth: complete
 fields:
   - name: mode
     type: enum
     values: [create, edit]
     default: create
     description: "edit prefills the draft from the collection's selected record ({{selected}}) and refills it when the selection moves"
+    summary: Add new or edit existing
+    does: Chooses whether the form starts blank or is filled from the selected record and refilled when the selection moves.
+    valueHelp: {"create": "start blank to add a new record", "edit": "fill from the selected record to change it"}
   - name: collection
     type: string
     description: Local collection the form edits; the prefill source in edit mode and the default collection of a local submit
+    summary: Which saved list it works on
+    does: Names the local collection the form reads from when editing and saves into by default.
   - name: fields
     type: object
     description: "Field name → validators, a closed set: required, min, max, minLength, maxLength, oneOf, kind (integer|number|date|email|url). No regex"
+    summary: The rules for each entry
+    does: Checks each field against its rules and shows an error under it, and refuses the submit while any rule fails.
   - name: submit
     type: object
     description: "The one action the form writes with (local, http, mqtt or meshsocket); {{form}} is the whole draft, {{form.<field>}} one field"
+    summary: What Save does
+    does: Runs this one action with the whole draft when the form is submitted, writing everything at once.
   - name: afterSubmit
     type: enum
     values: [clear, keep]
     default: clear
     description: After a submit, clear the draft back to its starting values, or keep what was submitted
+    summary: What happens to the entries after saving
+    does: Decides whether the form empties back to its starting values or keeps what was just submitted.
+    valueHelp: {"clear": "empty the form back to its starting values", "keep": "leave what was submitted in place"}
 ---
 
 # Form
@@ -94,8 +107,10 @@ condition (`visible` / `enabled`):
 
 `{"derive": "form.<formId>.valid"}` is the same cell spelled as a derive.
 
-## Example
+## Examples
 
+### New plant form
+Adds a plant to the local `plants` collection once every rule passes. Intended effect: Save is refused with errors shown until the name and watering interval are valid, then one row is inserted and the form clears.
 ```json
 { "type": "group", "id": "plantForm", "label": "New plant",
   "position": [0, 0], "span": [5, 4], "grid": { "columns": 2, "rows": 3, "rowHeight": 76 },
@@ -117,8 +132,38 @@ condition (`visible` / `enabled`):
   ] }
 ```
 
-A form can submit anywhere an action can go: `{"method": "http", "path": "/plants", "payload": "{{form}}"}`
-or `{"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "plant_add", "plant": "{{form}}"}}`.
+### Form that posts to a web address
+Sends the draft to a server instead of the local store. Intended effect: tapping Send posts the typed note, then the form keeps its text.
+```json
+{ "type": "group", "id": "noteForm", "label": "Note",
+  "position": [0, 0], "span": [5, 2], "grid": { "columns": 1, "rows": 2, "rowHeight": 76 },
+  "form": {
+    "fields": { "note": { "required": true, "maxLength": 200 } },
+    "submit": { "method": "http", "path": "/notes", "payload": "{{form}}" },
+    "afterSubmit": "keep"
+  },
+  "children": [
+    { "type": "textInput", "id": "note", "position": [0, 0], "placeholder": "Note" },
+    { "type": "button", "id": "send", "position": [1, 0], "label": "Send", "role": "submit" }
+  ] }
+```
+
+### Edit form for the selected row
+Fills from the row picked in a list and updates it. Intended effect: choosing a plant loads its name, and Save changes that row in place.
+```json
+{ "type": "group", "id": "editPlant", "label": "Edit plant",
+  "position": [0, 0], "span": [5, 2], "grid": { "columns": 1, "rows": 2, "rowHeight": 76 },
+  "form": {
+    "mode": "edit",
+    "collection": "plants",
+    "fields": { "name": { "required": true, "maxLength": 40 } },
+    "submit": { "method": "local", "op": "update", "id": "{{selected}}", "set": "{{form}}" }
+  },
+  "children": [
+    { "type": "textInput", "id": "editName", "field": "name", "position": [0, 0], "placeholder": "Name" },
+    { "type": "button", "id": "saveEdit", "position": [1, 0], "label": "Save", "role": "submit" }
+  ] }
+```
 
 ## Related
 - [[group-def]] — the group that carries `form`

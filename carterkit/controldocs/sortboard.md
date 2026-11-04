@@ -1,5 +1,6 @@
 ---
 type: sortboard
+depth: complete
 label: Sortboard
 icon: rectangle.3.group.fill
 category: input
@@ -19,12 +20,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: The buzz you feel when you drag
+    does: Plays this haptic on the phone when you interact with the board.
+    valueHelp: {"none": "no buzz", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a gentle muffled tap", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Label
     type: string
     description: Header label
+    summary: The title above the board
+    does: Shows this text as the header of the board.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -36,6 +42,8 @@ fields:
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids — see Sizing)
+    summary: How tall the board is
+    does: Sets the board height in points in a flow grid; in a 2-D grid the span sets it instead.
   - name: searchable
     effect: behavior
     edit: part
@@ -44,6 +52,8 @@ fields:
     type: bool
     default: false
     description: Show a filter field above the option area
+    summary: A search box over the cards
+    does: Adds a filter field above the option area so you can find an item by its label.
     group: sortboardConfig
   - name: paletteLabel
     edit: inline
@@ -52,6 +62,8 @@ fields:
     type: string
     default: Options
     description: Header for the option area
+    summary: The name of the card pile
+    does: Sets the header over the option area, e.g. Backlog instead of Options.
     group: sortboardConfig
   - name: hidePalette
     effect: behavior
@@ -62,6 +74,8 @@ fields:
     type: bool
     default: false
     description: Hide the option area (server-seeded boards where items start placed)
+    summary: Hide the card pile
+    does: Removes the option area so only the columns show, for boards whose items all start placed.
     group: sortboardConfig
   - name: columns
     edit: scrub
@@ -73,20 +87,33 @@ fields:
     type: number
     default: 2
     description: How many zone columns to lay out
+    summary: How many columns
+    does: Lays the zones out in this many columns side by side, 1 to 12.
     group: sortboardConfig
   - name: events
     tab: advanced
     type: object
     description: events
+    summary: What happens when you drag
+    does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a card.
     group: sortboardConfig
   - name: items
     type: object
     description: items
+    summary: The cards you can move
+    does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
     group: sortboardConfig
   - name: zones
     type: object
     description: zones
+    summary: The columns cards go into
+    does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
     group: sortboardConfig
+  - name: sortboardConfig
+    type: object
+    description: Grouped config object (see grouped fields)
+    summary: The board settings in one bundle
+    does: Groups the search, palette, columns, events, items and zones settings; any entry left out uses its default.
 ---
 
 # Sortboard
@@ -163,6 +190,7 @@ disappears.
 > ready to drag. Everything here is copy-paste-ready into a `mode: "flow"` tab.
 
 ### 1 — Sprint board (searchable kanban with a WIP limit)
+Demonstrates `searchable`, `capacity` on the In Progress column and place and layout events.
 
 ```json
 {
@@ -201,6 +229,7 @@ disappears.
 ```
 
 ### 2 — Seating chart (`accepts` + `capacity`)
+Demonstrates two tables that each hold at most two guests, with a layout event on every drop.
 
 ```json
 {

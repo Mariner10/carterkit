@@ -1,5 +1,6 @@
 ---
 type: grid-dimensions
+depth: complete
 label: Grid Dimensions
 icon: square.grid.3x3
 category: models
@@ -10,24 +11,42 @@ fields:
     step: 1
     type: number
     description: Number of columns the grid is divided into (required)
+    summary: How many columns
+    does: Divides the width of the tab or group into this many equal columns, 1 to 50.
   - name: rows
     min: 1
     max: 50
     step: 1
     type: number
     description: Number of rows the grid is divided into (required)
+    summary: How many rows
+    does: Divides the grid into this many rows, 1 to 50.
   - name: mode
     type: string
     description: "'grid' (2-D, default) or 'flow' (legacy row-banded)"
+    summary: Grid or flow layout
+    does: Chooses a true 2-D grid (the default) or the older flow layout that stacks children in row bands.
   - name: rowHeight
     min: 12
     max: 200
     step: 1
     type: number
-    description: Points per row-unit in 2-D mode (default 56)
+    description: "Points per row-unit in 2-D mode (default 56). The word \"auto\" sizes each row to its content instead (a list itemTemplate grid: compact rows)"
+    summary: How tall one row is
+    does: Sets the points one row-unit takes in 2-D mode, default 56; auto makes each row as tall as its content needs.
+  - name: scale
+    min: 0.3
+    max: 1.5
+    step: 0.05
+    type: number
+    description: "Size the grid's controls draw at: a number from 0.3 to 1.5 or \"auto\" (rowHeight / 56); default 1. See group-def Scale"
+    summary: Shrink or grow the controls
+    does: Draws this grid's controls proportionally smaller or larger, 0.3 to 1.5; auto follows rowHeight divided by 56.
   - name: reflow
     type: string
     description: "Landscape policy for a tab's grid: 'auto' (default; columns double and children re-pack) or 'stretch' (keep the portrait cells, wider)"
+    summary: How landscape re-packs the tab
+    does: Auto doubles the columns and re-packs the children in landscape; stretch keeps the portrait cells and makes them wider.
 ---
 
 Every tab and every [[group-def|group]] lays its children out on a **grid** of
@@ -74,6 +93,31 @@ a comfortable input row, so:
 
 ```json
 "grid": { "columns": 4, "rows": 10, "rowHeight": 64 }
+```
+
+### `rowHeight: "auto"`
+
+Instead of a number, `"rowHeight": "auto"` makes every row as tall as the tallest
+one-row child that starts in it needs (each child measured at its column width, capped
+at two row-units). A taller multi-row child grows its last row to fit. Rows nothing
+starts in take no height. Use it on a list `itemTemplate` grid so a one-row card (icon,
+a label with a `subtitle`, a button) stays compact instead of using fixed 56-pt units:
+
+```json
+"itemTemplate": { "grid": { "columns": 4, "rows": 1, "rowHeight": "auto" }, "children": [ … ] }
+```
+
+## `scale`
+
+`scale` draws the controls on this grid as proportional miniatures: fonts, padding, spacing,
+corners, icons and control sizes shrink (or grow) together through the theme, and touch
+targets stay 44 pt. A number is the factor (0.3 to 1.5); `"auto"` follows the row height,
+`rowHeight / 56` (1 with `rowHeight: "auto"`). Use it with fine grids, such as a compact list
+card on 3 short rows × 15 columns. A grid nested in a scaled grid scales with it. Details and
+an example: [[group-def#Scale]].
+
+```json
+"grid": { "columns": 15, "rows": 3, "rowHeight": 40, "scale": "auto" }
 ```
 
 ## Sizing a control
@@ -137,6 +181,36 @@ child or in the document's `placements` section (see [[document-contract]]):
 - Only a tab's own grid re-packs; groups and `mode: "flow"` grids keep their
   cells (variants on a group's children still apply, flow grids ignore them).
 - The default presentation never reads a variant, so portrait is unchanged.
+
+## Examples
+
+### Compact list card with auto rows
+Demonstrates `rowHeight: "auto"` with `scale: "auto"`: a one-row card whose rows size to their content.
+```json
+{ "grid": { "columns": 15, "rows": 3, "rowHeight": "auto", "scale": "auto" },
+  "children": [
+    { "type": "label", "id": "title", "position": [0, 0], "span": [1, 10], "label": "Water pump" },
+    { "type": "button", "id": "go", "position": [0, 10], "span": [1, 5], "label": "Run" }
+  ] }
+```
+
+### Flow mode for a full-page map
+Demonstrates `mode: "flow"`: children stack in row bands and `controlHeight` sets the height.
+```json
+{ "grid": { "columns": 4, "rows": 2, "mode": "flow" },
+  "children": [
+    { "type": "map", "id": "site", "position": [0, 0], "span": [1, 4], "controlHeight": 480 }
+  ] }
+```
+
+### Landscape stretch with a taller row unit
+Demonstrates `rowHeight: 64` and `reflow: "stretch"`: the portrait cells stay and only grow wider when the phone turns sideways.
+```json
+{ "grid": { "columns": 4, "rows": 6, "rowHeight": 64, "reflow": "stretch" },
+  "children": [
+    { "type": "map", "id": "area", "position": [0, 0], "span": [6, 4] }
+  ] }
+```
 
 ## Related
 - [[control-def]] — `position`, `span`, `controlHeight`, `hideValue`, `hideBackground`

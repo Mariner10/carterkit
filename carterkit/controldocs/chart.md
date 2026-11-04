@@ -332,14 +332,7 @@ fields:
     summary: "Which waterfall steps are totals"
     does: "Draws the bars at these positions as running totals from zero instead of changes."
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
-    summary: "How rounded the corners are"
+  - use: cornerRadius
     does: "Rounds the chart card corners from square (0) to 30 points."
   - name: controlPadding
     min: 0
@@ -395,12 +388,7 @@ themeFields:
     description: Border width
     summary: "How heavy the outline is"
     does: "Sets the card outline from none (0) to 5 points."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: "The main text color"
+  - use: foregroundColor
     does: "Colors the heading and the selection readout."
   - name: tertiaryColor
     title: Faint text color

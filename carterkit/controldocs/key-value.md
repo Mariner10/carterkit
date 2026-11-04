@@ -145,15 +145,7 @@ themeFields:
     description: Control corner radius
     summary: How rounded the corners are
     does: Rounds the card's corners from square (0) to 30 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: Breathing room inside the edge
+  - use: controlPadding
     does: Adds 0 to 24 points between the card's edge and the table.
   - name: surfacePrimary
     title: Card fill

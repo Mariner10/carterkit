@@ -1,5 +1,6 @@
 ---
 type: camera
+depth: complete
 label: Camera
 icon: camera.viewfinder
 category: controls
@@ -17,19 +18,28 @@ fields:
     title: Title
     type: string
     description: Header label
+    summary: The name shown on top
+    does: Shows this text as the header above the camera.
   - name: scan
     type: array
     default: [barcode]
     description: "What the live scanner detects: any of barcode, text"
+    summary: What the camera looks for
+    does: Chooses whether the live viewfinder reads barcodes, printed text, or both.
   - name: symbologies
     type: array
     description: "Barcode filter (qr, ean13, code128, …). Omit for all supported"
+    summary: Which barcode types to read
+    does: Limits scanning to the listed barcode types; leave empty to read every supported type.
   - name: sendMode
     tab: action
     type: enum
     values: [auto, tap]
     default: auto
     description: "auto sends every stabilized detection; tap sends only items the user taps"
+    summary: Send on its own or on tap
+    does: Decides whether detections send themselves or wait for you to tap one.
+    valueHelp: {"auto": "every steady detection is sent on its own and is the default", "tap": "only the item you tap in the viewfinder is sent"}
   - name: debounce
     tab: action
     min: 0
@@ -38,6 +48,8 @@ fields:
     type: number
     default: 3
     description: Seconds before the same decoded value can fire again
+    summary: Wait before a repeat scan
+    does: Holds back the same scanned value from firing again for this many seconds (0 to 30).
   - name: torch
     edit: part
     depth: hold
@@ -45,6 +57,8 @@ fields:
     type: bool
     default: true
     description: Show a torch toggle while scanning
+    summary: Show the flashlight button
+    does: Shows a torch toggle in the viewfinder while scanning.
   - name: snapshot
     edit: part
     depth: hold
@@ -52,6 +66,8 @@ fields:
     type: bool
     default: false
     description: Show a shutter button (implied when snapshotAction is set)
+    summary: Show a photo button
+    does: Shows a shutter button that takes a photo while the camera is running.
   - name: snapshotQuality
     min: 0
     max: 1
@@ -59,6 +75,8 @@ fields:
     type: number
     default: 0.6
     description: JPEG quality 0–1 (auto-lowered to fit the mesh frame budget)
+    summary: How sharp the photo is
+    does: Sets the photo's JPEG quality from 0 to 1; it is lowered automatically if the photo is too big to send.
   - name: snapshotMaxDimension
     min: 240
     max: 4096
@@ -66,6 +84,8 @@ fields:
     type: number
     default: 1280
     description: Longest snapshot edge in pixels
+    summary: Biggest photo size
+    does: Caps the photo's longest side, 240 to 4096 pixels.
   - name: hideLabel
     edit: part
     depth: hold
@@ -73,6 +93,8 @@ fields:
     type: bool
     default: false
     description: Hide the header label (the LIVE chip moves into the viewfinder)
+    summary: Hide the title
+    does: Hides the header title, and the LIVE chip moves into the viewfinder.
 themeFields:
   - name: cornerRadius
     min: 0
@@ -81,6 +103,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the corners are
+    does: Rounds the control's corners, from 0 (square) to 30 pt.
   - name: controlPadding
     min: 0
     max: 24
@@ -88,22 +112,32 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edges
+    does: Sets the gap between the control's edge and its content, 0 to 24 pt.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The background color
+    does: Fills the control's background with this color.
   - name: accentColor
     type: color
     default: #667eea
     description: Idle-state icon tint
+    summary: The idle icon color
+    does: Tints the camera icon on the Tap to Start card.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The quieter text color
+    does: Colors the smaller, secondary text.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline color
+    does: Colors the outline drawn around the control.
   - name: borderWidth
     min: 0
     max: 5
@@ -111,11 +145,9 @@ themeFields:
     type: number
     default: 1
     description: Border width
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+    summary: How thick the outline is
+    does: Sets the outline thickness from 0 (none) to 5 pt.
+  - use: foregroundColor
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -124,6 +156,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Size of the title text
+    does: Sets the title text size from 8 to 24 pt.
   - name: valueFontSize
     title: Value text size
     min: 8
@@ -132,6 +166,8 @@ themeFields:
     type: number
     default: 14
     description: Value text size
+    summary: Size of the value text
+    does: Sets the value text size from 8 to 48 pt.
 ---
 
 # Camera

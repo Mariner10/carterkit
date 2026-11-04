@@ -85,14 +85,7 @@ fields:
     summary: The buzz you feel when the value changes
     does: "Plays this haptic on the phone each time a new date or time is chosen."
     valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error", "selection": "the faint tick of picking an item"}
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each change
-    does: "Shows a pill naming the change with an Undo button for 3 seconds after each local write."
+  - use: confirm
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -118,12 +111,7 @@ themeFields:
     description: Internal padding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: "Fills the card behind the picker with this color."
   - name: accentColor
     title: Accent color

@@ -29,6 +29,28 @@ fields:
     description: Alternative to text
     summary: A second place to put the words
     does: Shows this text when Text is empty; the label reads the same either way.
+  - name: subtitle
+    edit: inline
+    depth: hold
+    title: Second line
+    type: string
+    description: A quieter second line under the text (caption size, secondary color). In a list itemTemplate it takes {{item.<field>}}
+    summary: A smaller gray line under the words
+    does: Adds a compact second line in the caption size and the theme's secondary color; leave it empty for a single line.
+  - name: lines
+    edit: scrub
+    depth: hold
+    under: style
+    title: Lines
+    tab: style
+    min: 0
+    max: 10
+    step: 1
+    type: number
+    default: 1
+    description: Most lines the text may take (1 = truncate, N = wrap up to N, 0 = wrap freely). Also limits the subtitle
+    summary: How many lines the words may use
+    does: Keeps the text on one line, or lets it wrap onto up to 10 lines; 0 wraps as far as it needs.
   - name: icon
     edit: symbol
     depth: surface
@@ -107,15 +129,7 @@ fields:
     summary: Show as a countdown, or show where the value is expected to reach
     does: Lets the label keep ticking between real readings, marked as about, until a real value replaces it.
     valueHelp: {"countdown": "the value is a time and the label counts down to it", "reach": "the value is guessed to move toward a target number until the next real reading"}
-  - name: forecastTarget
-    title: Expected to reach
-    tab: data
-    type: number
-    min: -1000000
-    max: 1000000
-    step: 1
-    description: The value this one is expected to arrive at (with forecast "reach")
-    summary: The number it should reach
+  - use: forecastTarget
     does: Gives the number the guessed value drifts toward, from -1000000 to 1000000.
   - name: forecastTimeFrom
     title: Arrival time from
@@ -185,6 +199,11 @@ fields:
     summary: Show different colors for different values
     does: Recolors the text to match the incoming value, for example green for running.
 themeFields:
+  - name: secondaryColor
+    type: color
+    description: Subtitle colour
+    summary: The softer colour of the subtitle line
+    does: Colours the subtitle under the label text; defaults to the theme's secondary text colour.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -216,12 +235,7 @@ themeFields:
     description: Background fill
     summary: The fill behind the text
     does: Paints the card behind the label in this color.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
+  - use: borderColor
     does: Colors the line drawn around the label.
   - name: borderWidth
     edit: scrub
@@ -260,6 +274,8 @@ Inherits all [[shared-properties]]. Key fields:
 |-------|------|---------|-------------|
 | `text` | string | — | Static display text (overridden by sync) |
 | `label` | string | — | Alternative to `text` |
+| `subtitle` | string | — | A quieter second line under the text (caption size, theme secondary color); in a list `itemTemplate` it takes `{{item.<field>}}`. Empty = no second line |
+| `lines` | number | `1` | Most lines the text may take: `1` truncates, `N` wraps up to N, `0` wraps freely. Also limits the subtitle. Unset keeps the style's own limit (headline/title 2, mono unlimited) |
 | `icon` | string | — | SF Symbol before text |
 | `style` | string | `"default"` | See [[style-properties#Label Styles]] |
 | `tint` | string | white | Text and icon color (terminal: default text colour over the dark backdrop) |
@@ -429,6 +445,20 @@ Shows a live value behind a small gray symbol; the dash stays until the first va
   "tint": "#AAAAAA",
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "player_state" }, "valuePath": "artist" }]
 }
+```
+
+### Name with a subtitle
+Shows a name with a smaller gray line under it, two compact lines in one label; in a list row the second line comes from the item.
+
+```json
+{ "type": "label", "id": "pkg", "position": [0, 1], "span": [1, 2], "text": "{{item.name}}", "subtitle": "{{item.version}} · {{item.author}}" }
+```
+
+### Wrapping text
+Shows a long description over up to three lines instead of cutting it off after one.
+
+```json
+{ "type": "label", "id": "blurb", "position": [0, 0], "span": [2, 4], "text": "A longer description that should wrap onto several lines.", "lines": 3 }
 ```
 
 ### Headline style

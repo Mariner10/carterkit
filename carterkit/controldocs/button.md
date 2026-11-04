@@ -114,14 +114,8 @@ fields:
     tab: data
     type: object
     description: Synced value → hex tint
-  - name: confirm
-    summary: "A short note with Undo after each tap"
+  - use: confirm
     does: "A pill naming the change appears for 3 seconds with an Undo button after each tap."
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
     summary: "How round the corners are"
@@ -147,13 +141,8 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
-  - name: accentColor
-    summary: "The theme's highlight color"
+  - use: accentColor
     does: "Sets the default button fill or tint for every button without its own color."
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
   - name: foregroundColor
     summary: "Color of the words and symbol"
     does: "Sets the label and symbol color on filled buttons."
@@ -161,13 +150,8 @@ themeFields:
     type: color
     default: #FFFFFF
     description: Primary text color
-  - name: borderColor
-    summary: "The outline around the control"
+  - use: borderColor
     does: "Colors the border drawn around the button."
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
   - name: borderWidth
     summary: "How thick the outline is"
     does: "Draws the border 0 to 5 points thick; 0 hides it."

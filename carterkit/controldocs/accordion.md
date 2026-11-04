@@ -68,6 +68,8 @@ themeFields:
     summary: The fill behind each section card
     does: Paints every section card in this color, including its transparency.
   - name: accentColor
+    edit: color
+    depth: surface
     type: color
     default: "#667eea"
     description: Chevron color
@@ -98,6 +100,10 @@ themeFields:
     summary: How heavy the outline is
     does: Sets the outline thickness from 0 (none) to 5 points.
   - name: cardPadding
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: accordionMode
     title: Card spacing
     min: 0
     max: 32
@@ -108,6 +114,10 @@ themeFields:
     summary: Breathing room inside each section
     does: Adds 0 to 32 points between a section card edge and its content.
   - name: cornerRadius
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: accordionMode
     title: Corner roundness
     min: 0
     max: 30

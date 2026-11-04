@@ -1,5 +1,6 @@
 ---
 type: radar
+depth: complete
 label: Radar
 icon: hexagon.fill
 category: controls
@@ -16,15 +17,22 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: The buzz you feel after an edit
+    does: Plays this haptic on the phone when you let go of a dragged vertex; light if unset.
+    valueHelp: {"none": "no vibration", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a gentle cushioned bump", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Label under the chart
+    summary: The caption under the chart
+    does: Shows this text beneath the radar chart.
   - name: radarConfig
     type: object
     description: Full configuration object (see RadarConfig section)
+    summary: All the chart's look and edit settings in one box
+    does: Groups the chart options (rings, fill, labels, editing) that shape how the radar draws and behaves.
   - name: tint
     edit: color
     depth: surface
@@ -33,10 +41,14 @@ fields:
     type: color
     default: "#667eea"
     description: First-series color and palette seed
+    summary: The main color of the chart
+    does: Colors the first series and seeds the palette the other series cycle through.
   - name: formatValue
     tab: data
     type: string
     description: Formatter for vertex values
+    summary: How the numbers are written
+    does: Formats the numeric value beside each vertex, e.g. as a whole number or a percent.
   - name: colors
     edit: list
     depth: hold
@@ -44,6 +56,8 @@ fields:
     tab: style
     type: string[]
     description: Series color cycle (per-series color wins)
+    summary: The colors for each series
+    does: Gives each series its own outline and fill color in turn; a series with its own color keeps it.
     group: radarConfig
   - name: curved
     edit: part
@@ -52,11 +66,15 @@ fields:
     type: bool
     default: false
     description: Rounded polygon instead of straight edges
+    summary: Smooth or pointed shape
+    does: Draws each series as a rounded shape instead of a polygon with straight edges.
     group: radarConfig
   - name: editable
     type: bool
     default: false
     description: Drag the **first** series' vertices along their axes
+    summary: Drag the shape to change values
+    does: Lets you drag the first series' vertices along their axes; releasing fires the action with every axis value.
     group: radarConfig
   - name: fillOpacity
     edit: scrub
@@ -69,6 +87,8 @@ fields:
     type: number
     default: 0.25
     description: Polygon fill opacity 0–1
+    summary: How solid the filled shape is
+    does: Sets how opaque the filled area inside each series outline is, from 0 (clear) to 1 (solid).
     group: radarConfig
   - name: glowRadius
     edit: scrub
@@ -83,6 +103,8 @@ fields:
     type: number
     default: 0
     description: Soft glow behind each series outline in its own colour, in points (0 = none). Cross-control, same on every control
+    summary: A soft halo around the outline
+    does: Adds a glow behind each series outline in its own color, 0 (off) to 30 points wide.
   - name: lineCap
     edit: look
     depth: hold
@@ -93,10 +115,15 @@ fields:
     values: [round, butt, square]
     default: round
     description: "End shape of each series outline: it is a closed shape, so the cap sets its corners (round = round, square = sharp, butt = cut). Cross-control, same on every control"
+    summary: The shape of the outline corners
+    does: Rounds, cuts or sharpens the corners of each series outline.
+    valueHelp: {"round": "soft rounded corners", "butt": "corners cut flat", "square": "sharp pointed corners"}
   - name: maxValue
     bounds: none
     type: number
     description: Per-axis maximum (payload max wins)
+    summary: The value at the outer edge
+    does: Sets the value that reaches the rim on every axis; a max in the data overrides it.
     group: radarConfig
   - name: rings
     edit: scrub
@@ -109,6 +136,8 @@ fields:
     type: number
     default: 4
     description: Concentric grid rings
+    summary: How many grid circles
+    does: Draws this many concentric grid rings (1 to 12) to read values against.
     group: radarConfig
   - name: showAxisLabels
     edit: part
@@ -117,6 +146,8 @@ fields:
     type: bool
     default: true
     description: Axis names around the rim
+    summary: Show the axis names
+    does: Prints each axis name around the outside of the chart.
     group: radarConfig
   - name: showLegend
     edit: part
@@ -125,6 +156,8 @@ fields:
     type: bool
     default: false
     description: Series legend under the chart
+    summary: Show a key for the series
+    does: Adds a legend under the chart naming each series in its color.
     group: radarConfig
   - name: showPoints
     edit: part
@@ -133,6 +166,8 @@ fields:
     type: bool
     default: true
     description: Vertex dots (always on while editing)
+    summary: Show dots at the corners
+    does: Draws a dot at each vertex of every series; dots always show while editing.
     group: radarConfig
   - name: showValues
     edit: part
@@ -141,38 +176,44 @@ fields:
     type: bool
     default: false
     description: Numeric value beside each vertex (the dragged vertex always shows)
+    summary: Show the numbers
+    does: Prints each vertex's number beside it; the vertex you are dragging always shows its number.
     group: radarConfig
   - name: step
     bounds: none
     type: number
     description: Snap dragged values to this step (e.g. 1, 5, 0.1)
+    summary: Jump size when dragging
+    does: Snaps dragged values to multiples of this step, e.g. 5 or 0.1.
     group: radarConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Background color
+    does: Fills the radar chart background with this color.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Axis label color
+    summary: Axis label color
+    does: Colors the axis labels on the radar chart.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight color
+    does: Sets the accent color used to tint the radar chart when no tint is set.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Outline color
+    does: Colors the outline drawn around the radar chart.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -181,6 +222,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Outline thickness
+    does: Sets the outline width from 0 to 5 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -189,11 +232,15 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edges
+    does: Adds padding between the radar chart edge and its content, 0 to 24 points.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: Main text color
+    does: Colors the primary text on the radar chart.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -202,6 +249,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the label text size from 8 to 24 points.
 ---
 
 # Radar
@@ -299,6 +348,24 @@ Shorthand: `{"axes": […], "values": […]}` renders one anonymous series.
   "radarConfig": { "editable": true, "step": 1, "showValues": true, "rings": 5 },
   "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "eq_set", "bands": "{{value}}" } },
   "defaultValue": "{\"axes\":[\"60Hz\",\"250Hz\",\"1kHz\",\"4kHz\",\"12kHz\"],\"max\":10,\"series\":[{\"values\":[5,6,5,4,6]}]}"
+}
+```
+
+### Skill chart with glow
+Demonstrates `curved`, `fillOpacity`, `glowRadius`, `lineCap`, `colors` and `showAxisLabels`: a smooth glowing shape with a custom series color.
+```json
+{
+  "type": "radar",
+  "id": "skills",
+  "position": [0, 0],
+  "span": [3, 3],
+  "label": "Skills",
+  "tint": "#00D4FF",
+  "glowRadius": 10,
+  "lineCap": "round",
+  "haptic": "light",
+  "radarConfig": { "curved": true, "fillOpacity": 0.4, "rings": 5, "maxValue": 10, "showAxisLabels": true, "showPoints": false, "colors": ["#00D4FF", "#FF9500"] },
+  "defaultValue": "{\"axes\":[\"Speed\",\"Range\",\"Torque\",\"Grip\"],\"series\":[{\"values\":[8,5,7,6]}]}"
 }
 ```
 

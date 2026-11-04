@@ -1,5 +1,6 @@
 ---
 type: appearance
+depth: complete
 label: Appearance
 icon: macwindow
 category: models
@@ -8,19 +9,31 @@ fields:
     values: [system, dark, light]
     type: enum
     description: Pins the whole app to dark or light, or follows the device
+    summary: Light, dark or follow the phone
+    does: Switches the whole app between light and dark, or follows the device live.
+    valueHelp: {"system": "follow the phone's light or dark setting", "dark": "always dark", "light": "always light"}
   - name: showHeader
     type: bool
     description: Show or hide the header bar
+    summary: Show the top bar
+    does: Shows or hides the header bar above the grid.
   - name: statusBarStyle
     values: [auto, light, dark]
     type: enum
     description: Status bar content colour
+    summary: Colour of the clock and battery
+    does: Sets whether the status bar text and icons are light or dark.
+    valueHelp: {"auto": "picks whichever reads against the page", "light": "light text for dark backgrounds", "dark": "dark text for light backgrounds"}
   - name: header
     type: object
     description: "Header bar style, e.g. {style: transparent}"
+    summary: How the top bar looks
+    does: Styles the header bar as see-through, frosted or filled with a colour that extends into the status bar.
   - name: backgroundImage
     type: object
     description: "Page background image: {asset, blur, opacity}"
+    summary: A picture behind everything
+    does: Draws an image behind all controls on every tab, with optional blur, opacity and overlay.
 ---
 
 The `appearance` block on a [[layout-config|layout]] controls the app shell — color scheme, header bar, status bar, and background image. Colors and control styling live in [[theming|theme]]; appearance is about the chrome around your grid.
@@ -79,6 +92,46 @@ Omit `header` for a **transparent** bar — the page background shows through th
 | `overlay` | color | — | Hex overlay for readability (e.g. `"#00000080"`) |
 
 The image sits above the page background/gradient and below all controls, on every tab.
+
+## Examples
+
+### Pin the app to dark
+Always dark with a see-through header and light status bar text.
+```json
+{
+"appearance": {
+  "colorScheme": "dark",
+  "statusBarStyle": "light",
+  "header": { "style": "transparent" }
+}
+}
+```
+
+### Filled gradient header
+A colored header that follows light and dark mode and extends into the status bar.
+```json
+{
+"appearance": {
+  "colorScheme": "system",
+  "header": {
+    "style": "color",
+    "dark": ["#0A0F1E", "#0E1A33"],
+    "light": "#EAF0FBF2"
+  }
+}
+}
+```
+
+### Blurred photo background
+A bundled image behind the grid, softened and darkened for readability, with no header bar.
+```json
+{
+"appearance": {
+  "showHeader": false,
+  "backgroundImage": { "asset": "bg", "blur": 20, "opacity": 0.5, "overlay": "#00000080" }
+}
+}
+```
 
 ## Related
 - [[theming]] — Colors, fonts, per-control styling, light/dark variants

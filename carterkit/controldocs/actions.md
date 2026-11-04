@@ -1,5 +1,6 @@
 ---
 type: actions
+depth: complete
 label: Actions
 icon: bolt.fill
 category: system
@@ -8,69 +9,104 @@ fields:
     tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, local)
+    summary: "How the action travels"
+    does: "Picks the wire the action goes out on: meshsocket, mqtt, http or local (the on-device store)."
   - name: mode
     type: string
     description: Send mode (broadcast = fire and forget, request = await a reply; only route_msg replies) — meshsocket only
+    summary: "Wait for a reply or not"
+    does: "broadcast sends and moves on; request waits for the reply, which only a route_msg command ever gets (meshsocket only)."
   - name: event
     tab: advanced
     type: string
     description: MeshSocket frame type, sent verbatim — must be a relay verb (broadcast_request, route_msg, route_msg_noreply); the command name goes in payload.msg_type
+    summary: "The message type sent"
+    does: "Sent as-is as the MeshSocket frame type, so it must be a relay verb such as broadcast_request; the command name goes in the payload instead."
   - name: payload
     tab: advanced
     type: object
     description: Data to send (supports {{value}} substitution); for broadcast_request include msg_type so servers can demux
+    summary: "The data to send"
+    does: "The body sent with the action, with {{value}} replaced by the control's current value."
   - name: source
     type: string
     description: Named entry in the layout's sources (mqtt/http/local)
+    summary: "Which connection to use"
+    does: "Sends through the layout's named source (mqtt, http or local) instead of spelling out the address."
   - name: topic
     tab: advanced
     type: string
     description: MQTT topic to publish to
+    summary: "Where to publish"
+    does: "The MQTT topic the message is published to."
   - name: retain
     type: bool
     default: false
     description: Publish with the MQTT retained flag
+    summary: "Keep the last message"
+    does: "Publishes with the MQTT retained flag so new subscribers get the last value straight away."
   - name: url
     type: string
     description: Absolute request URL (http)
+    summary: "The full web address"
+    does: "The absolute address an http action requests."
   - name: path
     type: string
     description: Path against the source's baseURL (http)
+    summary: "The part after the host"
+    does: "The path added to the source's base address for an http action."
   - name: httpMethod
     tab: advanced
     type: string
     description: HTTP verb (default POST with a payload, GET without)
+    summary: "GET, POST and so on"
+    does: "The HTTP verb used; it is POST when there is a payload and GET when there is not."
   - name: headers
     type: object
     description: Extra HTTP headers for this action
+    summary: "Extra request headers"
+    does: "Adds these headers to this action's http request only."
   - name: op
     type: enum
     values: [insert, update, upsert, delete, select, set, increment, decrement, toggle]
     description: Local-store operation; set/increment/decrement/toggle write a singleton collection (local)
+    summary: "What to do to the data"
+    does: "Chooses the on-device store operation the action runs: write, change, remove or read rows, or adjust a single saved value."
+    valueHelp: {"insert": "adds a new entry to the collection", "update": "changes the fields you name on the entry with this id", "upsert": "updates the entry if it exists, otherwise adds it", "delete": "removes the entry with this id", "select": "moves the collection's selection to the entry with this id", "set": "patches the named fields of a singleton collection's one row", "increment": "adds the step to a number field of a singleton collection", "decrement": "subtracts the step from a number field of a singleton collection", "toggle": "flips a true or false field of a singleton collection"}
   - name: collection
     type: string
     description: Collection the op targets (local)
+    summary: "Which list to change"
+    does: "The on-device collection the operation reads or writes."
   - name: id
     type: string
     description: Record id for update/upsert/delete/select; tokens such as {{selected}} allowed (local)
+    summary: "Which entry"
+    does: "The entry the operation acts on; {{selected}} uses the collection's current selection."
   - name: set
     type: object
     description: Declared field → value for insert/update/upsert and the singleton set op; supports {{value}} and the store tokens (local)
+    summary: "The values to save"
+    does: "The field values written by insert, update, upsert or a singleton set, with {{value}} and the store tokens filled in first."
   - name: field
     type: string
     description: Singleton field an increment/decrement (number or integer) or toggle (bool) changes (local)
+    summary: "Which saved value"
+    does: "The single field of a singleton collection that increment, decrement or toggle changes."
   - name: by
     bounds: none
     type: number
     default: 1
     description: Step for increment/decrement; any non-zero number or an exact token such as {{value}}; decrement subtracts it; integer fields take whole steps only (local)
+    summary: "How much to add or take"
+    does: "The step an increment or decrement applies, 1 when unset; a decrement subtracts it, and whole-number fields only take whole steps."
   - name: confirm
     summary: "Ask before sending"
-    does: "Shows the app's own confirmation dialog first; the action goes out only when the user taps the confirm button."
+    does: "Shows the app's own confirmation dialog first; the action goes out only when the user taps the confirm button. It applies to taps, form submits and drags in the app; a widget, Live Activity, Control Center or Siri press cannot draw the dialog, so those never fire it."
     title: Confirm first
     type: enum
     values: [dialog]
-    valueHelp: {"dialog": "a dialog drawn by the app that names this layout and where the action goes; Cancel sends nothing"}
+    valueHelp: {"dialog": "a dialog drawn by the app that names this layout and where the action goes; Cancel sends nothing; widgets, the Dynamic Island, Control Center and Siri never fire it, so a tile bound to it is not offered"}
     description: dialog = ask in the app's confirmation dialog before sending; Cancel, or 60 s without an answer, sends nothing (the control's own confirm true is the Undo pill)
   - name: confirmTitle
     summary: "The dialog's question"
@@ -321,6 +357,32 @@ the same frame, naming the hub and its connection (`Example hub` over
 connection may ask (and, when the layout names a `state.authority`, only a frame whose
 `from` is that authority); at most 3 wait behind the one shown and 5 are taken per 30
 seconds, the rest answer `busy`. The full wire contract is in `docs/HUB-PROMPT.md`.
+
+## Examples
+
+### Remove with a confirmation dialog
+Asks first, then tells the hub to remove an item only if the user confirms.
+```json
+{
+  "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request",
+  "payload": { "msg_type": "item.remove", "id": "{{value}}" },
+  "confirm": "dialog", "confirmTitle": "Remove this item?",
+  "confirmMessage": "It is removed from the hub.", "confirmLabel": "Remove",
+  "destructive": true
+}
+```
+
+### Count a tap in the local store
+Adds 1 to the saved count on the phone each time the control is tapped.
+```json
+{ "method": "local", "op": "increment", "collection": "counter", "field": "count" }
+```
+
+### Open a group from a button
+Opens the expanded view of the group with this id, with no transport involved.
+```json
+{ "expand": "pkg" }
+```
 
 ## Related
 

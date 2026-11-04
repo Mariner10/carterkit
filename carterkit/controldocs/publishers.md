@@ -1,5 +1,6 @@
 ---
 type: publishers
+depth: complete
 label: Publishers
 icon: dot.radiowaves.left.and.right
 category: system
@@ -7,12 +8,16 @@ fields:
   - name: sensor
     type: string
     description: Pipeline to stream (heading, motion, barometer, device, audio, location)
+    summary: "Which reading to share"
+    does: "Names the sensor pipeline this entry streams to the hub: heading, motion, barometer, device, audio or location."
   - name: interval
     min: 1
     max: 3600
     step: 1
     type: number
     description: Seconds between frames (defaults per sensor; clamped to a safe floor)
+    summary: "How often to send"
+    does: "Seconds between readings; each sensor has its own default and a minimum so a typo cannot flood the relay."
 ---
 
 Turn this device into a telemetry source: a layout-level `publishers` array
@@ -89,6 +94,36 @@ Batched mode also idles on its own: a reading that hasn't moved past its kind's
 noise floor (1° heading, 0.5° motion, 2 levels audio, 0.02 kPa, 1 % battery,
 0.5 km/h) rides an ×8 heartbeat instead of its full cadence, so a phone at rest
 in a mount sends a fraction of the traffic and cools down.
+
+## Examples
+
+### Compass only
+Streams the phone's compass heading about four times a second.
+```json
+{ "publishers": [
+  { "sensor": "heading", "interval": 0.25 }
+] }
+```
+
+### Device status at its default pace
+Shares the device pipeline using its default cadence.
+```json
+{ "publishers": [
+  { "sensor": "device" }
+] }
+```
+
+### Motion and location, batched
+Sends motion every 0.1 s and location every 3 s, grouped into one frame per tick.
+```json
+{
+  "batchPublishers": true,
+  "publishers": [
+    { "sensor": "motion",   "interval": 0.1 },
+    { "sensor": "location", "interval": 3 }
+  ]
+}
+```
 
 ## Consent — always
 

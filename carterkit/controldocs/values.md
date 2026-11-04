@@ -1,5 +1,6 @@
 ---
 type: values
+depth: complete
 label: Value Types
 icon: number.square
 category: system
@@ -38,9 +39,14 @@ fields:
     type: enum
     values: [bool, integer, number, string, date, duration, measurement, location, json, list]
     description: The kind of value a capability produces
+    summary: What kind of value it is
+    does: Labels a capability's reading as one of the catalog value kinds so designers can pick sensible controls.
+    valueHelp: {"bool": "true or false", "integer": "a whole number", "number": "any number, with decimals", "string": "text", "date": "an ISO-8601 string or epoch milliseconds", "duration": "a number of seconds", "measurement": "a number in the capability's unit", "location": "an object with latitude and longitude", "json": "any JSON", "list": "an array of row objects, from local rows only"}
   - name: unit
     type: string
     description: "Measurement unit name or symbol for a measurement ([[values#Units]]); controls with a unit field convert to the device locale"
+    summary: The unit the number is in
+    does: Names the unit a reading arrives in so the readout converts to the device's locale, e.g. celsius shows as F in the US.
 ---
 
 The kinds of value CAR-TER can show or send, and the units a measurement can
@@ -104,6 +110,26 @@ and gauge `segments` stay in the source unit, so a needle, fill or colour zone s
 in the same place on every device. A binding whose sensor key names its unit
 (`location.speedKmh`, `location.speedMph`, `location.speed`) keeps that unit.
 Any other string is a literal suffix (`"unit": "dBFS"` → `12.5 dBFS`).
+
+## Examples
+
+### Temperature in its source unit
+Demonstrates `unit: "celsius"`: the value stays in °C on the wire, but the readout shows °F on a US-locale device.
+```json
+{ "type": "gauge", "id": "outside", "position": [0, 0], "min": 0, "max": 40, "unit": "celsius", "label": "Outside" }
+```
+
+### Speed from a sensor key
+Demonstrates `unit: "kilometersPerHour"` on a speed reading; it shows mph on a US device while `min` and `max` stay in km/h.
+```json
+{ "type": "gauge", "id": "speed", "position": [0, 0], "min": 0, "max": 120, "unit": "kilometersPerHour", "label": "Speed", "sync": [{ "method": "sensor", "sensor": "location.speedKmh" }] }
+```
+
+### A literal unit suffix
+Demonstrates a `unit` that is not in the table: `"dBFS"` is shown exactly as written after the number.
+```json
+{ "type": "gauge", "id": "loudness", "position": [0, 0], "min": -60, "max": 0, "unit": "dBFS", "label": "Loudness", "sync": [{ "method": "sensor", "sensor": "audio.dbfs" }] }
+```
 
 ## Where types come from
 

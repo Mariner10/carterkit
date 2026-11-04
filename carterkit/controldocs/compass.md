@@ -1,5 +1,6 @@
 ---
 type: compass
+depth: complete
 label: Compass
 icon: location.north.circle.fill
 category: input
@@ -19,12 +20,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: Buzz when you use the ring
+    does: Plays this haptic when a puck is picked up, dropped or fires; the action firing uses medium when not set.
+    valueHelp: {"none": "no haptic", "light": "a small light tap", "medium": "a medium tap and the default for firing", "heavy": "a strong tap", "soft": "a rounded cushioned tap", "rigid": "a sharp firm tap", "selection": "a tiny tick like scrolling a picker", "success": "a success pattern", "warning": "a warning pattern", "error": "an error pattern"}
   - name: label
     edit: inline
     depth: surface
     title: Label
     type: string
     description: Header label
+    summary: Title above the ring
+    does: Shows this text as the title above the ring.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -36,6 +42,8 @@ fields:
     type: number
     default: 420
     description: Rendered height in points (required in flow-mode grids)
+    summary: How tall the ring is
+    does: Sets the ring's height in points, which also sets its size since it is square.
   - name: tolerance
     effect: behavior
     edit: scrub
@@ -48,6 +56,8 @@ fields:
     type: number
     default: 15
     description: Half-angle (°) within which the needle counts as pointing at a puck
+    summary: How close the needle must aim
+    does: Counts the needle as pointing at a puck when it is within this many degrees of it.
     group: compassConfig
   - name: dwell
     edit: scrub
@@ -60,6 +70,8 @@ fields:
     type: number
     default: 1.2
     description: Seconds to hold on a puck before its action fires (0 = instant)
+    summary: How long to hold aim
+    does: Waits this many seconds of steady aim at a puck before its action fires; 0 fires at once.
     group: compassConfig
   - name: showCardinals
     edit: part
@@ -68,6 +80,8 @@ fields:
     type: bool
     default: true
     description: Draw N/E/S/W ticks
+    summary: Show the N E S W letters
+    does: Draws the N, E, S and W letters around the ring when on.
     group: compassConfig
   - name: cardinalSize
     edit: scrub
@@ -81,6 +95,8 @@ fields:
     type: number
     default: 13
     description: Cardinal glyph point size
+    summary: Size of the compass letters
+    does: Sets the size of the N, E, S and W letters in points.
     group: compassConfig
   - name: cardinalColor
     edit: color
@@ -89,6 +105,8 @@ fields:
     tab: style
     type: color
     description: "E/S/W cardinal color (default secondary grey; N always follows tint)"
+    summary: Color of the compass letters
+    does: Colors the N, E, S and W letters; they use a neutral grey when not set.
     group: compassConfig
   - name: editable
     effect: behavior
@@ -98,15 +116,21 @@ fields:
     type: bool
     default: true
     description: Allow dragging pucks to re-bearing them
+    summary: Let people move the pucks
+    does: Lets you drag pucks around the ring to change their direction when on; off locks them all.
     group: compassConfig
   - name: events
     tab: advanced
     type: object
     description: events
+    summary: What happens when a puck is moved
+    does: Runs these actions when a puck is picked up, dropped or the layout changes.
     group: compassConfig
   - name: pucks
     type: object
     description: pucks
+    summary: The actions around the ring
+    does: Places one puck on the ring per entry at its bearing; aiming at it fires its action.
     group: compassConfig
 ---
 
@@ -168,6 +192,7 @@ Puck **drag** fires `place` `{ item, x, y, bearing }` and `layout`
 ## Examples
 
 ### Point-to-run scenes
+A three-puck ring where aiming the phone at a puck for a second runs that scene.
 
 ```json
 {
@@ -189,6 +214,62 @@ Puck **drag** fires `place` `{ item, x, y, bearing }` and `layout`
         "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
                     "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
       { "id": "lock", "label": "Lock", "icon": "lock.fill", "tint": "#34C759", "bearing": 180,
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
+    ]
+  },
+  "sync": [{ "method": "sensor", "sensor": "heading" }]
+}
+```
+
+### Fast ring with strong feedback
+A tighter ring that fires the instant you aim, buzzes firmly, and keeps its pucks fixed in place.
+```json
+{
+  "type": "compass",
+  "id": "quick-ring",
+  "position": [0, 0],
+  "span": [7, 4],
+  "controlHeight": 360,
+  "label": "Quick Ring",
+  "haptic": "heavy",
+  "defaultValue": 100,
+  "compassConfig": {
+    "tolerance": 10,
+    "dwell": 0,
+    "editable": false,
+    "pucks": [
+      { "id": "door", "label": "Door", "icon": "door.left.hand.closed", "bearing": 90,
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } },
+      { "id": "garage", "label": "Garage", "icon": "car.fill", "bearing": 270, "locked": true,
+        "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
+                    "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
+    ]
+  },
+  "sync": [{ "method": "sensor", "sensor": "heading" }]
+}
+```
+
+### Custom letters
+A plain ring with larger orange compass letters, a longer hold and one puck at north to test aiming.
+```json
+{
+  "type": "compass",
+  "id": "letters-ring",
+  "position": [0, 0],
+  "span": [7, 4],
+  "controlHeight": 400,
+  "label": "Heading",
+  "defaultValue": 0,
+  "compassConfig": {
+    "dwell": 2.5,
+    "tolerance": 25,
+    "showCardinals": true,
+    "cardinalSize": 20,
+    "cardinalColor": "#FF9500",
+    "pucks": [
+      { "id": "north", "label": "North", "icon": "arrow.up", "bearing": 0,
         "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply",
                     "payload": { "target_name": "home", "type": "scene", "payload": { "name": "{{value}}" } } } }
     ]

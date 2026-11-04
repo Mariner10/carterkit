@@ -1,5 +1,6 @@
 ---
 type: pinboard
+depth: complete
 label: Pinboard
 icon: mappin.and.ellipse
 category: input
@@ -19,12 +20,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: The buzz you feel when you drag
+    does: Plays this haptic on the phone when you interact with the board.
+    valueHelp: {"none": "no buzz", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a gentle muffled tap", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Label
     type: string
     description: Header label
+    summary: The title above the board
+    does: Shows this text as the header of the pin board.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -36,9 +42,13 @@ fields:
     type: number
     default: 560
     description: Rendered height in points (required in flow-mode grids)
+    summary: How tall the board is
+    does: Sets the board height in points in a flow grid; in a 2-D grid the span sets it instead.
   - name: background
     type: string
     description: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
+    summary: A faint picture behind the surface
+    does: Draws this SF Symbol faintly behind the surface, e.g. house.fill for a floor plan or map for a map.
     group: pinboardConfig
   - name: surfaceAspect
     edit: scrub
@@ -51,6 +61,8 @@ fields:
     type: number
     default: 1.4
     description: Surface aspect ratio (width ÷ height)
+    summary: How wide the surface is
+    does: Sets the surface shape as width divided by height, 0.2 to 5; 1.4 is wider than tall.
     group: pinboardConfig
   - name: searchable
     effect: behavior
@@ -60,6 +72,8 @@ fields:
     type: bool
     default: false
     description: Show a filter field above the option area
+    summary: A search box over the pile
+    does: Adds a filter field above the option area so you can find an item by its label.
     group: pinboardConfig
   - name: paletteLabel
     edit: inline
@@ -68,6 +82,8 @@ fields:
     type: string
     default: Items
     description: Header for the option area
+    summary: The name of the item pile
+    does: Sets the header over the option area, e.g. Unplaced devices instead of Items.
     group: pinboardConfig
   - name: hidePalette
     effect: behavior
@@ -78,16 +94,27 @@ fields:
     type: bool
     default: false
     description: Hide the option area (surfaces whose markers all start placed)
+    summary: Hide the item pile
+    does: Removes the option area so only the surface shows, for boards whose markers all start placed.
     group: pinboardConfig
   - name: events
     tab: advanced
     type: object
     description: events
+    summary: What happens when you drag
+    does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a marker.
     group: pinboardConfig
   - name: items
     type: object
     description: items
+    summary: The things you can pin
+    does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
     group: pinboardConfig
+  - name: pinboardConfig
+    type: object
+    description: Grouped config object (see grouped fields)
+    summary: The board settings in one bundle
+    does: Groups the backdrop, shape, search, palette, events and items settings; any entry left out uses its default.
 ---
 
 # Pinboard
@@ -149,6 +176,7 @@ let a server seed or rearrange placements; ids not in the catalog are ignored.
 ## Examples
 
 ### Floor-plan device placement
+Demonstrates a house backdrop, one device pre-placed with a tap action, and place and layout events.
 
 ```json
 {
@@ -176,6 +204,51 @@ let a server seed or rearrange placements; ids not in the catalog are ignored.
                               "payload": { "device": "{{item}}", "x": "{{x}}", "y": "{{y}}" } } },
       "layout": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "floorplan_state" } }
     }
+  }
+}
+```
+
+### Map with a search box
+Demonstrates `searchable` and `surfaceAspect`: a wide map backdrop with a filter over the pile of pins.
+```json
+{
+  "type": "pinboard",
+  "id": "site-map",
+  "position": [0, 0],
+  "span": [10, 4],
+  "controlHeight": 480,
+  "label": "Site Map",
+  "pinboardConfig": {
+    "background": "map",
+    "surfaceAspect": 2,
+    "searchable": true,
+    "paletteLabel": "Cameras",
+    "items": [
+      { "id": "cam-gate", "label": "Gate", "icon": "video.fill", "tint": "#FF3B30" },
+      { "id": "cam-yard", "label": "Yard", "icon": "video.fill", "tint": "#5AC8FA" },
+      { "id": "cam-shed", "label": "Shed", "icon": "video.fill", "tint": "#FF9500" }
+    ]
+  }
+}
+```
+
+### Server-seeded markers
+Demonstrates `hidePalette` with items already placed by `x` and `y`, one locked so it cannot be dragged.
+```json
+{
+  "type": "pinboard",
+  "id": "seat-map",
+  "position": [0, 0],
+  "span": [8, 4],
+  "controlHeight": 420,
+  "label": "Seat Map",
+  "pinboardConfig": {
+    "hidePalette": true,
+    "surfaceAspect": 1.6,
+    "items": [
+      { "id": "seat-a", "label": "A", "icon": "chair.fill", "tint": "#667eea", "x": 0.25, "y": 0.5 },
+      { "id": "seat-b", "label": "B", "icon": "chair.fill", "tint": "#34C759", "x": 0.7, "y": 0.5, "locked": true }
+    ]
   }
 }
 ```

@@ -10,6 +10,7 @@ friendlyName: Picture
 oneLiner: A photo or an icon
 aliases: [picture, photo, icon, logo, thumbnail, img]
 addRank: 7
+depth: complete
 starterPreset: {"systemName": "photo"}
 fields:
   - name: systemName
@@ -18,9 +19,13 @@ fields:
     title: Symbol
     type: string
     description: SF Symbol name (fallback/placeholder)
+    summary: The symbol shown when there is no picture
+    does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
   - name: url
     type: string
     description: Static remote image URL
+    summary: The picture to load from the web
+    does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol.
   - name: style
     edit: look
     depth: surface
@@ -29,6 +34,9 @@ fields:
     type: enum
     values: [rounded, circle]
     description: Visual style variant
+    summary: Square-ish or round corners
+    does: Clips the picture to rounded corners (12 pt) or a full circle; an image roundness value overrides it.
+    valueHelp: {"rounded": "softly rounded corners", "circle": "clipped to a circle or pill"}
   - name: imageCornerRadius
     edit: scrub
     depth: hold
@@ -40,6 +48,8 @@ fields:
     step: 1
     type: number
     description: Custom corner radius
+    summary: How round the picture corners are
+    does: Rounds the picture's corners from 0 to 60 pt, overriding the Shape choice.
   - name: imageShadow
     edit: scrub
     depth: hold
@@ -53,6 +63,8 @@ fields:
     step: 1
     default: 0
     description: Soft shadow blur under the image (0 = none)
+    summary: A soft shadow under the picture
+    does: Blurs a dark shadow under the picture from 0 (none) to 30 pt, with room added around it so it is not cut off.
   - name: aspectRatio
     edit: look
     depth: surface
@@ -60,6 +72,9 @@ fields:
     type: enum
     values: [fit, fill]
     description: "fit (scale to fit) or fill (scale to fill, may crop)"
+    summary: Whether the picture fills the box or fits inside
+    does: Scales the picture to sit fully inside its cell, or to cover the cell and crop the overflow.
+    valueHelp: {"fit": "the whole picture shows, with empty space if the shapes differ", "fill": "the picture covers the whole cell and the edges are cropped"}
   - name: hideBackground
     edit: part
     depth: hold
@@ -68,20 +83,23 @@ fields:
     type: bool
     default: false
     description: Remove glass background
-  - name: iconMap
-    tab: data
-    type: object
-    description: Incoming value → SF Symbol name ("default" catches the rest)
-    summary: Show different symbols for different values
+    summary: Whether the card behind it is drawn
+    does: Removes the glass card, fill and border so only the picture or symbol sits on the page.
+  - use: iconMap
+    does: Swaps in the SF Symbol listed for the incoming value, with "default" as the catch-all; it wins over the static symbol and url.
   - name: valueMap
     tab: data
     type: object
     description: Incoming value → image URL
     summary: Show different pictures for different values
+    does: Loads the image at the web address listed for the incoming value; it wins over every other source.
+    summary: Show different pictures for different values
   - name: colorMap
     tab: data
     type: object
     description: Incoming value → hex tint for the mapped symbol
+    summary: Show different colors for different values
+    does: Tints the symbol with the hex color listed for the incoming value; photos are not tinted.
     summary: Show different colors for different values
 themeFields:
   - name: cornerRadius
@@ -91,6 +109,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
     min: 0
     max: 24
@@ -98,18 +118,26 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: The gap between card edge and picture
+    does: Sets the space inside the card around the picture from 0 to 24 pt (default 8).
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: Fills the card behind the picture with this color, default a faint white wash.
   - name: foregroundColor
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The color of the symbol
+    does: Colors the fallback symbol when no tint or color map applies, default white.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The card's outline color
+    does: Draws the card's outline in this color, default a faint white.
   - name: borderWidth
     min: 0
     max: 5
@@ -117,6 +145,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the outline thickness from 0 to 5 pt (default 1).
 ---
 
 # Image
@@ -168,6 +198,7 @@ device state, an alarm level — and let the layout say what that code looks lik
 ## Examples
 
 ### SF Symbol placeholder (e.g., for camera feed)
+A static symbol standing in for a feed.
 ```json
 {
   "type": "image",
@@ -179,6 +210,7 @@ device state, an alarm level — and let the layout say what that code looks lik
 ```
 
 ### Synced album artwork
+Shows the picture whose address arrives over a live feed.
 ```json
 {
   "type": "image",
@@ -194,6 +226,7 @@ device state, an alarm level — and let the layout say what that code looks lik
 ```
 
 ### Live weather icon (WMO code → SF Symbol, no server)
+Turns a weather code from a web request into a colored symbol.
 ```json
 {
   "type": "image",
@@ -209,6 +242,7 @@ device state, an alarm level — and let the layout say what that code looks lik
 ```
 
 ### Hero symbol tile
+A big tinted symbol that fills its cell.
 ```json
 {
   "type": "image",
@@ -224,6 +258,7 @@ device state, an alarm level — and let the layout say what that code looks lik
 The symbol fills the cell, so the span alone controls how big it reads.
 
 ### Device state → symbol
+Changes symbol and color as a printer's state changes.
 ```json
 {
   "type": "image",
@@ -247,6 +282,9 @@ The symbol fills the cell, so the span alone controls how big it reads.
   make it larger. See [[grid-dimensions]]
 - `iconMap`/`valueMap`/`colorMap` turn a synced **code** into a symbol, an image URL,
   and a tint — see [[#Value maps]]
+- **In a `rowHeight: "auto"` row an image never sets the row's height**: it takes
+  the height its row's other content gives it, so a fallback symbol cannot balloon a
+  compact templated row.
 - Supports long-press groups for detail views
 
 ## Related

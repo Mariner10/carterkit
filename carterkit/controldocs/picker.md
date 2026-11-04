@@ -97,13 +97,7 @@ fields:
     summary: The buzz felt when you change the choice
     does: "Plays this haptic on the phone each time a new choice is picked (default selection)."
     valueHelp: {"light": "a faint tap", "medium": "a firm tap", "heavy": "a strong thud", "success": "a happy double tap", "warning": "a cautionary buzz", "error": "a sharp triple buzz", "selection": "a tiny tick like scrolling a wheel"}
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each tap
+  - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice."
 themeFields:
   - name: cornerRadius
@@ -130,12 +124,7 @@ themeFields:
     description: Internal padding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: "Fills the card behind the picker with this color."
   - name: accentColor
     title: Accent color
@@ -144,20 +133,9 @@ themeFields:
     description: Accent/tint color
     summary: The highlight color
     does: "Sets the accent used for the picker highlights."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
-    summary: The color of the less important text
+  - use: secondaryColor
     does: "Colors the quieter text such as the placeholder and value."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
-    does: "Colors the card's outline."
+  - use: borderColor
   - name: borderWidth
     title: Border thickness
     edit: scrub

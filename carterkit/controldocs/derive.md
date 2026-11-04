@@ -1,5 +1,6 @@
 ---
 type: derive
+depth: complete
 label: Derive
 icon: function
 category: system
@@ -7,85 +8,138 @@ fields:
   - name: control
     type: string
     description: "Argument: {control: id} reads whatever that control currently displays"
+    summary: Use another control's number
+    does: Reads whatever the control with this id is showing right now, from any source.
   - name: derive
     type: string
     description: "Argument: {derive: id} reads another derive entry's result"
+    summary: Use another calculated value
+    does: Reads the result of another derive entry, so formulas can build on each other.
   - name: clock
     type: bool
     description: "Argument: {clock: true} is now, as epoch seconds"
+    summary: Use the current time
+    does: Reads now as epoch seconds; it makes the result refresh on a timer while the layout is open.
   - name: add
     type: array
     description: "Sum of the arguments; sum is an alias"
+    summary: Add numbers together
+    does: Shows the sum of all the arguments.
   - name: sub
     type: array
     description: First argument minus each of the rest
+    summary: Subtract numbers
+    does: Shows the first argument minus each of the rest.
   - name: mul
     type: array
     description: Product of the arguments
+    summary: Multiply numbers
+    does: Shows the product of all the arguments, e.g. volts times amps for watts.
   - name: div
     type: array
     description: First argument divided by each of the rest (nil on a zero divisor)
+    summary: Divide numbers
+    does: Shows the first argument divided by each of the rest; stays empty if any divisor is 0.
   - name: min
     type: array
     description: Smallest argument
+    summary: Pick the smallest
+    does: Shows the smallest of the arguments.
   - name: max
     type: array
     description: Largest argument
+    summary: Pick the biggest
+    does: Shows the largest of the arguments.
   - name: avg
     type: array
     description: Mean of the arguments
+    summary: Average of numbers
+    does: Shows the mean of the arguments, e.g. the average of three sensors.
   - name: coalesce
     type: array
     description: The first argument that is not nil (its value as-is, number or text)
+    summary: First one that has a value
+    does: Shows the first argument that is not empty, as a number or text, skipping missing ones.
   - name: abs
     type: object
     description: Absolute value of one argument
+    summary: Drop the minus sign
+    does: Shows the absolute value of one argument.
   - name: round
     type: object
     description: "{of, places}: round to places decimals (0-12, default 0); a bare argument rounds to a whole number"
+    summary: Round a number
+    does: Rounds the value to a number of decimals; a bare argument rounds to a whole number.
   - name: clamp
     type: object
     description: "{of, min, max}: keep the value inside min..max (either bound may be omitted, not both)"
+    summary: Keep a number in a range
+    does: Holds the value between a lowest and highest bound so it never goes past them.
   - name: scale
     type: object
     description: "{of, from: [a, b], to: [c, d]}: linear map of a..b onto c..d (not clamped)"
+    summary: Convert from one range to another
+    does: Maps the value linearly from one range onto another, e.g. 0-100 onto 32-212; it is not clamped.
   - name: band
     type: object
     description: "{of, stops, labels}: number to a label; labels[i] for the first stop the value is below, else the last label"
+    summary: Turn a number into a word
+    does: Shows a label for the bucket the value falls into, e.g. cold, ok or warm.
   - name: since
     type: object
     description: "{of, unit}: time elapsed since a date (epoch seconds or ISO-8601), in seconds/minutes/hours/days/weeks"
+    summary: How long ago
+    does: Shows the time elapsed since a date, in the chosen unit.
   - name: until
     type: object
     description: "{of, unit}: time remaining until a date, negative once it has passed"
+    summary: How long until
+    does: Shows the time remaining until a date, in the chosen unit; negative once it has passed.
   - name: sum
     type: array
     description: Alias of add
+    summary: Add numbers together
+    does: Works exactly like add: shows the sum of the arguments.
   - name: of
     type: object
     description: "Argument of round, clamp, scale, band, since and until: a number, or an argument object (control, derive, clock, or another op)"
+    summary: The value to work on
+    does: Gives round, clamp, scale, band, since and until the number or date to process.
   - name: places
     type: number
     min: 0
     max: 12
     step: 1
     description: "round: decimals to keep, 0-12 (default 0)"
+    summary: Digits after the point
+    does: Sets how many decimals round keeps, from 0 to 12.
   - name: from
     type: array
     description: "scale: the source range [a, b]"
+    summary: The range you start from
+    does: Sets the source range [a, b] that scale reads the value against.
   - name: to
     type: array
     description: "scale: the target range [c, d]"
+    summary: The range you end in
+    does: Sets the target range [c, d] that scale maps the value onto.
   - name: stops
     type: array
     description: "band: ascending thresholds; the value is bucketed against them"
+    summary: The cut-off points
+    does: Sets the ascending thresholds band uses to sort the value into buckets.
   - name: labels
     type: array
     description: "band: one label per bucket (stops count + 1)"
+    summary: The words for each bucket
+    does: Sets the text band shows for each bucket, one more than the number of stops.
   - name: unit
     type: enum
     values: [seconds, minutes, hours, days, weeks]
     description: "since / until: unit of the result (default seconds)"
+    summary: Seconds, minutes, days...
+    does: Chooses the unit since and until report their result in; seconds if unset.
+    valueHelp: {"seconds": "the elapsed or remaining time in seconds", "minutes": "the time in minutes", "hours": "the time in hours", "days": "the time in days", "weeks": "the time in weeks"}
 ---
 
 Values the phone computes from other values, with no server and no code. A
@@ -113,6 +167,40 @@ op tree. A control shows one with a [[sync]] entry of `method: "derive"`.
 
 Formulas are JSON structure, never strings. Each node is an object with exactly
 one key: the op.
+
+## Examples
+
+### Power from volts and amps
+Demonstrates `mul` with two `control` arguments: a gauge shows watts without any server math.
+```json
+{
+  "derive": { "watts": { "mul": [ {"control": "volts"}, {"control": "amps"} ] } },
+  "control": { "type": "gauge", "id": "wattsGauge", "min": 0, "max": 1800, "label": "Power", "sync": [ { "method": "derive", "from": "watts" } ] }
+}
+```
+
+### Tank percent with a comfort word
+Demonstrates `div`, `mul`, `clamp` and `round` nested together, then `band` with `labels` turning a number into a word.
+```json
+{
+  "derive": {
+    "tankPct": { "round": { "of": { "clamp": { "of": { "mul": [ { "div": [ {"control": "level"}, 180 ] }, 100 ] }, "min": 0, "max": 100 } }, "places": 0 } },
+    "tankState": { "band": { "of": {"derive": "tankPct"}, "stops": [20, 80], "labels": ["low", "ok", "full"] } }
+  }
+}
+```
+
+### Temperature convert and days since
+Demonstrates `scale` with `from` and `to` (Celsius to Fahrenheit) and `since` with `unit: "days"`, which refreshes on its own clock tick.
+```json
+{
+  "derive": {
+    "tempF": { "scale": { "of": {"control": "tempC"}, "from": [0, 100], "to": [32, 212] } },
+    "daysWatered": { "since": { "of": {"control": "lastWatered"}, "unit": "days" } },
+    "reading": { "coalesce": [ {"control": "sensorA"}, {"control": "sensorB"}, 0 ] }
+  }
+}
+```
 
 ## Arguments
 

@@ -10,6 +10,7 @@ friendlyName: Divider
 oneLiner: A line between sections
 aliases: [line, separator, rule, break, split, hr]
 addRank: 1
+depth: complete
 starterPreset: {"label": "Section"}
 fields:
   - name: label
@@ -18,6 +19,8 @@ fields:
     title: Title
     type: string
     description: Optional section label centered on the divider
+    summary: A name shown in the middle of the line
+    does: Shows this text centered on the divider with a line on each side, in the label font size and the line color; empty gives a plain line.
   - name: tint
     edit: color
     depth: surface
@@ -26,6 +29,8 @@ fields:
     type: color
     default: "#FFFFFF"
     description: Line color
+    summary: The line color
+    does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
   - name: style
     edit: look
     depth: surface
@@ -35,6 +40,9 @@ fields:
     values: [line, dashed]
     default: line
     description: Line style
+    summary: Solid or dashed line
+    does: Switches the line between solid and dashed.
+    valueHelp: {"line": "one unbroken solid line", "dashed": "a row of short dashes with small gaps"}
   - name: lineThickness
     edit: scrub
     depth: hold
@@ -48,6 +56,8 @@ fields:
     step: 0.5
     default: 1
     description: Line thickness in points
+    summary: How thick the line is
+    does: Sets the line's height from 0.5 to 8 pt (default 1).
 themeFields:
   - name: labelFontSize
     min: 8
@@ -56,11 +66,10 @@ themeFields:
     type: number
     default: 12
     description: Label text size
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+    summary: How big the label is
+    does: Sets the section label's text size from 8 to 24 pt (default 12).
+  - use: foregroundColor
+    does: Sets the base text color; the line and label fall back to a faint version of it when no color is set.
 ---
 
 # Divider
@@ -83,6 +92,7 @@ Inherits all [[shared-properties]]. Key fields:
 ## Examples
 
 ### Section divider with label
+A dashed gray line with a centered title above the advanced settings.
 ```json
 {
   "type": "divider",
@@ -92,6 +102,31 @@ Inherits all [[shared-properties]]. Key fields:
   "label": "Advanced Settings",
   "style": "dashed",
   "tint": "#8E8E93"
+}
+```
+
+### Plain rule
+A thin default line between two groups, no text.
+```json
+{
+  "type": "divider",
+  "id": "plain-rule",
+  "position": [1, 0],
+  "span": [1, 4]
+}
+```
+
+### Bold colored break
+A thick accent line to mark a major change of topic.
+```json
+{
+  "type": "divider",
+  "id": "major-break",
+  "position": [4, 0],
+  "span": [1, 4],
+  "style": "line",
+  "lineThickness": 3,
+  "tint": "#667eea"
 }
 ```
 

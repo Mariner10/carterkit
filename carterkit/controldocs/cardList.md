@@ -10,6 +10,7 @@ friendlyName: Cards
 oneLiner: A stack of cards
 aliases: [cards, feed, tiles, items, results, stack]
 starterPreset: {}
+depth: complete
 fields:
 ---
 
@@ -30,6 +31,7 @@ uses only the `nodes` (edges are ignored).
 ## Examples
 
 ### Control browser pane
+A full-size browser fed by a catalog broadcast.
 
 ```json
 {
@@ -42,6 +44,33 @@ uses only the `nodes` (edges are ignored).
 ```
 
 The server feeds it with a `broadcast_request` whose payload is `{"msg_type": "catalog", "graph": {…}}`.
+
+### Custom search hint
+A compact card list with its own placeholder text.
+
+```json
+{
+  "type": "cardList",
+  "id": "doc-browser",
+  "position": [0, 0],
+  "span": [4, 4],
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "catalog" }, "valuePath": "graph" }]
+}
+```
+
+### Side panel of cards
+A narrow tall list beside other controls.
+
+```json
+{
+  "type": "cardList",
+  "id": "side-cards",
+  "position": [6, 0],
+  "span": [3, 6],
+  "searchPlaceholder": "Search models",
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "models" }, "valuePath": "graph" }]
+}
+```
 
 ## Behavior
 

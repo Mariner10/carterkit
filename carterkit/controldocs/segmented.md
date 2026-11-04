@@ -81,13 +81,7 @@ fields:
     summary: The tap feel when you change choice
     does: Plays this haptic on the phone each time a different segment is selected.
     valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thump", "success": "a confirming double pulse", "warning": "an alert pulse", "error": "a sharp failure buzz", "selection": "a tiny tick like scrolling a picker and the default"}
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    summary: A short note with Undo after each tap
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+  - use: confirm
     does: After each change a pill naming it with an Undo button shows for 3 seconds.
 themeFields:
   - name: cornerRadius

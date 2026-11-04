@@ -1,5 +1,6 @@
 ---
 type: glance-controls
+depth: complete
 label: Control Center Controls
 icon: switch.2
 category: system
@@ -7,55 +8,89 @@ fields:
   - name: id
     type: string
     description: Stable id within the layout (the registry key is <layoutId>#<id>)
+    summary: A short name for this control
+    does: Names the control so the layout can tell it from the others; it is not shown on screen.
   - name: label
     type: string
     description: Name in the controls gallery and on the control
+    summary: The name people see
+    does: Sets the name shown on the control in the controls gallery and on the control itself.
   - name: icon
     type: string
     description: SF Symbol (defaults per kind)
+    summary: The little picture on the control
+    does: Sets the SF Symbol drawn on the control; when left out, each kind uses its own default.
   - name: kind
     type: enum
     values: [toggle, button, cycle, step, set]
     default: button
     description: toggle and button are the two templates iOS offers. cycle, step and set are buttons whose press computes a value
+    summary: What the control does when pressed
+    does: Chooses how the control behaves in Control Center, from a plain button to a switch or a value-sending press.
+    valueHelp: {"toggle": "an on/off switch, styled by on and off, that sends the opposite state", "button": "a plain press that sends the bound control's action or the event", "cycle": "a press that moves to the next entry of states", "step": "a press that adds delta to the control's value, within its min and max", "set": "a press that sends one fixed value"}
   - name: control
     type: string
     description: Layout control this one mirrors and drives. Required for cycle, step and set; optional for toggle and button. Its live value is what the control shows, and its own action (with {{value}} substituted) is what a press sends
+    summary: Which on-screen control this one runs
+    does: Links to a control in your layout; the control shows that control's live value and a press sends its action.
   - name: event
     type: string
     description: Explicit MeshSocket event instead of the bound control's action
+    summary: A custom message to send
+    does: Sends this named event on press instead of the linked control's action.
   - name: payload
     type: object
     description: "Static payload for event; value-bearing kinds merge {value: <value>} into it"
+    summary: Extra data sent with the event
+    does: Adds fixed data to the event sent on press; controls that carry a value add it alongside.
   - name: on
     type: object
     description: Toggle styling while on, { label, icon, tint }
+    summary: How the switch looks when on
+    does: Styles a toggle in its on state with a label, icon and tint.
   - name: off
     type: object
     description: Toggle styling while off, { label, icon, tint }
+    summary: How the switch looks when off
+    does: Styles a toggle in its off state with a label, icon and tint.
   - name: valueControl
     type: string
     description: Show THIS control's formatted value as the value label (for example a lux reading beside a lights toggle)
+    summary: Show another control's reading
+    does: Shows the formatted value of the named control as the value label, for example a sensor reading next to a toggle.
   - name: valueLabel
     type: string
     description: Template over the value label; {{value}} is the bound or valueControl display value, for example "{{value}} lx"
+    summary: Words around the shown value
+    does: Formats the value label from a template, where {{value}} becomes the displayed reading, such as 23 lx.
   - name: states
     type: object[]
     description: cycle ring in press order, each { value, label, icon, tint }; a press sends the next state and the control shows the current one
+    summary: The choices a cycle walks through
+    does: Lists the steps a cycle control goes through in press order; each press sends the next one and the control shows the current one.
   - name: delta
     type: number
     bounds: none
     description: step increment, added to the control's current value (negative to decrement), clamped to its min and max
+    summary: How much each press changes the value
+    does: Adds this amount to the control's current value on press (negative subtracts), never going past its min or max.
   - name: value
     type: string
     description: set target value, the value sent on press
+    summary: The value a press sends
+    does: Sends this exact value to the linked control when a set control is pressed.
   - name: presets
     type: string[]
     description: Preset values for a step or set control (25, 50, 75, 100); one button each in buttons mode
+    summary: Quick values to pick from
+    does: Lists fixed values for a step or set control, shown as one button each in buttons mode.
   - name: surface
     type: enum
     values: [buttons, cycle, big]
     description: How the control reaches widgets, the Live Activity and Control Center. buttons is a row of press buttons, cycle one button that walks the options, big a tap that opens the app on a full-screen one-control sheet. Absent uses the kind's default
+    summary: How the control shows up outside the app
+    does: Chooses whether the control appears as a row of buttons, one cycling button, or a tap that opens a full-screen sheet.
+    valueHelp: {"buttons": "a row of press buttons, one per option", "cycle": "one button that walks through the options", "big": "a tap that opens the app on a full-screen sheet for this one control"}
 constraints: {"surface":"controls","field":"glance.controls","kinds":{"toggle":{"iosTemplate":"ControlWidgetToggle","needsControl":false,"valueDisplay":true,"styling":["on","off"]},"button":{"iosTemplate":"ControlWidgetButton","needsControl":false,"valueDisplay":false},"cycle":{"iosTemplate":"ControlWidgetButton","needsControl":true,"requires":["states"],"valueDisplay":true},"step":{"iosTemplate":"ControlWidgetButton","needsControl":true,"requires":["delta or presets"],"valueDisplay":true},"set":{"iosTemplate":"ControlWidgetButton","needsControl":true,"requires":["value"],"valueDisplay":false}},"defaultKind":"button","iosOffers":["toggle","button"],"noSliderNoText":true,"valueDisplay":{"fields":["valueControl","valueLabel"],"template":"{{value}} is the bound or valueControl display value"},"surfaceModes":["buttons","cycle","big"],"placedBy":"the user: Control Center, lock-screen corners, Action button","refresh":{"live.controls.refresh":["push","app"],"minimumIos":18},"offlinePressQueueHours":24,"authorDeclaredRequiredFor":["Live Activity row","lock-screen banner row","medium and large widgets"]}
 ---
 

@@ -1,5 +1,6 @@
 ---
 type: symbol
+depth: complete
 label: Symbol
 icon: cloud.bolt.rain.fill
 category: controls
@@ -18,12 +19,16 @@ fields:
     title: Symbol
     type: string
     description: SF Symbol name (the glyph at rest)
+    summary: Which icon to show
+    does: Draws this SF Symbol as the main glyph; a synced text value can swap it live.
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Caption under the glyph
+    summary: The caption under the icon
+    does: Shows this text under the glyph.
   - name: hideLabel
     edit: part
     depth: hold
@@ -31,6 +36,8 @@ fields:
     type: bool
     default: false
     description: Hide the caption
+    summary: Hide the caption
+    does: Turned on, the caption under the glyph is not shown.
   - name: tint
     edit: color
     depth: surface
@@ -38,6 +45,8 @@ fields:
     tab: style
     type: color
     description: Glyph colour (monochrome/hierarchical; palette primary)
+    summary: The icon's color
+    does: Colors the glyph; multicolor symbols keep their own colors instead.
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -51,6 +60,8 @@ fields:
     type: number
     default: 0
     description: Soft glow behind the glyph in its own colour, in points (0 = none). Cross-control, same on every control
+    summary: A soft glow behind the icon
+    does: Adds a blurred halo of the glyph's own color behind it, 0 for none up to 30 points.
   - name: hideBackground
     edit: part
     depth: hold
@@ -59,21 +70,23 @@ fields:
     type: bool
     default: false
     description: Remove glass background
-  - name: iconMap
-    tab: data
-    type: object
-    description: Incoming value → SF Symbol name ("default" catches the rest)
-    summary: Show different symbols for different values
+    summary: Remove the card behind it
+    does: Turned on, the glass card is removed and the icon floats on the page.
+  - use: iconMap
   - name: colorMap
     tab: data
     type: object
     description: Incoming value → hex tint
     summary: Show different colors for different values
+    does: Tints the glyph with the hex color listed for the incoming value.
   - name: haptic
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on tap (default light)
+    summary: Buzz when tapped
+    does: Plays this haptic feedback each time the symbol is tapped; light when not set.
+    valueHelp: {"none": "no haptic", "light": "a small light tap and the default", "medium": "a medium tap", "heavy": "a strong tap", "soft": "a rounded cushioned tap", "rigid": "a sharp firm tap", "selection": "a tiny tick like scrolling a picker", "success": "a success pattern", "warning": "a warning pattern", "error": "an error pattern"}
   - name: renderingMode
     edit: look
     depth: hold
@@ -83,11 +96,16 @@ fields:
     values: [monochrome, hierarchical, palette, multicolor]
     default: monochrome
     description: SF rendering mode — multicolor uses the symbol's own colours
+    summary: How the icon is colored
+    does: Chooses how the symbol's layers take color.
+    valueHelp: {"monochrome": "one color for the whole glyph and the default", "hierarchical": "layers shaded from one color, strongest first", "palette": "each layer gets its own color from the palette list", "multicolor": "the symbol's own built-in colors and ignores the tint"}
     group: symbolConfig
   - name: palette
     tab: style
     type: array
     description: Hex colour per layer (primary, secondary, tertiary) for palette rendering
+    summary: A color for each icon layer
+    does: Colors the symbol's layers in order, primary first, when the colouring is palette.
     group: symbolConfig
   - name: weight
     edit: look
@@ -97,6 +115,9 @@ fields:
     values: [ultraLight, thin, light, regular, medium, semibold, bold, heavy, black]
     default: regular
     description: Glyph weight
+    summary: How thick the icon lines are
+    does: Sets the stroke thickness of the glyph.
+    valueHelp: {"ultraLight": "the thinnest lines", "thin": "very fine lines", "light": "fine lines", "regular": "normal lines and the default", "medium": "slightly heavier lines", "semibold": "fairly heavy lines", "bold": "heavy lines", "heavy": "very heavy lines", "black": "the heaviest lines"}
     group: symbolConfig
   - name: variant
     edit: look
@@ -108,6 +129,9 @@ fields:
     values: [none, fill, circle, square, rectangle, slash]
     default: none
     description: Symbol variant applied on top of the name
+    summary: An outline or badge style
+    does: Applies a variant to the symbol name, such as a circle around it or a slash through it.
+    valueHelp: {"none": "the symbol exactly as named and the default", "fill": "the filled version", "circle": "the glyph inside a circle", "square": "the glyph inside a square", "rectangle": "the glyph inside a rectangle", "slash": "a diagonal slash through the glyph"}
     group: symbolConfig
   - name: size
     edit: scrub
@@ -118,6 +142,8 @@ fields:
     step: 1
     type: number
     description: Explicit point size (default scales to the cell)
+    summary: How big the icon is
+    does: Sets the glyph's point size; left empty it scales to fill the cell.
     group: symbolConfig
   - name: effect
     edit: look
@@ -127,11 +153,16 @@ fields:
     values: [none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale]
     default: none
     description: Native symbol effect or custom rain, snow, sparkle animation
+    summary: An animation that keeps playing
+    does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles.
+    valueHelp: {"none": "no animation and the default", "rain": "slanted drops falling below the symbol", "snow": "flakes falling and drifting below the symbol", "sparkle": "four-point stars twinkling around the symbol", "pulse": "the icon fades in and out", "breathe": "the icon gently grows and shrinks", "variableColor": "the icon's layers light up in sequence", "rotate": "the icon spins", "wiggle": "the icon shakes to get attention", "bounce": "the icon hops", "scale": "the icon is held larger or smaller"}
     group: symbolConfig
   - name: particleColor
     tab: style
     type: color
     description: Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor)
+    summary: Color of the rain, snow or sparkles
+    does: Overrides the color of the custom particles instead of the tint or palette.
     group: symbolConfig
   - name: particleIntensity
     type: number
@@ -140,6 +171,8 @@ fields:
     step: 0.05
     default: 0.65
     description: Rain, snow, sparkle density (0 hides particles)
+    summary: How much rain, snow or sparkle
+    does: Sets how dense the particles are from 0 to 1, with 0 hiding them.
     group: symbolConfig
   - name: particleAngle
     type: number
@@ -148,16 +181,23 @@ fields:
     step: 1
     default: -18
     description: Rain/snow direction in degrees from vertical (negative left, positive right)
+    summary: Which way the rain or snow falls
+    does: Tilts falling particles from straight down, negative toward the left and positive toward the right.
     group: symbolConfig
   - name: effectOptions
     type: array
     description: "Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol …"
+    summary: Extra settings for the animation
+    does: Adds Apple's modifiers such as byLayer, clockwise or iterative to a native effect.
     group: symbolConfig
   - name: loop
     type: enum
     values: [continuous, periodic, once]
     default: continuous
     description: How the effect repeats
+    summary: How often the animation repeats
+    does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time.
+    valueHelp: {"continuous": "repeats without stopping and the default", "periodic": "plays, waits the loop delay, then plays again", "once": "plays one time and stops"}
     group: symbolConfig
   - name: loopCount
     min: 1
@@ -165,6 +205,8 @@ fields:
     step: 1
     type: number
     description: periodic only — plays before stopping (omit for forever)
+    summary: How many times it plays
+    does: With periodic looping, stops the effect after this many plays; empty means forever.
     group: symbolConfig
   - name: loopDelay
     min: 0
@@ -173,6 +215,8 @@ fields:
     type: number
     default: 1
     description: periodic only — seconds between plays
+    summary: Pause between plays
+    does: With periodic looping, waits this many seconds between plays.
     group: symbolConfig
   - name: speed
     min: 0.1
@@ -181,30 +225,40 @@ fields:
     type: number
     default: 1
     description: Playback speed multiplier
+    summary: How fast it animates
+    does: Multiplies the animation speed; 2 plays twice as fast and 0.5 half as fast.
     group: symbolConfig
   - name: activeWhen
     type: string
     default: always
     description: "always | truthy | a state word the synced value must equal"
-    summary: When the symbol effect should play
+    summary: When the animation runs
+    does: Plays the effect always, only when the synced value is true, or only when it equals the state word you give.
     group: symbolConfig
   - name: variableMin
     type: number
     bounds: none
     default: 0
     description: Numeric value at which the variable layers are empty
+    summary: Number where the icon is empty
+    does: The synced number at which the symbol's variable layers show as empty.
     group: symbolConfig
   - name: variableMax
     type: number
     bounds: none
     default: 100
     description: Numeric value at which the variable layers are full
+    summary: Number where the icon is full
+    does: The synced number at which the symbol's variable layers show as full.
     group: symbolConfig
   - name: transition
     tab: style
     type: enum
     values: [replace, replace.downUp, replace.upUp, replace.offUp, replace.magic, none]
     description: How a glyph change animates (default replace; none when the value is numeric)
+    summary: How the icon changes to a new one
+    does: Animates the swap when the glyph changes to a different symbol.
+    valueHelp: {"replace": "the old glyph morphs into the new one and the default", "replace.downUp": "the old glyph slides down and the new one comes up", "replace.upUp": "both glyphs move up", "replace.offUp": "the old glyph fades while the new one moves up", "replace.magic": "matching parts of the two glyphs morph into each other", "none": "swaps instantly with no animation"}
     group: symbolConfig
   - name: tapEffect
     tab: style
@@ -212,20 +266,23 @@ fields:
     values: [none, bounce, pulse, variableColor, wiggle, rotate, breathe]
     default: none
     description: One-shot effect played on tap
+    summary: A little animation on tap
+    does: Plays this effect once each time the symbol is tapped.
+    valueHelp: {"none": "no animation and the default", "bounce": "the icon hops once", "pulse": "the icon fades once", "variableColor": "the layers light up once in sequence", "wiggle": "the icon shakes once", "rotate": "the icon spins once", "breathe": "the icon grows and shrinks once"}
     group: symbolConfig
   - name: triggers
     type: array
     description: "Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]"
     summary: Events that play the symbol effect once
+    does: Plays a one-shot effect each time a matching server event arrives.
     group: symbolConfig
+  - name: symbolConfig
+    type: object
+    description: Full configuration object holding every field marked group symbolConfig
+    summary: The animation and look settings bundle
+    does: Holds the rendering, effect, particle, loop and tap settings below; leave it out for a still symbol.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: controlPadding
     min: 0
     max: 24
@@ -233,18 +290,26 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the card
+    does: Sets the gap between the card edge and the icon, 0 to 24 points.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: Sets the color behind the icon.
   - name: foregroundColor
     type: color
     default: #FFFFFF
     description: Default glyph colour
+    summary: The icon's default color
+    does: Colors the glyph when no tint is set.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The card's outline color
+    does: Colors the outline around the card.
   - name: borderWidth
     min: 0
     max: 5
@@ -252,11 +317,15 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the card outline thickness in points; 0 removes it.
   - name: secondaryColor
     title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The caption color
+    does: Colors the caption text under the glyph.
 ---
 
 # Symbol

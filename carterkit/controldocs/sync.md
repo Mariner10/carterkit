@@ -3,92 +3,139 @@ type: sync
 label: Sync
 icon: arrow.triangle.2.circlepath
 category: system
+depth: complete
 fields:
   - name: method
     tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, sensor, local, derive)
+    summary: Which way the value arrives
+    does: Picks the transport that feeds this control: a CAR-TER server, an MQTT topic, a polled web address, the phone's own sensor, the local store or a derived value.
   - name: type
     type: string
     description: Sync direction (listen)
+    summary: Which direction to sync
+    does: Marks the binding as one that listens for incoming values; leave it as listen.
   - name: event
     tab: advanced
     type: string
     description: MeshSocket frame type to match (meshsocket). Server broadcasts arrive as "broadcast" (demux with filter.msg_type); any other name only matches frames routed to this device by route_msg_noreply
+    summary: The kind of message to listen for
+    does: Matches only server messages of this type, so the control updates when a frame with this name arrives; server broadcasts arrive as broadcast.
   - name: filter
     tab: advanced
     type: object
     description: Key-value pairs to match incoming messages
+    summary: Only use messages that match
+    does: Ignores any message whose keys do not all equal these values, so the control only moves for the stream you chose.
   - name: staleAfter
     min: 0
     max: 86400
     step: 1
     type: number
     description: Seconds after the last source arrival before the value counts as stale (opt-in, except HTTP polls default to max(layout liveness.staleAfter, 3x interval); 0 opts out; overrides the layout's liveness.staleAfter)
+    summary: When old data counts as stale
+    does: Marks the value stale once this many seconds pass with no new arrival; 0 turns it off.
   - name: timestampPath
     tab: advanced
     type: string
     description: Dot path to epoch seconds or ISO-8601 in the frame; age runs from that timestamp instead of receipt time
+    summary: Where the message says when it happened
+    does: Reads the message's own time at this path, so the age of the value counts from then instead of from when the phone got it.
   - name: endsAtPath
     tab: advanced
     type: string
     description: Dot path to an end time (epoch seconds or ISO-8601, e.g. an ETA) beside the value; widgets, Lock Screen and Live Activity count down / fill toward it with no push, and the next real value replaces it
+    summary: Where the message says when it ends
+    does: Reads an end time at this path and shows a countdown toward it on the control, widgets, Lock Screen and Live Activity until the next value arrives.
   - name: valuePath
     tab: advanced
     type: string
     description: Dot-notation path to extract value
+    summary: Which part of the message to show
+    does: Pulls the value out of the message at this dotted path and shows it on the control.
   - name: source
     type: string
     description: Named entry in the layout's sources (mqtt/http/local)
+    summary: Which saved connection to use
+    does: Reads from the named entry in the layout's sources, so many controls can share one broker or address.
   - name: topic
     tab: advanced
     type: string
     description: MQTT topic filter to subscribe (mqtt; supports +/#)
+    summary: The MQTT topic to follow
+    does: Subscribes to this MQTT topic and updates the control with each message; + and # match several topics.
   - name: url
     type: string
     description: Absolute URL to poll (http)
+    summary: The web address to check
+    does: Fetches this full address on a timer and feeds the reply to the control.
   - name: path
     type: string
     description: Path against the source's baseURL (http)
+    summary: The web path to check
+    does: Fetches this path on the source's base address on a timer and feeds the reply to the control.
   - name: interval
     min: 1
     max: 3600
     step: 1
     type: number
     description: Poll interval in seconds (http)
+    summary: How often to check, in seconds
+    does: Sets the seconds between each fetch of the web address.
   - name: collection
     type: string
     description: Collection or view name in the local source (local, required)
+    summary: Which saved list to read
+    does: Reads rows from this collection or view in the on-device store and shows the result.
   - name: where
     type: object
     description: Row filter — field → operator object, or and/or combinators (local)
+    summary: Only use rows that match
+    does: Keeps only the stored rows that pass this filter before the value is worked out.
   - name: groupBy
     type: object
     description: Bucket rows — a field name, {field, bucket} for dates or {field, width} for numbers (local)
+    summary: Bundle rows into groups
+    does: Buckets rows by a field, by date or by number range, so a chart gets one bar or slice per group.
   - name: aggregate
     type: object
     description: Collapse rows to one value — "count" or {op, field} with sum/avg/min/max/distinct/first/last (local)
+    summary: Boil rows down to one number
+    does: Collapses the rows into a single value such as a count, sum, average, minimum or maximum.
   - name: orderBy
     type: string
     description: Sort key(s); "-field" for descending (local)
+    summary: How to sort the rows
+    does: Sorts rows by this field; a leading minus sorts largest first.
   - name: limit
     min: 1
     max: 1000
     step: 1
     type: number
     description: Maximum rows or groups delivered, 1–1000 (local)
+    summary: Most rows to show
+    does: Caps how many rows or groups reach the control, between 1 and 1000.
   - name: from
     type: string
     description: The id of a layout derive entry this control shows (derive)
+    summary: Which calculated value to show
+    does: Shows the value the phone computes for the derive entry with this id.
   - name: group
     type: string
     description: Event group the binding belongs to (meshsocket, optional)
+    summary: Which event group this belongs to
+    does: Ties the binding to a named event group so related controls receive their frames together.
   - name: sensor
     type: string
     description: "On-device stream to bind when method is sensor, e.g. heading (see [[sensors]])"
+    summary: Which phone sensor to read
+    does: Feeds the control live readings from the chosen on-device sensor, such as heading.
   - name: having
     type: object
     description: "Filter on aggregated groups: {key|value: {op: v}} (local, with groupBy)"
+    summary: Only keep groups that match
+    does: Drops grouped results that fail this test on their combined value, so small or empty groups disappear.
 ---
 
 How controls receive live state — the **standardized connection block**. The
@@ -322,6 +369,50 @@ data wins: the first frame or `control_snapshot` overwrites any remembered value
   changed since starts from its default.
 - Deleting the layout deletes them. A glance snapshot (`glance.warmOpen`) is
   applied over them, as before.
+
+## Examples
+
+### Gauge fed by a server broadcast
+Binds a gauge to the `cpu` number in telemetry broadcasts. Intended effect: the gauge follows the server's CPU load and looks stale after 30 quiet seconds.
+```json
+{
+  "type": "gauge",
+  "id": "cpuGauge",
+  "position": [0, 0],
+  "label": "CPU",
+  "min": 0,
+  "max": 100,
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "telemetry" }, "valuePath": "cpu", "staleAfter": 30 }]
+}
+```
+
+### Gauge polling a web address
+Checks a status endpoint every 10 seconds. Intended effect: the gauge shows the latest reading with no server in the loop.
+```json
+{
+  "type": "gauge",
+  "id": "tempGauge",
+  "position": [0, 0],
+  "label": "Freezer",
+  "min": -30,
+  "max": 10,
+  "sync": [{ "method": "http", "url": "https://example.com/api/status", "interval": 10, "valuePath": "freezer.temp" }]
+}
+```
+
+### Gauge from the on-device store
+Averages a stored column. Intended effect: the gauge shows the average of the readings and updates whenever a row is added.
+```json
+{
+  "type": "gauge",
+  "id": "avgCpu",
+  "position": [0, 0],
+  "label": "Average CPU",
+  "min": 0,
+  "max": 100,
+  "sync": [{ "method": "local", "collection": "readings", "aggregate": { "op": "avg", "field": "cpu" } }]
+}
+```
 
 ## Notes
 

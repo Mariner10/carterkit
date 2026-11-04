@@ -265,15 +265,7 @@ themeFields:
     description: Border color
     summary: "The outline around the card"
     does: "Colors the card's outline."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: "How thick the outline is"
+  - use: borderWidth
     does: "Sets the card outline width from 0 to 5 points."
   - name: controlPadding
     title: Inner spacing
@@ -285,23 +277,9 @@ themeFields:
     description: Internal padding
     summary: "Space inside the card"
     does: "Sets the padding between the card edge and the chart from 0 to 24 points."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: "The main text color"
+  - use: foregroundColor
     does: "Colors the title and the center readout."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: "How big the title is"
-    does: "Sets the title text size from 8 to 24 points."
+  - use: labelFontSize
 ---
 
 # Pie Chart

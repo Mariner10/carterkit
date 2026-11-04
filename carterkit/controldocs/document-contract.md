@@ -1,5 +1,6 @@
 ---
 type: document-contract
+depth: complete
 label: Document Contract
 icon: doc.badge.gearshape
 category: models
@@ -10,25 +11,37 @@ fields:
     max: 2
     type: number
     description: Grammar version of the document (optional; absent = 1). Bumped only when an older app would misread the file
+    summary: Which file format version this is
+    does: Tells the app which grammar the file uses (1 inline, 2 sectioned); a newer number than the app knows opens the file read-only.
   - name: version
     min: 1
     max: 9999
     type: number
     description: The author's revision label (the Layout Hub's "Revision"); never gates anything
+    summary: Your own revision number
+    does: Records the author's revision label shown as Revision in the Layout Hub; the app never refuses or changes a file because of it.
   - name: format
     type: string
     description: Always the string carter; written on export only, never required
+    summary: Marks an exported file
+    does: Written as the text carter when a layout is exported; no reader requires it.
   - name: extensions
     tab: advanced
     type: object
     description: Reverse-DNS keyed tool data, top level and per control/group; preserved, never interpreted, 64 KB cap
+    summary: Room for other tools' notes
+    does: Holds data a tool keeps under its own reverse-DNS key; the app carries it through load, save, share and export untouched and never acts on it.
   - name: provenance
     tab: advanced
     type: object
     description: Where this document came from (immediate parents, package)
+    summary: Where this layout came from
+    does: Records the immediate parents of the document, such as the template or package it was copied from.
   - name: requires
     type: object
     description: What the document needs from the app; features are name@N strings
+    summary: What the layout needs from the app
+    does: Lists the features the layout depends on; an app missing one shows an update banner and still draws what it can.
 ---
 
 The rules every `.carter` layout document obeys — the one place the app, carterkit,
@@ -277,3 +290,47 @@ repair in the Layout Hub.
 - [[control-def]] — controls, including `name` and `extensions`
 - [[group-def]] — groups
 - [[appearance]] — the app-shell appearance block
+
+## Examples
+
+### Revision label
+
+A document that only carries its own revision number, written by an author.
+
+```json
+{
+  "version": 3
+}
+```
+
+### Sectioned export with a requirement
+
+An exported file in the sectioned grammar that needs a feature the app may lack.
+
+```json
+{
+  "schemaVersion": 2,
+  "format": "carter",
+  "version": 1,
+  "requires": { "features": ["control.symbol", "sync.sensor"] }
+}
+```
+
+### Tool data and provenance
+
+A copy of a template, with one tool's private notes kept under its own key.
+
+```json
+{
+  "version": 2,
+  "extensions": {
+    "com.example.plantdb": { "catalogRef": "ficus-lyrata" }
+  },
+  "provenance": {
+    "parents": [
+      { "id": "5C1E0000", "relation": "copy",
+        "source": { "kind": "template", "ref": "plant-care", "version": "3" } }
+    ]
+  }
+}
+```

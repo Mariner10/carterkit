@@ -5,6 +5,14 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- ControlDocs `- use: <name>` shared fields (app bead aif-fa4jj): `catalog.parse_doc` expands a
+  `fields:` / `themeFields:` entry from `controldocs/shared-fields.md` plus its `default`, `min`, `max`,
+  `step`, `does` and `since` overrides, exactly like the app; `catalog.load_shared` and
+  `catalog.use_errors` (unknown names, other overrides). The catalog is unchanged for every doc.
+- ControlDocs re-vendored from CAR-TER e5dc312c (the migrated docs); `typed.py` regenerated.
+
 ## [0.18.1] — 2026-11-04
 
 The rest of the pairing loop: what a push means on the phone.

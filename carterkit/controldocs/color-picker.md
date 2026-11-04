@@ -1,5 +1,6 @@
 ---
 type: colorPicker
+depth: complete
 label: Color Picker
 icon: paintpalette.fill
 category: controls
@@ -17,18 +18,16 @@ fields:
     title: Label
     type: string
     description: Display label
+    summary: The name shown above
+    does: Shows this text above the color swatch.
   - name: defaultValue
     edit: color
     depth: surface
     type: string
     description: Initial hex color
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    summary: A short note with Undo after each tap
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
+    summary: The starting color
+    does: Sets the color shown before anyone picks one, as a hex value like #F4B860.
+  - use: confirm
 themeFields:
   - name: cornerRadius
     edit: scrub
@@ -41,6 +40,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the corners are
+    does: Rounds the control's corners, from 0 (square) to 30 pt.
   - name: controlPadding
     min: 0
     max: 24
@@ -48,18 +49,26 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edges
+    does: Sets the gap between the control's edge and its content, 0 to 24 pt.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The background color
+    does: Fills the control's background with this color.
   - name: foregroundColor
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: The main text color
+    does: Colors the main text on the control.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The quieter text color
+    does: Colors the smaller, secondary text.
   - name: borderColor
     edit: color
     depth: hold
@@ -67,6 +76,8 @@ themeFields:
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline color
+    does: Colors the outline drawn around the control.
   - name: borderWidth
     edit: scrub
     depth: hold
@@ -78,6 +89,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the outline thickness from 0 (none) to 5 pt.
   - name: labelFontSize
     min: 8
     max: 24
@@ -85,6 +98,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Size of the title text
+    does: Sets the title text size from 8 to 24 pt.
 ---
 
 # Color Picker
@@ -114,6 +129,34 @@ Inherits all [[shared-properties]]. Key fields:
   "defaultValue": "#F4B860",
   "label": "Color",
   "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "color", "payload": { "room": "living", "hex": "{{value}}" } } }
+}
+```
+
+### Accent color with an undo note
+Tap to pick a color, with a short Undo pill after each change.
+```json
+{
+  "type": "colorPicker",
+  "id": "accent-color",
+  "position": [0, 0],
+  "label": "Accent",
+  "defaultValue": "#667EEA",
+  "confirm": true
+}
+```
+
+### Labelled swatch with a custom look
+A squarer swatch with a thicker outline and larger label.
+```json
+{
+  "type": "colorPicker",
+  "id": "strip-color",
+  "position": [0, 1],
+  "label": "Strip",
+  "defaultValue": "#FF6B6B",
+  "cornerRadius": 4,
+  "borderWidth": 2,
+  "labelFontSize": 16
 }
 ```
 

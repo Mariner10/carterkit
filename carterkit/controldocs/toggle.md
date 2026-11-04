@@ -155,14 +155,7 @@ fields:
     description: Knob corner radius; 0 is a square knob, which rotates to the track's direction on curved tracks. Knob SIZE is derived from the track (fixed ratio, D45a) and is not a dial
     summary: How round the sliding knob is
     does: Rounds the knob corners from 0 (square) to 13.5 pt (a circle).
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each tap
-    does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
+  - use: confirm
 themeFields:
   - name: cornerRadius
     title: Corner roundness
@@ -184,12 +177,7 @@ themeFields:
     description: Internal padding
     summary: The gap between card edge and contents
     does: Sets the space inside the card around the label and switch from 0 to 24 pt (default 8).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: Fills the card behind the control with this color, default a faint white wash.
   - name: accentColor
     title: Accent color
@@ -198,12 +186,7 @@ themeFields:
     description: Accent/tint color
     summary: The main highlight color
     does: Sets the highlight color the control uses where no color is set for it.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
+  - use: borderColor
     does: Draws the card outline in this color, default a faint white line.
   - name: labelFontSize
     title: Title text size
@@ -293,22 +276,9 @@ themeFields:
     description: Show knob shadow
     summary: Whether the knob casts a shadow
     does: Draws a soft shadow under the knob when on, flat when off.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the card outline thickness from 0 (none) to 5 pt (default 1).
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
-    summary: The color of the less important text
+  - use: secondaryColor
     does: Colors the dimmer supporting text, default a soft translucent white.
 ---
 

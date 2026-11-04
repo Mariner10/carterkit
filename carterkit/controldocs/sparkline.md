@@ -1,5 +1,6 @@
 ---
 type: sparkline
+depth: complete
 label: Sparkline
 icon: chart.xyaxis.line
 category: controls
@@ -24,6 +25,8 @@ fields:
     type: number
     default: 50
     description: Max data points retained in the buffer
+    summary: How many readings the line keeps
+    does: Keeps only the newest this-many readings on the line; older ones drop off the left.
   - name: lineWidth
     edit: scrub
     depth: hold
@@ -36,12 +39,16 @@ fields:
     step: 0.5
     type: number
     description: Line stroke width in points. Omit to scale with the control's height.
+    summary: How thick the line is
+    does: Draws the line this many points thick; when not set it grows with the control's height.
   - name: sparklineFill
     edit: look
     tab: style
     type: bool
     default: false
     description: Fill the area under the line with a gradient
+    summary: Shade under the line
+    does: Fills the area under the line with a fading tint when on; off leaves just the line.
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -55,6 +62,8 @@ fields:
     type: number
     default: 0
     description: Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control
+    summary: A soft halo around the line
+    does: Adds a soft glow in the line's own color behind it; 0 turns it off.
   - name: lineCap
     edit: look
     depth: hold
@@ -65,6 +74,9 @@ fields:
     values: [round, butt, square]
     default: round
     description: End shape of the line. Cross-control, same on every control
+    summary: Shape of the line's ends
+    does: Shapes the two ends of the line as rounded, flat or squared off.
+    valueHelp: {"round": "rounded ends and the default", "butt": "flat ends that stop exactly at the last point", "square": "flat ends that extend a little past the last point"}
   - name: colorByValue
     edit: stops
     axis: value
@@ -72,6 +84,7 @@ fields:
     tab: style
     type: array
     description: Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
+    does: Colors the line and fill by height: each part takes the color of the zone its value falls in.
     summary: Colour the line by how high it is
   - name: colorBlend
     facet: colorByValue
@@ -82,30 +95,31 @@ fields:
     type: number
     default: 0
     description: "How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue."
+    summary: Hard or soft color edges
+    does: Softens the edges between the color zones, from sharp bands at 0 to one smooth gradient at 1.
   - name: tint
     edit: color
     tab: style
     type: color
     default: "#667eea"
     description: Line and fill color
+    summary: Color of the line
+    does: Colors the line and its fill; color zones replace it when set.
   - name: label
     depth: surface
     title: Title
     edit: inline
     type: string
     description: Header label (also shows latest value)
+    summary: The title and latest number
+    does: Shows this text at the top left, with the newest reading at the top right.
   - name: defaultValue
     type: array
     description: Seed series drawn before the first sync (an array of numbers), trimmed to sparklinePoints
+    does: Draws these numbers as the line until real readings arrive.
     summary: Starting readings shown until new ones arrive
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: controlPadding
     min: 0
     max: 24
@@ -113,22 +127,32 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Breathing room inside the edge
+    does: Adds 0 to 24 points between the control's edge and its content.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The fill behind the control
+    does: Paints the control's background in this color, including transparency.
   - name: accentColor
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The main highlight color
+    does: Sets the accent color used for the control's tint when it has none of its own.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: Color of the quieter text
+    does: Colors the label and other secondary text.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Color of the outline
+    does: Colors the control's border line.
   - name: borderWidth
     min: 0
     max: 5
@@ -136,6 +160,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the border line thickness from none (0) to 5 points.
   - name: labelFontSize
     min: 8
     max: 24
@@ -143,6 +169,8 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Size of the label text
+    does: Sets the label's text size from 8 to 24 points.
 ---
 
 # Sparkline
@@ -189,6 +217,8 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 ## Examples
 
 ### Temperature history
+A filled trend of the last 100 room temperatures, arriving live from another device.
+
 ```json
 {
   "type": "sparkline",
@@ -204,6 +234,8 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 ```
 
 ### Compact sparkline (no label, no fill)
+A bare green line of the last 30 CPU readings with no title.
+
 ```json
 {
   "type": "sparkline",
@@ -217,6 +249,8 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 ```
 
 ### Forecast series from an HTTP feed
+A 48-hour forecast curve that is replaced whole on every poll.
+
 ```json
 {
   "type": "sparkline",
@@ -233,6 +267,26 @@ The sparkline renders all points in the buffer as a line path, auto-scaling Y to
 
 The endpoint returns a plain numeric array at that path; each poll replaces the
 whole series rather than appending a point.
+
+### Colored zones with a glow
+Color the line green, amber or red by how high it is, softly blended, with a glowing edge and a seed series so it shows before data arrives.
+```json
+{
+  "type": "sparkline",
+  "id": "load-zones",
+  "position": [0, 0],
+  "span": [2, 2],
+  "label": "Load",
+  "sparklinePoints": 60,
+  "sparklineFill": true,
+  "lineWidth": 3,
+  "glowRadius": 8,
+  "lineCap": "round",
+  "colorByValue": [{ "limit": 50, "color": "#34C759" }, { "limit": 80, "color": "#FF9F0A" }, { "limit": 100, "color": "#FF3B30" }],
+  "colorBlend": 0.5,
+  "defaultValue": [20, 35, 30, 55, 70, 62, 85]
+}
+```
 
 ## Behavior
 - A numeric payload appends a point; a numeric array replaces the series

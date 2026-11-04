@@ -225,15 +225,7 @@ themeFields:
     description: Control corner radius
     summary: "How rounded the corners are"
     does: "Rounds the tile's corners from square (0) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: "Breathing room inside the edge"
+  - use: controlPadding
     does: "Adds 0 to 24 points between the tile's edge and its content."
   - name: surfacePrimary
     title: Background color
@@ -242,19 +234,9 @@ themeFields:
     description: Background fill
     summary: "The fill behind the tile"
     does: "Paints the tile's background in this color including transparency."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
-    summary: "The theme's highlight color"
+  - use: accentColor
     does: "Tints the trend line wherever no color is set directly."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: "The main text color"
+  - use: foregroundColor
     does: "Colors the big number and the title."
   - name: secondaryColor
     title: Second text color
@@ -263,32 +245,10 @@ themeFields:
     description: Secondary text color
     summary: "The quieter text color"
     does: "Colors the unit and the flat change text."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: "The outline around the control"
+  - use: borderColor
     does: "Draws the tile's outline in this color."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: "How thick the outline is"
-    does: "Sets the outline width from 0 (none) to 5 points."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: "How big the title is"
+  - use: borderWidth
+  - use: labelFontSize
     does: "Sets the title's text size from 8 to 24 points."
 ---
 

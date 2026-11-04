@@ -9,6 +9,7 @@ pickerCategory: Readouts
 friendlyName: Log
 oneLiner: Lines of messages as they arrive
 aliases: [console, log, terminal, output, messages, tail]
+depth: complete
 starterPreset: {"label": "Log"}
 fields:
   - name: label
@@ -17,6 +18,8 @@ fields:
     title: Title
     type: string
     description: Header label
+    summary: The name shown above the log
+    does: Shows this text in the header above the console, next to a count of the lines kept.
   - name: style
     edit: look
     depth: surface
@@ -26,6 +29,9 @@ fields:
     values: [default, transparent]
     default: default
     description: "default (dark bg) or transparent"
+    summary: Dark panel or see-through
+    does: Picks whether the lines sit on the theme's second background fill or on a clear background.
+    valueHelp: {"default": "the lines sit on a filled panel", "transparent": "no panel fill, so the card behind shows through"}
   - name: maxLines
     effect: behavior
     edit: scrub
@@ -37,6 +43,8 @@ fields:
     type: number
     default: 200
     description: Maximum buffered lines
+    summary: How many lines to remember
+    does: Shows only this many of the newest lines; older ones scroll away.
   - name: showTimestamps
     edit: part
     depth: hold
@@ -44,6 +52,8 @@ fields:
     type: bool
     default: true
     description: Prefix each line with timestamp
+    summary: Show the time on each line
+    does: Puts the time (hours, minutes, seconds) in front of every line when on.
   - name: fontSize
     edit: scrub
     depth: surface
@@ -55,6 +65,8 @@ fields:
     type: number
     default: 11
     description: Monospace font size
+    summary: How big the text is
+    does: Sets the size of the monospace text on every line.
   - name: autoScroll
     effect: behavior
     edit: part
@@ -63,6 +75,8 @@ fields:
     type: bool
     default: true
     description: Auto-scroll to latest line
+    summary: Follow the newest line
+    does: Keeps the view pinned to the latest line as new ones arrive, until you drag up to read older ones.
   - name: controlHeight
     edit: scrub
     depth: hold
@@ -72,11 +86,14 @@ fields:
     step: 10
     type: number
     description: "Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span."
+    summary: How tall the log is
+    does: Sets the height of the console area in points; without it the area stays compact at no more than 200.
   - name: logColors
     tab: style
     type: object
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
     summary: Colors for each kind of message
+    does: Colors each line by its level name, for example error or warn, overriding the theme's built-in level colors.
   - name: tint
     edit: color
     depth: surface
@@ -85,10 +102,13 @@ fields:
     type: color
     default: "#667eea"
     description: Accent color
+    summary: The accent color
+    does: Stores an accent color for the console; lines take their colors from the level colors and the theme, so it shows no change today.
   - name: defaultValue
     type: array
     description: Seed lines shown before the first sync (strings, or objects with text and level)
     summary: Starting messages shown until new ones arrive
+    does: Fills the console with these lines before any synced line arrives.
 themeFields:
   - name: cornerRadius
     min: 0
@@ -97,6 +117,8 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the corners are
+    does: Rounds the corners of the console card.
   - name: controlPadding
     min: 0
     max: 24
@@ -104,22 +126,32 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the card
+    does: Sets the gap between the card edge and the header and log.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card background
+    does: Fills the whole card behind the header and log in this color.
   - name: accentColor
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The highlight color
+    does: Sets the theme accent color the console uses when no tint is set.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: Softer text color
+    does: Colors the header label and the timestamps.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The outline color
+    does: Draws the card outline in this color.
   - name: borderWidth
     min: 0
     max: 5
@@ -127,6 +159,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the thickness of the card outline in points.
   - name: labelFontSize
     min: 8
     max: 24
@@ -134,16 +168,22 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: How big the title is
+    does: Sets the size of the header label text.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: Main text color
+    does: Colors lines that have no level or an unknown one.
   - name: surfaceSecondary
     title: Second background color
     type: color
     default: #FFFFFF0A
     description: Secondary surface fill
+    summary: Log area color
+    does: Fills the log area inside the card unless the style is transparent.
 ---
 
 # Log Console
@@ -199,6 +239,38 @@ Inherits all [[shared-properties]]. Key fields:
 ```
 
 Each server broadcast `{"msg_type": "log_stream", "text": "…", "level": "warn"}` appends one line. With no `valuePath` the whole frame is read, so `text` (or `line`/`message`) and `level` both land.
+
+### Quiet transparent log
+Small, see-through log that shows no times and the newest lines only.
+```json
+{
+  "type": "logConsole",
+  "id": "quiet-log",
+  "position": [0, 0],
+  "span": [3, 2],
+  "label": "Events",
+  "style": "transparent",
+  "showTimestamps": false,
+  "maxLines": 50,
+  "fontSize": 10
+}
+```
+
+### Seeded log with custom level colors
+Starts with two lines and colors errors and successes your own way.
+```json
+{
+  "type": "logConsole",
+  "id": "seeded-log",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Deploy",
+  "controlHeight": 300,
+  "autoScroll": true,
+  "logColors": { "error": "#FF453A", "success": "#30D158" },
+  "defaultValue": ["Waiting for deploy...", { "text": "Last run failed", "level": "error" }]
+}
+```
 
 ## Related
 - [[shared-properties]] — Base fields

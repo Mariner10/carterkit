@@ -1,5 +1,6 @@
 ---
 type: map
+depth: complete
 label: Map
 icon: map.fill
 category: controls
@@ -20,6 +21,9 @@ fields:
     values: [standard, satellite, hybrid, globe]
     default: standard
     description: Map rendering style (globe frames the whole Earth)
+    summary: Which kind of map to draw
+    does: Draws the map as a street map, satellite photos, photos with labels, or a whole-Earth globe.
+    valueHelp: {"standard": "a normal street map", "satellite": "satellite photos with no labels", "hybrid": "satellite photos with street and place labels", "globe": "the whole Earth seen from space, ignoring Zoom"}
   - name: mapInteractive
     effect: behavior
     edit: part
@@ -28,6 +32,8 @@ fields:
     type: bool
     default: true
     description: Allow user pan/zoom
+    summary: Let people drag and zoom
+    does: When on you can pan and zoom the map with your fingers; off locks the view.
   - name: mapZoom
     edit: scrub
     depth: surface
@@ -37,12 +43,16 @@ fields:
     type: number
     default: 0.01
     description: Default coordinate span in degrees
+    summary: How close the map starts
+    does: Sets how much ground a single-point view shows, as a span in degrees; smaller zooms in closer.
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the map
+    summary: A title above the map
+    does: Shows this text as a header above the map.
   - name: tint
     edit: color
     depth: surface
@@ -51,9 +61,13 @@ fields:
     type: color
     default: "#667eea"
     description: Default marker color (used when a marker carries none)
+    summary: Color of the pins
+    does: Colors every pin that does not bring its own color.
   - name: mapConfig
     type: object
     description: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
+    summary: Teach the map a feed
+    does: Tells the map which properties of your data set pin size, color, label and ripple.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -64,14 +78,11 @@ fields:
     step: 10
     type: number
     description: Map height in points in a flow-mode grid (2-D grids size it by rowSpan)
+    summary: How tall the map is
+    does: Sets the map height from 120 to 1200 points when the grid flows; 2-D grids use row span instead.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
+    does: Rounds the map corners from square (0) to 30 points.
   - name: controlPadding
     min: 0
     max: 24
@@ -79,18 +90,26 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Inner spacing
+    does: Sets the padding inside the map frame, 0 to 24 points.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Background color
+    does: Fills the map card background with this color.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: Quieter text color
+    does: Colors the secondary text on the map.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Outline color
+    does: Colors the line around the map.
   - name: borderWidth
     min: 0
     max: 5
@@ -98,6 +117,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Outline thickness
+    does: Sets how thick the outline is, 0 to 5 points.
   - name: labelFontSize
     min: 8
     max: 24
@@ -105,16 +126,22 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the size of the header label text, 8 to 24 points.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight color
+    does: Sets the accent tint used on the map.
   - name: surfaceSecondary
     title: Second background color
     type: color
     default: #FFFFFF0A
     description: Secondary surface fill
+    summary: Backdrop color
+    does: Fills the secondary surface behind map details with this color.
 ---
 
 # Map

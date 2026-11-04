@@ -1,5 +1,6 @@
 ---
 type: glance
+depth: complete
 label: Glance Surfaces
 icon: platter.filled.top.and.arrow.up.iphone
 category: system
@@ -7,43 +8,69 @@ fields:
   - name: enabled
     type: bool
     description: false suppresses every surface, including the auto-derived glance (default true)
+    summary: Turn all phone surfaces on or off
+    does: Setting false hides every surface outside the app, including the automatic glance; the default is on.
   - name: title
     type: string
     description: Surface title (defaults to headerTitle / name)
+    summary: The name shown on the surfaces
+    does: Sets the title on widgets and the Live Activity; falls back to the layout's header title or name.
   - name: icon
     type: string
     description: SF Symbol glyph for the layout (island leading slot, widget header)
+    summary: The layout's little picture
+    does: Sets the SF Symbol used in the Dynamic Island's leading slot and the widget header.
   - name: tint
     tab: style
     type: string
     description: Hex accent for the surfaces (defaults to accentColor)
+    summary: The accent colour
+    does: Colours the surfaces with this hex accent; falls back to the layout's accent colour.
   - name: hero
     type: string
     description: Control id of the one value that represents the layout on the smallest surfaces
+    summary: The one number that matters most
+    does: Picks the control whose value stands for the layout on the smallest surfaces, such as the compact island.
   - name: slots
     type: string[]
     description: Up to 3 control ids for secondary readouts
+    summary: A few extra readings
+    does: Names up to 3 more controls whose values appear as secondary readouts next to the hero.
   - name: liveActivity
     type: bool
     description: Start a Live Activity (Dynamic Island + lock screen) while the layout is connected (default false)
+    summary: Keep a live card on the lock screen
+    does: When true, a Live Activity (Dynamic Island and lock screen) runs while the layout is connected; the default is off.
   - name: controls
     type: object[]
     description: Control Center / lock-screen / Action-button controls (toggle, button, cycle, step, set)
+    summary: Buttons for Control Center
+    does: Declares the toggles and buttons offered in Control Center, the lock screen corners and the Action button, and allowed on the Live Activity row and larger widgets.
   - name: live
     type: object
     description: How live each surface is — tier plus per-surface cadences, stale windows and refresh paths
+    summary: How fresh each surface stays
+    does: Sets a freshness tier plus per-surface update speeds and stale windows, which decides how often values refresh while the app is closed.
   - name: widgets
     type: object[]
     description: Home/lock-screen widgets defined as tile scenes
+    summary: Home and lock screen widgets
+    does: Defines the widgets people can add, each built from tiles bound to your controls.
   - name: island
     type: object
     description: Dynamic Island regions defined as tiles (compact, minimal, expanded)
+    summary: What the Dynamic Island shows
+    does: Defines the compact, minimal and expanded Dynamic Island regions as tiles.
   - name: lockScreen
     type: object
     description: Lock-screen Live Activity banner scene (defaults to island.expanded.bottom)
+    summary: The lock screen card
+    does: Defines the lock-screen Live Activity banner as a scene; when absent it reuses the island's expanded bottom.
   - name: warmOpen
     type: bool
     description: Open the layout filled with its last-known values and sparkline trends from the glance snapshot (under 24 h old), shown as stale until a live frame arrives; a seeded toggle does not send until then. false opens on defaults (default true)
+    summary: Open with the last known values
+    does: When true, the layout opens showing its last glance snapshot (under 24 hours old) marked stale until live data arrives; false opens on defaults.
 ---
 
 A layout already says what matters: its controls. The `glance` block projects them
@@ -258,3 +285,56 @@ the LIVE clock and greys the freshness dot rather than pretending.
 - Everything here is a *request* — the user places widgets and controls, may
   disable Live Activities, and iOS budgets every refresh path.
 - Sliders, text entry, scrolling and continuous animation exist only inside the app.
+
+## Examples
+
+### Hero and slots
+
+Pick the one number for the smallest surfaces and three secondary readings.
+
+```json
+{
+  "glance": {
+    "title": "Printer",
+    "icon": "printer.fill",
+    "tint": "#FF9F0A",
+    "hero": "nozzle",
+    "slots": ["bed", "progress", "state"]
+  }
+}
+```
+
+### Live card on the lock screen
+
+Run a Live Activity with a fresh tier while the layout is connected.
+
+```json
+{
+  "glance": {
+    "title": "Print job",
+    "hero": "progress",
+    "slots": ["nozzle", "bed"],
+    "liveActivity": true,
+    "live": { "tier": "fresh" },
+    "warmOpen": true
+  }
+}
+```
+
+### Lights and fan controls
+
+Controls for Control Center, with the rest of the glance left automatic.
+
+```json
+{
+  "glance": {
+    "title": "Workshop",
+    "controls": [
+      { "id": "lights", "kind": "toggle", "label": "Lights", "control": "lights-toggle",
+        "on":  { "label": "Lit",  "icon": "lightbulb.fill", "tint": "#FFD60A" },
+        "off": { "label": "Dark", "icon": "lightbulb" } },
+      { "id": "fan-up", "kind": "step", "label": "Fan +10", "control": "fan-speed", "delta": 10 }
+    ]
+  }
+}
+```

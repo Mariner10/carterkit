@@ -1,5 +1,6 @@
 ---
 type: sensors
+depth: complete
 label: Sensors
 icon: gyroscope
 category: system
@@ -8,9 +9,13 @@ fields:
     tab: advanced
     type: string
     description: Set to "sensor" on a sync entry to bind local hardware
+    summary: Where the value comes from
+    does: Set to sensor on a sync entry so the control reads this phone's own hardware instead of a server.
   - name: sensor
     type: string
     description: Pipeline and key, e.g. "heading", "motion.roll", "device.battery"
+    summary: Which reading to use
+    does: Names the hardware pipeline and optional key, e.g. heading or motion.roll, that feeds the control live.
 keys:
   - { sensor: heading, name: Heading, valueType: measurement, unit: degrees }
   - { sensor: heading.magnetic, name: Magnetic heading, valueType: measurement, unit: degrees }
@@ -67,6 +72,26 @@ The `sensor` string names a pipeline, optionally dotted with one of its reading
 keys: `"heading"` is shorthand for `"heading.value"`, and `"motion.roll"` picks
 the roll angle. Any control that can listen — [[gauge]], [[label]],
 [[sparkline]], [[progress-ring]], [[status-light]], [[graph]] — can bind.
+
+## Examples
+
+### Compass gauge
+Demonstrates `method: "sensor"` with `sensor: "heading"`: a dial that follows the phone's compass.
+```json
+{ "type": "gauge", "id": "compass", "position": [0, 0], "min": 0, "max": 360, "label": "Heading", "sync": [{ "method": "sensor", "sensor": "heading" }] }
+```
+
+### Battery level
+Demonstrates the dotted key `device.battery`: a gauge showing the phone's charge as 0 to 100.
+```json
+{ "type": "gauge", "id": "battery", "position": [0, 0], "min": 0, "max": 100, "label": "Battery", "sync": [{ "method": "sensor", "sensor": "device.battery" }] }
+```
+
+### Roll angle
+Demonstrates `sensor: "motion.roll"`: a gauge that tilts with the phone's roll, in degrees.
+```json
+{ "type": "gauge", "id": "roll", "position": [0, 0], "min": -90, "max": 90, "label": "Roll", "sync": [{ "method": "sensor", "sensor": "motion.roll" }] }
+```
 
 ## Pipelines & keys
 

@@ -3,19 +3,26 @@ type: glance-lock-screen
 label: Lock Screen
 icon: lock.iphone
 category: system
+depth: complete
 fields:
   - name: lockScreen
     type: object
     description: Glance field. The lock-screen Live Activity banner, a scene (rows of tiles). Defaults to island.expanded.bottom. A bare tile is accepted and becomes one row
+    summary: What the Lock Screen banner shows
+    does: Sets the tiles drawn in the banner of a running Live Activity; left out, it repeats the island's bottom area.
   - name: columns
     type: number
     description: Scene field. Columns the banner lays out against; defaults to the widest row, capped at 12
+    summary: How many columns wide
+    does: Sets the columns the banner lays out against, up to 12; left out, it uses the widest row.
     min: 1
     max: 12
     step: 1
   - name: rows
     type: object[]
     description: Scene field. Rows of tiles; each row is an array of tile objects (see [[glance]])
+    summary: The rows of tiles
+    does: Lists the banner's rows from top to bottom, each row an array of tiles.
 constraints: {"surface":"lock-screen","requires":"liveActivity true, or live.activity.start other than never","banner":{"field":"lockScreen","accepts":"scene","default":"island.expanded.bottom","sceneColumnsMax":12,"interactive":true,"interactiveNeedsAuthorDeclaredControl":true,"limits":{"stateBytesPerUpdate":4096,"maxSessionHours":8},"allowedTiles":["value","gauge","ring","bar","light","sparkline","text","icon","spacer","timer","freshness","toggle","button","step","open"]},"accessoryFamilies":{"widgetField":"widgets[].families","accessoryCircular":{"maxTiles":1,"allowedTiles":["gauge","ring","value"]},"accessoryRectangular":{"maxRows":1,"allowedTiles":["value","text","icon","spacer","timer","freshness"]},"accessoryInline":{"maxTiles":1,"allowedTiles":["value"]},"monochrome":true,"interactive":false},"corners":{"via":"glance.controls","kinds":["toggle","button","cycle","step","set"],"placedBy":"the user"}}
 ---
 

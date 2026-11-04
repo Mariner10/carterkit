@@ -1,5 +1,6 @@
 ---
 type: local-store
+depth: complete
 label: Local Store
 icon: internaldrive
 category: system
@@ -8,61 +9,93 @@ fields:
     type: enum
     values: [local]
     description: Must be "local" — declared inside the layout's sources block
+    summary: What kind of source this is
+    does: Marks the source as an on-device store; the only value is local.
+    valueHelp: {"local": "a store kept on this phone, with its own collections and views"}
   - name: namespace
     tab: advanced
     type: string
     description: Scope for every non-shared collection (default the layout id, else its name); must match ^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$ and cannot be "shared"
+    summary: The store's private shelf name
+    does: Scopes every non-shared collection so two layouts' rows stay apart; defaults to the layout id, then its name.
   - name: collections
     type: object
     description: Collection name → { fields, shared?, mirror?, singleton?, defaults?, order? }; fields maps a name to one of string number integer bool date json, or to { type, label?, unit?, required?, default?, choices?, multiple?, range?, decimals?, labels?, symbol?, display? }
+    summary: The tables you keep rows in
+    does: Declares each named collection of rows, with its fields, order, sharing and defaults.
   - name: views
     type: object
     description: View name → { from, where?, orderBy?, limit? }; a named row set over a collection or another view
+    summary: Saved filtered lists
+    does: Declares named row sets over a collection or another view, which bindings read like a collection.
   - name: weekStartsOn
     type: enum
     values: [monday, sunday]
     default: monday
     description: First day of the week for the week bucket and the startOfWeek token
+    summary: Which day the week begins
+    does: Sets the first day of the week used for week grouping and the start-of-week date token.
+    valueHelp: {"monday": "weeks begin on Monday (ISO weeks), the default", "sunday": "weeks begin on Sunday"}
   - name: label
     group: collections
     type: string
     description: Friendly collection name shown in the type builder
+    summary: A friendly collection name
+    does: Sets the name the type builder shows for this collection.
   - name: fields
     group: collections
     type: object
     description: Field name to type (string number integer bool date json) or {type, ...options}
+    summary: The columns each row has
+    does: Names each field of the collection and its type or type options; rows hold only these fields.
   - name: order
     group: collections
     type: string[]
     description: Field names in display order
+    summary: The order fields are shown
+    does: Lists the fields in the order the type builder and entry forms show them.
   - name: shared
     group: collections
     type: bool
     description: Put the collection in the device-wide shared namespace
+    summary: Let other layouts use these rows
+    does: When true the collection lives in the shared namespace so other layouts can bind the same rows.
   - name: mirror
     group: collections
     type: bool
     description: Reserved for the studio change-notice; stored, not read by the store
+    summary: Reserved for the studio
+    does: Is stored with the collection but not read by the store; it only feeds the studio change notice.
   - name: singleton
     group: collections
     type: bool
     description: The collection holds exactly one row, id singleton
+    summary: Keep just one row
+    does: When true the collection holds exactly one row, with the id singleton, such as a counter or preferences.
   - name: defaults
     group: collections
     type: object
     description: "Starting values for the singleton row (needs singleton: true)"
+    summary: Starting values for the single row
+    does: Sets the singleton row's first values, shown before the first write; only valid with singleton on.
   - name: from
     group: views
     type: string
     description: The collection or view this view reads
+    summary: What the list is built from
+    does: Names the collection or view whose rows this view reads.
   - name: where
     group: views
     type: object
     description: Filter over the source rows
+    summary: Which rows to keep
+    does: Filters the source rows so the view holds only matches.
   - name: orderBy
     group: views
     type: string
     description: Sort field, - prefix for descending
+    summary: How the list is sorted
+    does: Sorts the view by this field, newest or largest first when it starts with a minus sign.
   - name: limit
     group: views
     min: 1
@@ -70,6 +103,8 @@ fields:
     step: 1
     type: number
     description: Maximum rows
+    summary: Cap the list length
+    does: Stops the view after this many rows.
 ---
 
 # Local Store
@@ -599,6 +634,27 @@ beyond this is a bridge's job.
       },
       "views": {
         "thisWeek": { "from": "chores", "where": { "done": { "gte": "{{startOfWeek}}" } }, "orderBy": "-done" }
+      }
+    }
+  }
+}
+```
+
+### A counter in a singleton collection
+
+One row that holds a running count and a toggle, with starting values.
+
+```json
+{
+  "sources": {
+    "db": {
+      "type": "local",
+      "collections": {
+        "plant": {
+          "singleton": true,
+          "fields": { "waterings": "integer", "lastWatered": "date", "outside": "bool" },
+          "defaults": { "waterings": 0, "outside": false }
+        }
       }
     }
   }

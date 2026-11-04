@@ -82,12 +82,18 @@ themeFields:
     summary: The fill behind each page
     does: "Colors the card behind every page; a low-opacity white gives a faint glass tint."
   - name: accentColor
+    edit: color
+    depth: surface
     type: color
     default: "#667eea"
     description: Active indicator color
     summary: The color of the current page mark
     does: "Colors the dot or bar for the page you are on in the indicator."
   - name: cornerRadius
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: carouselMode
     min: 0
     max: 30
     step: 1
@@ -121,6 +127,10 @@ themeFields:
     summary: How thick the page outline is
     does: "Sets the outline width around each page card in points (0 hides it, 5 is heavy)."
   - name: cardPadding
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: carouselMode
     title: Card spacing
     min: 0
     max: 32

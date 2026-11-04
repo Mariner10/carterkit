@@ -163,34 +163,10 @@ fields:
     summary: Show as a countdown, or show where the value is expected to reach
     does: Counts the fill down to a time, or moves it toward a predicted value until a real reading arrives.
     valueHelp: {"countdown": "the value is a time and the control counts down to it", "reach": "the value is expected to arrive at a target number or to keep changing at a set rate"}
-  - name: forecastTarget
-    title: Expected to reach
-    tab: data
-    type: number
-    min: -1000000
-    max: 1000000
-    step: 1
-    description: The value this one is expected to arrive at (with forecast "reach")
-    summary: The number it should reach
+  - use: forecastTarget
     does: Moves the fill toward this value, between -1,000,000 and 1,000,000, until a real reading replaces it.
-  - name: forecastTimeFrom
-    title: Arrival time from
-    tab: data
-    simple: hide
-    type: string
-    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
-    summary: Which control says when it arrives
-    does: Takes the arrival time from another control's value (epoch seconds or ISO date) so the guess lands on time.
-  - name: forecastRate
-    title: Change per second
-    tab: data
-    simple: hide
-    type: number
-    min: -1000
-    max: 1000
-    step: 0.01
-    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
-    summary: How fast it is expected to change
+  - use: forecastTimeFrom
+  - use: forecastRate
     does: Keeps moving the fill by this much per second, -1000 to 1000, from the last real reading.
   - name: unit
     title: Unit
@@ -209,15 +185,7 @@ themeFields:
     description: Control corner radius
     summary: How round the control's corners are
     does: Rounds the background's corners by this many points, 0 to 30.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: Breathing room inside the edge
+  - use: controlPadding
     does: Sets the gap between the control's edge and its content in points, 0 to 24.
   - name: surfacePrimary
     title: Background color
@@ -247,32 +215,11 @@ themeFields:
     description: Secondary text color
     summary: The quieter text colour
     does: Colours the less prominent text such as the unit (default translucent white).
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
+  - use: borderColor
     does: Draws the border in this colour (default a faint white).
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the border thickness in points, 0 to 5; 0 hides it.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
+  - use: labelFontSize
     does: Sets the title text size in points, 8 to 24.
 ---
 

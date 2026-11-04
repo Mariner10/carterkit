@@ -186,13 +186,7 @@ fields:
     description: Track stroke width (radial style only)
     summary: How thick the arc line is
     does: "Sets the arc line width from 1 to 40 points."
-  - name: confirm
-    title: Show confirmation
-    tab: action
-    type: bool
-    default: false
-    description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
-    summary: A short note with Undo after each tap
+  - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you set a value."
 themeFields:
   - name: cornerRadius
@@ -215,12 +209,7 @@ themeFields:
     description: Internal padding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: "Fills the card behind the slider with this color."
   - name: accentColor
     title: Accent color
@@ -229,30 +218,10 @@ themeFields:
     description: Accent/tint color
     summary: The highlight color
     does: "Sets the accent used for highlights on the slider."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-    summary: The main text color
+  - use: foregroundColor
     does: "Colors the title and value text."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-    summary: The outline around the control
-    does: "Colors the card's outline."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
-    does: "Sets the title text size from 8 to 24 points."
+  - use: borderColor
+  - use: labelFontSize
   - name: trackColor
     edit: color
     depth: hold
@@ -333,12 +302,7 @@ themeFields:
     description: Border width
     summary: How heavy the outline is
     does: "Sets the outline thickness from 0 to 5 points."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
-    summary: The color of the less important text
+  - use: secondaryColor
     does: "Colors the quieter text such as the value readout."
   - name: trackRadius
     title: Track roundness

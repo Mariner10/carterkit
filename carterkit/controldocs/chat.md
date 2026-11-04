@@ -9,6 +9,7 @@ pickerCategory: Readouts
 friendlyName: Chat
 oneLiner: Messages back and forth
 aliases: [messages, conversation, assistant, ai, talk, inbox]
+depth: complete
 starterPreset: {"label": "Chat"}
 fields:
   - name: label
@@ -17,13 +18,19 @@ fields:
     title: Title
     type: string
     description: Header label
+    summary: The name shown above the chat
+    does: Shows this text in the chat's header bar.
   - name: config
     type: object
     description: "ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint"
+    summary: Chat settings grouped together
+    does: Holds the chat's options (target, typing dots, receipts, reactions, replies, images, history, color) in one object.
   - name: allowClear
     type: bool
     description: "Show the local \"Clear Chat\" affordance in the header (default true). Server-driven clears are always honored regardless."
     group: config
+    summary: Lets you wipe the chat from here
+    does: Shows a Clear Chat menu in the header that empties this device's messages only; other people's windows are untouched.
   - name: allowImages
     effect: behavior
     edit: part
@@ -32,6 +39,8 @@ fields:
     type: bool
     description: allowImages
     group: config
+    summary: Lets people attach pictures
+    does: Turns image attachments on or off for this chat.
   - name: allowReactions
     edit: part
     depth: hold
@@ -39,6 +48,8 @@ fields:
     type: bool
     description: allowReactions
     group: config
+    summary: Lets people react to messages
+    does: Adds a React choice to the long-press menu and shows emoji reactions on messages when on.
   - name: allowReplies
     edit: part
     depth: hold
@@ -46,6 +57,8 @@ fields:
     type: bool
     description: allowReplies
     group: config
+    summary: Lets people reply to a message
+    does: Adds a Reply choice to the long-press menu and shows replies in threads when on.
   - name: historyCount
     min: 1
     max: 50
@@ -53,6 +66,8 @@ fields:
     type: number
     description: historyCount
     group: config
+    summary: How many messages are kept
+    does: Keeps only this many of the latest messages (1 to 50, default 50) in the window and in history sent to peers.
   - name: showReadReceipts
     edit: part
     depth: hold
@@ -60,6 +75,8 @@ fields:
     type: bool
     description: showReadReceipts
     group: config
+    summary: Shows when messages are delivered
+    does: Shows delivery and read marks under your messages when on.
   - name: showTypingIndicators
     edit: part
     depth: hold
@@ -67,14 +84,20 @@ fields:
     type: bool
     description: showTypingIndicators
     group: config
+    summary: Shows when someone is typing
+    does: Shows animated typing dots while the other side is typing when on.
   - name: systemMessageEvents
     type: string[]
     description: systemMessageEvents
     group: config
+    summary: Events that show as notices
+    does: Lists event names meant to appear as system notes in the chat; the app does not act on it yet.
   - name: target
     type: string
     description: target
     group: config
+    summary: Who to chat with
+    does: Sends your messages to the named MeshSocket peer as a private companion chat; leave it empty to chat with the whole channel.
   - name: tint
     edit: color
     depth: surface
@@ -83,6 +106,8 @@ fields:
     type: color
     description: tint
     group: config
+    summary: The chat's accent color
+    does: Sets the accent color used by the chat bubbles.
 themeFields:
   - name: cornerRadius
     min: 0
@@ -91,22 +116,32 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the card corners are
+    does: Rounds the chat card's corners from 0 to 30 pt (default 12).
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The card's fill color
+    does: Fills the card behind the chat with this color, default a faint white wash.
   - name: accentColor
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: The main highlight color
+    does: Sets the accent color the chat uses for highlights, default a soft indigo.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Secondary text color
+    summary: The softer text color
+    does: Colors secondary text such as names and timestamps, default a dimmed white.
   - name: borderColor
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: The card's outline color
+    does: Colors the outline drawn around the card.
   - name: borderWidth
     min: 0
     max: 5
@@ -114,6 +149,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: How thick the outline is
+    does: Sets the card outline from 0 to 5 pt (default 1); 0 hides it.
   - name: labelFontSize
     min: 8
     max: 24
@@ -121,16 +158,12 @@ themeFields:
     type: number
     default: 12
     description: Label text size
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-  - name: tertiaryColor
-    title: Faint text color
-    type: color
-    default: #FFFFFF4D
-    description: Tertiary text and ink color
+    summary: How big the title is
+    does: Sets the header label size from 8 to 24 pt (default 12).
+  - use: foregroundColor
+    does: Colors the main message and label text, default white.
+  - use: tertiaryColor
+    does: Colors the faintest text and ink, default a very dim white.
 ---
 
 # Chat
@@ -186,6 +219,7 @@ Two independent ways to wipe the log:
 ## Examples
 
 ### Device-to-device chat
+Chat with a hub peer, with typing dots, receipts, reactions and replies on, and a long history.
 ```json
 {
   "type": "chat",
@@ -200,6 +234,44 @@ Two independent ways to wipe the log:
     "allowReactions": true,
     "allowReplies": true,
     "historyCount": 100
+  }
+}
+```
+
+### Companion chat
+Talk privately to one named peer, with no images and a short history.
+```json
+{
+  "type": "chat",
+  "id": "companion-chat",
+  "position": [0, 0],
+  "span": [4, 4],
+  "label": "Assistant",
+  "config": {
+    "target": "companion",
+    "allowImages": false,
+    "allowReplies": false,
+    "historyCount": 20
+  }
+}
+```
+
+### Quiet read-only log
+Show channel messages without typing dots, receipts, reactions or a Clear Chat control.
+```json
+{
+  "type": "chat",
+  "id": "channel-log",
+  "position": [4, 0],
+  "span": [4, 4],
+  "label": "Channel Log",
+  "config": {
+    "showTypingIndicators": false,
+    "showReadReceipts": false,
+    "allowReactions": false,
+    "allowReplies": false,
+    "allowClear": false,
+    "tint": "#34C759"
   }
 }
 ```

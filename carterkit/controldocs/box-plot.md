@@ -1,5 +1,6 @@
 ---
 type: boxPlot
+depth: complete
 label: Box Plot
 icon: align.vertical.center
 category: controls
@@ -16,12 +17,17 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: The buzz you feel on a tap
+    does: Plays this haptic on the phone when you tap or scrub the plot, on supported hardware.
+    valueHelp: {"none": "no vibration", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a cushioned, muffled tap", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the plot
+    summary: The plot's title
+    does: Shows this text above the plot, with the selected box's median beside it.
   - name: boxStyle
     edit: look
     depth: surface
@@ -31,9 +37,14 @@ fields:
     values: [box, violin]
     default: box
     description: "'box' (box-and-whisker) or 'violin' (kernel density body)"
+    summary: Boxes or violins
+    does: Draws each category as a box-and-whisker or as a smooth violin-shaped density body.
+    valueHelp: {"box": "a box with whiskers marking the quartiles and median", "violin": "a smooth shape showing where the samples cluster (needs raw samples)"}
   - name: boxPlotConfig
     type: object
     description: Full configuration object (see BoxPlotConfig section)
+    summary: Extra plot settings
+    does: Groups the options for axes, whiskers, colors, scrubbing and the tap action.
   - name: tint
     edit: color
     depth: surface
@@ -42,14 +53,20 @@ fields:
     type: color
     default: "#667eea"
     description: First-category color and palette seed
+    summary: Main color
+    does: Colors the first box and seeds the color of the others.
   - name: formatValue
     tab: data
     type: string
     description: Formatter for axis/readout numbers
+    summary: How numbers are written
+    does: Formats the axis labels and the median readout, e.g. as a unit or with fixed decimals.
   - name: boxAction
     tab: action
     type: object
     description: boxAction
+    summary: What a tap does
+    does: Fires this action when you tap a box, passing its five-number summary as {{value}}.
     group: boxPlotConfig
   - name: barCornerRadius
     edit: scrub
@@ -64,6 +81,8 @@ fields:
     type: number
     default: 3
     description: Box corner rounding
+    summary: Box roundness
+    does: Rounds the box corners from square (0) to 30 points.
     group: boxPlotConfig
   - name: boxWidth
     edit: scrub
@@ -77,6 +96,8 @@ fields:
     type: number
     default: 0.55
     description: Box width as a fraction of the category slot
+    summary: How wide the boxes are
+    does: Sets each box's width as a fraction (0 to 1) of its category slot.
     group: boxPlotConfig
   - name: colors
     edit: list
@@ -85,11 +106,15 @@ fields:
     tab: style
     type: string[]
     description: Per-category color cycle
+    summary: Colors for each box
+    does: Cycles through this list of colors, one per category, instead of the built-in palette.
     group: boxPlotConfig
   - name: scrub
     type: bool
     default: false
     description: Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap)
+    summary: Drag across the boxes
+    does: Lets a drag sweep the selection across categories with a tick for each change; the action still fires only on tap.
     group: boxPlotConfig
   - name: showGrid
     edit: part
@@ -98,6 +123,8 @@ fields:
     type: bool
     default: true
     description: Horizontal grid lines
+    summary: Grid lines on or off
+    does: Shows or hides the horizontal grid lines behind the boxes.
     group: boxPlotConfig
   - name: showMean
     edit: part
@@ -106,6 +133,8 @@ fields:
     type: bool
     default: false
     description: Hollow dot at the mean
+    summary: Mean dot on or off
+    does: Shows or hides a hollow dot at each category's average.
     group: boxPlotConfig
   - name: showOutliers
     edit: part
@@ -114,6 +143,8 @@ fields:
     type: bool
     default: true
     description: Outlier dots beyond the whiskers
+    summary: Outlier dots on or off
+    does: Shows or hides the dots for values beyond the whiskers.
     group: boxPlotConfig
   - name: showXAxis
     edit: part
@@ -122,6 +153,8 @@ fields:
     type: bool
     default: true
     description: Category labels along the bottom
+    summary: Category names on or off
+    does: Shows or hides the category labels along the bottom.
     group: boxPlotConfig
   - name: showYAxis
     edit: part
@@ -130,6 +163,8 @@ fields:
     type: bool
     default: true
     description: Value labels down the left gutter
+    summary: Value scale on or off
+    does: Shows or hides the value labels down the left side.
     group: boxPlotConfig
   - name: whiskers
     edit: look
@@ -140,43 +175,52 @@ fields:
     values: [tukey, minmax]
     default: tukey
     description: "'tukey' (1.5 × IQR fences + outlier dots) or 'minmax' (full range)"
+    summary: How far the whiskers reach
+    does: Sets whether the whiskers stop at the Tukey fences with outliers as dots, or stretch to the full range.
+    valueHelp: {"tukey": "whiskers stop at 1.5 times the spread and farther values show as dots", "minmax": "whiskers reach the smallest and largest values with no outlier dots"}
     group: boxPlotConfig
   - name: yMax
     bounds: none
     type: number
     description: Pin the value axis
+    summary: Top of the scale
+    does: Pins the top of the value axis instead of fitting it to the data.
     group: boxPlotConfig
   - name: yMin
     bounds: none
     type: number
     description: Pin the value axis
+    summary: Bottom of the scale
+    does: Pins the bottom of the value axis instead of fitting it to the data.
     group: boxPlotConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Background color
+    does: Fills the box plot background with this color.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Axis label color
+    summary: Axis label color
+    does: Colors the axis labels on the box plot.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight color
+    does: Sets the accent color used to tint the box plot when no tint is set.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Outline color
+    does: Colors the outline drawn around the box plot.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -185,6 +229,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Outline thickness
+    does: Sets the outline width from 0 to 5 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -193,11 +239,15 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edges
+    does: Adds padding between the box plot edge and its content, 0 to 24 points.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: Main text color
+    does: Colors the primary text on the box plot.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -206,11 +256,15 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the label text size from 8 to 24 points.
   - name: tertiaryColor
     title: Faint text color
     type: color
     default: #FFFFFF4D
     description: Tertiary text and ink color
+    summary: Dimmed text color
+    does: Colors the faintest text and ink on the chart.
 ---
 
 # Box Plot
@@ -316,6 +370,20 @@ Note: `boxStyle: "violin"` needs raw `samples` for the density body; with only
   "boxStyle": "violin",
   "boxPlotConfig": { "showMean": true },
   "defaultValue": "{\"categories\":[\"A\",\"B\"],\"samples\":[[5,6,6,7,7,7,8,9],[4,5,7,9,10,11,11,12]]}"
+}
+```
+
+### Whiskers to the full range
+Shows every value inside the whiskers, so no outlier dots appear, with a mean dot added.
+```json
+{
+  "type": "boxPlot",
+  "id": "full-range",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Response time",
+  "boxPlotConfig": { "whiskers": "minmax", "showMean": true },
+  "defaultValue": "{\"categories\":[\"A\",\"B\"],\"samples\":[[10,12,13,15,18,40],[20,22,25,26,30,31]]}"
 }
 ```
 

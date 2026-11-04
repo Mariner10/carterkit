@@ -1,5 +1,6 @@
 ---
 type: sources
+depth: complete
 label: Data Sources
 icon: point.3.connected.trianglepath.dotted
 category: system
@@ -8,26 +9,41 @@ fields:
     type: enum
     values: [mqtt, http, local]
     description: Kind of source (mqtt or http external, local on-device store)
+    summary: What kind of source this is
+    does: Picks whether the source talks to an MQTT broker, an HTTP API or the on-device local store.
+    valueHelp: {"mqtt": "a broker the phone subscribes to and publishes on", "http": "an API the phone polls and sends requests to", "local": "a database stored on the phone with no network"}
   - name: url
     type: string
     description: "MQTT broker address: mqtt://host[:port] or mqtts://host[:port]"
+    summary: The broker address
+    does: Sets where the phone dials the MQTT broker; mqtt:// is plain and mqtts:// is encrypted.
   - name: baseURL
     tab: advanced
     type: string
     description: HTTP base URL relative sync/action paths resolve against
+    summary: The web address paths start from
+    does: Sets the address that relative sync and action paths of an HTTP source are added to.
   - name: username
     type: string
     description: MQTT username
+    summary: The broker login name
+    does: Sends this username when the phone connects to the MQTT broker.
   - name: password
     type: string
     description: "MQTT password; write a {{secret:name}} placeholder, not the literal value"
+    summary: The broker password
+    does: Sends this password to the MQTT broker, filled in from the Keychain when you write a secret placeholder.
   - name: clientId
     tab: advanced
     type: string
     description: MQTT client id (auto-generated when omitted)
+    summary: The name the phone gives the broker
+    does: Sets the MQTT client id; a random one is made when it is left out.
   - name: headers
     type: object
     description: "Extra HTTP headers sent with every poll/request; put credentials in as {{secret:name}}"
+    summary: Extra info sent with web requests
+    does: Adds these HTTP headers to every poll and request of the source, such as an Authorization header.
   - name: interval
     min: 1
     max: 3600
@@ -35,6 +51,8 @@ fields:
     type: number
     default: 5
     description: Default poll interval (seconds) for HTTP syncs that omit their own
+    summary: How often to check
+    does: Sets the seconds between polls for HTTP syncs that do not set their own, 1 to 3600.
 ---
 
 # Data Sources
@@ -194,6 +212,45 @@ the tokens and the write ops are all documented in [[local-store]].
 A local source appears in the header's Data Pipes as `Local`; it is grey until a
 control binds it, green while serving, and red with the reason after a schema or
 write error.
+
+## Examples
+
+### MQTT sensor and switch
+Demonstrates an `mqtt` source with a secret password, one gauge reading a topic and one toggle publishing to another.
+```json
+{
+  "sources": { "broker": { "type": "mqtt", "url": "mqtt://192.168.1.10:1883", "username": "ha", "password": "{{secret:mqtt_password}}" } },
+  "secrets": [ { "name": "mqtt_password" } ],
+  "tabs": [ { "title": "Climate", "grid": { "columns": 2, "rows": 3 }, "children": [
+    { "type": "gauge", "id": "temp", "position": [0, 0], "span": [2, 2], "min": 0, "max": 40, "label": "Temp",
+      "sync": [ { "method": "mqtt", "topic": "home/livingroom/temp" } ] },
+    { "type": "toggle", "id": "lamp", "position": [2, 0], "label": "Lamp",
+      "action": { "method": "mqtt", "topic": "home/lamp/set", "payload": "{{value}}" } }
+  ] } ]
+}
+```
+
+### HTTP status page
+Demonstrates an `http` source with `baseURL`, a default `interval` and a header token, polled by a gauge.
+```json
+{
+  "sources": { "api": { "type": "http", "baseURL": "http://192.168.1.5:8080",
+                        "headers": { "Authorization": "Bearer {{secret:api_token}}" }, "interval": 10 } },
+  "secrets": [ { "name": "api_token" } ],
+  "tabs": [ { "title": "Server", "grid": { "columns": 2, "rows": 2 }, "children": [
+    { "type": "gauge", "id": "cpu", "position": [0, 0], "span": [2, 2], "min": 0, "max": 100, "label": "CPU",
+      "sync": [ { "method": "http", "path": "/api/status", "valuePath": "cpu.load" } ] }
+  ] } ]
+}
+```
+
+### On-device notes store
+Demonstrates a `local` source: a typed collection that lives on the phone with no network.
+```json
+{
+  "sources": { "db": { "type": "local", "collections": { "notes": { "fields": { "text": "string", "at": "date" } } } } }
+}
+```
 
 ## Related
 

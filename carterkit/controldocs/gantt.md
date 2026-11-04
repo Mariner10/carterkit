@@ -1,5 +1,6 @@
 ---
 type: gantt
+depth: complete
 label: Gantt
 icon: chart.bar.doc.horizontal
 category: controls
@@ -16,15 +17,22 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: "The buzz you feel on a touch"
+    does: "Plays this haptic on the phone when you tap or drag on the timeline."
+    valueHelp: {"none": "no vibration", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "soft": "a muted cushioned tap", "rigid": "a firm sharp click", "selection": "the faint tick of picking an item", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the timeline
+    summary: "The title above the chart"
+    does: "Shows this text as the header over the timeline; the selected task's name and percent appear beside it."
   - name: ganttConfig
     type: object
     description: Full configuration object (see GanttConfig section)
+    summary: "All the timeline settings"
+    does: "Groups the options that change how the bars, axis and dragging behave; every setting inside is optional."
   - name: tint
     edit: color
     depth: surface
@@ -33,6 +41,8 @@ fields:
     type: color
     default: "#667eea"
     description: First-task color and palette seed
+    summary: "The main color"
+    does: "Colors the first task's bar and seeds the colors of the rest."
   - name: barCornerRadius
     edit: scrub
     depth: hold
@@ -46,6 +56,8 @@ fields:
     type: number
     default: 5
     description: Bar corner rounding
+    summary: "How round the bar ends are"
+    does: "Rounds the corners of every bar; 0 is square and higher is pill-like."
     group: ganttConfig
   - name: colors
     edit: list
@@ -54,11 +66,15 @@ fields:
     tab: style
     type: string[]
     description: Per-task color cycle (task color wins)
+    summary: "A color for each task"
+    does: "Cycles through these colors down the rows; a task's own color overrides it."
     group: ganttConfig
   - name: editable
     type: bool
     default: false
     description: Drag along a bar to set its progress
+    summary: "Let people drag progress"
+    does: "Dragging along a bar sets that task's progress, saves it and fires the task action when you let go."
     group: ganttConfig
   - name: rowHeight
     edit: scrub
@@ -71,11 +87,15 @@ fields:
     type: number
     default: 30
     description: Points per task row
+    summary: "How tall each row is"
+    does: "Sets the height of every task row, so the whole chart grows or shrinks with the task count."
     group: ganttConfig
   - name: scrub
     type: bool
     default: false
     description: "When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)"
+    summary: "Slide to browse rows"
+    does: "When the chart is not editable, dragging sweeps the selected row with a haptic tick; the action still fires on tap."
     group: ganttConfig
   - name: showAxis
     edit: part
@@ -84,6 +104,8 @@ fields:
     type: bool
     default: true
     description: Time labels along the top
+    summary: "Show the time labels"
+    does: "Draws the time labels along the top of the chart when on, hides them when off."
     group: ganttConfig
   - name: showGrid
     edit: part
@@ -92,6 +114,8 @@ fields:
     type: bool
     default: true
     description: Vertical gridlines at the axis ticks
+    summary: "Show the grid lines"
+    does: "Draws faint vertical lines at each axis label when on."
     group: ganttConfig
   - name: showProgress
     edit: part
@@ -100,6 +124,8 @@ fields:
     type: bool
     default: true
     description: Progress fill inside bars + % readout
+    summary: "Show how far along"
+    does: "Fills each bar to its progress and shows the percent readout when on."
     group: ganttConfig
   - name: showToday
     edit: part
@@ -108,6 +134,8 @@ fields:
     type: bool
     default: true
     description: Dashed 'now' line (date timelines only)
+    summary: "Show a line for now"
+    does: "Draws a dashed line at the current time on date-based timelines; number timelines never show it."
     group: ganttConfig
   - name: step
     min: 0
@@ -116,38 +144,44 @@ fields:
     type: number
     default: 0.05
     description: Progress snap while dragging
+    summary: "How coarse dragging is"
+    does: "Rounds dragged progress to multiples of this size (0.05 is 5 percent steps), with a tick at each notch."
     group: ganttConfig
   - name: taskAction
     tab: action
     type: object
     description: taskAction
+    summary: "What a tap or drag sends"
+    does: "The action fired when a task is tapped or a progress drag ends; {{value}} carries the task as JSON."
     group: ganttConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Background color
+    does: Fills the Gantt chart background with this color.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Task name color
+    summary: Task name color
+    does: Colors the task names.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight color
+    does: Sets the accent color used to tint the Gantt chart when no tint is set.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Outline color
+    does: Colors the outline drawn around the Gantt chart.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -156,6 +190,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Outline thickness
+    does: Sets the outline width from 0 to 5 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -164,11 +200,15 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edges
+    does: Adds padding between the Gantt chart edge and its content, 0 to 24 points.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: Main text color
+    does: Colors the primary text on the Gantt chart.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -177,11 +217,15 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the label text size from 8 to 24 points.
   - name: tertiaryColor
     title: Faint text color
     type: color
     default: #FFFFFF4D
     description: Tertiary text and ink color
+    summary: Dimmed text color
+    does: Colors the faintest text and ink on the chart.
 ---
 
 # Gantt
@@ -257,6 +301,7 @@ Dates and numbers share one axis — don't mix them in one payload.
 ## Examples
 
 ### Sprint board (server-pushed)
+Shows a timeline whose tasks are pushed by your server as a `sprint_plan` broadcast.
 ```json
 {
   "type": "gantt",
@@ -269,6 +314,7 @@ Dates and numbers share one axis — don't mix them in one payload.
 ```
 
 ### Editable progress tracker
+Lets you drag along a bar to set progress, then broadcasts the task that changed.
 ```json
 {
   "type": "gantt",
@@ -281,6 +327,27 @@ Dates and numbers share one axis — don't mix them in one payload.
     "taskAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "task_progress", "task": "{{value}}" } }
   },
   "defaultValue": "[{\"name\":\"Prep\",\"start\":0,\"end\":3,\"progress\":0.5},{\"name\":\"Run\",\"start\":2,\"end\":8,\"progress\":0.1}]"
+}
+```
+
+### Quiet timeline with milestones
+Draws a compact, colored plan with no grid or axis fill, using the built-in task list.
+```json
+{
+  "type": "gantt",
+  "id": "launch-plan",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Launch plan",
+  "tint": "#34C759",
+  "ganttConfig": {
+    "showGrid": false,
+    "showToday": false,
+    "rowHeight": 36,
+    "barCornerRadius": 12,
+    "colors": ["#34C759", "#FF9500", "#5AC8FA"]
+  },
+  "defaultValue": "{\"tasks\":[{\"name\":\"Draft\",\"start\":\"2026-07-01\",\"end\":\"2026-07-06\",\"progress\":1},{\"name\":\"Review\",\"start\":\"2026-07-05\",\"end\":\"2026-07-10\",\"progress\":0.3},{\"name\":\"Launch\",\"start\":\"2026-07-12\",\"milestone\":true}]}"
 }
 ```
 

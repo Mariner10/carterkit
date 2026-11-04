@@ -1,5 +1,6 @@
 ---
 type: sankey
+depth: complete
 label: Sankey
 icon: arrow.triangle.branch
 category: controls
@@ -16,15 +17,22 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: Buzz when you touch it
+    does: Gives a small physical tap when you interact, on phones that support it.
+    valueHelp: {"none": "no vibration", "light": "a faint tap", "medium": "a normal tap", "heavy": "a strong thump", "soft": "a gentle cushioned tap", "rigid": "a crisp hard tap", "selection": "a tiny tick like scrolling a picker", "success": "a pattern that feels like done", "warning": "a pattern that feels like careful", "error": "a sharp pattern that feels like failed"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the diagram
+    summary: The heading above the chart
+    does: Shows this text as the header above the diagram.
   - name: sankeyConfig
     type: object
     description: Full configuration object (see SankeyConfig section)
+    summary: All the chart settings in one place
+    does: Holds the optional look and tap settings for the diagram.
   - name: tint
     edit: color
     depth: surface
@@ -33,10 +41,14 @@ fields:
     type: color
     default: "#667eea"
     description: First-node color and palette seed
+    summary: The main colour
+    does: Colours the first node and seeds the colours of the others.
   - name: formatValue
     tab: data
     type: string
     description: Formatter for node throughput values
+    summary: How numbers are written
+    does: Formats the throughput numbers shown next to node labels and the selection readout.
   - name: colors
     edit: list
     depth: surface
@@ -44,6 +56,8 @@ fields:
     tab: style
     type: string[]
     description: Node color cycle (per-node color wins)
+    summary: The colours nodes cycle through
+    does: Gives each node a colour in turn; a colour set on a node itself wins.
     group: sankeyConfig
   - name: linkOpacity
     edit: scrub
@@ -56,11 +70,15 @@ fields:
     type: number
     default: 0.32
     description: Ribbon opacity (selection brightens involved ribbons)
+    summary: How solid the flow bands are
+    does: Sets how see-through the ribbons are, from 0 invisible to 1 solid; selected ones brighten.
     group: sankeyConfig
   - name: nodeAction
     tab: action
     type: object
     description: nodeAction
+    summary: What happens when you tap a node
+    does: Runs this action when a node is tapped, passing its name and in and out totals.
     group: sankeyConfig
   - name: nodeSpacing
     edit: scrub
@@ -75,6 +93,8 @@ fields:
     type: number
     default: 10
     description: Minimum vertical gap between nodes in a column
+    summary: Gap between boxes
+    does: Sets the smallest vertical gap between nodes in a column, 0 to 40 points.
     group: sankeyConfig
   - name: cellCornerRadius
     edit: scrub
@@ -87,6 +107,8 @@ fields:
     step: 1
     type: number
     description: "Node corner rounding (default: a third of the node width)"
+    summary: How round the boxes are
+    does: Rounds the node bars, 0 to 30 points; unset it is a third of the node width.
     group: sankeyConfig
   - name: nodeWidth
     edit: scrub
@@ -101,11 +123,15 @@ fields:
     type: number
     default: 10
     description: Node bar width in points
+    summary: How thick the boxes are
+    does: Sets the width of each node bar, 1 to 40 points.
     group: sankeyConfig
   - name: scrub
     type: bool
     default: false
     description: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)
+    summary: Slide your finger across nodes
+    does: Lets a drag move the spotlight from node to node with a tick each step; a tap still fires the action.
     group: sankeyConfig
   - name: showLabels
     edit: part
@@ -114,6 +140,8 @@ fields:
     type: bool
     default: true
     description: Node names beside the bars
+    summary: Show node names
+    does: Shows or hides the node names beside the bars.
     group: sankeyConfig
   - name: showValues
     edit: part
@@ -122,33 +150,37 @@ fields:
     type: bool
     default: false
     description: Throughput value alongside each label
+    summary: Show the numbers
+    does: Shows or hides each node's throughput value next to its name.
     group: sankeyConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: Background colour
+    does: Fills the control's background with this colour.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Node label color
+    summary: Node name colour
+    does: Colours the node labels.
   - name: accentColor
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
+    summary: Highlight colour
+    does: Sets the accent colour used to tint the control.
   - name: borderColor
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
+    summary: Outline colour
+    does: Colours the control's outline.
   - name: borderWidth
     title: Border thickness
     min: 0
@@ -157,6 +189,8 @@ themeFields:
     type: number
     default: 1
     description: Border width
+    summary: Outline thickness
+    does: Sets the outline width, 0 to 5 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -165,11 +199,15 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
+    summary: Space inside the edge
+    does: Adds padding between the control's edge and its content, 0 to 24 points.
   - name: foregroundColor
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
+    summary: Main text colour
+    does: Colours the primary text.
   - name: labelFontSize
     title: Title text size
     min: 8
@@ -178,11 +216,15 @@ themeFields:
     type: number
     default: 12
     description: Label text size
+    summary: Label text size
+    does: Sets the title text size, 8 to 24 points.
   - name: tertiaryColor
     title: Faint text color
     type: color
     default: #FFFFFF4D
     description: Tertiary text and ink color
+    summary: Faint text colour
+    does: Colours the faintest text and ink.
 ---
 
 # Sankey
@@ -253,6 +295,7 @@ don't hang the layout, but a mostly-acyclic flow reads far better.
 ## Examples
 
 ### Live energy flow
+A power-flow diagram fed live from a mesh socket, with values shown.
 ```json
 {
   "type": "sankey",
@@ -266,6 +309,7 @@ don't hang the layout, but a mostly-acyclic flow reads far better.
 ```
 
 ### Tap-to-inspect service traffic
+Tapping a service broadcasts its in and out totals so something else can react.
 ```json
 {
   "type": "sankey",
@@ -277,6 +321,27 @@ don't hang the layout, but a mostly-acyclic flow reads far better.
     "nodeAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "inspect_service", "node": "{{value}}" } }
   },
   "defaultValue": "{\"nodes\":[{\"name\":\"Edge\"},{\"name\":\"API\"},{\"name\":\"DB\"},{\"name\":\"Cache\"}],\"links\":[{\"source\":0,\"target\":1,\"value\":120},{\"source\":1,\"target\":2,\"value\":80},{\"source\":1,\"target\":3,\"value\":40}]}"
+}
+```
+
+### Budget flow with scrubbing and custom colors
+Where monthly income goes, with values shown and a drag that sweeps the spotlight across nodes.
+```json
+{
+  "type": "sankey",
+  "id": "budget",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Monthly budget",
+  "tint": "#34C759",
+  "sankeyConfig": {
+    "showValues": true,
+    "scrub": true,
+    "nodeWidth": 14,
+    "linkOpacity": 0.45,
+    "colors": ["#34C759", "#FF9F0A", "#0A84FF"]
+  },
+  "defaultValue": "{\"nodes\":[{\"name\":\"Income\"},{\"name\":\"Rent\"},{\"name\":\"Food\"},{\"name\":\"Savings\"}],\"links\":[{\"source\":0,\"target\":1,\"value\":1200},{\"source\":0,\"target\":2,\"value\":500},{\"source\":0,\"target\":3,\"value\":300}]}"
 }
 ```
 

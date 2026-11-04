@@ -3,6 +3,7 @@ type: treemap
 label: Treemap
 icon: rectangle.3.group.fill
 category: controls
+depth: complete
 defaultSpan: [3, 4]
 addIntent: show
 pickerCategory: Charts
@@ -16,15 +17,22 @@ fields:
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
     description: Touch feedback on interaction (supported hardware)
+    summary: Buzz when you tap
+    does: Plays this touch feedback when a cell is tapped; leave it empty for a light tap.
+    valueHelp: {"none": "no feedback", "light": "a gentle tap", "medium": "a medium tap", "heavy": "a strong tap", "soft": "a cushioned tap", "rigid": "a sharp tap", "selection": "a tiny tick like scrolling a picker", "success": "a confirming pattern", "warning": "a cautioning pattern", "error": "a sharp error pattern"}
   - name: label
     edit: inline
     depth: surface
     title: Title
     type: string
     description: Header label above the map
+    summary: The title above the blocks
+    does: Shows this text as the header, which becomes a back button while you are zoomed into a group.
   - name: treemapConfig
     type: object
     description: Full configuration object (see TreemapConfig section)
+    summary: Extra block settings
+    does: Holds the optional look and behavior settings for the blocks.
   - name: tint
     edit: color
     depth: surface
@@ -33,10 +41,14 @@ fields:
     type: color
     default: "#667eea"
     description: First-item color and palette seed
+    summary: The main block color
+    does: Colors the first block and seeds the colors of the rest.
   - name: formatValue
     tab: data
     type: string
     description: Formatter for item values
+    summary: How numbers are written
+    does: Formats the values shown on blocks, for example with a unit after the number.
   - name: cellCornerRadius
     edit: scrub
     depth: hold
@@ -50,6 +62,8 @@ fields:
     type: number
     default: 5
     description: Cell corner rounding
+    summary: How round the blocks are
+    does: Rounds each block's corners from square to 30 points.
     group: treemapConfig
   - name: cellGap
     edit: scrub
@@ -63,6 +77,8 @@ fields:
     type: number
     default: 2
     description: Gap between cells
+    summary: The space between blocks
+    does: Leaves this many points of gap between neighboring blocks.
     group: treemapConfig
   - name: colors
     edit: list
@@ -71,21 +87,29 @@ fields:
     tab: style
     type: string[]
     description: Item color cycle (per-item color wins)
+    summary: Colors for the blocks
+    does: Gives blocks colors from this list in turn; a color set on an item wins.
     group: treemapConfig
   - name: drillDown
     type: bool
     default: true
     description: Tap a parent to zoom into its children
+    summary: Tap a group to open it
+    does: When on, tapping a block with items inside zooms into it; when off, every tap acts as a pick.
     group: treemapConfig
   - name: itemAction
     tab: action
     type: object
     description: itemAction
+    summary: What happens when you pick a block
+    does: Runs this action when you tap a block with nothing inside, passing its label, value and path.
     group: treemapConfig
   - name: scrub
     type: bool
     default: false
     description: Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap)
+    summary: Slide a finger across the blocks
+    does: When on, dragging highlights the block under your finger with a live readout, and only a tap drills in or acts.
     group: treemapConfig
   - name: showLabels
     edit: part
@@ -94,6 +118,8 @@ fields:
     type: bool
     default: true
     description: Item labels inside cells that have room
+    summary: Names on the blocks
+    does: Draws each block's name inside it where there is room.
     group: treemapConfig
   - name: showValues
     edit: part
@@ -102,6 +128,8 @@ fields:
     type: bool
     default: false
     description: Value under the label (taller cells only)
+    summary: Numbers on the blocks
+    does: Draws each block's value under its name on blocks tall enough to fit.
     group: treemapConfig
 themeFields:
   - name: cornerRadius
@@ -111,32 +139,26 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
+    summary: How round the corners are
+    does: Rounds the control's corners from square to 30 points.
   - name: surfacePrimary
     type: color
     default: #FFFFFF0F
     description: Background fill
+    summary: The fill behind the blocks
+    does: Paints the control's background in this color, including transparency.
   - name: secondaryColor
     type: color
     default: #FFFFFF99
     description: Value text color
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+    summary: The quieter text color
+    does: Colors the value text on the blocks.
+  - use: accentColor
+    does: Tints the blocks wherever no color is set directly.
+  - use: borderColor
+    does: Draws the control's outline in this color.
+  - use: borderWidth
+    does: Sets the outline thickness from 0 to 5 points.
   - name: controlPadding
     title: Inner spacing
     min: 0
@@ -145,19 +167,11 @@ themeFields:
     type: number
     default: 8
     description: Internal padding
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+    summary: Space inside the edge
+    does: Adds this much padding between the control's edge and the blocks.
+  - use: foregroundColor
+    does: Colors the block names and header text.
+  - use: labelFontSize
 ---
 
 # Treemap
@@ -255,6 +269,20 @@ children:
     "itemAction": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "pick_category", "item": "{{value}}" } }
   },
   "defaultValue": "[{\"label\":\"Rent\",\"value\":1800},{\"label\":\"Food\",\"value\":600},{\"label\":\"Fun\",\"value\":250},{\"label\":\"Save\",\"value\":900}]"
+}
+```
+
+### Colored blocks with a scrub readout
+Sets your own block colors and lets a drag glide across cells. Intended effect: sliding a finger highlights each block with its value, without zooming in.
+```json
+{
+  "type": "treemap",
+  "id": "portfolio",
+  "position": [0, 0],
+  "span": [3, 4],
+  "label": "Portfolio",
+  "treemapConfig": { "scrub": true, "showValues": true, "cellGap": 4, "colors": ["#667eea", "#f6ad55", "#48bb78"] },
+  "defaultValue": "[{\"label\":\"Stocks\",\"value\":60},{\"label\":\"Bonds\",\"value\":25},{\"label\":\"Cash\",\"value\":15}]"
 }
 ```
 

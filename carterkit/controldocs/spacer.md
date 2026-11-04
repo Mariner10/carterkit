@@ -1,5 +1,6 @@
 ---
 type: spacer
+depth: complete
 label: Spacer
 icon: square.dashed
 category: layout
@@ -31,11 +32,34 @@ Inherits all [[shared-properties]]. The spacer has no control-specific fields.
 ## Examples
 
 ### Single-cell gap
+Leaves one empty cell at row 1, column 2.
 ```json
 {
   "type": "spacer",
   "id": "gap-1",
   "position": [1, 2]
+}
+```
+
+### Wide gap
+Reserves a block two rows tall and two columns wide so neighbours sit apart.
+```json
+{
+  "type": "spacer",
+  "id": "gap-wide",
+  "position": [0, 0],
+  "span": [2, 2]
+}
+```
+
+### Push a control to the right
+Fills the first columns of a row so the next control starts further along.
+```json
+{
+  "type": "spacer",
+  "id": "left-pad",
+  "position": [3, 0],
+  "span": [1, 2]
 }
 ```
 
