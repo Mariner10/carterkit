@@ -462,7 +462,9 @@ class Hub:
         return fn
 
     def reset_handlers(self) -> None:
-        """Forget every ``on()`` demux (a live reload re-registers the file's handlers)."""
+        """Forget every ``on()`` broadcast demux (a live reload re-registers the file's
+        handlers). Routed registrations (``client.on`` for route_msg actions and raw command
+        names) stay until the same type is registered again."""
         self._demux.clear()
 
     def on_broadcast(self, fn):

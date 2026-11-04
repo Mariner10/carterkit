@@ -152,3 +152,51 @@ def test_scaffold_hello_matches_the_live_contract():
     text = (files("carterkit") / "scaffold_templates" / "hello.py").read_text()
     assert "async def run(hub)" in text and "livefile.main(__file__)" in text
     assert "hub.json" in text and "Add Hub" not in text
+
+
+def test_reload_survives_an_attach_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("CARTERKIT_HOST", "127.0.0.1")
+    f = tmp_path / "hello.py"
+    _write(f, FILE_V1)
+    out = []
+    lf = live.LiveFile(str(f), session_path=str(tmp_path / "s.json"), out=out.append)
+    ui, _, _ = lf.load()
+    hub, _ = lf.make_hub(ui, None)
+    lf.hub = hub
+    lf.attach(ui)
+
+    def boom(ui):
+        raise RuntimeError("attach exploded")
+
+    monkeypatch.setattr(lf, "attach", boom)
+    assert asyncio.run(lf.reload()) is False
+    assert any("reload failed" in s and "still watching" in s for s in out)
+
+
+def test_watch_survives_a_reload_exception(tmp_path, monkeypatch):
+    monkeypatch.setenv("CARTERKIT_HOST", "127.0.0.1")
+    f = tmp_path / "hello.py"
+    _write(f, FILE_V1)
+    out = []
+    lf = live.LiveFile(str(f), session_path=str(tmp_path / "s.json"), out=out.append)
+    calls = []
+
+    async def bad_reload():
+        calls.append(1)
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(lf, "reload", bad_reload)
+
+    async def go():
+        task = asyncio.create_task(lf.watch(interval=0.05))
+        await asyncio.sleep(0.12)
+        f.write_text(FILE_V2)
+        os.utime(f, (1, 2))
+        await asyncio.sleep(0.4)
+        f.write_text(FILE_V1)
+        os.utime(f, (3, 4))
+        await asyncio.sleep(0.4)
+        task.cancel()
+
+    asyncio.run(go())
+    assert calls == [1, 1] and any("still watching" in s for s in out)

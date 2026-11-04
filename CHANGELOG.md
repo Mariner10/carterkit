@@ -34,6 +34,10 @@ from a QR, no account and no credential.
   reaches the phone; a credential file still switches it to the managed relay. The old "No hub
   credential yet" stop is gone.
 - README quickstart: three lines to a live prompt; Connect+ is the alternative, not the first step.
+- First-run failures are one line, never a traceback or a silent hang: a relay already on the port that
+  does not accept the pairing (`--port`, `--fresh`), a first push that fails, a save that breaks the
+  reload (the file keeps being watched). `.carterkit/session.json` is written owner-only and a note
+  says so when the folder is a git checkout that does not ignore it.
 
 ## [0.17.0] — 2026-11-03
 

@@ -132,3 +132,59 @@ def test_env_knobs(monkeypatch):
     assert start.default_host() == "127.0.0.1" and start.default_timeout() == 2.5
     monkeypatch.setenv(start.TIMEOUT_ENV, "soon")
     assert start.default_timeout(9) == 9
+
+
+def test_default_host_qr_carries_the_lan_address(tmp_path, monkeypatch):
+    monkeypatch.delenv(start.HOST_ENV, raising=False)
+    from carterkit.relay import lan_ip
+    _, hub, _ = start.serve_playground(session_path=str(tmp_path / "s.json"), port=18799)
+    payload = json.loads(hub.qr_json())
+    assert payload["url"] == f"ws://{lan_ip()}:18799"
+    assert payload["token"] == hub.connection.key and hub.relay_host == "0.0.0.0"
+
+
+def test_session_file_is_owner_only_and_warns_in_an_unignored_repo(tmp_path, monkeypatch):
+    import os, stat, subprocess
+    monkeypatch.setenv(start.HOST_ENV, "127.0.0.1")
+    repo = tmp_path / "proj"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    path = str(repo / ".carterkit" / "session.json")
+    start.serve_playground(session_path=path, port=18798)
+    assert stat.S_IMODE(os.stat(path).st_mode) == 0o600
+    warning = start.session_gitignore_warning(path)
+    assert warning and ".gitignore" in warning
+    (repo / ".gitignore").write_text(".carterkit/\n")
+    assert start.session_gitignore_warning(path) is None
+    assert start.session_gitignore_warning(str(tmp_path / "nogit" / "s.json")) is None
+
+
+def test_start_hub_names_a_held_port(monkeypatch):
+    import carterkit.relay as relay
+
+    class Conn:
+        kind, port = "local", 18797
+        def app_url(self): return "ws://127.0.0.1:18797"
+
+    class Hub:
+        connection = Conn()
+        async def start(self):
+            await asyncio.sleep(60)          # a relay that never accepts our key
+
+    monkeypatch.setattr(relay, "port_in_use", lambda port, host="127.0.0.1": True)
+    out = []
+
+    assert asyncio.run(start.start_hub(Hub(), out.append, timeout=0.05)) is False
+    assert any("held by another relay" in s and "--port" in s for s in out)
+
+
+def test_run_reports_a_failed_first_push(monkeypatch):
+    class Hub(_FakeHub):
+        async def push_layout(self):
+            from carterkit.hub import HubError
+            raise HubError("no device on the channel")
+
+    monkeypatch.setattr(start, "serve_playground", lambda **kw: (object(), Hub(join=True), False))
+    out = []
+    rc = asyncio.run(start.run(timeout=3, out=out.append))
+    assert rc == 1 and any("did not land" in s for s in out)

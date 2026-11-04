@@ -29,7 +29,7 @@ import os
 import sys
 
 from .start import (SESSION, default_host, default_timeout, load_session, pairing_lines,
-                    quiet_logs, save_session)
+                    quiet_logs, save_session, session_gitignore_warning, start_hub)
 
 #: Keys the REPL namespace keeps for itself (not controls).
 _NS_CONTROLS = "_controls"
@@ -143,16 +143,20 @@ class LiveFile:
         except SystemExit as e:
             self.out(f"{e} (keeping the last good version)")
             return False
-        await self.stop_run()
-        self.hub.reset_handlers()
-        self.attach(ui)
         try:
-            await self.hub.push_layout()
-        except Exception as e:  # noqa: BLE001
-            self.out(f"{self.name}: push failed: {type(e).__name__}: {e}")
-        await self.start_run(run)
-        if self.ns is not None:
-            refresh_namespace(self.ns, self.hub, ui)
+            await self.stop_run()
+            self.hub.reset_handlers()
+            self.attach(ui)
+            try:
+                await self.hub.push_layout()
+            except Exception as e:  # noqa: BLE001
+                self.out(f"{self.name}: push failed: {type(e).__name__}: {e}")
+            await self.start_run(run)
+            if self.ns is not None:
+                refresh_namespace(self.ns, self.hub, ui)
+        except Exception as e:  # noqa: BLE001 — the watcher must survive any save
+            self.out(f"{self.name}: reload failed: {type(e).__name__}: {e} (still watching)")
+            return False
         self.out(f"{self.name}: reloaded, {len(self.hub._index)} control(s) on the phone")
         return True
 
@@ -167,7 +171,10 @@ class LiveFile:
             self.mtime = m
             await asyncio.sleep(0.1)      # let the editor finish writing
             self.mtime = self.stat() or m
-            await self.reload()
+            try:
+                await self.reload()
+            except Exception as e:  # noqa: BLE001
+                self.out(f"{self.name}: reload failed: {type(e).__name__}: {e} (still watching)")
 
 
 async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
@@ -181,16 +188,21 @@ async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
     hub, reused = live.make_hub(ui, module_hub)
     live.hub = hub
     live.attach(ui)
-    try:
-        await hub.start()
-    except OSError as e:
-        out(f"{live.name}: cannot serve on {hub.connection.app_url()}: {e}")
+    if hub.connection.kind == "local":
+        warning = session_gitignore_warning(session_path)
+        if warning:
+            out(warning)
+    if not await start_hub(hub, out, name=live.name):
         return 1
     try:
-        if hub.connection.kind == "local" and not await hub._first_peer():
+        if not await hub._first_peer():
             timeout = default_timeout() if timeout is None else timeout
-            for line in pairing_lines(hub, reused=reused):
-                out(line)
+            if hub.connection.kind == "local":
+                for line in pairing_lines(hub, reused=reused):
+                    out(line)
+            else:
+                out(f"Open the layout in CAR-TER (hub {hub.connection.app_url()}, "
+                    f"channel {hub.connection.channel}).")
             out(f"Waiting for the phone (up to {timeout:.0f} s; Ctrl-C stops)...")
             try:
                 peer = await hub.wait_for_device(timeout=timeout)
@@ -198,8 +210,12 @@ async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
                 out(f"No phone joined in {timeout:.0f} s. Keep the app on the scanner and run it again.")
                 return 1
             out(f"Paired with {peer.get('name') or 'your phone'}.")
-        await hub.push_layout()
-        out(f"{live.name} is on the phone ({len(hub._index)} control(s)); watching it for saves.")
+        try:
+            await hub.push_layout()
+            out(f"{live.name} is on the phone ({len(hub._index)} control(s)); watching it for saves.")
+        except Exception as e:  # noqa: BLE001 — a bad first version still gets watched
+            out(f"{live.name}: push failed: {type(e).__name__}: {e}; fix the file and save, "
+                "it is being watched.")
         await live.start_run(run)
         watcher = asyncio.create_task(live.watch())
         try:
