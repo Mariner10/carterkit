@@ -1,4 +1,5 @@
 ---
+depth: complete
 type: button
 label: Button
 icon: hand.tap.fill
@@ -14,6 +15,8 @@ starterPreset: {"label": "Button"}
 lookPresets: [{"id": "filled","name": "Filled","symbol": "capsule.fill","set": {"style": "filled"}},{"id": "outlined","name": "Outlined","symbol": "capsule","set": {"style": "outlined"}},{"id": "tinted","name": "Tinted","symbol": "capsule.lefthalf.filled","set": {"style": "tinted"}},{"id": "iconOnly","name": "Icon only","symbol": "circle.fill","set": {"style": "icon-only"}}]
 fields:
   - name: label
+    summary: "The words on the button"
+    does: "Sets the text shown on the button; empty shows the control id."
     edit: inline
     depth: surface
     title: Title
@@ -21,12 +24,17 @@ fields:
     default: "Button"
     description: Button text
   - name: icon
+    summary: "A small picture beside the words"
+    does: "Draws the chosen SF Symbol before the label, or alone with Symbol only."
     edit: symbol
     depth: surface
     title: Symbol
     type: string
     description: SF Symbol shown before label
   - name: style
+    summary: "How the button is dressed"
+    does: "Switches the button between a solid fill, an outline, a faint tint, or just the symbol."
+    valueHelp: {"filled": "solid colored block with light text", "outlined": "clear inside with a colored border", "outline": "same as outlined", "ghost": "no fill or border, just the colored text", "tinted": "soft wash of the color with colored text", "icon-only": "only the symbol, no text or block"}
     edit: look
     depth: surface
     title: Look
@@ -36,6 +44,9 @@ fields:
     default: filled
     description: Visual style variant ("outline" and "outlined" are both accepted)
   - name: size
+    summary: "How big the button is"
+    does: "Scales the button's height and text between compact, normal and large."
+    valueHelp: {"compact": "small and tight, for crowded grids", "default": "the normal size", "large": "tall and roomy, easy to hit"}
     edit: look
     depth: hold
     under: style
@@ -46,6 +57,8 @@ fields:
     default: default
     description: Size variant
   - name: tint
+    summary: "The button's main color"
+    does: "Recolors the fill, border or text (per Look) to the chosen color."
     edit: color
     depth: surface
     title: Color
@@ -54,6 +67,8 @@ fields:
     default: "#667eea"
     description: Accent color
   - name: hideLabel
+    summary: "Hide the words, keep the picture"
+    does: "When on, the label text disappears and only the symbol remains."
     edit: part
     depth: hold
     title: Symbol only
@@ -61,6 +76,9 @@ fields:
     default: false
     description: Show icon only
   - name: haptic
+    summary: "How the tap feels"
+    does: "Plays the chosen buzz on the phone each time the button is pressed."
+    valueHelp: {"light": "a faint tick", "medium": "a normal tap", "heavy": "a firm thump", "success": "a short double-tap for done", "warning": "a sharper alert buzz", "error": "a harsh triple buzz for failure", "selection": "a tiny click like scrolling a picker"}
     title: Vibration on tap
     tab: action
     type: enum
@@ -68,35 +86,46 @@ fields:
     default: medium
     description: Haptic feedback on press
   - name: repeatOnHold
+    summary: "Keep going while held"
+    does: "Holding the button refires its action repeatedly, speeding up the longer you hold."
     title: Repeat while held
     tab: action
     type: bool
     default: false
     description: Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set)
   - name: valueMap
+    summary: "Different words for different states"
+    does: "Replaces the label with the text matching the synced value, e.g. true shows Pause."
     title: Words for values
     tab: data
     type: object
     description: Synced value → button text ("default" catches the rest)
   - name: iconMap
+    summary: "Different pictures for different states"
+    does: "Swaps the symbol to the one matching the synced value, with a replace animation."
     title: Symbols for values
     tab: data
     type: object
     description: Synced value → SF Symbol name (swaps with the native replace effect)
   - name: colorMap
+    summary: "Different colors for different states"
+    does: "Recolors the button to the hex matching the synced value."
     title: Colors for values
     tab: data
     type: object
     description: Synced value → hex tint
   - name: confirm
+    summary: "A short note with Undo after each tap"
+    does: "A pill naming the change appears for 3 seconds with an Undo button after each tap."
     title: Show confirmation
     tab: action
     type: bool
     default: false
-    summary: A short note with Undo after each tap
     description: After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)
 themeFields:
   - name: cornerRadius
+    summary: "How round the corners are"
+    does: "Rounds the button's corners from 0 (square) to 30 points (pill-like)."
     edit: scrub
     depth: hold
     under: style
@@ -109,6 +138,8 @@ themeFields:
     default: 12
     description: Control corner radius
   - name: controlPadding
+    summary: "Breathing room inside the button"
+    does: "Adds 0 to 24 points of space between the edge and the content."
     title: Inner spacing
     min: 0
     max: 24
@@ -117,22 +148,29 @@ themeFields:
     default: 8
     description: Internal padding
   - name: accentColor
+    summary: "The theme's highlight color"
+    does: "Sets the default button fill or tint for every button without its own color."
     title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
   - name: foregroundColor
+    summary: "Color of the words and symbol"
+    does: "Sets the label and symbol color on filled buttons."
     title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
   - name: borderColor
+    summary: "The outline around the control"
+    does: "Colors the border drawn around the button."
     title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
-    summary: The outline around the control
   - name: borderWidth
+    summary: "How thick the outline is"
+    does: "Draws the border 0 to 5 points thick; 0 hides it."
     edit: scrub
     depth: hold
     under: style
@@ -195,6 +233,9 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
 ## Examples
 
 ### Simple button
+
+A plain filled button that sends a scene command to a hub; tapping it fires the action once with the default medium buzz.
+
 ```json
 {
   "type": "button",
@@ -206,6 +247,9 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
 ```
 
 ### Icon-only ghost button (large, for transport controls)
+
+Shows only a large pink play symbol with no block or text, the way a media transport key looks.
+
 ```json
 {
   "type": "button",
@@ -222,6 +266,9 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
 ```
 
 ### Hold-to-repeat arrow key
+
+Holding this compact outlined key keeps sending Up, like holding an arrow key on a keyboard.
+
 ```json
 {
   "type": "button",
@@ -237,6 +284,9 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
 ```
 
 ### Stateful play/pause key
+
+The key's symbol swaps between play and pause to match the player's state, and tapping still sends the toggle.
+
 ```json
 {
   "type": "button",
@@ -255,6 +305,9 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
 ```
 
 ### Button with long-press detail popup
+
+Tapping fires the Movie scene; holding opens a detail panel with brightness and two switches.
+
 ```json
 {
   "type": "button",
@@ -276,6 +329,184 @@ Deck key. The synced value is matched against map keys the same way as on [[labe
       { "type": "toggle", "id": "movie-auto-audio", "position": [1, 1], "label": "Auto Audio" }
     ]
   }
+}
+```
+
+### Filled look (the default)
+
+A solid colored block with light text; the strongest look, for the main action.
+
+```json
+{
+  "type": "button",
+  "id": "b-filled",
+  "position": [0, 0],
+  "label": "Lights On",
+  "style": "filled",
+  "tint": "#34C759",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "lights_on" } } }
+}
+```
+
+### Outlined look
+
+A clear button with a colored border, for a quieter secondary action.
+
+```json
+{
+  "type": "button",
+  "id": "b-outlined",
+  "position": [1, 0],
+  "label": "Dim",
+  "style": "outlined",
+  "tint": "#FF9500",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "dim" } } }
+}
+```
+
+### Ghost look
+
+Only colored text with no block or border, for a low-key action in a busy panel.
+
+```json
+{
+  "type": "button",
+  "id": "b-ghost",
+  "position": [2, 0],
+  "label": "More",
+  "style": "ghost",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "more" } } }
+}
+```
+
+### Tinted look
+
+A soft wash of the color behind colored text, a calm middle ground between filled and outlined.
+
+```json
+{
+  "type": "button",
+  "id": "b-tinted",
+  "position": [3, 0],
+  "label": "Night",
+  "icon": "moon.fill",
+  "style": "tinted",
+  "tint": "#5856D6",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "night" } } }
+}
+```
+
+### Icon-only look
+
+The symbol alone with no text or block, for tight spaces; the label is still used for accessibility.
+
+```json
+{
+  "type": "button",
+  "id": "b-icon",
+  "position": [4, 0],
+  "label": "Lamp",
+  "icon": "lightbulb.fill",
+  "style": "icon-only",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "lamp" } } }
+}
+```
+
+### Compact and large sizes
+
+Size changes the button's height and text: a compact key fits dense grids while a large one is easy to hit with a thumb.
+
+```json
+{
+  "type": "button",
+  "id": "b-large",
+  "position": [0, 1],
+  "span": [2, 1],
+  "label": "Big Red",
+  "size": "large",
+  "tint": "#FF3B30",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "big_red" } } }
+}
+```
+
+### Strong haptic on tap
+
+Plays a firm thump when pressed, so a risky action feels deliberate.
+
+```json
+{
+  "type": "button",
+  "id": "b-haptic",
+  "position": [2, 1],
+  "label": "Lock Down",
+  "haptic": "heavy",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "lock_down" } } }
+}
+```
+
+### Tap with Undo confirmation
+
+After each tap a pill names the change and offers Undo for 3 seconds, so an accidental press can be reversed.
+
+```json
+{
+  "type": "button",
+  "id": "b-confirm",
+  "position": [3, 1],
+  "label": "Arm",
+  "confirm": true,
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "arm" } } }
+}
+```
+
+### Symbol only toggle (hideLabel)
+
+Keeps the label in the data but shows just the symbol, turning a labeled button into an icon key.
+
+```json
+{
+  "type": "button",
+  "id": "b-hide",
+  "position": [4, 1],
+  "label": "Fan",
+  "icon": "fan.fill",
+  "hideLabel": true,
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "hue-bridge", "type": "scene", "payload": { "name": "fan" } } }
+}
+```
+
+### Stateful key with colors for values
+
+The button's words, symbol and color all follow a synced value: it reads Armed in red when true and Disarmed in green when false.
+
+```json
+{
+  "type": "button",
+  "id": "b-alarm",
+  "position": [0, 2],
+  "label": "Alarm",
+  "icon": "shield",
+  "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "alarm_state" }, "valuePath": "armed" }],
+  "valueMap": { "true": "Armed", "false": "Disarmed", "default": "Alarm" },
+  "iconMap": { "true": "shield.fill", "false": "shield" },
+  "colorMap": { "true": "#FF3B30", "false": "#34C759" },
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "alarm", "type": "command", "payload": { "command": "toggle" } } }
+}
+```
+
+### Long-press action
+
+Tapping sends the normal action; holding runs a different one, here a full reset, without opening a panel.
+
+```json
+{
+  "type": "button",
+  "id": "b-longaction",
+  "position": [1, 2],
+  "label": "Heat",
+  "icon": "flame",
+  "action": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "thermostat", "type": "command", "payload": { "command": "boost" } } },
+  "longPressAction": { "method": "meshsocket", "mode": "send", "event": "route_msg_noreply", "payload": { "target_name": "thermostat", "type": "command", "payload": { "command": "off" } } }
 }
 ```
 
