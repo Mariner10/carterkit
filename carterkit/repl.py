@@ -122,15 +122,28 @@ class _AsyncConsole(code.InteractiveConsole):
         print(f"error: {type(e).__name__}: {e}".rstrip(": "), file=sys.stderr)
 
 
+def make_completer(ns: dict):
+    """A readline-style ``complete(text, state)`` over `ns` (no TTY needed)."""
+    import rlcompleter
+    return rlcompleter.Completer(ns).complete
+
+
+def completions(ns: dict, text: str) -> list[str]:
+    """Every completion of `text`, in order."""
+    fn, out = make_completer(ns), []
+    while (m := fn(text, len(out))) is not None:
+        out.append(m)
+    return out
+
+
 def enable_completion(ns: dict) -> bool:
     """Tab completion over the REPL names and their attributes (``level.pu<Tab>``).
     Returns False where readline is unavailable (then the prompt still works)."""
     try:
         import readline
-        import rlcompleter
     except ImportError:
         return False
-    readline.set_completer(rlcompleter.Completer(ns).complete)
+    readline.set_completer(make_completer(ns))
     if "libedit" in (getattr(readline, "__doc__", "") or ""):
         readline.parse_and_bind("bind ^I rl_complete")       # macOS editline
     else:
