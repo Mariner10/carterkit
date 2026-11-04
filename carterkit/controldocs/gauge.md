@@ -430,10 +430,9 @@ Demonstrates the Ring look: `gaugeStyle: "full"` closes the dial into a square 3
 ```
 
 ### Bar look
-Demonstrates the Bar look, which swaps the control for a progress bar (`type: progressRing`, `progressStyle: "bar"`) that fills left to right.
-```json
-{ "type": "progressRing", "id": "bar-demo", "position": [0, 0], "progressStyle": "bar", "min": 0, "max": 100, "label": "Upload" }
-```
+The Bar look swaps the control for a progress bar that fills left to right: the editor
+changes the control's `type` to `progressRing` with `progressStyle: "bar"`, so the example
+lives in [[progress-ring]] (its "Bar" example); a gauge document only carries gauge examples.
 
 ### Smooth color blend and bold look
 Demonstrates `colorBlend: 1` turning the zones into one gradient, with `arcThickness: 16` (the Bold look) for a heavier stroke.
