@@ -57,7 +57,7 @@ def test_gen_emits_hub_service(tmp_path, capsys):
     b.add_control(carterkit.build.button(id="go"))
     f = tmp_path / "layout.json"
     f.write_text(json.dumps(b.layout))
-    assert cli.main(["gen", str(f)]) == 0
+    assert cli.main(["gen", "--stub", str(f)]) == 0
     out = capsys.readouterr().out
     assert "from carterkit import Hub" in out
     assert f'Hub("{f}", key=KEY, host=HOST)' in out   # loads the layout it was generated from, keyed

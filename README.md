@@ -90,6 +90,31 @@ cd cards && python hub.py                     # QR once, then it is live on the 
 `.carterkit/session.json`), `secrets/hub.json` for Connect+, and every save of `hub.py`
 or `layout.json` pushed to the phone. `carterkit repl hub.py` adds a live prompt.
 
+### Generate the hub side of any layout
+
+`carterkit codegen layout.json -o hub.py` writes the same kind of `hub.py` for a layout of
+your own (a phone export, one a connector built, a kit you changed), so `python hub.py`
+pairs and serves it at once:
+
+- one `@hub.on` handler per command the layout sends (control actions, row buttons in an
+  `itemTemplate`, a form's submit), reading the payload fields and guarding `{{value}}` by
+  the control's type and range;
+- `@hub.pages` for every list with `paging`, serving placeholder rows (`Item 1`, `Example
+  detail 1`) with exactly the fields its rows read as `{{item.<field>}}`, searched on the hub;
+- `hub.confirm` before a command that deletes, removes or clears (a note instead where the
+  action already has `confirm: "dialog"`: the app asked, asking twice is worse);
+- the form's own rules (`form.fields`) checked again on the hub;
+- an `open_<group>()` helper (`hub.open_sheet`) for each group with `expand`, and a
+  `sheet_closed` handler;
+- `hub.push` for what the hub feeds: the state of toggles and sliders it owns (sent back
+  with `force=True`), list rows, a status label, and live readouts (gauges, sparklines,
+  labels) from a periodic task.
+
+Everything it cannot know is a commented `TODO`. Without `-o` it prints the script (for a
+file beside the layout); `--force` replaces an existing file; `--stub` prints the older
+`Hub(...)` service stub. In Python: `codegen.generate_hub(layout)` and, as plain data,
+`codegen.analyze_hub(layout)`.
+
 ## Tutorials in the terminal
 
 Step-by-step tutorials with a check per step, vendored from the CAR-TER docs
@@ -263,7 +288,8 @@ Prefer surgical edits? `LayoutBuffer` gives `add_control` / `update_control` / `
 over a held draft; `lay.buffer` exposes it.
 
 `infer.build_layout(payload)` generates a wired layout from a sample telemetry dict;
-`codegen.generate_service_stub(layout)` emits a runnable `Hub`-based server skeleton;
+`codegen.generate_hub(layout)` writes the hub script for a layout (see [Generate the hub
+side of any layout](#generate-the-hub-side-of-any-layout));
 `theming.theme_for(...)` and `tune.tune_gauge(...)` round out the authoring tools.
 
 ## Drive the layout you just built
@@ -506,7 +532,7 @@ carterkit doc gauge               # print a control's documentation
 carterkit examples button         # list a control's examples (--name to print one)
 carterkit tutorial [steps ID | --start ID DIR | --check ID --step N]   # tutorials with checks
 carterkit validate layout.json    # lint a layout (exit 1 on errors)
-carterkit gen layout.json         # generate a runnable Hub server stub
+carterkit codegen layout.json -o hub.py  # write the hub script for a layout (`gen` too)
 carterkit explore layout.json     # live, typed endpoint explorer (--device, --lan, --port)
 carterkit share layout.json       # serve a layout for 10 minutes + QR to import it
 carterkit local describe ws://HOST:PORT   # read/seed the paired phone's local store (describe|query|seed)

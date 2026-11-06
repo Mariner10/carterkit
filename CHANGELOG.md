@@ -32,6 +32,18 @@ All notable changes to **carterkit** are documented here. This project follows
   `routed`, `running(run)`, a phone that answers `hub.confirm`), plus `load_hub_module(path)`.
 - **`hub.push(..., force=True)`** resends a frame equal to the last push, for a hub correcting a
   value the phone changed.
+- **`carterkit codegen layout.json [-o hub.py]`** (also `carterkit gen`) writes the hub side of a
+  layout as a starter-kit style `hub.py` (`Layout.load`, `async def run(hub)`, `livefile.main`):
+  a typed `@hub.on` handler per command (actions, row-template buttons, form submits), `@hub.pages`
+  with placeholder rows carrying exactly the `{{item.<field>}}` fields, `hub.confirm` before
+  deletes, the form's rules re-checked, `open_sheet` helpers for expandable groups plus
+  `sheet_closed`, and `hub.push` stubs (owned state echoed with `force=True`, rows, status, a
+  periodic task for live readouts). `codegen.generate_hub()` / `codegen.analyze_hub()` in Python;
+  tests generate a hub from each starter kit and check it against the kit's own `hub.py`.
+
+### Changed
+
+- `carterkit gen` now writes the live-file hub script; `--stub` keeps the older `Hub(...)` stub.
 
 ## [0.19.0] — 2026-11-06
 

@@ -130,10 +130,29 @@ def _cmd_tutorial(args) -> int:
 
 
 def _cmd_gen(args) -> int:
+    import os
     import carterkit
     with open(args.file) as f:
         layout = json.load(f)
-    print(carterkit.codegen.generate_service_stub(layout, layout_path=args.file))
+    if args.stub:
+        print(carterkit.codegen.generate_service_stub(layout, layout_path=args.file))
+        return 0
+    if not args.output:
+        # Printed: the script expects to sit beside the layout (redirect it there).
+        print(carterkit.codegen.generate_hub(layout, layout_ref=os.path.basename(args.file)), end="")
+        return 0
+    out = os.path.abspath(args.output)
+    if os.path.exists(out) and not args.force:
+        print(f"{args.output} exists; pass --force to replace it", file=sys.stderr)
+        return 1
+    ref = os.path.relpath(os.path.abspath(args.file), os.path.dirname(out)).replace(os.sep, "/")
+    code = carterkit.codegen.generate_hub(layout, layout_ref=ref)
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(code)
+    spec = carterkit.codegen.analyze_hub(layout)
+    print(f"wrote {args.output}: {len(spec['commands'])} handler(s), "
+          f"{len(spec['pages'])} paged list(s), {len(spec['pushes'])} pushed control(s). "
+          f"Run: python {args.output}")
     return 0
 
 
@@ -360,8 +379,13 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("file")
     c.set_defaults(fn=_cmd_validate)
 
-    c = sub.add_parser("gen", help="generate a MeshSocket service stub from a layout file")
-    c.add_argument("file")
+    c = sub.add_parser("codegen", aliases=["gen"],
+                       help="write the hub script for a layout: handlers, pages, confirms, pushes")
+    c.add_argument("file", help="layout JSON file")
+    c.add_argument("-o", "--output", help="write the script here (default: print it)")
+    c.add_argument("--force", action="store_true", help="replace an existing --output file")
+    c.add_argument("--stub", action="store_true",
+                   help="the older Hub(...) service stub instead of a live-file hub script")
     c.set_defaults(fn=_cmd_gen)
 
     c = sub.add_parser(
