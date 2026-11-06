@@ -41,6 +41,7 @@ fields:
     summary: What shows when nothing is chosen
     does: "Writes this text when the list is empty (default No options) or nothing is selected (default Choose…)."
   - name: options
+    chip: Options
     edit: options
     depth: surface
     title: Choices

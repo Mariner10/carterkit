@@ -42,6 +42,7 @@ fields:
     summary: The small arrow beside each heading
     does: Shows or hides the arrow at the end of each heading; hidden leaves just the heading text.
   - name: panels
+    chip: Panels
     type: object
     description: The panel groups this container pages through (group defs with children)
     summary: The headings and the content under each

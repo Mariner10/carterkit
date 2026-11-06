@@ -91,6 +91,7 @@ fields:
     does: Gives blocks colors from this list in turn; a color set on an item wins.
     group: treemapConfig
   - name: drillDown
+    chip: Touch
     type: bool
     default: true
     description: Tap a parent to zoom into its children

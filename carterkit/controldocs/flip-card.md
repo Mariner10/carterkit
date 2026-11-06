@@ -37,6 +37,7 @@ fields:
     does: Turns the card left-to-right around a vertical axis or top-to-bottom around a horizontal one.
     valueHelp: {"horizontal": "spins left to right like a page of a book", "vertical": "tips top to bottom like a notepad"}
   - name: panels
+    chip: Panels
     type: object
     description: The panel groups this container pages through (group defs with children)
     summary: The faces of the card

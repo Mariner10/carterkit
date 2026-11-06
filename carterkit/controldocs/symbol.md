@@ -14,6 +14,7 @@ addRank: 8
 starterPreset: {"systemName": "star.fill","label": "Symbol"}
 fields:
   - name: systemName
+    chip: Symbol
     edit: symbol
     depth: surface
     title: Symbol
@@ -109,6 +110,7 @@ fields:
     does: Colors the symbol's layers in order, primary first, when the colouring is palette.
     group: symbolConfig
   - name: weight
+    category: look
     edit: look
     depth: hold
     under: systemName

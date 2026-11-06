@@ -96,6 +96,7 @@ fields:
     does: Sets how opaque the ribbons are from 0 to 1 (default 0.4); ribbons of the selected group brighten.
     group: chordConfig
   - name: scrub
+    chip: Touch
     type: bool
     default: false
     description: Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap)

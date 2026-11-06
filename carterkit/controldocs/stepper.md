@@ -42,6 +42,7 @@ fields:
     does: "Sets how the readout animates between values, from an instant swap to a soft glide."
     valueHelp: {"smooth": "an even natural transition", "snappy": "a quick firm change", "bouncy": "overshoots slightly then settles", "gentle": "a slow soft transition", "instant": "changes with no animation"}
   - name: min
+    chip: Range
     title: Lowest value
     bounds: none
     type: number

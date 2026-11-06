@@ -21,6 +21,8 @@ fields:
     summary: The heading above the table
     does: Shows this text as the header line on the card; empty leaves the header blank.
   - name: rows
+    chip: Rows
+    category: content
     title: Rows
     type: array
     description: "Row whitelist and order: [{ key, label, format, icon, unit }]"

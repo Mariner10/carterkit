@@ -78,6 +78,7 @@ fields:
     does: "Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner."
     group: graphConfig
   - name: draggable
+    chip: Touch
     type: bool
     default: true
     description: Allow dragging individual nodes

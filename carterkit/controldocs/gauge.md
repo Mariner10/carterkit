@@ -37,6 +37,7 @@ fields:
     does: The needle or arc eases to each new value; instant jumps with no travel.
     valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
   - name: min
+    chip: Range
     title: Lowest value
     default: 0
     bounds: none
@@ -244,6 +245,18 @@ themeFields:
   - use: labelFontSize
     summary: How big the caption is
     does: Sets the caption's text size from 8 to 24 points.
+colorSlots:
+  - slot: arc
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the filled arc
+    does: Paints the filled part of the arc when there are no color zones; until the layout picks a color it follows the primary role.
+  - slot: track
+    default: neutral@0.12
+    since: next
+    summary: The color of the empty track
+    does: Paints the unfilled track behind the arc, by default the neutral role at 12%.
 ---
 
 # Gauge

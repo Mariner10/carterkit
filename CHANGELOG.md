@@ -5,6 +5,10 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.20.0] — 2026-11-06
+
+Start from a working project and learn as you go: six starter kits, `carterkit tutorial`, `carterkit codegen` for the hub side of any layout, each control's `io:` (what it sends and receives) in `doc` and `validate`, colour roles, the settings taxonomy, and the hub surfaces API (progress, toast, haptic, log; drawn by the app from its next release).
+
 ### Added
 
 - The relay-only sender key: with MeshSocket 0.4.1 relays, an opened sealed frame carries
@@ -60,6 +64,7 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Changed
 
+- ControlDocs re-vendored from CAR-TER 008216e9 (io:, colour roles, settings taxonomy, card grid, hub surfaces); `typed.py` regenerated.
 - `carterkit gen` now writes the live-file hub script; `--stub` keeps the older `Hub(...)` stub.
 
 ## [0.19.0] — 2026-11-06

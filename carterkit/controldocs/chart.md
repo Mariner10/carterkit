@@ -276,6 +276,7 @@ fields:
     does: "Fixes the highest value on the vertical axis instead of fitting the data."
     group: chartConfig
   - name: yMin
+    chip: Range
     edit: scrub
     depth: hold
     under: lineWidth
@@ -293,6 +294,7 @@ fields:
     summary: "The series name"
     does: "Labels the series in the legend and is the key a streamed append uses to find it."
   - name: type
+    category: look
     group: data.series
     values: [bar, line, area, scatter, histogram, waterfall]
     default: bar
@@ -382,6 +384,18 @@ themeFields:
   - use: tertiaryColor
     summary: "The faintest ink"
     does: "Colors the grid lines and the least prominent text."
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The chart's own primary color
+    does: Colors the first series, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the series take in turn
+    does: Gives series one, two, three and so on these colors in order unless the series colors list is set, and a color on a series itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Chart

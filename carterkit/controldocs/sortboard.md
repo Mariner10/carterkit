@@ -140,6 +140,7 @@ fields:
     does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a card.
     group: sortboardConfig
   - name: items
+    chip: Cards
     type: object
     description: items
     summary: The cards you can move

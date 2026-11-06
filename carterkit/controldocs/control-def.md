@@ -237,7 +237,8 @@ fields:
     tab: style
     type: color
     edit: color
-    depth: ai
+    depth: hold
+    under: backgroundColor
     description: Card border colour, #RRGGBB or #RRGGBBAA. Absent = the theme border
     summary: The card outline color
     does: Colors the outline around the card.

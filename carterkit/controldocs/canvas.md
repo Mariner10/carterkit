@@ -108,6 +108,7 @@ fields:
     does: Caps how far a pinch can zoom the surface; 1 turns zoom and panning off.
     group: canvasConfig
   - name: items
+    chip: Items
     type: array
     description: The hosted controls with their normalized frames (see Config)
     summary: The cards on the board

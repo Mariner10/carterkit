@@ -29,6 +29,7 @@ fields:
     summary: Its unique name
     does: Lets bindings, visibility and expand triggers point at this group; no two things in a layout share one.
   - name: name
+    category: text
     title: Name
     type: string
     description: Readable name the editor shows for this group; never used for identity
@@ -194,6 +195,7 @@ fields:
     summary: Colours and style for the card
     does: Overrides the header, card and every child's theme; a child's own theme still wins.
   - name: expand
+    chip: Expanded
     title: Expand
     edit: pose
     tab: advanced

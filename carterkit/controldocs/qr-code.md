@@ -21,6 +21,7 @@ fields:
     summary: The words under the code
     does: Shows this text in a small line below the QR code.
   - name: text
+    chip: Code
     type: string
     description: Static content to encode (overridden by sync)
     does: Sets the content the code encodes; a synced value replaces it as soon as one arrives.

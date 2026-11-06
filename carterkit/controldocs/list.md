@@ -169,6 +169,7 @@ fields:
     summary: The field whose text filters the rows
     does: "Sends that field's text as the search with every request, and starts the list over from the top when the text changes."
   - name: itemTemplate
+    chip: Rows
     edit: template
     depth: surface
     title: Row design

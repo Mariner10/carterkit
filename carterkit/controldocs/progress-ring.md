@@ -25,6 +25,7 @@ fields:
     does: The fill eases to each new value; instant jumps with no travel.
     valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
   - name: min
+    chip: Range
     title: Lowest value
     bounds: none
     type: number

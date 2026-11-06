@@ -81,6 +81,7 @@ fields:
     edit: part
     depth: hold
     under: tint
+    effect: behavior
     title: Pulse
     type: bool
     default: false

@@ -21,6 +21,7 @@ fields:
     summary: The name shown on top
     does: Shows this text as the header above the camera.
   - name: scan
+    chip: Scan
     edit: choices
     depth: surface
     title: Scans for

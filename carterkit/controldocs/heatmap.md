@@ -50,6 +50,7 @@ fields:
     summary: "How numbers are written"
     does: "Formats the scale legend and in-cell numbers, e.g. suffix:°C turns 24 into 24°C."
   - name: calendar
+    category: look
     tab: data
     type: bool
     default: false
@@ -58,6 +59,7 @@ fields:
     does: "Lays day-keyed data out as 7 weekday rows by week columns with month labels; tapping a day shows its date and value."
     group: heatmapConfig
   - name: weekStartsOn
+    category: look
     tab: data
     type: enum
     values: [monday, sunday]
@@ -67,6 +69,7 @@ fields:
     valueHelp: {"monday": "weeks run Monday to Sunday", "sunday": "weeks run Sunday to Saturday"}
     group: heatmapConfig
   - name: weeks
+    category: look
     tab: data
     type: number
     min: 1
@@ -150,6 +153,7 @@ fields:
     does: "Continuous mode blends across these gradient stops (2 or more); stepped mode picks the color at each value's index."
     group: heatmapConfig
   - name: discrete
+    category: look
     edit: part
     depth: hold
     title: Stepped scale
@@ -228,6 +232,7 @@ fields:
     does: "Sets the number that maps to the last scale color; larger values stay at that color."
     group: heatmapConfig
   - name: vMin
+    chip: Range
     bounds: none
     type: number
     description: Continuous color-scale bounds

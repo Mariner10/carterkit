@@ -32,6 +32,7 @@ fields:
     summary: Words shown when there is nothing to pick
     does: Shows this text, e.g. No options, where the segments would be when the list is empty.
   - name: options
+    chip: Options
     edit: options
     depth: surface
     title: Choices

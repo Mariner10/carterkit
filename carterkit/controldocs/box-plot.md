@@ -187,6 +187,7 @@ fields:
     does: Pins the top of the value axis instead of fitting it to the data.
     group: boxPlotConfig
   - name: yMin
+    chip: Range
     bounds: none
     type: number
     description: Pin the value axis

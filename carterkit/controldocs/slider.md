@@ -43,6 +43,7 @@ fields:
     does: "Sets how the handle and fill travel when the value changes, from instant jump to a soft glide."
     valueHelp: {"smooth": "an even, natural glide", "snappy": "a quick, firm move", "bouncy": "overshoots slightly, then settles", "gentle": "a slow, soft drift", "instant": "jumps with no travel"}
   - name: min
+    chip: Range
     title: Lowest value
     bounds: none
     type: number

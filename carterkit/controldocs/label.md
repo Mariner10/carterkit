@@ -16,6 +16,7 @@ lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"for
 lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
 fields:
   - name: text
+    category: text
     edit: inline
     depth: surface
     title: Text
@@ -144,6 +145,7 @@ fields:
     summary: The measurement the number is in
     does: Converts a numeric value to the phone's own units, so celsius shows as degrees Fahrenheit in the US; text is shown as sent.
   - name: scrollable
+    category: text
     title: Scrolling log
     type: bool
     default: false

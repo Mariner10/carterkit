@@ -37,6 +37,7 @@ fields:
     does: "Chooses which parts can be picked: the day only, the clock time only, or both together."
     valueHelp: {"date": "day month and year only", "time": "hour and minute only", "dateAndTime": "both a day and a clock time"}
   - name: dateMin
+    chip: Range
     title: Earliest date
     type: string
     description: Minimum date (ISO 8601)

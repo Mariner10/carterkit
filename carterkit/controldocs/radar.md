@@ -119,6 +119,7 @@ fields:
     does: Rounds, cuts or sharpens the corners of each series outline.
     valueHelp: {"round": "soft rounded corners", "butt": "corners cut flat", "square": "sharp pointed corners"}
   - name: maxValue
+    chip: Range
     bounds: none
     type: number
     description: Per-axis maximum (payload max wins)

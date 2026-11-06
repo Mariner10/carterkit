@@ -128,6 +128,7 @@ fields:
     does: Sets the width of each node bar, 1 to 40 points.
     group: sankeyConfig
   - name: scrub
+    chip: Touch
     type: bool
     default: false
     description: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)

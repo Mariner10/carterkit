@@ -26,6 +26,7 @@ io:
     next: {"markers": [{"coordinate": [0, 0], "label": "Pin 1"}, {"coordinate": [0.04, 0.03], "label": "Pin 2"}, {"coordinate": [-0.01, 0.05], "label": "Pin 3"}]}
 fields:
   - name: mapStyle
+    category: look
     edit: look
     depth: surface
     title: Map style
@@ -77,6 +78,7 @@ fields:
     summary: Color of the pins
     does: Colors every pin that does not bring its own color.
   - name: mapConfig
+    chip: Map
     type: object
     description: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
     summary: Teach the map a feed

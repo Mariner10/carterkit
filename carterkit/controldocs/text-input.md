@@ -88,6 +88,7 @@ fields:
     summary: A tiny button to switch typing help on the fly
     does: "Shows an Aa button that turns autocorrect on or off while the keyboard is open."
   - name: keyboard
+    chip: Keyboard
     type: enum
     values: [ascii, default, url, email, numbers]
     description: Keyboard type

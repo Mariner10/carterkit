@@ -69,6 +69,7 @@ fields:
     summary: How big the text is
     does: Sets the size of the monospace text on every line.
   - name: autoScroll
+    chip: Lines
     effect: behavior
     edit: part
     depth: hold

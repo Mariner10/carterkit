@@ -51,6 +51,7 @@ fields:
     summary: Lets people react to messages
     does: Adds a React choice to the long-press menu and shows emoji reactions on messages when on.
   - name: allowReplies
+    chip: Chat
     edit: part
     depth: hold
     title: Replies

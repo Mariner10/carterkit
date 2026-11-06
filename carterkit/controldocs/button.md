@@ -174,6 +174,13 @@ themeFields:
     type: number
     default: 1
     description: Border width
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the key
+    does: Fills a filled or tinted key, and draws the label and outline of an outline or ghost key; a color map entry for the current value wins.
 ---
 
 # Button

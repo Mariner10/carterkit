@@ -41,6 +41,7 @@ fields:
     does: Chooses whether the stick moves freely or snaps to one of 8 directions, with a diagonal counting as full strength.
     valueHelp: {"analog": "the stick moves freely and sends smooth x and y values", "dpad": "snaps to one of 8 directions, sending x and y of -1, 0 or 1 (diagonals scaled to unit length)"}
   - name: deadzone
+    chip: Stick
     edit: scrub
     depth: surface
     title: Dead zone

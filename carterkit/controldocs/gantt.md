@@ -70,6 +70,7 @@ fields:
     does: "Cycles through these colors down the rows; a task's own color overrides it."
     group: ganttConfig
   - name: editable
+    chip: Touch
     type: bool
     default: false
     description: Drag along a bar to set its progress

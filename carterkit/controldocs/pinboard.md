@@ -105,6 +105,7 @@ fields:
     does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a marker.
     group: pinboardConfig
   - name: items
+    chip: Pins
     type: object
     description: items
     summary: The things you can pin

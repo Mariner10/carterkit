@@ -13,6 +13,7 @@ depth: complete
 starterPreset: {"label": "Web page","url": "https://example.com"}
 fields:
   - name: url
+    chip: Page
     type: string
     description: URL to load
     summary: The web page to show

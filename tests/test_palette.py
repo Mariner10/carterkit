@@ -124,7 +124,10 @@ def test_control_colors_values_are_checked():
         "tabs": [{"title": "A", "icon": "star", "grid": {"columns": 2, "rows": 4},
                   "palette": {"secondary": "#00FF00"}, "children": [
             {"type": "gauge", "id": "c_ok", "label": "Ok", "position": [0, 0],
-             "colors": {"arc": "secondary", "track": "neutral@0.2", "label": "secondaryColor"}},
+             "colors": {"arc": "secondary", "track": "neutral@0.2"}},
+            # gauge's doc declares its slots (arc, track) since aif-5g98i.2: a theme colour key in a real slot
+            {"type": "gauge", "id": "c_key", "label": "Key", "position": [1, 1],
+             "colors": {"track": "secondaryColor"}},
             {"type": "gauge", "id": "c_bad", "label": "Bad", "position": [1, 0],
              "colors": {"arc": "blue", "track": "primary@2"}},
             {"type": "gauge", "id": "c_list", "label": "List", "position": [0, 1],

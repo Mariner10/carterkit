@@ -22,6 +22,7 @@ fields:
     summary: The symbol shown when there is no picture
     does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
   - name: url
+    chip: Picture
     type: string
     description: Static remote image URL
     summary: The picture to load from the web

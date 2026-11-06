@@ -55,6 +55,7 @@ fields:
     summary: Lets the pages go round in a circle
     does: "On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band."
   - name: panels
+    chip: Panels
     type: object
     description: The panel groups this container pages through (group defs with children)
     summary: The pages themselves

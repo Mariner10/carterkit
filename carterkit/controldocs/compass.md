@@ -127,6 +127,7 @@ fields:
     does: Runs these actions when a puck is picked up, dropped or the layout changes.
     group: compassConfig
   - name: pucks
+    chip: Pucks
     type: object
     description: pucks
     summary: The actions around the ring

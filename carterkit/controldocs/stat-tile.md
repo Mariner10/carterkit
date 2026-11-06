@@ -145,6 +145,7 @@ fields:
     does: "The number rolls to each new value; instant swaps it with no roll."
     valueHelp: {"smooth": "an even roll and the default", "snappy": "a quick roll that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft roll", "instant": "swaps straight to the new number with no roll"}
   - name: reference
+    chip: Compare
     bounds: none
     title: Compare against
     tab: data

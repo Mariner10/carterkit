@@ -933,11 +933,11 @@ Four names in `palette` are **roles**: `primary`, `secondary`, `tertiary` and `n
 - **Where palettes go**: the layout's `theme.palette`, a tab's `palette` (same object, for that page), a [[group-def|group]]'s or a control's `theme.palette`. The nearest level that names a role wins, role by role. A group or control that sets its own `accentColor` but no `palette.primary` gets primary back from that accent.
 - **Unset roles** keep today's look: `primary` is the accent colour, `secondary` is `primary`, `tertiary` is `secondary`, and `neutral` is the foreground colour. A layout without roles draws exactly what it drew before roles existed.
 - **A slot value** in `colors` (and a slot's default in its doc) is a role, a role at an opacity (`neutral@0.12`), a theme colour key (`accentColor`, `foregroundColor`, `secondaryColor`, `tertiaryColor`, `surfacePrimary`, `surfaceSecondary`, `surfaceTertiary`, `borderColor`, `trackColor`, `statusOK`, `statusWarn`, `statusError`, `statusInfo`, `scrimColor`, opacity allowed too), a `$name` token or a colour. A value that does not resolve falls back to the slot's default.
-- **Series**: a series slot takes an ordered list, `"colors": { "series": ["primary", "secondary", "#FF9F0A"] }`, or the bare list `"colors": ["primary", "secondary"]`. Series colours go to series in order.
+- **Series**: a series slot takes an ordered list, `"colors": { "series": ["primary", "secondary", "#FF9F0A"] }`, or the bare list `"colors": ["primary", "secondary"]`. Series colours go to series in order. In a doc's series default, `secondary` and `tertiary` stand aside until a palette sets them (unset, they would repeat primary), so a chart with no palette keeps its hue walk.
 - **Old keys still work**: each slot names the existing key that also sets it (its `alias`, such as `tint`). A slot draws its `colors` entry first, then the old key, then its default.
 - **`$name` is not a role**: `"$primary"` reads a plain `primary` colour at load, once for both schemes. A role written as `{light, dark}` is not a token, so write `primary` (no `$`) in `colors` to follow the scheme.
 
-Control docs declare their slots in frontmatter (`colorSlots:`, see [[control-def]] "Colour slots"). `ResolvedTheme.resolve(slot:of:)` is the one resolver; the controls move onto their slots in stages.
+Control docs declare their slots in frontmatter (`colorSlots:`, see [[control-def]] "Colour slots"). `ResolvedTheme.resolve(slot:of:)` is the one resolver; the controls move onto their slots in stages. [[gauge]] (`arc`, `track`), [[chart]] (`main`, `series`) and [[button]] (`fill`) draw through theirs.
 
 ## Cascade
 
