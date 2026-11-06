@@ -146,6 +146,13 @@ fields:
     description: Control id to sample value, shown by the designer and previews; never sent
     summary: Preview numbers
     does: Gives controls stand-in values for the designer and previews; they are never sent.
+  - name: hubSurfaces
+    since: next
+    tab: advanced
+    type: object
+    description: "What the layout's hub may draw in the app: false for nothing, or {'progress', 'toast', 'haptic', 'log', 'island'} bools, each default true; absent = all on. The person's own off wins (see docs/HUB-SURFACES.md)"
+    summary: What your hub may show
+    does: Lets the layout's hub show progress, toasts, haptics, logs and Island tasks, or turns each one off.
   - name: url
     group: connection
     type: string
@@ -215,6 +222,11 @@ Top-level JSON structure for a CAR-TER remote.
 `connection` (a MeshSocket server) and `sources` ([[sources]] — MQTT/HTTP) are
 both optional and freely mixed; a layout can run entirely on sources with no
 server at all.
+
+Each tab is `{ "id", "title", "icon", "grid", "children" }`. `icon` is an SF Symbol
+name and may be left out: a missing, empty or non-string `icon` shows `square.grid.2x2`.
+A tab may also carry an optional `palette`: the [[theming]] palette object (colour roles such as `primary`) for
+that page only, merged over the layout's `theme.palette` (see theming "Colour roles").
 
 ## Appearance
 

@@ -252,6 +252,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
                 extra += derive_ref_findings(layout, target_app)
                 extra += requires_feature_findings(layout, catalog)
                 extra += soft_tier_findings(layout)
+                extra += io_findings(layout, catalog)
             except RecursionError:   # hostile nesting: already reported as too_deep above
                 extra = []
             findings.extend(extra)
@@ -1972,6 +1973,75 @@ def _placed_controls(layout: dict) -> list:
         if isinstance(tab, dict):
             _walk_controls(tab.get("children"), f"tabs[{t}]", found)
     return found
+
+
+_IO_DOCS: dict = {}
+
+
+def _io_doc(ctype: str):
+    """The bundled doc's parsed `io:` block for a control type (None without one)."""
+    if ctype not in _IO_DOCS:
+        from carterkit import controldocs_dir
+        from . import catalog as catalog_mod
+        doc = catalog_mod.resolve_doc(controldocs_dir(), ctype)
+        _IO_DOCS[ctype] = (doc or {}).get("io")
+    return _IO_DOCS[ctype]
+
+
+def _sync_produces(s: dict):
+    """The kind of value a sync entry delivers when that is knowable from the layout alone:
+    a local aggregate is a number ("count" or sum/avg/min/max/distinct), a local stage
+    with groupBy or no aggregate delivers rows (json); anything else is unknown (None)."""
+    if s.get("method") != "local":
+        return None
+    agg = s.get("aggregate")
+    if agg is None or s.get("groupBy") is not None:
+        return "json"
+    op = agg if isinstance(agg, str) else (agg.get("op") if isinstance(agg, dict) else None)
+    return "number" if op in ("count", "sum", "avg", "min", "max", "distinct") else None
+
+
+_FITS = {"number": ("number", "string", "json"), "json": ("json",)}
+
+
+def io_findings(layout: dict, catalog: dict) -> list[dict]:
+    """Advisory (warn only) wiring checks from a control doc's `io:` block, for controls
+    whose doc has one: an action carried on a field the control never emits
+    (`io_unemitted`), and a sync whose delivered shape cannot fit what the control
+    receives (`io_unreceived`, `io_sync_shape`)."""
+    findings: list = []
+    if not isinstance(layout, dict):
+        return findings
+    for ch, spot in _placed_controls(layout):
+        ctype = ch.get("type")
+        io = _io_doc(ctype) if isinstance(ctype, str) and ctype in catalog else None
+        if not io:
+            continue
+        sends = {e["field"] for e in io.get("emits", [])}
+        if sends or io.get("sendsNothing"):
+            for akey in ("action", "longPressAction") + SECONDARY_ACTION_KEYS:
+                if isinstance(ch.get(akey), dict) and akey not in sends:
+                    what = ("sends nothing" if not sends else
+                            "sends from " + ", ".join(sorted(sends)))
+                    findings.append(_f("warn", "io_unemitted", spot,
+                                       f"{ctype}.{akey} is wired, but {ctype} {what} "
+                                       f"(its doc's io: block), so the action never fires"))
+        syncs = [s for s in ch.get("sync") or [] if isinstance(s, dict)] \
+            if isinstance(ch.get("sync"), list) else []
+        receives = io.get("receives", [])
+        if syncs and io.get("showsNothing") and not receives:
+            findings.append(_f("warn", "io_unreceived", spot,
+                               f"{ctype}.sync is wired, but {ctype} shows nothing it is sent "
+                               f"(its doc's io: block)"))
+        elif syncs and receives:
+            types = {r["type"] for r in receives}
+            for i, s in enumerate(syncs):
+                kind = _sync_produces(s)
+                if kind and not types & set(_FITS[kind]):
+                    findings.append(_f("warn", "io_sync_shape", spot,
+                                       f"{ctype}.sync[{i}] delivers {kind}, but {ctype} receives "
+                                       f"{', '.join(sorted(types))} (its doc's io: block)"))
+    return findings
 
 
 #: Advisory size tiers, as the app's LayoutSoftTiers (perf baseline). All `warn`.

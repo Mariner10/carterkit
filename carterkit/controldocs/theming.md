@@ -336,6 +336,35 @@ fields:
     description: Named colours written once, referenced as $name in any colour field
     summary: Name your colours once
     does: Defines named colours that any colour field can reuse as a dollar-name reference.
+    changes: [{in: next, note: "primary, secondary, tertiary and neutral are colour roles: a colour or a {light, dark} pair that controls' colour slots draw with"}]
+  - name: primary
+    group: palette
+    type: color
+    since: next
+    description: Primary role colour, or a {light, dark} pair
+    summary: Your main colour role
+    does: Colours every slot that defaults to primary (a gauge arc, a button fill); unset, it is the accent colour.
+  - name: secondary
+    group: palette
+    type: color
+    since: next
+    description: Secondary role colour, or a {light, dark} pair
+    summary: A second colour for two-tone controls
+    does: Colours slots and series entries that name secondary; unset, it is the primary colour.
+  - name: tertiary
+    group: palette
+    type: color
+    since: next
+    description: Tertiary role colour, or a {light, dark} pair
+    summary: A third colour for series and accents
+    does: Colours slots and series entries that name tertiary; unset, it is the secondary colour.
+  - name: neutral
+    group: palette
+    type: color
+    since: next
+    description: Neutral role colour, or a {light, dark} pair
+    summary: The quiet colour for tracks and ticks
+    does: Colours slots that default to neutral, such as tracks and grid lines at their own opacity; unset, it is the foreground colour.
   - name: pageBackground
     group: schemeOverride
     type: color
@@ -880,6 +909,36 @@ Name your colours once in `theme.palette`, then write `"$name"` in any colour fi
 
 Starting palettes: the playbook theme packs in `layout-library/playbook/themes/<slug>.theme.json` (24 packs of `{theme, appearance, accentColor}`) are the presets; copy one's `theme` and name its colours. Each of the 19 packs has a doc in `ControlDocs/themes/<slug>.md` whose frontmatter carries its vibe words, accent, light/dark notes, when to use, specimen reference and the `tokens` object to copy. The numeric style rules (one accent, card alpha `0F`-`24`, `cornerRadius` 14-16, `controlPadding` 12 or less, 10 rows on iPhone, the `64n - 8` cell height, light/dark parity) are in [[style-rules]].
 
+## Colour roles
+
+Four names in `palette` are **roles**: `primary`, `secondary`, `tertiary` and `neutral`. A control's doc lists the colours it draws as **colour slots** (a gauge's `arc` and `track`, a chart's `series`), each with a default role, and a layout repaints a slot through the control's `colors` key. Change a role and every slot that follows it changes with it.
+
+```json
+{
+"theme": {
+  "palette": {
+    "primary": "#0A84FF",
+    "secondary": { "light": "#C2410C", "dark": "#FF9F0A" },
+    "neutral": { "light": "#334155", "dark": "#CBD5E1" }
+  }
+}
+}
+```
+
+```json
+{ "type": "gauge", "id": "c_cpu", "colors": { "arc": "secondary", "track": "neutral@0.2" } }
+```
+
+- **A role's value** is a colour, or `{ "light": colour, "dark": colour }` for the two schemes (one side alone covers both). Role values are literal colours, like every palette value.
+- **Where palettes go**: the layout's `theme.palette`, a tab's `palette` (same object, for that page), a [[group-def|group]]'s or a control's `theme.palette`. The nearest level that names a role wins, role by role. A group or control that sets its own `accentColor` but no `palette.primary` gets primary back from that accent.
+- **Unset roles** keep today's look: `primary` is the accent colour, `secondary` is `primary`, `tertiary` is `secondary`, and `neutral` is the foreground colour. A layout without roles draws exactly what it drew before roles existed.
+- **A slot value** in `colors` (and a slot's default in its doc) is a role, a role at an opacity (`neutral@0.12`), a theme colour key (`accentColor`, `foregroundColor`, `secondaryColor`, `tertiaryColor`, `surfacePrimary`, `surfaceSecondary`, `surfaceTertiary`, `borderColor`, `trackColor`, `statusOK`, `statusWarn`, `statusError`, `statusInfo`, `scrimColor`, opacity allowed too), a `$name` token or a colour. A value that does not resolve falls back to the slot's default.
+- **Series**: a series slot takes an ordered list, `"colors": { "series": ["primary", "secondary", "#FF9F0A"] }`, or the bare list `"colors": ["primary", "secondary"]`. Series colours go to series in order.
+- **Old keys still work**: each slot names the existing key that also sets it (its `alias`, such as `tint`). A slot draws its `colors` entry first, then the old key, then its default.
+- **`$name` is not a role**: `"$primary"` reads a plain `primary` colour at load, once for both schemes. A role written as `{light, dark}` is not a token, so write `primary` (no `$`) in `colors` to follow the scheme.
+
+Control docs declare their slots in frontmatter (`colorSlots:`, see [[control-def]] "Colour slots"). `ResolvedTheme.resolve(slot:of:)` is the one resolver; the controls move onto their slots in stages.
+
 ## Cascade
 
 What a control finally draws with, from lowest to highest priority. This is the order `ResolvedTheme` and `GridRenderer` actually apply (pinned by the app's `PaletteTokenTests.cascadeTable`):
@@ -927,6 +986,30 @@ Names colours once in `palette` so changing one entry recolours every field that
     "accentColor": "$brand",
     "pageBackgroundGradient": ["$ink", "#1C2230"]
   }
+}
+```
+
+### Colour roles
+Gives the layout a blue primary and a scheme-aware orange secondary; the Home tab's own palette makes primary green on that page, and one gauge's arc follows the secondary role.
+```json
+{
+  "theme": {
+    "palette": {
+      "primary": "#0A84FF",
+      "secondary": { "light": "#C2410C", "dark": "#FF9F0A" }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Home",
+      "icon": "house",
+      "grid": { "columns": 4, "rows": 6 },
+      "palette": { "primary": "#34C759" },
+      "children": [
+        { "type": "gauge", "id": "c_cpu", "position": [0, 0], "span": [2, 2], "label": "CPU", "colors": { "arc": "secondary" } }
+      ]
+    }
+  ]
 }
 ```
 

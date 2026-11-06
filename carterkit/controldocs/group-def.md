@@ -4,6 +4,15 @@ depth: complete
 label: Group Definition
 icon: square.grid.3x3.square
 category: models
+defaultSpan: [3, 2]
+addIntent: organize
+pickerCategory: Layout
+friendlyName: Group
+oneLiner: A card that holds controls together
+aliases: [box, card, container, cluster, frame, live, dynamic, slot]
+addRank: 1
+starterPreset: {"label": "Group", "grid": {"columns": 2, "rows": 2}, "children": []}
+starterVariants: [{"friendlyName": "Live group", "oneLiner": "A card your server fills as it runs", "addRank": 6, "preset": {"label": "Live Group", "dynamic": "dynamic-slot", "grid": {"columns": 2, "rows": 2}, "children": []}}]
 fields:
   - name: type
     title: Type
@@ -262,12 +271,14 @@ A visual container that clusters controls into a glass card with its own interna
 | `form` | [[form]] object | no | Make the group a form: its inputs write a draft, validated, written once by `submit` |
 | `hideBackground` | bool | no | Remove glass card background (default: `false`) |
 | `pulse` | [[pulse]] object | no | Flash a ring around the group when a live event lands |
-| `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] |
+| `theme` | object | no | Theme overrides for the group's label, card and every child (same keys as a control's `theme`, including a `palette` of colour roles; `$name` palette refs work). A child's own `theme` and `tint` still win. See [[theming#Cascade]] and [[theming#Colour roles]] |
 | `action` | object | no | Fired by a tap no child claims (non-interactive content, the card background and padding); a child's own tap or hold wins. Same shape as a control's `action`. Ignored when `expand` opens on tap (expand wins) |
 | `expand` | object | no | Grow the group into a foreground container with a corner close, laid out again with more controls. See [[#Expand]] |
 | `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
 
 ## Editing a group
+
+The editor's **+** lists **Group** and **Live group** under Layout, from this doc's `starterPreset` and `starterVariants`: a Group lands as an empty card with a 2 × 2 inner grid, a Live group is the same card with `dynamic` set (a slot a server fills). Either lands where the + was opened (the page, the page of a container you are inside, or a group's Expanded layout), selected with its Group pane up.
 
 Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns with spacing under a hold on Columns, rows with row height and scale under a hold on Rows, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
 
@@ -357,9 +368,12 @@ group at a third of the size.
 - Taps stay full size: a button, toggle or stepper drawn smaller than 44 pt still takes a 44-pt
   touch around its centre.
 - It scales what is inside the group, not the group's own header (it follows the grid the
-  group sits in). With `"auto"` from the shape the card's padding shrinks by the same factor,
-  and rows shrink further if the card and header leave less room than the span. A group nested
-  inside a scaled group is scaled with it (its rows too), times its own `scale`.
+  group sits in). With `"auto"` from the shape the inner rows fill the span exactly: the card
+  pads only the sides (at the same factor), and each row gives up its share of the page's gap
+  (three rows at a third can't quite fit one page row, so each is about 17 pt, not 18.7), so a
+  control that fits a 1 × 1 outside never runs into its neighbour inside. A header takes its
+  height from those rows. A group nested inside a scaled group is scaled with it (its rows
+  too), times its own `scale`.
 - Visual controls (rings, gauges, charts) already scale their insides to their cell, so they
   look the same at any scale; the factor matters most for labels, buttons and inputs.
 - A list's `itemTemplate` grid takes `scale` too, so every row draws at it; with `"auto"` a row

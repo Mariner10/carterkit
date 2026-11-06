@@ -59,6 +59,8 @@
         "does": { "$ref": "#/$defs/text" },
         "title": { "$ref": "#/$defs/text" },
         "valueHelp": { "type": "object", "additionalProperties": { "type": "string" } },
+        "valueTitles": { "type": "object", "additionalProperties": { "type": "string" } },
+        "valueGroups": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
         "group": { "$ref": "#/$defs/name" },
         "tab": { "type": "string", "pattern": "^[a-z]+$" },
         "styles": { "type": "array", "items": { "type": "string" } },
@@ -82,6 +84,119 @@
       }
     },
     "fieldList": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+    "ioWhen": {
+      "description": "When an emits: fact fires; the Binding view phrases each one (`release`: when you let go).",
+      "enum": ["change", "release", "tap", "hold", "submit", "pick", "detect", "lift", "drop", "settle", "land"]
+    },
+    "ioId": { "type": "string", "pattern": "^(?!none$)[a-z][A-Za-z0-9]*$" },
+    "ioEmit": {
+      "description": "An `emits:` fact: one event the control sends, its `{{value}}` type and an example (controls-explain spec, 'emits:').",
+      "type": "object",
+      "required": ["emits", "when", "type", "says", "example"],
+      "additionalProperties": false,
+      "properties": {
+        "emits": { "$ref": "#/$defs/ioId" },
+        "when": { "$ref": "#/$defs/ioWhen" },
+        "title": { "$ref": "#/$defs/text" },
+        "field": { "$ref": "#/$defs/name" },
+        "fallback": { "$ref": "#/$defs/name" },
+        "type": { "enum": ["bool", "number", "string", "color", "date", "id", "json"] },
+        "tokens": { "type": "object", "additionalProperties": { "type": "string" } },
+        "says": { "type": "string", "pattern": "\\S" },
+        "example": {},
+        "hub": {},
+        "also": { "$ref": "#/$defs/text" },
+        "whenBy": { "type": "object", "additionalProperties": { "type": "object", "additionalProperties": { "$ref": "#/$defs/ioWhen" } } },
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" },
+        "deprecated": { "$ref": "#/$defs/version" },
+        "removed": { "$ref": "#/$defs/version" }
+      }
+    },
+    "ioEmitsNone": {
+      "description": "`- emits: none`: the control sends nothing (a map, a gauge, a divider).",
+      "type": "object",
+      "required": ["emits"],
+      "additionalProperties": false,
+      "properties": { "emits": { "const": "none" } }
+    },
+    "ioReceive": {
+      "description": "A `receives:` fact: a data shape the control shows or follows, where it can come from, how it reacts (controls-explain spec, 'receives:').",
+      "type": "object",
+      "required": ["receives", "type", "from", "says", "reacts", "example"],
+      "additionalProperties": false,
+      "properties": {
+        "receives": { "$ref": "#/$defs/ioId" },
+        "role": { "enum": ["show", "follow"] },
+        "type": { "enum": ["bool", "number", "string", "color", "date", "json"] },
+        "shape": {},
+        "from": { "type": "array", "minItems": 1, "items": { "enum": ["hub", "mqtt", "http", "sensor", "store", "derive", "default"] } },
+        "says": { "type": "string", "pattern": "\\S" },
+        "reacts": { "type": "string", "pattern": "\\S" },
+        "example": {},
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" },
+        "deprecated": { "$ref": "#/$defs/version" },
+        "removed": { "$ref": "#/$defs/version" }
+      }
+    },
+    "ioReceivesNone": {
+      "description": "`- receives: none`: nothing feeds the control (a spacer, a divider).",
+      "type": "object",
+      "required": ["receives"],
+      "additionalProperties": false,
+      "properties": { "receives": { "const": "none" } }
+    },
+    "ioSample": {
+      "description": "A `sample:` fact: placeholder preview data the editor draws while the control has no live value; `next` is the Try a change payload.",
+      "type": "object",
+      "required": ["sample"],
+      "additionalProperties": false,
+      "properties": {
+        "sample": {},
+        "next": {},
+        "for": { "$ref": "#/$defs/ioId" },
+        "into": { "$ref": "#/$defs/name" }
+      }
+    },
+    "ioFact": {
+      "oneOf": [
+        { "$ref": "#/$defs/ioEmit" },
+        { "$ref": "#/$defs/ioEmitsNone" },
+        { "$ref": "#/$defs/ioReceive" },
+        { "$ref": "#/$defs/ioReceivesNone" },
+        { "$ref": "#/$defs/ioSample" }
+      ]
+    },
+    "io": {
+      "description": "The control's io: facts (what it sends, what it shows, editor sample data): a list of flat maps, each holding exactly one of emits / receives / sample.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/ioFact" }
+    },
+    "colorSlot": {
+      "description": "One `colorSlots:` entry (aif-5g98i.1, theming.md \"Colour roles\"): a colour the control draws, its default (a role, a theme token, a `$name` or a colour; a list makes it a series slot) and `alias`, the existing key that also sets it.",
+      "type": "object",
+      "required": ["slot", "default"],
+      "additionalProperties": false,
+      "properties": {
+        "slot": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+        "default": { "anyOf": [{ "$ref": "#/$defs/colorValue" }, { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/colorValue" } }] },
+        "alias": { "$ref": "#/$defs/name" },
+        "description": { "$ref": "#/$defs/text" },
+        "summary": { "$ref": "#/$defs/text" },
+        "does": { "$ref": "#/$defs/text" },
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" },
+        "deprecated": { "$ref": "#/$defs/version" },
+        "removed": { "$ref": "#/$defs/version" }
+      }
+    },
+    "colorValue": {
+      "description": "A role (`primary`, `secondary`, `tertiary`, `neutral`), a theme colour key (`accentColor`, `trackColor`, ...), a `$name` or a hex colour, optionally `@<opacity 0-1>`.",
+      "type": "string",
+      "pattern": "^(primary|secondary|tertiary|neutral|accentColor|foregroundColor|secondaryColor|tertiaryColor|surfacePrimary|surfaceSecondary|surfaceTertiary|borderColor|trackColor|statusOK|statusWarn|statusError|statusInfo|scrimColor|\\$[A-Za-z_][A-Za-z0-9_-]*|#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?)(@(0(\\.[0-9]+)?|1(\\.0+)?))?$"
+    },
     "controlDoc": {
       "description": "A doc with a `type` and `label`: a control, a system doc (sync, theming), a theme pack, the style rules.",
       "type": "object",
@@ -107,6 +222,8 @@
         "constraints": { "type": "object" },
         "fields": { "$ref": "#/$defs/fieldList" },
         "themeFields": { "$ref": "#/$defs/fieldList" },
+        "io": { "$ref": "#/$defs/io" },
+        "colorSlots": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/colorSlot" } },
         "baseline": { "$ref": "#/$defs/version" },
         "since": { "$ref": "#/$defs/version" },
         "changes": { "$ref": "#/$defs/changes" },

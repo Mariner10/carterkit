@@ -6,6 +6,8 @@ icon: square.grid.3x3
 category: models
 fields:
   - name: columns
+    edit: scrub
+    depth: surface
     min: 1
     max: 50
     step: 1
@@ -36,6 +38,8 @@ fields:
     does: Sets the points one row-unit takes in 2-D mode, default 56; auto makes each row as tall as its content needs.
   - name: spacing
     edit: scrub
+    depth: hold
+    under: columns
     unit: pt
     min: 0
     max: 32

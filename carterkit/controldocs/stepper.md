@@ -12,6 +12,25 @@ oneLiner: Count up or down one step at a time
 aliases: [plus minus, increment, counter, quantity, spinner, number input]
 addRank: 4
 starterPreset: {"label": "Count","min": 0,"max": 100,"step": 1}
+io:
+  - emits: value
+    when: change
+    title: When you tap plus or minus
+    type: number
+    says: the number it now shows
+    example: 5
+    also: Each step sends once; a step that changes nothing, such as plus at the highest value, sends nothing
+    since: next
+  - receives: value
+    role: follow
+    type: number
+    from: [hub, mqtt, http, store, default]
+    says: a number to show; text that reads as a number works too
+    reacts: the number rolls to it, held between the lowest and highest value; your next step starts from there
+    example: 5
+    since: next
+  - sample: 5
+    next: 6
 fields:
   - name: animation
     title: Motion

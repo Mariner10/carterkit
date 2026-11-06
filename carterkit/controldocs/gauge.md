@@ -14,6 +14,18 @@ addRank: 3
 starterPreset: {"label": "Dial","min": 0,"max": 100}
 lookFormats: [{"id": "dial","name": "Dial","symbol": "gauge.medium","set": {"type": "gauge","gaugeStyle": "half","arcAngle": null}},{"id": "ring","name": "Ring","symbol": "circle.circle","set": {"type": "gauge","gaugeStyle": "full","arcAngle": null}},{"id": "bar","name": "Bar","symbol": "chart.bar.fill","set": {"type": "progressRing","progressStyle": "bar"}}]
 lookPresets: [{"id": "standard","name": "Standard","symbol": "gauge.medium","set": {"arcThickness": null,"hideValue": null}},{"id": "bold","name": "Bold","symbol": "circle.lefthalf.filled","set": {"arcThickness": 16,"hideValue": null}},{"id": "quiet","name": "Quiet","symbol": "eye.slash","set": {"hideValue": true}}]
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: number
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a number to point the dial at
+    reacts: the arc and number glide to it; a value past either end sits at that end, and anything that is not a number shows the lowest value
+    example: 40
+    since: next
+  - sample: 40
+    next: 75
 fields:
   - name: animation
     title: Motion
@@ -69,7 +81,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: gaugeStyle
     title: Line ends
     tab: style
     type: enum

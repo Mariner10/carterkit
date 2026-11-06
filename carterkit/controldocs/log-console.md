@@ -36,6 +36,7 @@ fields:
     effect: behavior
     edit: scrub
     depth: hold
+    under: fontSize
     title: Lines kept
     min: 10
     max: 1000
@@ -80,6 +81,7 @@ fields:
   - name: controlHeight
     edit: scrub
     depth: hold
+    under: fontSize
     title: Height
     min: 80
     max: 800

@@ -45,6 +45,7 @@ fields:
   - name: backgroundColor
     edit: color
     depth: hold
+    under: tint
     title: Background
     tab: style
     type: color
@@ -86,6 +87,7 @@ fields:
   - name: edgeColor
     edit: color
     depth: hold
+    under: edgeWidth
     title: Line color
     tab: style
     type: color
@@ -244,6 +246,7 @@ fields:
   - name: nodeColor
     edit: color
     depth: hold
+    under: nodeSize
     title: Node color
     tab: style
     type: color

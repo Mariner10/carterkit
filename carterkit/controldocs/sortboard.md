@@ -11,6 +11,48 @@ friendlyName: Sort board
 oneLiner: Drag cards between columns
 aliases: [kanban, drag, reorder, sort, buckets, ranking]
 starterPreset: {"label": "Board"}
+io:
+  - emits: pickup
+    when: lift
+    title: When you lift a card
+    field: sortboardConfig.events.pickup
+    type: id
+    says: the lifted card's id
+    example: "item-1"
+    tokens: {"item": "the card's id", "from": "the column it left"}
+    hub: {"item": "item-1", "from": "palette"}
+    also: The options area has the column id palette
+    since: next
+  - emits: place
+    when: drop
+    title: When you drop a card
+    field: sortboardConfig.events.place
+    type: id
+    says: the dropped card's id
+    example: "item-1"
+    tokens: {"item": "the card's id", "from": "the column it left", "to": "the column it landed in", "index": "its place in that column, counting from 0"}
+    hub: {"item": "item-1", "from": "palette", "to": "column-1", "index": 0}
+    since: next
+  - emits: layout
+    when: settle
+    title: When the board settles
+    field: sortboardConfig.events.layout
+    type: json
+    says: every column's cards in order, plus the move that just happened
+    example: {"zones": {"palette": [], "column-1": ["item-1"]}, "changed": {"item": "item-1", "from": "palette", "to": "column-1", "index": 0}}
+    also: Keys you add to this action's payload are sent along with the arrangement
+    since: next
+  - receives: arrangement
+    role: follow
+    type: json
+    shape: {"zones": {"columnId": ["itemId"]}}
+    from: [hub, mqtt, http, store]
+    says: which cards sit in which column
+    reacts: cards move to the columns it names; ids the board does not know are dropped and cards it leaves out go back to the options area
+    example: {"zones": {"column-1": ["item-2"]}}
+    since: next
+  - sample: {"items": [{"id": "item-1", "label": "Item 1"}, {"id": "item-2", "label": "Item 2"}, {"id": "item-3", "label": "Item 3"}], "zones": [{"id": "column-1", "label": "Column 1"}, {"id": "column-2", "label": "Column 2"}]}
+    into: sortboardConfig
 fields:
   - name: haptic
     edit: look

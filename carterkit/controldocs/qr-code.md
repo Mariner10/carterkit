@@ -47,6 +47,7 @@ fields:
   - name: correctionLevel
     edit: look
     depth: hold
+    under: tint
     title: Error correction
     type: enum
     values: [L, M, Q, H]

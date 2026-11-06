@@ -118,7 +118,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: tint
     title: Line ends
     tab: style
     type: enum

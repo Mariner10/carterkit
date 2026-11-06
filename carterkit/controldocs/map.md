@@ -11,6 +11,19 @@ friendlyName: Map
 oneLiner: A place on a map
 aliases: [location, gps, pin, geo, route, places]
 starterPreset: {"label": "Map","mapStyle": "standard"}
+io:
+  - emits: none
+  - receives: pins
+    role: show
+    type: json
+    shape: {"markers": [{"coordinate": "[lat, lng]", "label": "text?", "color": "hex?", "ripple": "true?"}], "paths": [{"points": "[[lat, lng]]", "color": "hex?"}], "center": "[lat, lng]?"}
+    from: [hub, mqtt, http, store]
+    says: pins, each a coordinate with an optional label and color, paths through several points, and an optional center
+    reacts: the pins and paths are redrawn and the camera refits to show them, until you pan or zoom yourself; a pin marked ripple pulses to ask for attention
+    example: {"markers": [{"coordinate": [0, 0], "label": "Pin 1"}]}
+    since: next
+  - sample: {"markers": [{"coordinate": [0, 0], "label": "Pin 1"}, {"coordinate": [0.02, 0.03], "label": "Pin 2"}, {"coordinate": [-0.01, 0.05], "label": "Pin 3"}]}
+    next: {"markers": [{"coordinate": [0, 0], "label": "Pin 1"}, {"coordinate": [0.04, 0.03], "label": "Pin 2"}, {"coordinate": [-0.01, 0.05], "label": "Pin 3"}]}
 fields:
   - name: mapStyle
     edit: look
@@ -72,6 +85,7 @@ fields:
     effect: behavior
     edit: scrub
     depth: hold
+    under: mapStyle
     title: Height
     min: 120
     max: 1200

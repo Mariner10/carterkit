@@ -13,6 +13,25 @@ aliases: [tap, press, click, trigger, action, send]
 addRank: 1
 starterPreset: {"label": "Button"}
 lookPresets: [{"id": "filled","name": "Filled","symbol": "capsule.fill","set": {"style": "filled"}},{"id": "outlined","name": "Outlined","symbol": "capsule","set": {"style": "outlined"}},{"id": "tinted","name": "Tinted","symbol": "capsule.lefthalf.filled","set": {"style": "tinted"}},{"id": "iconOnly","name": "Icon only","symbol": "circle.fill","set": {"style": "icon-only"}}]
+io:
+  - emits: press
+    when: tap
+    title: When you tap it
+    type: string
+    says: the button's current value if it follows one, else false
+    example: "true"
+    also: Holding it with Repeat while held on sends again on each repeat
+    since: next
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, store, default]
+    says: a state to show, matched against the button's value, icon and color maps
+    reacts: the text, symbol and color switch to the matching entry, or to the default entry when none match; a new value never presses the button
+    example: "true"
+    since: next
+  - sample: "true"
+    next: "false"
 fields:
   - name: label
     summary: "The words on the button"

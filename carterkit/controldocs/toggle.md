@@ -12,6 +12,25 @@ aliases: [switch, on off, checkbox, enable, flip, boolean]
 addRank: 2
 depth: complete
 starterPreset: {"label": "Switch"}
+io:
+  - emits: value
+    when: change
+    title: When you flip it
+    type: bool
+    says: true when it is now on, false when it is now off
+    example: true
+    also: A tap flips it, and a drag across the track sends once when you let go past halfway
+    since: next
+  - receives: value
+    role: follow
+    type: bool
+    from: [hub, mqtt, http, store, default]
+    says: on or off; text such as "on", "yes", "true" or "1" and any number except 0 count as on
+    reacts: the switch slides to match without sending anything; your next flip replaces it
+    example: true
+    since: next
+  - sample: true
+    next: false
 fields:
   - name: animation
     title: Motion

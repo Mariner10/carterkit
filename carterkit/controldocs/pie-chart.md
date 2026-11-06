@@ -11,6 +11,29 @@ friendlyName: Pie
 oneLiner: Parts of a whole
 aliases: [pie, donut, doughnut, share, breakdown, proportion]
 starterPreset: {"label": "Pie"}
+io:
+  - receives: slices
+    role: show
+    type: json
+    shape: {"slices": [{"label": "text", "value": "number?", "color": "hex?", "icon": "symbol?"}]}
+    from: [hub, mqtt, http, store, default]
+    says: "slices: a label and a number each (a missing number counts as 1)"
+    reacts: bigger numbers get bigger slices; new data re-slices the chart, and a wheel keeps its place
+    example: {"slices": [{"label": "Sample A", "value": 3}]}
+    since: next
+  - emits: slice
+    when: tap
+    title: When you tap a slice
+    field: pieConfig.sliceAction
+    fallback: action
+    type: string
+    says: the tapped slice's label
+    example: "Sample A"
+    whenBy: {"pieStyle": {"wheel": "land"}}
+    also: On a wheel it sends when the spin stops, with the label the pointer lands on; tapping or flicking a wheel only spins it
+    since: next
+  - sample: {"slices": [{"label": "Sample A", "value": 3}, {"label": "Sample B", "value": 2}, {"label": "Sample C", "value": 1}]}
+    next: {"slices": [{"label": "Sample A", "value": 2}, {"label": "Sample B", "value": 3}, {"label": "Sample C", "value": 1}, {"label": "Sample D", "value": 1}]}
 fields:
   - name: haptic
     tab: action

@@ -51,7 +51,7 @@ fields:
     does: Formats the numeric value beside each vertex, e.g. as a whole number or a percent.
   - name: colors
     edit: list
-    depth: hold
+    depth: surface
     title: Series colors
     tab: style
     type: string[]
@@ -108,7 +108,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: fillOpacity
     title: Line ends
     tab: style
     type: enum

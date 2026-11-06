@@ -21,13 +21,28 @@ fields:
     summary: The name shown on top
     does: Shows this text as the header above the camera.
   - name: scan
+    edit: choices
+    depth: surface
+    title: Scans for
     type: array
+    values: [{ value: barcode, since: next }, { value: text, since: next }]
     default: [barcode]
+    valueTitles: {"barcode": "Barcodes", "text": "Text"}
+    valueHelp: {"barcode": "QR codes and barcodes, of the barcode types picked below", "text": "printed text, read live (OCR)"}
     description: "What the live scanner detects: any of barcode, text"
     summary: What the camera looks for
     does: Chooses whether the live viewfinder reads barcodes, printed text, or both.
   - name: symbologies
+    edit: choices
+    depth: hold
+    under: scan
+    axis: barcode
+    title: Barcode types
     type: array
+    values: [{ value: qr, since: next }, { value: microQR, since: next }, { value: ean13, since: next }, { value: ean8, since: next }, { value: upce, since: next }, { value: gs1DataBar, since: next }, { value: gs1DataBarExpanded, since: next }, { value: gs1DataBarLimited, since: next }, { value: aztec, since: next }, { value: dataMatrix, since: next }, { value: pdf417, since: next }, { value: microPDF417, since: next }, { value: code128, since: next }, { value: code39, since: next }, { value: code93, since: next }, { value: itf14, since: next }, { value: i2of5, since: next }, { value: codabar, since: next }]
+    valueTitles: {"qr": "QR", "microQR": "Micro QR", "ean13": "EAN-13", "ean8": "EAN-8", "upce": "UPC-E", "gs1DataBar": "GS1 DataBar", "gs1DataBarExpanded": "DataBar Expanded", "gs1DataBarLimited": "DataBar Limited", "aztec": "Aztec", "dataMatrix": "Data Matrix", "pdf417": "PDF417", "microPDF417": "Micro PDF417", "code128": "Code 128", "code39": "Code 39", "code93": "Code 93", "itf14": "ITF-14", "i2of5": "Interleaved 2 of 5", "codabar": "Codabar"}
+    valueGroups: {"QR": ["qr", "microQR"], "1D retail": ["ean13", "ean8", "upce", "gs1DataBar", "gs1DataBarExpanded", "gs1DataBarLimited"], "2D": ["aztec", "dataMatrix", "pdf417", "microPDF417"], "1D industrial": ["code128", "code39", "code93", "itf14", "i2of5", "codabar"]}
+    valueHelp: {"qr": "the square codes on posters, menus and Wi-Fi cards", "microQR": "a small QR for tight labels", "ean13": "the retail barcode on most products", "ean8": "the short retail barcode on small packs", "upce": "the compact US retail barcode", "gs1DataBar": "the retail barcode on fresh food and coupons", "gs1DataBarExpanded": "DataBar with extra data such as weight or expiry", "gs1DataBarLimited": "the narrow DataBar on small items", "aztec": "the square code on boarding passes and tickets", "dataMatrix": "the tiny square code on parts and medicine", "pdf417": "the stacked code on ID cards and shipping labels", "microPDF417": "a narrower PDF417", "code128": "the shipping and warehouse barcode", "code39": "the industrial and ID-badge barcode", "code93": "a denser Code 39", "itf14": "the barcode on shipping cartons", "i2of5": "numbers-only warehouse labels", "codabar": "libraries, blood banks and parcels"}
     description: "Barcode filter (qr, ean13, code128, …). Omit for all supported"
     summary: Which barcode types to read
     does: Limits scanning to the listed barcode types; leave empty to read every supported type.

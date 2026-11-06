@@ -41,6 +41,38 @@ def field_help(control: str, field: str) -> str | None:
     return "\n".join(lines)
 
 
+def io_help(control: str) -> str | None:
+    """A readable Sends / Receives / Sample section from the doc's `io:` block (None when
+    the control or its doc has none)."""
+    import carterkit
+    d = carterkit.doc(control)
+    io = (d or {}).get("io")
+    if not io:
+        return None
+    def ex(v):
+        return json.dumps(v)
+    lines = ["## Sends"]
+    for e in io["emits"]:
+        lines.append(f"- {e['emits']} ({e['type']}) {e['when']}: {e['says']}"
+                     + (f"  e.g. {ex(e['example'])}" if "example" in e else ""))
+        if e.get("also"):
+            lines.append(f"    {e['also']}")
+    if io["sendsNothing"] or not io["emits"]:
+        lines.append("- nothing")
+    lines.append("## Receives")
+    for r in io["receives"]:
+        lines.append(f"- {r['receives']} ({r['type']}, {r['role']}, from {', '.join(r['from'])}): {r['says']}"
+                     + (f"  e.g. {ex(r['example'])}" if "example" in r else ""))
+        lines.append(f"    {r['reacts']}")
+    if io["showsNothing"] or not io["receives"]:
+        lines.append("- nothing")
+    if io["samples"]:
+        lines.append("## Sample")
+        for s in io["samples"]:
+            lines.append(f"- {ex(s['sample'])}" + (f" then {ex(s['next'])}" if "next" in s else ""))
+    return "\n".join(lines)
+
+
 def _cmd_doc(args) -> int:
     import carterkit
     if getattr(args, "field", None):
@@ -55,6 +87,9 @@ def _cmd_doc(args) -> int:
         print(f"no doc for {args.control!r}", file=sys.stderr)
         return 1
     print(md)
+    io = io_help(args.control)
+    if io:
+        print("\n" + io)
     return 0
 
 

@@ -12,6 +12,26 @@ oneLiner: Rows of information
 aliases: [rows, table, items, entries, feed, menu]
 starterPreset: {"label": "Table"}
 lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
+io:
+  - emits: row
+    when: tap
+    title: When you tap a row
+    type: id
+    says: the tapped row's id
+    example: "row-1"
+    also: Only rows with a text id can be tapped; with no action set, a list bound to a My Data collection opens that row's entry sheet instead
+    since: next
+  - receives: rows
+    role: show
+    type: json
+    shape: [{"id": "text?", "name": "text or number"}]
+    from: [hub, mqtt, http, store]
+    says: a list of rows, each with the values for its columns and an optional id
+    reacts: rows are replaced by the new list, and the columns come from the rows' own keys unless you set them
+    example: [{"id": "row-1", "name": "Item 1"}]
+    since: next
+  - sample: [{"id": "row-1", "name": "Item 1", "detail": "Example 1"}, {"id": "row-2", "name": "Item 2", "detail": "Example 2"}, {"id": "row-3", "name": "Item 3", "detail": "Example 3"}]
+    next: [{"id": "row-1", "name": "Item 1", "detail": "Example 1"}, {"id": "row-2", "name": "Item 2", "detail": "Example 2"}, {"id": "row-3", "name": "Item 3", "detail": "Example 3"}, {"id": "row-4", "name": "Item 4", "detail": "Example 4"}]
 fields:
   - name: formatValue
     title: Date format
@@ -166,7 +186,7 @@ fields:
     step: 1
     type: number
     default: 2
-    description: "Points between rows (0-64, default 2)."
+    description: "Points between rows (0-64, default 2), and between the cards of a card grid (itemLayout: grid)."
     summary: How far apart the rows sit
     does: "Opens up space between rows, so card-style rows stand apart from each other."
   - name: itemStyle
@@ -179,6 +199,20 @@ fields:
     summary: Plain rows or a card per row
     does: "Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card."
     valueHelp: {"plain": "rows sit inside the list's own card, as before", "card": "each templated row is its own card, styled by the template group"}
+  - name: itemLayout
+    edit: look
+    depth: hold
+    under: itemTemplate
+    since: next
+    title: Row layout
+    tab: style
+    values: [rows, grid]
+    type: enum
+    default: rows
+    description: "rows: one templated row per line. grid: the itemTemplate rows as cards side by side, as many columns as keep each card 150 pt wide or more, at most 3 (2 on a phone-wide list, 3 on an iPad or in landscape, 1 on a list too narrow for two), itemSpacing apart; paging, search, row taps and itemStyle work as in rows. Needs an itemTemplate: column rows stay one per line. Any other value is rows. See [[#Card grid]]."
+    summary: One row per line, or cards side by side
+    does: "Lays the templated rows out as a grid of cards, 2 or 3 to a line by the list's width, scrolling and loading as the rows do."
+    valueHelp: {"rows": "one templated row per line, as before", "grid": "templated rows as cards side by side, 2 or 3 columns by the list's width"}
 themeFields:
   - name: cardPadding
     title: Card padding
@@ -242,6 +276,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `itemTemplate` | [[group-def\|GroupDefinition]] | — | Each row drawn from controls bound to `{{item.<field>}}` — see [[#Item templates]] |
 | `itemSpacing` | number | `2` | Points between rows (0-64) |
 | `itemStyle` | `"plain"` or `"card"` | `"plain"` | `card`: each templated row draws its template group's own card — see [[#Card rows]] |
+| `itemLayout` | `"rows"` or `"grid"` | `"rows"` | `grid`: templated rows as cards side by side, 2-3 columns by the list's width — see [[#Card grid]] |
 
 ## Column keys
 
@@ -384,6 +419,30 @@ controls only the expanded row has. `{{item.<field>}}` is filled in from the row
 and in `title`. The row's tap still sends its `id`; a row with an `expand` opens it on a tap no child claims (trigger `tap`, the default) or a hold.
 The expanded row shows the row as it was when opened.
 
+## Card grid
+
+With `"itemLayout": "grid"` the templated rows sit side by side as cards instead of one per line,
+in as many columns as keep every card at least 150 pt wide, at most 3: a list as wide as a phone
+screen gets 2, a wider one (an iPad, a phone in landscape) 3, and a list too narrow for two cards
+keeps one per line. The columns follow the list's width as it changes (rotation, Split View).
+
+- Cards fill the grid left to right, then top to bottom, in row order; `itemSpacing` is the gap
+  both across and down. Design the `itemTemplate` for a card (2 columns × 3 rows, say) rather
+  than a full-width row.
+- Each card is the template's own grid, as tall as its rows. With the template grid's
+  `rowHeight: "auto"` a card takes its content's height: the cards of one line start level, and
+  the line is as tall as its tallest card.
+- Everything else is the list as it always is: `paging` asks for the same pages at the same
+  points (a card's arrival on screen counts as its row's), keeps the same `window`, and searches
+  the same way; the loading line, the row count and `emptyText` span the grid under the last
+  cards. A tap sends the card's `id`, `itemStyle: "card"` draws each card's background, and an
+  `expand` grows a card from where it sits.
+- VoiceOver reads the cards line by line, left to right, each one element that speaks its
+  controls, as a templated row does.
+
+Without an `itemTemplate` the setting does nothing: column rows stay one per line. Any value other
+than `"grid"` lays the rows out one per line.
+
 ## Examples
 
 ### Package cards that expand
@@ -419,6 +478,40 @@ Shows templated rows drawn as separate cards that each grow into a full-screen p
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "packages" }, "valuePath": "items" }]
 }
 ```
+
+### Card grid catalogue
+Shows `itemLayout: "grid"` on a paged, searchable list with card rows. Intended effect: a catalogue of any size scrolls as a grid of cards, 2 to a line on a phone and 3 on an iPad, each card an icon over a name and a detail line; the hub sends 40 cards at a time as you scroll, typing in the `gallery-search` text input searches on the hub, and tapping a card sends its id.
+```json
+{
+  "type": "list",
+  "id": "gallery",
+  "position": [1, 0],
+  "span": [7, 4],
+  "hideBackground": true,
+  "itemStyle": "card",
+  "itemLayout": "grid",
+  "itemSpacing": 10,
+  "emptyText": "Nothing matches",
+  "action": { "method": "meshsocket", "event": "broadcast_request", "payload": { "msg_type": "item_open", "id": "{{value}}" } },
+  "paging": {
+    "pageSize": 40,
+    "replyType": "gallery_page",
+    "queryFrom": "gallery-search",
+    "request": { "method": "meshsocket", "event": "broadcast_request",
+                 "payload": { "msg_type": "gallery_pages", "offset": "{{offset}}", "limit": "{{limit}}",
+                              "query": "{{query}}", "req": "{{req}}" } }
+  },
+  "itemTemplate": {
+    "grid": { "columns": 2, "rows": 3 },
+    "children": [
+      { "type": "image", "id": "icon", "position": [0, 0], "span": [2, 2], "systemName": "shippingbox" },
+      { "type": "label", "id": "name", "position": [2, 0], "span": [1, 2], "label": "{{item.detail}}", "text": "{{item.name}}" }
+    ]
+  }
+}
+```
+
+The hub answers `gallery_pages` exactly as for rows (see [[#Paging]]); the grid changes only how the cards are laid out.
 
 ### Device status list
 Shows a list fed live from a hub, with a number column. Intended effect: three columns of device name, status and ping that refresh whenever the hub broadcasts.
@@ -554,7 +647,8 @@ resize, add to and take controls out of, with the group's own chips (title, colu
 every row below follows at once, each filled from its own item. A stepper cycles sample items from the hub page
 the list is on, else its synced or starting rows, else placeholders named after the template's fields. Each
 control shows the `{{item.<field>}}` it reads above it. On a list drawn as columns the first edit creates a
-template from its columns.
+template from its columns. Holding Edit row offers Row layout (`itemLayout`: rows or a card grid); the row pose
+still draws the rows below the edited one a line each.
 `hideBackground`, `hideLabel` and `tint` (header color) change only the card and header, so with `hideLabel` on, the Header color field changes nothing on screen.
 
 ## Related

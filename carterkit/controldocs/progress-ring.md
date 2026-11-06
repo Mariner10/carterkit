@@ -69,7 +69,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: progressStyle
     title: Line ends
     tab: style
     type: enum

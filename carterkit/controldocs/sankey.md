@@ -99,6 +99,7 @@ fields:
   - name: cellCornerRadius
     edit: scrub
     depth: hold
+    under: linkOpacity
     title: Cell roundness
     unit: pt
     tab: style

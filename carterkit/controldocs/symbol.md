@@ -90,6 +90,7 @@ fields:
   - name: renderingMode
     edit: look
     depth: hold
+    under: tint
     title: Colouring
     tab: style
     type: enum
@@ -110,6 +111,7 @@ fields:
   - name: weight
     edit: look
     depth: hold
+    under: systemName
     title: Weight
     type: enum
     values: [ultraLight, thin, light, regular, medium, semibold, bold, heavy, black]
@@ -148,6 +150,7 @@ fields:
   - name: effect
     edit: look
     depth: hold
+    under: systemName
     title: Effect
     type: enum
     values: [none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale]

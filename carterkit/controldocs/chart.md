@@ -131,7 +131,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: lineWidth
     title: Line ends
     tab: style
     type: enum

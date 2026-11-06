@@ -67,7 +67,7 @@ fields:
   - name: lineCap
     edit: look
     depth: hold
-    under: glowRadius
+    under: sparklineFill
     title: Line ends
     tab: style
     type: enum

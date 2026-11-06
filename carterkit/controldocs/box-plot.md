@@ -101,7 +101,7 @@ fields:
     group: boxPlotConfig
   - name: colors
     edit: list
-    depth: hold
+    depth: surface
     title: Box colors
     tab: style
     type: string[]

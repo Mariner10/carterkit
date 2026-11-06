@@ -11,6 +11,25 @@ friendlyName: Color
 oneLiner: Pick a color
 aliases: [colour, palette, swatch, hue, rgb, paint]
 starterPreset: {"label": "Color"}
+io:
+  - emits: value
+    when: change
+    title: When you choose a color
+    type: color
+    says: the color you chose, as a hex code
+    example: "#7F8CFF"
+    also: The system color sheet sends as you drag through colors, so one visit can send several times; there is no transparency
+    since: next
+  - receives: value
+    role: follow
+    type: color
+    from: [hub, mqtt, http, store, default]
+    says: a color to show on the swatch, as a hex code
+    reacts: the swatch changes to it without sending anything; your next choice replaces it
+    example: "#7F8CFF"
+    since: next
+  - sample: "#7F8CFF"
+    next: "#7FFF8C"
 fields:
   - name: label
     edit: inline

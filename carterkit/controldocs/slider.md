@@ -12,6 +12,26 @@ oneLiner: Slide to pick a number
 aliases: [range, dial, volume, brightness, scrub, level]
 addRank: 3
 starterPreset: {"label": "Slider","min": 0,"max": 100,"step": 1}
+io:
+  - emits: value
+    when: change
+    title: When you slide it
+    type: number
+    says: the number you slid to
+    example: 42
+    whenBy: {"continuous": {"false": "release"}}
+    also: With Send while dragging off, it sends once, when you let go
+    since: next
+  - receives: value
+    role: follow
+    type: number
+    from: [hub, mqtt, http, store, default]
+    says: a number to move the handle to
+    reacts: the handle glides to it; your next slide replaces it
+    example: 42
+    since: next
+  - sample: 40
+    next: 70
 fields:
   - name: animation
     title: Motion
@@ -324,6 +344,10 @@ Inherits all [[shared-properties]]. Key fields:
 | `arcAngle` | number | `270` | Arc sweep in degrees (radial style only) |
 | `arcRotation` | number | `0` | Arc start rotation (radial style only) |
 | `arcThickness` | number | `6` | Track stroke width (radial style only) |
+
+## What it sends and shows
+
+The `io:` facts above are the machine-readable version: a slider sends its number while you drag (`continuous: false` sends once, on release), and it can follow a number set from outside, so the handle moves when your hub changes the value. The editor previews it at 40.
 
 ## Styles
 

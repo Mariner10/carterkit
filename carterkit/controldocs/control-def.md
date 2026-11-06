@@ -97,6 +97,12 @@ fields:
     description: Per-control theme overrides; same keys as the layout theme block plus per-type keys (see theming)
     summary: Look overrides for this one control
     does: Changes theme values such as colors and corner roundness for this control only.
+  - name: colors
+    type: object
+    since: next
+    description: Colour slots set to a role, a theme colour or a colour, or an ordered list for the series slot (see theming Colour roles)
+    summary: Which colour goes where on this control
+    does: Points each of the control's colour slots at a palette role such as primary, a theme colour or a literal colour, overriding the slot's default.
   - name: unsupportedType
     type: string
     description: Written by the app when it replaces a control type it does not know; never authored
@@ -417,6 +423,31 @@ parser expands it to the full field when it loads. A `summary` override replaces
 control only; one equal to the shared value is a lint error. `scripts/migrate-shared-fields.py` lists the copies that
 still differ from their shared entry.
 
+## Colour slots (doc frontmatter)
+
+A control doc lists the colours its renderer draws as `colorSlots` (aif-5g98i.1, [[theming]] "Colour roles"). Each
+entry names the slot (the key a layout writes under the control's `colors`), its `default` and, when an existing key
+already set that colour, `alias`: that key (`tint`, `theme.trackColor`). A list default makes a series slot.
+
+```yaml
+colorSlots:
+  - slot: arc
+    default: primary
+    alias: tint
+    since: next
+    does: Colours the filled part of the arc.
+  - slot: track
+    default: neutral@0.12
+    since: next
+  - slot: series
+    default: [primary, "#34C759", "#FF9500"]
+    since: next
+```
+
+A default is a role, a role or theme colour key at an opacity (`neutral@0.12`), a `$name` or a colour. Pick the default
+that draws exactly what the control drew before, so declaring slots changes nothing on screen. Each slot is a
+capability id, `<type>.colors.<slot>`, pinned like a field.
+
 ## Version pins (doc frontmatter)
 
 Each pin sits at the smallest level that changed: a whole doc, one field (nested and theme fields too), or
@@ -453,6 +484,15 @@ plain value list plus each pinned value's pins (`FieldDef.valuePins`, carterkit 
 filters on them yet. `ControlDocs/controldocs.schema.json` is the spec for every key a doc may write.
 `ControlDocVersionTests` and carterkit's `test_controldocs_versions.py` check every doc against it, so a
 mistyped key or a malformed version fails the build.
+
+`ControlDocs/capabilities.json` is the last release's capability manifest: one id per doc (`control.button`,
+`doc.sync`), field (`button.style`, `chart.chartConfig.xAxis`, `button.theme.accent`) and enum value
+(`button.style.pill`), each with its `since` and pins. `scripts/gen-capabilities.py` writes it, and the
+release step runs `scripts/gen-capabilities.py --stamp <version>` to turn every `next` into the version it
+ships. Between releases `CapabilityManifestTests` (and `--check`) fail on an id the manifest does not hold
+unless it says `since: next`, and on a released id that vanished or changed its `since`: keep a retired
+field with `deprecated:` / `removed:` and `alias:`. The doc view's "Version history" is rendered from the
+pins (`ControlDocCapabilities.versionHistory`, the script's `render_version_history`), never written by hand.
 
 ## Look card formats and presets (doc frontmatter)
 
