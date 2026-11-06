@@ -81,6 +81,7 @@ themeFields:
     summary: Breathing room inside the edge
     does: Adds 0 to 24 points between the control's edge and its content.
   - name: cornerRadius
+    title: Corner roundness
     min: 0
     max: 30
     step: 1
@@ -154,8 +155,9 @@ themeFields:
 
 - `use:` looks the name up in the same section of this file: a `themeFields:` entry uses a shared theme key,
   a `fields:` entry uses a shared control field.
-- The lines under `use:` override the shared entry. Only `default`, `min`, `max`, `step`, `does` (when the
-  effect on this control differs) and `since` may be overridden. Any other key is a lint error, and so is an
+- The lines under `use:` override the shared entry. Only `default`, `min`, `max`, `step`, `summary`, `does`
+  (when the effect on this control differs) and the version pins (`since`, `changes`, `deprecated`, `removed`,
+  `alias`; control-def.md "Version pins") may be overridden. Any other key is a lint error, and so is an
   override that repeats the shared value.
 - An unknown name is a lint error, and the field is left out of that doc.
 - Both parsers expand `use:` when they load: the app's `ControlDocLoader` and carterkit's

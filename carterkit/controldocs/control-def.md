@@ -65,6 +65,7 @@ fields:
     summary: What happens when the camera takes a photo
     does: Runs this command on the camera's shutter and passes the picture along as the image.
   - name: sync
+    edit: data
     type: object[]
     description: Live state listeners (SyncDefinition list, see sync)
     summary: Where live values come from
@@ -332,6 +333,8 @@ Every control — regardless of type — shares the same base fields. A control 
 
 **Edit hint — the Background chip.** `backgroundColor` carries `edit: background`: every control's edit pose shows one Background chip whose pop-out holds the on/off switch (`hideBackground`), colour swatches and a custom colour, an opacity slider (0–100 %) and Glass | Solid. A control's own doc need not repeat it; the pose adds the chip to every control. Groups keep only `hideBackground`.
 
+**Edit hint — the Binding button.** `sync` carries `edit: data`: every control's edit pose shows a quiet Binding button beside its title. It opens the binding view: where the value comes from (the first listener) with the last value received, and what using the control sends (its `action`, which keeps `edit: action` for the inspector). The fields it edits up front are the ones [[sync]] and [[actions]] mark `edit: data`; My Data sources, slices, the free-layout limit and the data flow sit behind its More.
+
 **Hold petals under the Background chip.** Press and hold the chip: padding, corner radius, border width and shadow fan out as `scrub` petals (`depth: hold`, `under: backgroundColor`, `unit: pt`). Their dials snap to 0, the theme default (padding 8, corner 12, border 1) and 4, 8, 12, 16, 20, 24 pt. `backgroundBorderColor` stays at AI depth. The card chrome (`controlSurface`) draws all five once for every control; absent fields reproduce the theme look exactly.
 
 ## Value Types
@@ -408,9 +411,48 @@ Common override keys: `accentColor`, `foregroundColor`, `secondaryColor`, `surfa
 
 A field that many control docs describe the same way (the theme keys above, the Undo pill's `confirm`) is
 defined once, in `ControlDocs/shared-fields.md`. A doc's `fields:` or `themeFields:` entry then reads
-`- use: <name>`, with optional `default`, `min`, `max`, `step`, `does` and `since` overrides under it, and every
-parser expands it to the full field when it loads. `scripts/migrate-shared-fields.py` lists the copies that
+`- use: <name>`, with optional `default`, `min`, `max`, `step`, `summary`, `does` and version-pin (`since`, `changes`,
+`deprecated`, `removed`, `alias`) overrides under it, and every
+parser expands it to the full field when it loads. A `summary` override replaces the shared summary for that
+control only; one equal to the shared value is a lint error. `scripts/migrate-shared-fields.py` lists the copies that
 still differ from their shared entry.
+
+## Version pins (doc frontmatter)
+
+Each pin sits at the smallest level that changed: a whole doc, one field (nested and theme fields too), or
+one enum value. You pin additions only; everything a doc had before is covered by its `baseline`.
+
+- `baseline:` the version the unpinned parts of the doc are at least as old as. A doc without one is
+  `2.0`, the release pins start from, so no doc writes `baseline: "2.0"`.
+- `since: next` on anything you add. The release step replaces `next` with the version it ships.
+- `changes: [{in: next, note: "Holding now repeats"}]` when an existing key behaves differently.
+- `deprecated: next` when a key or value is on its way out. Add `removed:` in the version it stops working,
+  and `alias: <name>` for the live field or value it now maps to.
+
+A version is `next` or a marketing version in quotes (`"2.1"`), so YAML tools do not read it as a number.
+
+```yaml
+fields:
+  - name: pressEffect
+    type: enum
+    since: next
+    values: [scale, glow]
+  - name: style
+    type: enum
+    changes: [{in: next, note: "tinted follows the theme accent"}]
+    values:
+      - filled
+      - { value: pill, since: next }
+      - { value: outline, deprecated: next, alias: outlined }
+      - outlined
+```
+
+`values` takes plain items, `{ value, since, changes, deprecated, removed, alias }` objects, or both, written
+inline (`values: [filled, { value: pill, since: next }]`) or as the block list above. Both parsers give the
+plain value list plus each pinned value's pins (`FieldDef.valuePins`, carterkit `valueMeta`), and nothing
+filters on them yet. `ControlDocs/controldocs.schema.json` is the spec for every key a doc may write.
+`ControlDocVersionTests` and carterkit's `test_controldocs_versions.py` check every doc against it, so a
+mistyped key or a malformed version fails the build.
 
 ## Look card formats and presets (doc frontmatter)
 
