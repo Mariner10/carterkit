@@ -84,7 +84,7 @@ def test_vendored_docs_use_lines_resolve_and_shared_fields_is_no_control():
 def test_summary_override_is_allowed_and_lints_equal_values():
     shared = catalog.parse_shared(SHARED)
     doc = catalog.parse_doc(probe("  - use: confirm\n    summary: Mine"), "probe", shared)
-    assert doc["useErrors"] == []
+    assert not doc.get("useErrors")
     assert doc["fields"][0]["summary"] == "Mine"
     same = catalog.parse_doc(probe("  - use: confirm\n    summary: A short note with Undo"), "probe", shared)
     assert any("override `summary` repeats the shared value" in e for e in same["useErrors"])
