@@ -1,0 +1,59 @@
+{
+  "name": "Paged cards",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "cards-tab",
+      "title": "Cards",
+      "icon": "rectangle.stack",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        { "type": "textInput", "id": "search", "position": [0, 0], "span": [1, 4],
+          "placeholder": "Search the items" },
+        { "type": "list", "id": "cards", "position": [1, 0], "span": [6, 4],
+          "hideBackground": true, "itemStyle": "card", "itemSpacing": 10,
+          "emptyText": "Nothing matches",
+          "action": { "method": "meshsocket", "event": "broadcast_request",
+                      "payload": { "msg_type": "card_open", "id": "{{value}}" } },
+          "paging": {
+            "pageSize": 20,
+            "replyType": "cards_page",
+            "queryFrom": "search",
+            "request": { "method": "meshsocket", "event": "broadcast_request",
+                         "payload": { "msg_type": "cards_pages", "offset": "{{offset}}",
+                                      "limit": "{{limit}}", "cursor": "{{cursor}}",
+                                      "query": "{{query}}", "req": "{{req}}" } }
+          },
+          "itemTemplate": {
+            "grid": { "columns": 4, "rows": 1 },
+            "children": [
+              { "type": "image", "id": "icon", "position": [0, 0], "systemName": "{{item.icon}}" },
+              { "type": "label", "id": "name", "position": [0, 1], "span": [1, 2],
+                "label": "{{item.detail}}", "text": "{{item.name}}" },
+              { "type": "button", "id": "star", "position": [0, 3], "label": "Star",
+                "action": { "method": "meshsocket", "event": "broadcast_request",
+                            "payload": { "msg_type": "card_star", "id": "{{item.id}}" } } }
+            ],
+            "expand": {
+              "title": "{{item.name}}",
+              "grid": { "columns": 4, "rows": 6 },
+              "children": [
+                { "ref": "icon", "position": [0, 0], "span": [2, 2] },
+                { "ref": "name", "position": [0, 2], "span": [1, 2] },
+                { "ref": "star", "position": [1, 2], "span": [1, 2] },
+                { "type": "label", "position": [2, 0], "span": [4, 4], "label": "Notes",
+                  "text": "{{item.notes}}" }
+              ]
+            }
+          }
+        },
+        { "type": "label", "id": "status", "position": [7, 0], "span": [1, 4],
+          "text": "Tap a card to open it; Star marks it",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "text", "filter": { "msg_type": "cards_status" } }] }
+      ]
+    }
+  ]
+}

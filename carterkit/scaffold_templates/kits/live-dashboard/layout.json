@@ -1,0 +1,32 @@
+{
+  "name": "Live dashboard",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "live-tab",
+      "title": "Live",
+      "icon": "gauge",
+      "grid": { "columns": 4, "rows": 6 },
+      "children": [
+        { "type": "gauge", "id": "level", "position": [0, 0], "span": [2, 2],
+          "label": "Level", "min": 0, "max": 100, "unit": "%",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "level", "filter": { "msg_type": "metrics" } }] },
+        { "type": "sparkline", "id": "trend", "position": [0, 2], "span": [2, 2],
+          "label": "Last minute", "sparklinePoints": 60, "sparklineFill": true,
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "level", "filter": { "msg_type": "metrics" } }] },
+        { "type": "label", "id": "readout", "position": [2, 0], "span": [1, 4],
+          "label": "Reading", "text": "Waiting for the hub",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "text", "filter": { "msg_type": "readout" } }] },
+        { "type": "button", "id": "reset", "position": [3, 0], "span": [1, 4],
+          "label": "Reset to 50", "icon": "arrow.counterclockwise",
+          "action": { "method": "meshsocket", "event": "broadcast_request",
+                      "payload": { "msg_type": "reset" } } }
+      ]
+    }
+  ]
+}

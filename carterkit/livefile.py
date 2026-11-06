@@ -75,10 +75,18 @@ class LiveFile:
         return ui, hub, (run if callable(run) else None)
 
     def stat(self) -> int | None:
+        """The newest mtime of the file and the layout JSON it loaded (``Layout.load``)."""
         try:
-            return os.stat(self.path).st_mtime_ns
+            m = os.stat(self.path).st_mtime_ns
         except OSError:
             return None
+        src = getattr(self.ui, "_source_path", None)
+        if src:
+            try:
+                m = max(m, os.stat(src).st_mtime_ns)
+            except OSError:
+                pass
+        return m
 
     # ─── the hub ─────────────────────────────────────────────────────────────
     def make_hub(self, ui, module_hub):

@@ -1,0 +1,22 @@
+{
+  "name": "Remote",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "remote-tab",
+      "title": "Remote",
+      "icon": "av.remote",
+      "grid": {"columns": 4, "rows": 6},
+      "children": [
+        {"type": "toggle", "id": "power", "position": [0, 0], "span": [1, 2], "label": "Power", "icon": "power", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "set_power", "value": "{{value}}"}}, "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "value", "filter": {"msg_type": "power_state"}}]},
+        {"type": "toggle", "id": "mute", "position": [0, 2], "span": [1, 2], "label": "Mute", "icon": "speaker.slash", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "set_mute", "value": "{{value}}"}}, "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "value", "filter": {"msg_type": "mute_state"}}]},
+        {"type": "slider", "id": "volume", "position": [1, 0], "span": [1, 4], "label": "Volume", "min": 0, "max": 100, "step": 1, "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "set_volume", "value": "{{value}}"}}, "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "value", "filter": {"msg_type": "volume_state"}}]},
+        {"type": "slider", "id": "brightness", "position": [2, 0], "span": [1, 4], "label": "Brightness", "min": 0, "max": 100, "step": 1, "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "set_brightness", "value": "{{value}}"}}, "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "value", "filter": {"msg_type": "brightness_state"}}]},
+        {"type": "button", "id": "reset", "position": [3, 0], "span": [1, 4], "label": "Reset", "icon": "arrow.counterclockwise", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "remote_reset"}}},
+        {"type": "label", "id": "status", "position": [4, 0], "span": [1, 4], "label": "The hub says", "text": "Waiting for the hub", "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "text", "filter": {"msg_type": "remote_status"}}]}
+      ]
+    }
+  ]
+}

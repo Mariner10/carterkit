@@ -887,6 +887,29 @@ class Layout(ScopeControls):
             pass
         return path
 
+    @classmethod
+    def load(cls, source) -> "Layout":
+        """A Layout over a saved layout JSON (a path, or the dict itself): serve, validate
+        and push it like a built one, and drive its controls by id (``hub.push("level", 3)``,
+        ``hub.on("reset", fn)``). A file served by ``livefile`` (``python hub.py``) is
+        watched too: each save of it reaches the phone."""
+        import os
+        path = None
+        if isinstance(source, (str, os.PathLike)):
+            path = os.path.abspath(os.fspath(source))
+            with open(path, encoding="utf-8") as f:
+                source = json.load(f)
+        buf = LayoutBuffer.from_layout(source)
+        if not buf.tabs:
+            raise ValueError("the layout has no tabs")
+        cols, rows = buf._grid_dims(buf.tabs[0])
+        ui = cls(buf.layout.get("name") or "Layout", cols=cols, rows=rows)
+        ui._buf = buf
+        ui._first_tab_used = True                # ui.tab() appends after the loaded tabs
+        ui._scope = ui._scope_for_tab(0)
+        ui._source_path = path
+        return ui
+
     # context-manager sugar so `with Layout(...) as ui:` reads cleanly
     def __enter__(self) -> "Layout":
         return self

@@ -1,0 +1,129 @@
+{
+  "name": "Scaled grid",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "grid-tab",
+      "title": "Grid",
+      "icon": "square.grid.3x3",
+      "grid": {"columns": 5, "rows": 8},
+      "children": [
+        {"type": "label", "id": "intro", "position": [0, 0], "span": [1, 5], "text": "Each row is one 1 x 5 card drawn at 1/3. Hold a row to open it full size."},
+        {
+          "type": "group", "id": "row-a", "label": "Row A", "position": [1, 0], "span": [1, 5], "grid": {"columns": 15, "rows": 3, "scale": "auto"},
+          "expand": {"trigger": "hold", "style": "sheet", "title": "Row A at full size", "grid": {"columns": 5, "rows": 3}, "children": [
+            {"ref": "a1-name", "position": [0, 0]},
+            {"ref": "a1-on", "position": [1, 0]},
+            {"ref": "a1-open", "position": [2, 0]},
+            {"ref": "a2-name", "position": [0, 1]},
+            {"ref": "a2-on", "position": [1, 1]},
+            {"ref": "a2-open", "position": [2, 1]},
+            {"ref": "a3-name", "position": [0, 2]},
+            {"ref": "a3-on", "position": [1, 2]},
+            {"ref": "a3-open", "position": [2, 2]},
+            {"ref": "a4-name", "position": [0, 3]},
+            {"ref": "a4-on", "position": [1, 3]},
+            {"ref": "a4-open", "position": [2, 3]},
+            {"ref": "a5-name", "position": [0, 4]},
+            {"ref": "a5-on", "position": [1, 4]},
+            {"ref": "a5-open", "position": [2, 4]}
+          ]},
+          "children": [
+            {"type": "label", "id": "a1-name", "position": [0, 0], "span": [1, 3], "text": "A1"},
+            {"type": "toggle", "id": "a1-on", "position": [1, 0], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "a1", "value": "{{value}}"}}},
+            {"type": "button", "id": "a1-open", "position": [2, 0], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "a1"}}},
+            {"type": "label", "id": "a2-name", "position": [0, 3], "span": [1, 3], "text": "A2"},
+            {"type": "toggle", "id": "a2-on", "position": [1, 3], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "a2", "value": "{{value}}"}}},
+            {"type": "button", "id": "a2-open", "position": [2, 3], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "a2"}}},
+            {"type": "label", "id": "a3-name", "position": [0, 6], "span": [1, 3], "text": "A3"},
+            {"type": "toggle", "id": "a3-on", "position": [1, 6], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "a3", "value": "{{value}}"}}},
+            {"type": "button", "id": "a3-open", "position": [2, 6], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "a3"}}},
+            {"type": "label", "id": "a4-name", "position": [0, 9], "span": [1, 3], "text": "A4"},
+            {"type": "toggle", "id": "a4-on", "position": [1, 9], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "a4", "value": "{{value}}"}}},
+            {"type": "button", "id": "a4-open", "position": [2, 9], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "a4"}}},
+            {"type": "label", "id": "a5-name", "position": [0, 12], "span": [1, 3], "text": "A5"},
+            {"type": "toggle", "id": "a5-on", "position": [1, 12], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "a5", "value": "{{value}}"}}},
+            {"type": "button", "id": "a5-open", "position": [2, 12], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "a5"}}}
+          ]
+        },
+        {
+          "type": "group", "id": "row-b", "label": "Row B", "position": [2, 0], "span": [1, 5], "grid": {"columns": 15, "rows": 3, "scale": "auto"},
+          "expand": {"trigger": "hold", "style": "sheet", "title": "Row B at full size", "grid": {"columns": 5, "rows": 3}, "children": [
+            {"ref": "b1-name", "position": [0, 0]},
+            {"ref": "b1-on", "position": [1, 0]},
+            {"ref": "b1-open", "position": [2, 0]},
+            {"ref": "b2-name", "position": [0, 1]},
+            {"ref": "b2-on", "position": [1, 1]},
+            {"ref": "b2-open", "position": [2, 1]},
+            {"ref": "b3-name", "position": [0, 2]},
+            {"ref": "b3-on", "position": [1, 2]},
+            {"ref": "b3-open", "position": [2, 2]},
+            {"ref": "b4-name", "position": [0, 3]},
+            {"ref": "b4-on", "position": [1, 3]},
+            {"ref": "b4-open", "position": [2, 3]},
+            {"ref": "b5-name", "position": [0, 4]},
+            {"ref": "b5-on", "position": [1, 4]},
+            {"ref": "b5-open", "position": [2, 4]}
+          ]},
+          "children": [
+            {"type": "label", "id": "b1-name", "position": [0, 0], "span": [1, 3], "text": "B1"},
+            {"type": "toggle", "id": "b1-on", "position": [1, 0], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "b1", "value": "{{value}}"}}},
+            {"type": "button", "id": "b1-open", "position": [2, 0], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "b1"}}},
+            {"type": "label", "id": "b2-name", "position": [0, 3], "span": [1, 3], "text": "B2"},
+            {"type": "toggle", "id": "b2-on", "position": [1, 3], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "b2", "value": "{{value}}"}}},
+            {"type": "button", "id": "b2-open", "position": [2, 3], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "b2"}}},
+            {"type": "label", "id": "b3-name", "position": [0, 6], "span": [1, 3], "text": "B3"},
+            {"type": "toggle", "id": "b3-on", "position": [1, 6], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "b3", "value": "{{value}}"}}},
+            {"type": "button", "id": "b3-open", "position": [2, 6], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "b3"}}},
+            {"type": "label", "id": "b4-name", "position": [0, 9], "span": [1, 3], "text": "B4"},
+            {"type": "toggle", "id": "b4-on", "position": [1, 9], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "b4", "value": "{{value}}"}}},
+            {"type": "button", "id": "b4-open", "position": [2, 9], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "b4"}}},
+            {"type": "label", "id": "b5-name", "position": [0, 12], "span": [1, 3], "text": "B5"},
+            {"type": "toggle", "id": "b5-on", "position": [1, 12], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "b5", "value": "{{value}}"}}},
+            {"type": "button", "id": "b5-open", "position": [2, 12], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "b5"}}}
+          ]
+        },
+        {
+          "type": "group", "id": "row-c", "label": "Row C", "position": [3, 0], "span": [1, 5], "grid": {"columns": 15, "rows": 3, "scale": "auto"},
+          "expand": {"trigger": "hold", "style": "sheet", "title": "Row C at full size", "grid": {"columns": 5, "rows": 3}, "children": [
+            {"ref": "c1-name", "position": [0, 0]},
+            {"ref": "c1-on", "position": [1, 0]},
+            {"ref": "c1-open", "position": [2, 0]},
+            {"ref": "c2-name", "position": [0, 1]},
+            {"ref": "c2-on", "position": [1, 1]},
+            {"ref": "c2-open", "position": [2, 1]},
+            {"ref": "c3-name", "position": [0, 2]},
+            {"ref": "c3-on", "position": [1, 2]},
+            {"ref": "c3-open", "position": [2, 2]},
+            {"ref": "c4-name", "position": [0, 3]},
+            {"ref": "c4-on", "position": [1, 3]},
+            {"ref": "c4-open", "position": [2, 3]},
+            {"ref": "c5-name", "position": [0, 4]},
+            {"ref": "c5-on", "position": [1, 4]},
+            {"ref": "c5-open", "position": [2, 4]}
+          ]},
+          "children": [
+            {"type": "label", "id": "c1-name", "position": [0, 0], "span": [1, 3], "text": "C1"},
+            {"type": "toggle", "id": "c1-on", "position": [1, 0], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "c1", "value": "{{value}}"}}},
+            {"type": "button", "id": "c1-open", "position": [2, 0], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "c1"}}},
+            {"type": "label", "id": "c2-name", "position": [0, 3], "span": [1, 3], "text": "C2"},
+            {"type": "toggle", "id": "c2-on", "position": [1, 3], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "c2", "value": "{{value}}"}}},
+            {"type": "button", "id": "c2-open", "position": [2, 3], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "c2"}}},
+            {"type": "label", "id": "c3-name", "position": [0, 6], "span": [1, 3], "text": "C3"},
+            {"type": "toggle", "id": "c3-on", "position": [1, 6], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "c3", "value": "{{value}}"}}},
+            {"type": "button", "id": "c3-open", "position": [2, 6], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "c3"}}},
+            {"type": "label", "id": "c4-name", "position": [0, 9], "span": [1, 3], "text": "C4"},
+            {"type": "toggle", "id": "c4-on", "position": [1, 9], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "c4", "value": "{{value}}"}}},
+            {"type": "button", "id": "c4-open", "position": [2, 9], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "c4"}}},
+            {"type": "label", "id": "c5-name", "position": [0, 12], "span": [1, 3], "text": "C5"},
+            {"type": "toggle", "id": "c5-on", "position": [1, 12], "span": [1, 3], "label": "On", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_power", "slot": "c5", "value": "{{value}}"}}},
+            {"type": "button", "id": "c5-open", "position": [2, 12], "span": [1, 3], "label": "Open", "action": {"method": "meshsocket", "event": "broadcast_request", "payload": {"msg_type": "slot_open", "slot": "c5"}}}
+          ]
+        },
+        {"type": "label", "id": "status", "position": [4, 0], "span": [1, 5], "text": "Tap Open on a card: the hub opens a sheet for it", "sync": [{"method": "meshsocket", "type": "listen", "event": "broadcast", "valuePath": "text", "filter": {"msg_type": "grid_status"}}]}
+      ]
+    }
+  ]
+}

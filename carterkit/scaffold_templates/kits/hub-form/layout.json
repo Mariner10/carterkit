@@ -1,0 +1,55 @@
+{
+  "name": "Hub form",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "form-tab",
+      "title": "Form",
+      "icon": "list.bullet.rectangle.portrait",
+      "grid": { "columns": 4, "rows": 8 },
+      "children": [
+        { "type": "group", "id": "entry-form", "label": "New entry",
+          "position": [0, 0], "span": [4, 4], "grid": { "columns": 2, "rows": 4 },
+          "form": {
+            "fields": {
+              "name": { "required": true, "maxLength": 40 },
+              "count": { "required": true, "min": 1, "max": 10, "kind": "integer" },
+              "choice": { "oneOf": ["Option A", "Option B", "Option C"] }
+            },
+            "submit": { "method": "meshsocket", "event": "broadcast_request",
+                        "payload": { "msg_type": "form_submit", "form": "{{form}}" } },
+            "afterSubmit": "clear"
+          },
+          "children": [
+            { "type": "textInput", "id": "name", "position": [0, 0], "span": [1, 2],
+              "placeholder": "Name (required)" },
+            { "type": "stepper", "id": "count", "position": [1, 0], "label": "Count",
+              "min": 1, "max": 10 },
+            { "type": "picker", "id": "choice", "position": [1, 1],
+              "options": ["Option A", "Option B", "Option C"] },
+            { "type": "toggle", "id": "urgent", "position": [2, 0], "span": [1, 2],
+              "label": "Urgent" },
+            { "type": "button", "id": "send", "position": [3, 0], "span": [1, 2],
+              "label": "Send to the hub", "role": "submit",
+              "enabled": { "ref": { "field": "entry-form.valid" }, "operator": "eq", "value": true } }
+          ] },
+        { "type": "label", "id": "status", "position": [4, 0], "span": [1, 4],
+          "text": "Fill in the form and send it",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "text", "filter": { "msg_type": "form_status" } }] },
+        { "type": "list", "id": "entries", "position": [5, 0], "span": [3, 4],
+          "label": "Received by the hub", "emptyText": "Nothing yet",
+          "listColumns": [
+            { "key": "name", "label": "Name" },
+            { "key": "count", "label": "Count", "format": "number" },
+            { "key": "choice", "label": "Choice" },
+            { "key": "urgent", "label": "Urgent" }
+          ],
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "items", "filter": { "msg_type": "form_entries" } }] }
+      ]
+    }
+  ]
+}

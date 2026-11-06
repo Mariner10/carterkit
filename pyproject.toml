@@ -40,4 +40,4 @@ carterkit = "carterkit.cli:main"
 packages = ["carterkit"]
 
 [tool.setuptools.package-data]
-carterkit = ["controldocs/*.md", "controldocs/*.schema.json", "controldocs/*/*.md", "explore_assets/*", "py.typed", "app_features.json", "scaffold_templates/*"]
+carterkit = ["controldocs/*.md", "controldocs/*.schema.json", "controldocs/*/*.md", "explore_assets/*", "py.typed", "app_features.json", "scaffold_templates/*", "scaffold_templates/kits/*/*"]

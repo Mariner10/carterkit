@@ -377,13 +377,15 @@ class Hub(HubExtras):
                 f"payload) — push a dict for it")
         return frame
 
-    async def push(self, target, value) -> dict:
+    async def push(self, target, value, *, force: bool = False) -> dict:
         """Drive a control: broadcast the frame its sync binding listens for.
-        `target` is a Control handle or an id string. Returns the sent frame."""
+        `target` is a Control handle or an id string. Returns the sent frame. A frame
+        equal to the last push is skipped unless ``force=True``: the hub answering a
+        control the phone changed (a refused or clamped value) must resend its own."""
         ctrl = self._control(target)
         frame = self.frame_for(ctrl, value)
         pushed = self.__dict__.setdefault("_last_frames", {})
-        if pushed.get(ctrl.get("id")) == frame:
+        if not force and pushed.get(ctrl.get("id")) == frame:
             log.info("skipped: identical to the last push")
             return frame
         pushed[ctrl.get("id")] = _json.loads(_json.dumps(frame))

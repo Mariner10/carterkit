@@ -63,6 +63,32 @@ error prints one line and keeps the last good version running.
 **Hubs -> Add Hub** and save the JSON it shows as `secrets/hub.json`; `hello.py` and
 `carterkit repl` pick it up.
 
+## Starter kits
+
+Six small, complete projects to start from: each is a `layout.json` (clean under
+`carterkit validate`), a `hub.py` that serves it, and a README saying what it shows and
+what to change first. The data is placeholder (`Item 1`, `Thing 2`, `Option A`).
+
+```bash
+carterkit new --list                          # the kits, one line each
+carterkit new cards --template paged-cards    # scaffold one
+cd cards && python hub.py                     # QR once, then it is live on the phone
+```
+
+| Kit | What it shows |
+|-----|---------------|
+| `paged-cards` | A card list the hub pages 20 rows at a time (`@hub.pages`), searched on the hub; each card expands into a detail page (`itemTemplate.expand`) |
+| `confirm-delete` | A Delete that asks first: the hub calls `hub.confirm(..., destructive=True)` and acts only on `'confirm'` |
+| `live-dashboard` | A gauge and a sparkline fed by one broadcast (`hub.push`), plus a readout and a Reset command |
+| `hub-form` | A form group whose Send submits the whole draft (`{{form}}`) to the hub, which checks it again and answers |
+| `scaled-grid` | 1 x 5 cards with a 3 x 15 grid drawn at 1/3 (`grid.scale: "auto"`), that expand to full size on a hold, and a sheet the hub opens (`hub.open_sheet`) |
+| `remote` | Toggles and sliders that only ask; the hub applies its rules and sends its state back (`hub.push(..., force=True)`) |
+
+`hub.py` loads its layout with `Layout.load("layout.json")` and keeps the behaviour in
+`async def run(hub)`, the same contract as `hello.py`: pairing by QR (kept in
+`.carterkit/session.json`), `secrets/hub.json` for Connect+, and every save of `hub.py`
+or `layout.json` pushed to the phone. `carterkit repl hub.py` adds a live prompt.
+
 ## Build a layout
 
 Controls are **methods on the layout**, ids are positional, tabs and groups are context
@@ -440,6 +466,7 @@ the stdlib-only `carterkit.notify_http(...)`.
 
 ```bash
 carterkit new demo                # scaffold a starter project (hello.py, secrets/, VS Code settings)
+carterkit new demo -t remote      # scaffold a starter kit (layout.json + hub.py; --list names them)
 carterkit repl hello.py           # live prompt with the hub connected, controls bound by id
 carterkit catalog                 # list every control type
 carterkit doc gauge               # print a control's documentation

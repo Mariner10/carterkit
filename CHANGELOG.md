@@ -5,6 +5,17 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+### Added
+
+- **Starter kits:** `carterkit new <dir> --template <kit>` scaffolds one of six small, complete
+  projects (`paged-cards`, `confirm-delete`, `live-dashboard`, `hub-form`, `scaled-grid`, `remote`),
+  each a validated `layout.json`, a `hub.py` run with `python hub.py`, and a README;
+  `carterkit new --list` names them.
+- **`Layout.load(path_or_dict)`** wraps a saved layout JSON as a `Layout` to serve, validate and
+  push; a live file (`python hub.py`, `carterkit repl hub.py`) also watches the loaded JSON.
+- **`hub.push(..., force=True)`** resends a frame equal to the last push, for a hub correcting a
+  value the phone changed.
+
 ## [0.19.0] — 2026-11-06
 
 Hubs can drive the app's new controls: confirmations, paged lists, expanding groups and sheets.

@@ -51,3 +51,60 @@ def test_hello_without_credential_prints_the_qr_and_waits(tmp_path):
     assert "Scan this with the CAR-TER app" in r.stdout
     assert "Hubs -> Add Hub" not in r.stdout
     assert "No phone joined" in r.stdout and r.returncode == 1
+
+
+# ─── starter kits (carterkit new --template) ────────────────────────────────
+
+KIT_NAMES = list(scaffold.KITS)
+
+
+def test_list_names_every_kit(capsys):
+    assert cli.main(["new", "--list"]) == 0
+    out = capsys.readouterr().out
+    assert len(KIT_NAMES) >= 6
+    for name in KIT_NAMES:
+        assert name in out
+
+
+def test_every_kit_is_packaged():
+    from importlib.resources import files
+    root = files("carterkit") / "scaffold_templates" / "kits"
+    assert sorted(p.name for p in root.iterdir() if p.is_dir()) == sorted(KIT_NAMES)
+
+
+@pytest.mark.parametrize("kit", KIT_NAMES)
+def test_template_writes_the_kit(tmp_path, capsys, kit):
+    d = tmp_path / "my-kit"
+    assert cli.main(["new", str(d), "--template", kit]) == 0
+    assert "python hub.py" in capsys.readouterr().out
+    for f in ("layout.json", "hub.py", "README.md", ".gitignore", ".vscode/settings.json",
+              "secrets/.gitignore"):
+        assert (d / f).is_file(), f
+    assert not (d / "hello.py").exists()
+    text = "".join((d / f).read_text() for f in ("layout.json", "hub.py", "README.md"))
+    assert "__NAME__" not in text and "__ID__" not in text
+    assert json.loads((d / "layout.json").read_text())["id"] == "my-kit"
+    readme = (d / "README.md").read_text()
+    assert readme.startswith("# my-kit") and "python hub.py" in readme and "Change first" in readme
+    py_compile.compile(str(d / "hub.py"), doraise=True)
+
+
+@pytest.mark.parametrize("kit", KIT_NAMES)
+def test_kit_layout_validates_clean(tmp_path, capsys, kit):
+    d = tmp_path / "k"
+    scaffold.scaffold(str(d), template=kit)
+    assert cli.main(["validate", str(d / "layout.json")]) == 0
+    assert "No issues found" in capsys.readouterr().out
+
+
+def test_unknown_template_refused(tmp_path, capsys):
+    d = tmp_path / "x"
+    assert cli.main(["new", str(d), "--template", "nope"]) == 1
+    assert "no starter kit 'nope'" in capsys.readouterr().err and not d.exists()
+    with pytest.raises(ValueError):
+        scaffold.scaffold(str(d), template="nope")
+
+
+def test_new_without_name_or_list_is_usage_error(capsys):
+    assert cli.main(["new"]) == 2
+    assert "--list" in capsys.readouterr().err

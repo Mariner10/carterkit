@@ -264,12 +264,20 @@ def _cmd_start(args) -> int:
 
 def _cmd_new(args) -> int:
     from . import scaffold
+    if args.list:
+        print("\n".join(scaffold.list_lines()))
+        print("carterkit new <name> --template <kit>")
+        return 0
+    if not args.name:
+        print("carterkit new: give a directory name (or --list for the starter kits)", file=sys.stderr)
+        return 2
     try:
-        scaffold.scaffold(args.name)
-    except FileExistsError as e:
+        scaffold.scaffold(args.name, template=args.template)
+    except (FileExistsError, ValueError) as e:
         print(f"carterkit new: {e}", file=sys.stderr)
         return 1
-    print(f"created {args.name}/  -> cd {args.name} && python hello.py  (then scan the QR with the app)")
+    entry = "hub.py" if args.template else "hello.py"
+    print(f"created {args.name}/  -> cd {args.name} && python {entry}  (then scan the QR with the app)")
     return 0
 
 
@@ -432,8 +440,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help="keep the file's layout in the phone's layouts (default: linked, transient)")
     c.set_defaults(fn=_cmd_repl)
 
-    c = sub.add_parser("new", help="scaffold a starter project (hello.py, secrets/, VS Code settings)")
-    c.add_argument("name", help="directory to create (must not exist or be empty)")
+    c = sub.add_parser("new", help="scaffold a starter project (hello.py, or a starter kit with "
+                       "--template), secrets/, VS Code settings")
+    c.add_argument("name", nargs="?", help="directory to create (must not exist or be empty)")
+    c.add_argument("--template", "-t", metavar="KIT", default=None,
+                   help="a starter kit: layout.json + hub.py + README (see --list)")
+    c.add_argument("--list", action="store_true", help="list the starter kits")
     c.set_defaults(fn=_cmd_new)
 
     c = sub.add_parser("share", help="serve a layout for 10 minutes and show a QR to import it")
