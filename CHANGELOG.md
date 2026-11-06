@@ -7,7 +7,8 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
-- **Hub surfaces:** `hub.progress(...)` (a `Progress` handle: `update`, `pause`, `finish`, `fail`,
+- **Hub surfaces** (the app draws them from its next release, CAR-TER aif-qs8b0.16-.22; an app
+  without them ignores these frames): `hub.progress(...)` (a `Progress` handle: `update`, `pause`, `finish`, `fail`,
   `cancelled_ok`, `cancelled`, `on_cancel`), `hub.toast(...)`, `hub.haptic(...)` and `hub.log(...)`
   (a `LogStream` with a `logging` handler), from `carterkit/hub_surfaces.py`. Progress updates
   coalesce to 4 frames/s with a stale heartbeat, log lines are paced at 200/s, running tasks and
