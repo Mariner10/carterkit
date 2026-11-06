@@ -676,8 +676,8 @@ class CarterClient:
                 self.dropped["e2ee_open"] += 1
                 log.warning("dropped undecryptable frame: %s", exc)
                 return None
-            # The relay stamps the sender's name on the OUTER frame; it knows who sent
-            # it, whereas the sealed `_from` is only the sender's own claim. Prefer it.
+            # MeshSocket >= 0.4.0 relays stamp a ROUTED frame's outer `_from` with the sender's
+            # authenticated name (not broadcasts; older relays pass the sender's own). Prefer it.
             if isinstance(data, dict) and isinstance(payload.get("_from"), str):
                 data["_from"] = payload["_from"]
             return data
