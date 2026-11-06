@@ -96,6 +96,39 @@ def _cmd_validate(args) -> int:
     return 1 if any(f["severity"] == "error" for f in findings) else 0
 
 
+def _cmd_tutorial(args) -> int:
+    from . import tutorials
+    try:
+        if args.start:
+            tid, dest = args.start
+            written = tutorials.start(tid, dest)
+            print(f"Started {tid} in {dest}/ ({', '.join(written[:3])}, ...)")
+            print(f"Follow the steps: carterkit tutorial steps {tid}")
+            print(f"Check your work: carterkit tutorial --check {tid} --step N --dir {dest}")
+            return 0
+        if args.check:
+            if args.step is None:
+                print("--check needs --step N (the step you just finished)", file=sys.stderr)
+                return 2
+            text, ok = tutorials.check_text(args.check, args.step, args.dir)
+            print(text)
+            return 0 if ok else 1
+        words = args.words or ["list"]
+        if words[0] == "list" and len(words) == 1:
+            print("\n".join(tutorials.list_lines()))
+            return 0
+        tid = words[1] if words[0] == "steps" and len(words) == 2 else (words[0] if len(words) == 1 else None)
+        if tid is None:
+            print("usage: carterkit tutorial [list | steps ID | ID] | --start ID DIR | --check ID --step N",
+                  file=sys.stderr)
+            return 2
+        print(tutorials.steps_text(tid))
+        return 0
+    except (tutorials.TutorialError, FileExistsError, ValueError) as e:
+        print(f"carterkit tutorial: {e}", file=sys.stderr)
+        return 1
+
+
 def _cmd_gen(args) -> int:
     import carterkit
     with open(args.file) as f:
@@ -447,6 +480,17 @@ def build_parser() -> argparse.ArgumentParser:
                    help="a starter kit: layout.json + hub.py + README (see --list)")
     c.add_argument("--list", action="store_true", help="list the starter kits")
     c.set_defaults(fn=_cmd_new)
+
+    c = sub.add_parser("tutorial", help="step-by-step tutorials with checks (list, steps ID, "
+                       "--start ID DIR, --check ID --step N)")
+    c.add_argument("words", nargs="*", metavar="list|steps ID|ID",
+                   help="`list` (default), `steps ID`, or just an ID, to read a tutorial")
+    c.add_argument("--start", nargs=2, metavar=("ID", "DIR"),
+                   help="scaffold the tutorial's starter kit as it stands before step 1")
+    c.add_argument("--check", metavar="ID", help="run steps 1 to --step N's checks against the fake hub")
+    c.add_argument("--step", type=int, metavar="N", help="with --check: the last step to check")
+    c.add_argument("--dir", default=".", help="with --check: the project folder (default .)")
+    c.set_defaults(fn=_cmd_tutorial)
 
     c = sub.add_parser("share", help="serve a layout for 10 minutes and show a QR to import it")
     c.add_argument("file", help="layout JSON file")

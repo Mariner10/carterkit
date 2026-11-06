@@ -1,6 +1,5 @@
 """Each starter kit's hub.py imports and its handlers answer a fake hub (no relay, no phone)."""
 import asyncio
-import importlib.util
 import json
 import os
 import subprocess
@@ -10,55 +9,28 @@ import pytest
 
 from carterkit import Layout, scaffold
 from carterkit.livefile import LiveFile
-from test_hub import _FakeSock
-
-
-class _PhoneSock(_FakeSock):
-    """One phone on the channel; it answers confirm prompts with `answer` and accepts sheets."""
-
-    def __init__(self, holder, answer="confirm"):
-        super().__init__()
-        self.holder, self.answer = holder, answer
-
-    async def request(self, t, payload=None, timeout=5.0):
-        self.sent.append(("REQ:" + t, payload))
-        if t == "get_nodes":
-            return {"clients": [{"id": "dev1", "name": "phone"}]}
-        if t == "route_msg" and payload["type"] == "prompt":
-            pid = payload["payload"]["id"]
-            reply = {"msg_type": "prompt_reply", "id": pid, "choice": self.answer}
-            asyncio.get_running_loop().call_later(
-                0.01, lambda: asyncio.ensure_future(self.holder[0]._dispatch(reply)))
-            return {"ok": True, "queued": 0}
-        if t == "route_msg":
-            return {"ok": True}
-        return None
+from carterkit.testing import FakeHub, load_hub_module
 
 
 def _load(tmp_path, kit, answer="confirm"):
     d = tmp_path / kit
     scaffold.scaffold(str(d), template=kit)
-    spec = importlib.util.spec_from_file_location(f"kit_{kit.replace('-', '_')}", d / "hub.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    mod = load_hub_module(d / "hub.py", f"kit_{kit.replace('-', '_')}")
     assert all(f["severity"] != "error" for f in mod.ui.validate())
-    hub = mod.ui.serve()
-    hub.client._sock = _PhoneSock([hub], answer)
-    return mod, hub
+    fake = FakeHub(mod.ui, answer=answer)
+    return mod, fake
 
 
-def _frames(hub, msg_type=None):
-    out = [p for t, p in hub.client._sock.sent if t == "broadcast_request"]
-    return [p for p in out if msg_type is None or p.get("msg_type") == msg_type]
+def _frames(fake, msg_type=None):
+    return fake.frames(msg_type)
 
 
-def _routed(hub, kind):
-    return [p["payload"] for t, p in hub.client._sock.sent
-            if t == "REQ:route_msg" and p["type"] == kind]
+def _routed(fake, kind):
+    return fake.routed(kind)
 
 
-async def _start(mod, hub):
-    task = asyncio.create_task(mod.run(hub))
+async def _start(mod, fake):
+    task = asyncio.create_task(mod.run(fake.hub))
     await asyncio.sleep(0.02)
     return task
 
@@ -76,12 +48,12 @@ def test_paged_cards_pages_searches_and_answers_taps(tmp_path):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "cards_pages", "offset": 0, "limit": 20,
+        await hub.dispatch({"msg_type": "cards_pages", "offset": 0, "limit": 20,
                              "cursor": None, "query": "", "req": "r1"})
-        await hub._dispatch({"msg_type": "cards_pages", "offset": 0, "limit": 20,
+        await hub.dispatch({"msg_type": "cards_pages", "offset": 0, "limit": 20,
                              "cursor": None, "query": "item 12", "req": "r2"})
-        await hub._dispatch({"msg_type": "card_star", "id": "item-3"})
-        await hub._dispatch({"msg_type": "card_open", "id": "item-3"})
+        await hub.dispatch({"msg_type": "card_star", "id": "item-3"})
+        await hub.dispatch({"msg_type": "card_open", "id": "item-3"})
         await _stop(task)
     asyncio.run(go())
     first, search = _frames(hub, "cards_page")
@@ -100,7 +72,7 @@ def test_confirm_delete_asks_first(tmp_path, answer):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "thing_delete", "id": "thing-2"})
+        await hub.dispatch({"msg_type": "thing_delete", "id": "thing-2"})
         await _stop(task)
     asyncio.run(go())
     (prompt,) = _routed(hub, "prompt")
@@ -120,9 +92,9 @@ def test_confirm_delete_all_and_restore(tmp_path):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "things_clear"})
+        await hub.dispatch({"msg_type": "things_clear"})
         assert mod.things == []
-        await hub._dispatch({"msg_type": "things_restore"})
+        await hub.dispatch({"msg_type": "things_restore"})
         await _stop(task)
     asyncio.run(go())
     assert len(_routed(hub, "prompt")) == 1 and len(mod.things) == 6
@@ -136,14 +108,14 @@ def test_live_dashboard_streams_and_resets(tmp_path):
     async def go():
         task = await _start(mod, hub)
         await asyncio.sleep(0.05)
-        await hub._dispatch({"msg_type": "reset"})
+        await hub.dispatch({"msg_type": "reset"})
         await _stop(task)
     asyncio.run(go())
     levels = [f["level"] for f in _frames(hub, "metrics")]
     assert len(levels) >= 3 and all(0 <= v <= 100 for v in levels)
     assert 50.0 in levels
     assert all(f["text"].startswith(tuple("0123456789")) for f in _frames(hub, "readout"))
-    gauge, trend = hub._index["level"], hub._index["trend"]
+    gauge, trend = hub.hub._index["level"], hub.hub._index["trend"]
     assert gauge["sync"][0]["filter"] == trend["sync"][0]["filter"]   # one push, both move
 
 
@@ -153,9 +125,9 @@ def test_hub_form_saves_and_refuses(tmp_path):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "form_submit", "form": good})
-        await hub._dispatch({"msg_type": "form_submit", "form": dict(good, name="example")})
-        await hub._dispatch({"msg_type": "form_submit", "form": dict(good, name="Other", count=40)})
+        await hub.dispatch({"msg_type": "form_submit", "form": good})
+        await hub.dispatch({"msg_type": "form_submit", "form": dict(good, name="example")})
+        await hub.dispatch({"msg_type": "form_submit", "form": dict(good, name="Other", count=40)})
         await _stop(task)
     asyncio.run(go())
     assert mod.entries == [{"name": "Example", "count": 3, "choice": "Option B", "urgent": "Yes"}]
@@ -163,7 +135,7 @@ def test_hub_form_saves_and_refuses(tmp_path):
     status = [f["text"] for f in _frames(hub, "form_status")]
     assert status == ["Saved Example (1 so far)", "Not saved: example is already in the list",
                       "Not saved: Count must be 1 to 10"]
-    submit = hub._index["entry-form"]["form"]["submit"]
+    submit = hub.hub._index["entry-form"]["form"]["submit"]
     assert submit["payload"] == {"msg_type": "form_submit", "form": "{{form}}"}
 
 
@@ -175,17 +147,17 @@ def test_scaled_grid_scale_and_hub_sheet(tmp_path):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "slot_power", "slot": "b2", "value": True})
-        await hub._dispatch({"msg_type": "slot_open", "slot": "b2"})
-        await hub._dispatch({"msg_type": "sheet_done", "sheet": "card-b2"})
-        await hub._dispatch({"msg_type": "sheet_closed", "id": "card-b2", "reason": "hub"})
+        await hub.dispatch({"msg_type": "slot_power", "slot": "b2", "value": True})
+        await hub.dispatch({"msg_type": "slot_open", "slot": "b2"})
+        await hub.dispatch({"msg_type": "sheet_done", "sheet": "card-b2"})
+        await hub.dispatch({"msg_type": "sheet_closed", "id": "card-b2", "reason": "hub"})
         await _stop(task)
     asyncio.run(go())
     opened, closed = _routed(hub, "sheet")
     assert opened["id"] == "card-b2" and opened["style"] == "sheet" and opened["title"] == "Card B2"
     assert opened["group"]["type"] == "group"
     assert [c["text"] for c in opened["group"]["children"] if c["type"] == "label"] == ["B2", "On"]
-    assert closed == {"id": "card-b2", "close": True, "from": hub.name}
+    assert closed == {"id": "card-b2", "close": True, "from": hub.hub.name}
     status = [f["text"] for f in _frames(hub, "grid_status")]
     assert status == ["B2 is on", "Opened card B2", "Closed card-b2 (hub)"]
 
@@ -195,9 +167,9 @@ def test_remote_hub_owns_the_state(tmp_path):
 
     async def go():
         task = await _start(mod, hub)
-        await hub._dispatch({"msg_type": "set_volume", "value": 95})
-        await hub._dispatch({"msg_type": "set_power", "value": False})
-        await hub._dispatch({"msg_type": "set_brightness", "value": 10})
+        await hub.dispatch({"msg_type": "set_volume", "value": 95})
+        await hub.dispatch({"msg_type": "set_power", "value": False})
+        await hub.dispatch({"msg_type": "set_brightness", "value": 10})
         await _stop(task)
     asyncio.run(go())
     assert mod.STATE == {"power": False, "mute": False, "volume": 80, "brightness": 70}
@@ -260,8 +232,8 @@ def test_push_force_resends_an_identical_frame(tmp_path):
     mod, hub = _load(tmp_path, "remote")
 
     async def go():
-        await hub.push("volume", 30)
-        await hub.push("volume", 30)                       # skipped: same as the last push
-        await hub.push("volume", 30, force=True)
+        await hub.hub.push("volume", 30)
+        await hub.hub.push("volume", 30)                       # skipped: same as the last push
+        await hub.hub.push("volume", 30, force=True)
     asyncio.run(go())
     assert len(_frames(hub, "volume_state")) == 2

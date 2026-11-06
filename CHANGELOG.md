@@ -13,6 +13,14 @@ All notable changes to **carterkit** are documented here. This project follows
   `carterkit new --list` names them.
 - **`Layout.load(path_or_dict)`** wraps a saved layout JSON as a `Layout` to serve, validate and
   push; a live file (`python hub.py`, `carterkit repl hub.py`) also watches the loaded JSON.
+- **`carterkit tutorial`**: `list`, `steps <id>`, `--start <id> <dir>` (the tutorial's starter kit as it
+  stands before step 1) and `--check <id> --step N` (steps 1 to N's checks against your project, run on
+  the fake hub). The tutorials (`first-layout`, `first-hub`, `live-dashboard`) are vendored from the
+  CAR-TER docs into `carterkit/tutorials/`, pinned by its `SOURCE`; `sync_controldocs.py --dest
+  carterkit/tutorials` refreshes them. The `remote` and `live-dashboard` kits mark each step's code with
+  `# tutorial: name` / `# end: name`.
+- **`carterkit.testing.FakeHub`**: the starter kits' test fake as a public helper (`dispatch`, `frames`,
+  `routed`, `running(run)`, a phone that answers `hub.confirm`), plus `load_hub_module(path)`.
 - **`hub.push(..., force=True)`** resends a frame equal to the last push, for a hub correcting a
   value the phone changed.
 

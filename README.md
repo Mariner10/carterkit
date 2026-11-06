@@ -89,6 +89,24 @@ cd cards && python hub.py                     # QR once, then it is live on the 
 `.carterkit/session.json`), `secrets/hub.json` for Connect+, and every save of `hub.py`
 or `layout.json` pushed to the phone. `carterkit repl hub.py` adds a live prompt.
 
+## Tutorials in the terminal
+
+Step-by-step tutorials with a check per step, vendored from the CAR-TER docs
+(`dev-guide/tutorials/`). A code tutorial ends exactly at a starter kit above.
+
+```bash
+carterkit tutorial                                  # the list: id, length, what you build
+carterkit tutorial steps first-hub                  # read it: each step's code and what you should see
+carterkit tutorial --start first-hub my-remote      # the kit as it stands before step 1
+carterkit tutorial --check first-hub --step 3 --dir my-remote   # steps 1 to 3's checks
+```
+
+`--check` loads your `hub.py` and `layout.json`, validates the layout and runs each step's check against
+`carterkit.testing.FakeHub`: the same hub on a recording socket, with no relay and no phone, that you can use
+in your own tests (`FakeHub(ui).dispatch(frame)`, `.frames("msg_type")`, `async with fake.running(run)`).
+`carterkit/scripts/sync_controldocs.py --dest carterkit/tutorials` refreshes the vendored files at the commit
+pinned in `carterkit/tutorials/SOURCE`.
+
 ## Build a layout
 
 Controls are **methods on the layout**, ids are positional, tabs and groups are context
@@ -471,6 +489,7 @@ carterkit repl hello.py           # live prompt with the hub connected, controls
 carterkit catalog                 # list every control type
 carterkit doc gauge               # print a control's documentation
 carterkit examples button         # list a control's examples (--name to print one)
+carterkit tutorial [steps ID | --start ID DIR | --check ID --step N]   # tutorials with checks
 carterkit validate layout.json    # lint a layout (exit 1 on errors)
 carterkit gen layout.json         # generate a runnable Hub server stub
 carterkit explore layout.json     # live, typed endpoint explorer (--device, --lan, --port)

@@ -9,12 +9,15 @@ VOLUME_LIMIT), keeps the result in STATE and sends every value back, so a refuse
 clamped change snaps the control back to the hub's value. push(..., force=True) resends
 a value even when it equals the hub's last push: the phone moved it, the hub corrects it.
 """
+# tutorial: load
 from pathlib import Path
 
 from carterkit import Layout
 
 ui = Layout.load(Path(__file__).with_name("layout.json"))
+# end: load
 
+# tutorial: state
 DEFAULTS = {"power": True, "mute": False, "volume": 30, "brightness": 70}
 VOLUME_LIMIT = 80
 STATE = dict(DEFAULTS)
@@ -29,8 +32,10 @@ def level(value, top: int = 100) -> int:
         return max(0, min(top, round(float(value))))
     except (TypeError, ValueError):
         return 0
+# end: state
 
 
+# tutorial: rules
 def apply(key: str, value) -> str:
     """The hub's rules: change STATE[key] (or refuse) and say what happened.
     Your device goes here: send the command, then keep what it reports."""
@@ -50,8 +55,10 @@ def apply(key: str, value) -> str:
         return f"Volume {STATE['volume']}"
     STATE["brightness"] = level(value)
     return f"Brightness {STATE['brightness']}"
+# end: rules
 
 
+# tutorial: echo
 async def send_state(hub, status: str) -> None:
     """Every control gets the hub's value, even one the phone just moved."""
     for key, value in STATE.items():
@@ -59,6 +66,13 @@ async def send_state(hub, status: str) -> None:
     await hub.push("status", status)
 
 
+async def reset(hub, frame) -> None:
+    STATE.update(DEFAULTS)
+    await send_state(hub, "Back to the defaults")
+# end: echo
+
+
+# tutorial: listen
 async def run(hub):
     """Handlers; restarted on every save."""
     for key in DEFAULTS:
@@ -66,12 +80,9 @@ async def run(hub):
             return send_state(hub, apply(key, frame.get("value")))
         hub.on(key, handler)              # the control's action: set_power, set_volume, ...
 
-    @hub.on("reset")
-    async def reset(frame):
-        STATE.update(DEFAULTS)
-        await send_state(hub, "Back to the defaults")
-
+    hub.on("reset", lambda frame: reset(hub, frame))
     await send_state(hub, "Ready")
+# end: listen
 
 
 if __name__ == "__main__":

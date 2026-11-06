@@ -1,0 +1,33 @@
+{
+  "name": "My first layout",
+  "id": "first-layout-tutorial",
+  "version": 1,
+  "sources": {
+    "db": {
+      "type": "local",
+      "namespace": "first-layout",
+      "collections": {
+        "level": { "singleton": true, "fields": { "level": "number" }, "defaults": { "level": 0 } }
+      }
+    }
+  },
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "gauge.medium",
+      "grid": { "columns": 2, "rows": 4 },
+      "children": [
+        {
+          "type": "gauge", "id": "dial", "position": [0, 0], "span": [2, 2],
+          "label": "My dial", "min": 0, "max": 10,
+          "sync": [{ "method": "local", "collection": "level", "valuePath": "level" }]
+        },
+        {
+          "type": "slider", "id": "knob", "position": [2, 0], "span": [1, 2],
+          "label": "Level", "min": 0, "max": 10,
+          "action": { "method": "local", "op": "set", "collection": "level", "set": { "level": "{{value}}" } }
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,12 @@ SOURCE is a text file of `key: value` / `key=value` lines (# comments ok):
   repo:   git URL or local path of the CAR-TER checkout
   commit: the pinned commit sha
   path:   directory inside the repo holding the docs (default ControlDocs)
+  index:  `frontmatter` also writes index.json: every *.md's YAML frontmatter keyed by
+          its `id` (the tutorials use it so carterkit needs no YAML parser at runtime;
+          generating it needs PyYAML: `uv run --with pyyaml ...`)
+
+Also vendors tutorials: --dest carterkit/tutorials (SOURCE there pins the CAR-TER-workspace
+repo, path dev-guide/tutorials).
 
 Default: copy the pinned files into carterkit/controldocs.
 --check: change nothing; exit 1 if the vendored tree differs from the pin.
@@ -62,6 +68,23 @@ def fetch_pinned(src: dict, work: Path) -> dict[str, bytes]:
             for n in names if n}
 
 
+def frontmatter_index(files: dict[str, bytes]) -> bytes:
+    """index.json: {id: frontmatter} for every markdown file that has frontmatter."""
+    import json
+    import re
+    try:
+        import yaml
+    except ImportError:
+        sys.exit("SOURCE says `index: frontmatter`; that needs PyYAML (uv run --with pyyaml)")
+    index = {}
+    for name in sorted(files):
+        m = name.endswith(".md") and re.match(r"---\n(.*?)\n---\n", files[name].decode(), re.S)
+        if m:
+            meta = yaml.safe_load(m.group(1)) or {}
+            index[str(meta.get("id", Path(name).stem))] = meta
+    return (json.dumps(index, indent=1, ensure_ascii=False) + "\n").encode()
+
+
 def local_files(dest: Path) -> dict[str, bytes]:
     return {str(p.relative_to(dest)): p.read_bytes()
             for p in sorted(dest.rglob("*"))
@@ -79,6 +102,8 @@ def main(argv=None) -> int:
     src = read_source(args.dest)
     with tempfile.TemporaryDirectory() as tmp:
         want = fetch_pinned(src, Path(tmp))
+    if src.get("index") == "frontmatter":
+        want["index.json"] = frontmatter_index(want)
     have = local_files(args.dest)
 
     added = sorted(set(want) - set(have))

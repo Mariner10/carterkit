@@ -15,4 +15,5 @@ prune build
 prune dist
 global-exclude *.py[cod] __pycache__ .DS_Store
 recursive-include carterkit/scaffold_templates *
+recursive-include carterkit/tutorials *.md *.json
 recursive-include carterkit/explore_assets *

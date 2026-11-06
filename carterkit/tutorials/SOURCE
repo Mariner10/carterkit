@@ -1,0 +1,7 @@
+# Tutorials source pin (read by carterkit/scripts/sync_controldocs.py --dest carterkit/tutorials)
+# carterkit renders tutorials; it never authors them. Re-pin: set commit, then run
+#   uv run --with pyyaml python carterkit/scripts/sync_controldocs.py --dest carterkit/tutorials
+repo: http://10.10.10.5:3000/Mariner10/CAR-TER-workspace.git
+path: dev-guide/tutorials
+index: frontmatter
+commit: a0d9f9e67ee8d84977e35989f6cbabde47b86fa4
