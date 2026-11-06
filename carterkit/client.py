@@ -351,6 +351,11 @@ def device_refresh_http(validator_url, device_id, refresh_token, *, timeout=10,
         raise CarterNotifyError(e.code, e.read().decode(errors="replace")) from None
 
 
+#: The relay-only sender key (MeshSocket >= 0.4.1): set by the relay on routed payloads and
+#: stripped from every payload it forwards, so only the relay can put it there. `_open` keeps
+#: it from beside a sealed frame's ciphertext and drops a copy sealed inside.
+RELAY_SENDER_KEY = "_relayFrom"
+
 #: Frames the relay itself emits (or answers) in plaintext even inside an E2EE room.
 #: Always passed through `_open` untouched, whatever `strict_e2ee` says.
 _RELAY_CONTROL_TYPES = frozenset({
@@ -677,10 +682,20 @@ class CarterClient:
                 self.dropped["e2ee_open"] += 1
                 log.warning("dropped undecryptable frame: %s", exc)
                 return None
-            # MeshSocket >= 0.4.0 relays stamp a ROUTED frame's outer `_from` with the sender's
-            # authenticated name (not broadcasts; older relays pass the sender's own). Prefer it.
-            if isinstance(data, dict) and isinstance(payload.get("_from"), str):
-                data["_from"] = payload["_from"]
+            if isinstance(data, dict):
+                # Reply addressing: MeshSocket >= 0.4.0 relays stamp a ROUTED frame's outer
+                # `_from` with the sender's relay name; on a broadcast it is whatever the peer
+                # wrote there (acks match it). Prefer it for `to`, never as proof of who sent.
+                if isinstance(payload.get("_from"), str):
+                    data["_from"] = payload["_from"]
+                # Who sent it: the relay-only key (MeshSocket >= 0.4.1) beside the ciphertext. The
+                # relay sets it on routed frames and strips a peer's copy from everything it
+                # forwards; a copy sealed inside is the peer's own claim and is dropped.
+                relay_from = payload.get(RELAY_SENDER_KEY)
+                if isinstance(relay_from, str):
+                    data[RELAY_SENDER_KEY] = relay_from
+                else:
+                    data.pop(RELAY_SENDER_KEY, None)
             return data
         if isinstance(payload, dict) and payload.get("type") in _RELAY_CONTROL_TYPES:
             return payload

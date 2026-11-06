@@ -90,6 +90,21 @@ def test_on_handler_decrypts_and_seals_reply():
     asyncio.run(run())
 
 
+def test_open_keeps_only_the_relays_sender_key():
+    # MeshSocket 0.4.1: `_relayFrom` beside the ciphertext is the relay's; a sealed copy is the
+    # peer's own claim. Outer `_from` still wins for reply addressing (acks), as in 0.4.0.
+    c = _client()
+    peer = E2EESession(bytes([1]) * 32, is_device_side=False)
+    env = peer.seal({"msg_type": "x", "_from": "inner", "_relayFrom": "forged"})
+    routed = c._open({**env, "_from": "phone", "_relayFrom": "phone"})
+    assert routed["_relayFrom"] == "phone" and routed["_from"] == "phone"
+    env = peer.seal({"msg_type": "x", "_from": "inner", "_relayFrom": "forged"})
+    broadcast = c._open({**env, "_from": "Phone"})      # a broadcast: the relay stripped the key
+    assert "_relayFrom" not in broadcast and broadcast["_from"] == "Phone"
+    env = peer.seal({"msg_type": "x"})
+    assert "_relayFrom" not in c._open({**env, "_relayFrom": 7})
+
+
 def test_cleartext_when_no_key():
     async def run():
         c = _client(key=None)
