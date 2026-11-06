@@ -258,6 +258,11 @@ def _make_field(raw: dict[str, str]) -> dict:
         # Per-field `group:` nests the field under a config object (e.g.
         # `sortboardConfig`) — mirrored from the Swift loader's makeField.
         field["group"] = raw["group"]
+    # The settings taxonomy (aif-8whty.19): a doc names a field's category only where the shared
+    # lists are wrong for it, and `chip:` opens the control's own chip on the editor bar.
+    for key in ("category", "chip"):
+        if raw.get(key):
+            field[key] = raw[key]
     return field
 
 
@@ -649,6 +654,117 @@ def use_errors(docs_dir) -> list[str]:
             errors = [f"a shared entry cannot use: another ({e})" for e in errors]
         out += [f"{rel}: {e}" for e in errors]
     return out
+
+
+# ─── The settings taxonomy (app bead aif-8whty.19) ───────────────────────────
+#
+# shared-fields.md's `chips:`, `categories:`, `internal:` and `canvas:`: every field of every control resolves to
+# one category, every category has one home in the control editor (a shared chip, the control's own chip, the
+# Binding view, the canvas, or none). Mirrors ControlDocLoader.taxonomy (SettingsTaxonomy.swift) and
+# scripts/settings-taxonomy.py's `classify`.
+
+TAXONOMY_CHIP_KEYS = ("tap", "petals", "categories")
+TAXONOMY_CATEGORY_KEYS = ("fields", "theme", "groups", "suffixes", "prefixes", "types")
+
+
+def _strings(value) -> list[str]:
+    return [str(v).strip() for v in value] if isinstance(value, list) else []
+
+
+def parse_taxonomy(content: str) -> dict:
+    """The taxonomy sections of a shared-fields.md text: {chips, categories, internal, canvas}. Chips come sorted
+    by `order` (an int), `always` is a bool, the name lists are lists of strings, and each entry keeps its version
+    pins. Empty lists when the sections are absent."""
+    fm = resolved_frontmatter(content, {}) or {}
+    chips = []
+    for raw in fm.get("chips") or []:
+        if not isinstance(raw, dict) or not str(raw.get("name", "")).strip():
+            continue
+        chip = {"name": raw["name"], "title": raw.get("title", ""), "icon": raw.get("icon", ""),
+                "order": int(raw["order"]) if str(raw.get("order", "")).isdigit() else 99,
+                "always": raw.get("always") == "true",
+                "petalTitles": raw["petalTitles"] if isinstance(raw.get("petalTitles"), dict) else {}}
+        chip.update({k: _strings(raw.get(k)) for k in TAXONOMY_CHIP_KEYS})
+        chip.update(_pins(raw.get))
+        chips.append(chip)
+    categories = []
+    for raw in fm.get("categories") or []:
+        if not isinstance(raw, dict) or not str(raw.get("name", "")).strip():
+            continue
+        cat = {"name": raw["name"], "title": raw.get("title", "")}
+        if raw.get("home"):
+            cat["home"] = raw["home"]
+        cat.update({k: _strings(raw.get(k)) for k in TAXONOMY_CATEGORY_KEYS})
+        cat.update(_pins(raw.get))
+        categories.append(cat)
+    return {"chips": sorted(chips, key=lambda c: c["order"]), "categories": categories,
+            "internal": _strings(fm.get("internal")), "canvas": _strings(fm.get("canvas"))}
+
+
+def load_taxonomy(docs_dir) -> dict:
+    """The taxonomy of `docs_dir`/shared-fields.md (empty lists when it is absent)."""
+    path = Path(docs_dir) / SHARED_DOC
+    return parse_taxonomy(path.read_text() if path.is_file() else "")
+
+
+def _matches(pattern: str, name: str) -> bool:
+    """`*Config` matches a name ending so, `show*` one starting so, anything else the name itself."""
+    if pattern.startswith("*"):
+        return len(name) >= len(pattern) and name.endswith(pattern[1:])
+    if pattern.endswith("*"):
+        return len(name) >= len(pattern) and name.startswith(pattern[:-1])
+    return pattern == name
+
+
+def taxonomy_home(taxonomy: dict, category: str) -> str:
+    """A category's home: the shared chip that lists it, else its `home:` (control, binding, none)."""
+    for chip in taxonomy["chips"]:
+        if category in chip["categories"]:
+            return chip["name"]
+    for cat in taxonomy["categories"]:
+        if cat["name"] == category:
+            return cat.get("home", "none")
+    return "none"
+
+
+def field_category(taxonomy: dict, raw: dict, theme: bool = False, containers=frozenset()) -> str:
+    """The category of one raw field entry (`theme`: a themeFields entry; `containers`: the objects the doc's
+    grouped fields nest under), by the rules in shared-fields.md "The editor's chips and categories"."""
+    name, typ = raw.get("name", ""), raw.get("type", "string")
+    cats = taxonomy["categories"]
+    if raw.get("category"):
+        return raw["category"]
+    if theme:
+        return next((c["name"] for c in cats if name in c["theme"]), "colour" if typ == "color" else "look")
+    if raw.get("effect") == "deprecated" or raw.get("deprecated") or raw.get("removed"):
+        return "internal"
+    if raw.get("group"):
+        hit = next((c["name"] for c in cats if raw["group"] in c["groups"]), None)
+        if hit:
+            return hit
+    if typ == "object" and name in containers and not raw.get("edit"):
+        return "internal"
+    hit = next((c["name"] for c in cats if name in c["fields"]), None)
+    if hit:
+        return hit
+    for c in cats:
+        if typ in c["types"] or any(name.endswith(x) for x in c["suffixes"]) or any(name.startswith(x) for x in c["prefixes"]):
+            return c["name"]
+    if typ == "bool":
+        return "behaviour"
+    if typ == "number":
+        return "look" if raw.get("tab") == "style" or raw.get("edit") in ("scrub", "look") else "behaviour"
+    if typ == "enum":
+        return "look" if raw.get("edit") == "look" or raw.get("tab") == "style" else "behaviour"
+    return "content"
+
+
+def is_internal(taxonomy: dict, raw: dict, theme: bool = False) -> bool:
+    """On the `internal:` list: no editor home, on purpose (a plain name a top-level key, a `*` pattern any)."""
+    if theme:
+        return False
+    name = raw.get("name", "")
+    return any(_matches(p, name) if "*" in p else (not raw.get("group") and p == name) for p in taxonomy["internal"])
 
 
 def parse_doc(content: str, node_id: str, shared: Optional[dict] = None) -> Optional[dict]:
