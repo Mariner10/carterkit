@@ -5,10 +5,6 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
-## [0.20.0] — 2026-11-06
-
-Start from a working project and learn as you go: six starter kits, `carterkit tutorial`, `carterkit codegen` for the hub side of any layout, each control's `io:` (what it sends and receives) in `doc` and `validate`, colour roles, the settings taxonomy, and the hub surfaces API (progress, toast, haptic, log; drawn by the app from its next release).
-
 ### Added
 
 - Editor profiles (CAR-TER aif-qs8b0.11.1): `catalog.parse_profiles` / `load_profiles` read the app's
@@ -17,6 +13,13 @@ Start from a working project and learn as you go: six starter kits, `carterkit t
   unknown category, chip, field id, Binding card, canvas verb or control type, and `catalog.profile_manifest` gives
   the `categories`, `chips` and `profiles` lists CAR-TER's `scripts/gen-capabilities.py` writes into
   `capabilities.json`. The vendored ControlDocs gain `profiles.md` with the next sync.
+
+## [0.20.0] — 2026-11-06
+
+Start from a working project and learn as you go: six starter kits, `carterkit tutorial`, `carterkit codegen` for the hub side of any layout, each control's `io:` (what it sends and receives) in `doc` and `validate`, colour roles, the settings taxonomy, and the hub surfaces API (progress, toast, haptic, log; drawn by the app from its next release).
+
+### Added
+
 - The relay-only sender key: with MeshSocket 0.4.1 relays, an opened sealed frame carries
   `_relayFrom` (the sender's relay name, set by the relay beside the ciphertext on routed
   frames and stripped from everything else); a `_relayFrom` sealed inside by the peer is
