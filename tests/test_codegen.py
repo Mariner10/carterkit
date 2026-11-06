@@ -9,9 +9,52 @@ import subprocess
 import sys
 
 import pytest
-from test_starter_kits import _frames, _load, _PhoneSock, _routed, _start, _stop
+import types
 
 from carterkit import cli, codegen, scaffold
+from carterkit.testing import PhoneSock, load_hub_module
+
+
+class _PhoneSock(PhoneSock):
+    """carterkit.testing's phone socket for a bare hub (no FakeHub around it)."""
+
+    def __init__(self, hubs, answer="confirm"):
+        super().__init__(types.SimpleNamespace(hub=hubs[0]), answer)
+
+
+def _load(tmp_path, kit, answer="confirm"):
+    """Scaffold `kit` and serve its hand-written hub.py on the fake phone socket."""
+    d = tmp_path / kit
+    scaffold.scaffold(str(d), template=kit)
+    mod = load_hub_module(d / "hub.py", f"kit_{kit.replace('-', '_')}")
+    assert all(f["severity"] != "error" for f in mod.ui.validate())
+    hub = mod.ui.serve()
+    hub.client._sock = _PhoneSock([hub], answer)
+    return mod, hub
+
+
+def _frames(hub, msg_type=None):
+    out = [p for t, p in hub.client._sock.sent if t == "broadcast_request"]
+    return [p for p in out if msg_type is None or p.get("msg_type") == msg_type]
+
+
+def _routed(hub, kind):
+    return [p["payload"] for t, p in hub.client._sock.sent
+            if t == "REQ:route_msg" and p["type"] == kind]
+
+
+async def _start(mod, hub):
+    task = asyncio.create_task(mod.run(hub))
+    await asyncio.sleep(0.02)
+    return task
+
+
+async def _stop(task):
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 LAYOUT = {
     "name": "Rover", "version": 1,
