@@ -530,6 +530,15 @@ class HubSurfaces:
 
         sock.on_reconnect_callback = on_reconnect
 
+        # The phone coming back: the app broadcasts control_sync_request when a layout
+        # (re)joins. Resend what is running so a resumed task is not "unmentioned".
+        async def on_phone_back(_frame):
+            await self.resend_surfaces()
+
+        hooks = self.client._join_hooks
+        if on_phone_back not in hooks:
+            hooks.append(on_phone_back)
+
     async def resend_surfaces(self) -> int:
         """Resend every running task's full frame and every open log stream's title (not
         its lines): the app's resume rule. Called on every socket reconnect; callable by
@@ -562,6 +571,9 @@ class HubSurfaces:
         task = self._surface_state()["progress"].get(data.get("id"))
         if task is None:
             return
+        to = data.get("to")
+        if to is not None and to != self.name:
+            return              # another hub's task with the same id; older apps send no `to`
         choice = data.get("choice")
         if choice == "cancel":
             await task._on_cancel()

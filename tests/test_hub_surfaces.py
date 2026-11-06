@@ -228,6 +228,76 @@ def test_reconnect_resends_live_tasks_and_log_titles():
                  "hub": fake.hub.name, "from": fake.hub.name}
 
 
+def test_progress_reply_to_another_hub_is_ignored():
+    async def go():
+        fake = make()
+        t = await fake.hub.progress("Example", id="same", cancellable=True)
+        await fake.dispatch({"msg_type": "progress_reply", "id": "same", "choice": "cancel",
+                             "to": "some-other-hub"})
+        assert not t.cancelled
+        await fake.dispatch({"msg_type": "progress_reply", "id": "same", "choice": "cancel",
+                             "to": fake.hub.name})
+        assert t.cancelled
+    run(go())
+
+
+def test_progress_reply_without_to_still_acts_for_older_apps():
+    async def go():
+        fake = make()
+        t = await fake.hub.progress("Example", id="old", cancellable=True)
+        await fake.dispatch({"msg_type": "progress_reply", "id": "old", "choice": "cancel"})
+        assert t.cancelled
+    run(go())
+
+
+def test_two_hubs_same_task_id_only_the_named_one_cancels():
+    async def go():
+        a, b = make(), make()
+        b.hub.name = "other-hub"
+        ta = await a.hub.progress("A", id="task-7", cancellable=True)
+        tb = await b.hub.progress("B", id="task-7", cancellable=True)
+        reply = {"msg_type": "progress_reply", "id": "task-7", "choice": "cancel",
+                 "to": a.hub.name}
+        await a.dispatch(dict(reply))
+        await b.dispatch(dict(reply))
+        assert ta.cancelled and not tb.cancelled
+    run(go())
+
+
+def test_phone_coming_back_resends_tasks_and_log_titles():
+    async def go():
+        fake = make()
+        hub = fake.hub
+        t = await hub.progress("Example", total=10, done=4, id="b1", cancellable=True)
+        ended = await hub.progress("Finished", id="b2")
+        await ended.finish()
+        lg = hub.log("b-log", title="Example log", progress="b1")
+        await lg.info("not resent")
+        await lg.flush()
+        fake.sock.sent.clear()
+        # the app's frame on every layout (re)join
+        await hub.client._dispatch_broadcast({"msg_type": "control_sync_request", "from": "phone"})
+        return fake, t
+    fake, t = run(go())
+    (p,) = sent(fake, "progress")
+    assert p == t.frame | {"hub": fake.hub.name, "from": fake.hub.name} and p["done"] == 4
+    (l,) = sent(fake, "log")
+    assert l["id"] == "b-log" and "lines" not in l
+
+
+def test_phone_back_resend_survives_a_user_on_sync_request():
+    async def go():
+        fake = make()
+        await fake.hub.progress("Example", id="s1")
+        seen = []
+        fake.hub.on_sync_request(lambda d: seen.append(d))
+        fake.sock.sent.clear()
+        await fake.hub.client._dispatch_broadcast({"msg_type": "control_sync_request"})
+        return fake, seen
+    fake, seen = run(go())
+    assert len(sent(fake, "progress")) == 1 and len(seen) == 1
+
+
 def test_reconnect_chains_the_previous_callback():
     async def go():
         fake = make()

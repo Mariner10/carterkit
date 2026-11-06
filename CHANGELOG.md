@@ -7,6 +7,7 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- Hub surfaces: a `progress_reply` whose `to` names another hub is ignored (two hubs with the same task id no longer both cancel; no `to` still acts, for older apps), and the phone coming back (the app's `control_sync_request`) resends every running task and open log title, as the hub's own reconnect does.
 - **Hub surfaces** (the app draws them from its next release, CAR-TER aif-qs8b0.16-.22; an app
   without them ignores these frames): `hub.progress(...)` (a `Progress` handle: `update`, `pause`, `finish`, `fail`,
   `cancelled_ok`, `cancelled`, `on_cancel`), `hub.toast(...)`, `hub.haptic(...)` and `hub.log(...)`

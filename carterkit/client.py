@@ -648,6 +648,7 @@ class CarterClient:
         self._broadcast_handler = None
         self._broadcast_registered = False
         self._join_handler = None
+        self._join_hooks: list = []      # kit-owned (hub surfaces); survive on_sync_request()
         self._ack_commands = False
         # `_cmd` seen-set: never run the same phone command twice (relay re-delivery,
         # outbox drains, replays after a hub restart). Active with or without acks.
@@ -791,6 +792,13 @@ class CarterClient:
         # replicas (the app), not for us.
         if isinstance(data, dict) and data.get("msg_type") in self._PROTOCOL_BROADCASTS:
             if data.get("msg_type") == "control_sync_request":
+                for hook in list(self._join_hooks):
+                    try:
+                        result = hook(data)
+                        if asyncio.iscoroutine(result):
+                            await result
+                    except Exception:
+                        log.warning("join hook failed", exc_info=True)
                 if self._is_state_authority:
                     await self._answer_control_sync(data)
                 if self._join_handler is not None:

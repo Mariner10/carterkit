@@ -18,7 +18,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=42,<50" },
-    { name = "meshsocket", specifier = ">=0.2.0,<0.4" },
+    { name = "meshsocket", specifier = ">=0.2.0,<0.5" },
 ]
 
 [[package]]
