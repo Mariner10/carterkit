@@ -101,7 +101,7 @@ def _make_field(raw: dict[str, str]) -> dict:
 # overrides, and is expanded here exactly as the app's ControlDocLoader.FieldReader does.
 
 SHARED_DOC = "shared-fields.md"
-USE_OVERRIDES = ("default", "min", "max", "step", "does", "since")
+USE_OVERRIDES = ("default", "min", "max", "step", "does", "since", "summary")
 _FIELD_SECTIONS = ("fields", "themeFields")
 _BUNDLED_SHARED: Optional[dict] = None
 

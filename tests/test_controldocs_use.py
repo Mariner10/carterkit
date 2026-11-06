@@ -57,10 +57,10 @@ def test_unknown_or_wrong_section_names_are_errors_and_leave_the_field_out():
 
 def test_only_whitelisted_overrides_are_allowed():
     shared = catalog.parse_shared(SHARED)
-    doc = catalog.parse_doc(probe("  - use: confirm\n    summary: Mine\n    default: false"), "probe", shared)
-    assert any("overrides `summary`" in e for e in doc["useErrors"])
+    doc = catalog.parse_doc(probe("  - use: confirm\n    type: x\n    default: false"), "probe", shared)
+    assert any("overrides `type`" in e for e in doc["useErrors"])
     assert any("`default` repeats the shared value" in e for e in doc["useErrors"])
-    assert catalog.USE_OVERRIDES == ("default", "min", "max", "step", "does", "since")
+    assert catalog.USE_OVERRIDES == ("default", "min", "max", "step", "does", "since", "summary")
 
 
 def test_parse_doc_defaults_to_the_bundled_shared_fields():
@@ -79,3 +79,12 @@ def test_vendored_docs_use_lines_resolve_and_shared_fields_is_no_control():
     assert "shared-fields" not in catalog.parse_all(controldocs_dir())
     docs = catalog.parse_all(controldocs_dir())
     assert any("- use:" in (controldocs_dir() / f"{k}.md").read_text() for k in docs), "no doc uses a shared field"
+
+
+def test_summary_override_is_allowed_and_lints_equal_values():
+    shared = catalog.parse_shared(SHARED)
+    doc = catalog.parse_doc(probe("  - use: confirm\n    summary: Mine"), "probe", shared)
+    assert doc["useErrors"] == []
+    assert doc["fields"][0]["summary"] == "Mine"
+    same = catalog.parse_doc(probe("  - use: confirm\n    summary: A short note with Undo"), "probe", shared)
+    assert any("override `summary` repeats the shared value" in e for e in same["useErrors"])
