@@ -11,6 +11,12 @@ Start from a working project and learn as you go: six starter kits, `carterkit t
 
 ### Added
 
+- Editor profiles (CAR-TER aif-qs8b0.11.1): `catalog.parse_profiles` / `load_profiles` read the app's
+  `ControlDocs/profiles.md` (named filters over a control's editable fields by category, chip or field id),
+  `catalog.profile_fields` resolves one against a control doc, `catalog.profile_errors` / `profile_lint` report an
+  unknown category, chip, field id, Binding card, canvas verb or control type, and `catalog.profile_manifest` gives
+  the `categories`, `chips` and `profiles` lists CAR-TER's `scripts/gen-capabilities.py` writes into
+  `capabilities.json`. The vendored ControlDocs gain `profiles.md` with the next sync.
 - The relay-only sender key: with MeshSocket 0.4.1 relays, an opened sealed frame carries
   `_relayFrom` (the sender's relay name, set by the relay beside the ciphertext on routed
   frames and stripped from everything else); a `_relayFrom` sealed inside by the peer is

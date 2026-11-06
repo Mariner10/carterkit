@@ -118,7 +118,7 @@ def test_every_doc_matches_the_schema(path):
     resolved = catalog.resolved_frontmatter(path.read_text(), SHARED)
     if resolved is None:
         return
-    kind = {"pattern": "patternDoc", "shared-fields": "sharedFieldsDoc"}.get(resolved.get("kind"), "controlDoc")
+    kind = {"pattern": "patternDoc", "shared-fields": "sharedFieldsDoc", "profiles": "profilesDoc"}.get(resolved.get("kind"), "controlDoc")
     errors = [f"{'/'.join(map(str, e.absolute_path))}: {e.message[:200]}" for e in _validator(kind).iter_errors(resolved)]
     assert errors == []
     jsonschema = pytest.importorskip("jsonschema")

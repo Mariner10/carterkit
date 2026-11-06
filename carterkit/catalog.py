@@ -36,6 +36,7 @@ ControlDocIO.swift.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -765,6 +766,243 @@ def is_internal(taxonomy: dict, raw: dict, theme: bool = False) -> bool:
         return False
     name = raw.get("name", "")
     return any(_matches(p, name) if "*" in p else (not raw.get("group") and p == name) for p in taxonomy["internal"])
+
+
+# ─── Editor profiles (app bead aif-qs8b0.11.1) ───────────────────────────────
+#
+# controldocs/profiles.md: named editor profiles, each a filter over a control's fields by taxonomy category,
+# chip or field id, so a tutorial step's editor shows only what it teaches (CAR-TER
+# docs/superpowers/specs/2026-11-06-editor-profiles.md). Read by the same line parser as shared-fields.md; mirrors
+# ControlDocLoader.profiles (EditorProfile.swift). carterkit renders profiles; it never authors them.
+
+PROFILES_DOC = "profiles.md"
+BASE_PROFILE = "all"
+SIMPLE_PROFILE = "simple"
+CONTROL_CHIP = "control"
+PROFILE_LISTS = ("categories", "chips", "fields", "hide", "binding", "add", "canvas")
+PROFILE_FLAGS = ("rows", "json")
+PROFILE_KEYS = ("name", "title", "extends", "petals", *PROFILE_LISTS, *PROFILE_FLAGS, *PIN_KEYS)
+PROFILE_BINDING = ("emits", "receives", "ask", "feel", "wiring")
+PROFILE_CANVAS = ("place", "move", "resize", "delete", "pages")
+PROFILE_MAX_PETALS = 5
+_PROFILE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
+
+
+def parse_profile(raw: dict) -> dict:
+    """One profile (a profiles.md entry, or a tutorial step's inline mapping) in its parsed shape: `name`, `title`,
+    `extends` when written, each list key it writes as a list of strings, `petals` an int, `rows` / `json` bools,
+    its version pins, and `unknownKeys` when it writes a key no profile has. A value of the wrong kind is kept as
+    written, for `profile_errors` to report."""
+    p: dict = {"name": str(raw.get("name") or "").strip(), "title": str(raw.get("title") or "").strip()}
+    if str(raw.get("extends") or "").strip():
+        p["extends"] = str(raw["extends"]).strip()
+    for key in PROFILE_LISTS:
+        if key in raw:
+            v = raw[key]
+            p[key] = _strings(v) if isinstance(v, list) else [s for s in [str(v).strip()] if s]
+    if "petals" in raw:
+        v = raw["petals"]
+        if isinstance(v, int) and not isinstance(v, bool):
+            p["petals"] = v
+        else:
+            p["petals"] = int(str(v).strip()) if str(v).strip().isdigit() else v
+    for key in PROFILE_FLAGS:
+        if key in raw:
+            v = raw[key]
+            p[key] = v if isinstance(v, bool) else {"true": True, "false": False}.get(str(v).strip(), v)
+    p.update(_pins(raw.get))
+    unknown = sorted(k for k in raw if k not in PROFILE_KEYS)
+    if unknown:
+        p["unknownKeys"] = unknown
+    return p
+
+
+def parse_profiles(content: str) -> list[dict]:
+    """The named profiles of a profiles.md text, in file order (empty when it has none)."""
+    fm = resolved_frontmatter(content, {}) or {}
+    return [parse_profile(raw) for raw in fm.get("profiles") or [] if isinstance(raw, dict)]
+
+
+def load_profiles(docs_dir) -> list[dict]:
+    """The named profiles of `docs_dir`/profiles.md (empty when it is absent)."""
+    path = Path(docs_dir) / PROFILES_DOC
+    return parse_profiles(path.read_text()) if path.is_file() else []
+
+
+def profile_manifest(taxonomy: dict, profiles: list[dict]) -> dict:
+    """The ids capabilities.json lists for profiles: every category, every chip (the shared ones in bar order, then
+    `control`), and each named profile's name, title and since."""
+    return {"categories": [c["name"] for c in taxonomy["categories"]],
+            "chips": [c["name"] for c in taxonomy["chips"]] + [CONTROL_CHIP],
+            "profiles": [{"name": p["name"], "title": p["title"], "since": p.get("since") or DEFAULT_BASELINE}
+                         for p in profiles]}
+
+
+def _profile_entries(taxonomy: dict, doc: dict, common: Optional[dict]) -> list[dict]:
+    """Every field a profile can show on the resolved control doc `doc`, then the `common` (control-def) fields it
+    does not have, in doc order: {path, name, group, theme, category, chip, internal, simpleHidden}. `path` is the
+    capability path (`min`, `chartConfig.columns`, `theme.accentColor`); `chip` is the field's home on the bar: a
+    shared chip, `control` (the doc's `chip:` field and the control-homed categories), or None (the Binding view,
+    the canvas, the internal list)."""
+    chips = {c["name"] for c in taxonomy["chips"]}
+    out: list[dict] = []
+    seen: set[str] = set()
+    for d in (doc, common or {}):
+        plain = [f for f in d.get("fields") or [] if isinstance(f, dict)]
+        containers = frozenset(str(f["group"]).split(".")[0] for f in plain if f.get("group"))
+        for section, theme in (("fields", False), ("themeFields", True)):
+            for raw in d.get(section) or []:
+                if not isinstance(raw, dict) or not str(raw.get("name") or "").strip():
+                    continue
+                name, group = str(raw["name"]).strip(), str(raw.get("group") or "").strip()
+                path = ("theme." if theme else "") + (f"{group}." if group else "") + name
+                if path in seen:
+                    continue
+                seen.add(path)
+                category = field_category(taxonomy, raw, theme=theme, containers=containers)
+                internal = category == "internal" or is_internal(taxonomy, raw, theme=theme)
+                canvas = not theme and not group and name in taxonomy["canvas"]
+                home = taxonomy_home(taxonomy, category)
+                chip = (CONTROL_CHIP if raw.get("chip") else None) if canvas or internal else (
+                    CONTROL_CHIP if raw.get("chip") or home == "control" else home if home in chips else None)
+                out.append({"path": path, "name": name, "group": group or None, "theme": theme,
+                            "category": category, "chip": chip, "internal": internal,
+                            "simpleHidden": str(raw.get("simple") or "").strip().lower() == "hide"})
+    return out
+
+
+
+def _names_field(field_id: str, typ: str, entry: dict) -> bool:
+    """A profile's field id names this entry: `<type>.<path>` on that control only, a bare name on every control."""
+    if "." in field_id:
+        head, _, rest = field_id.partition(".")
+        return head == typ and rest == entry["path"]
+    return field_id == entry["name"] and (entry["theme"] or not entry["group"])
+
+
+def profile_fields(profile: dict, profiles: list[dict], taxonomy: dict, doc: dict,
+                   common: Optional[dict] = None) -> list[str]:
+    """The field paths `profile` shows on the resolved control doc `doc` (plus the `common` control-def fields), in
+    doc order: the spec's rules 1 to 3. Start from the `extends` profile's set (named in `profiles`), else nothing;
+    add the fields of `categories`, the fields homed on `chips` and the `fields` ids; remove `hide`, then every
+    internal field. `simple` also hides every field its doc marks `simple: hide`. An unknown id names nothing."""
+    named = {p["name"]: p for p in profiles if p.get("name")}
+    typ = str(doc.get("type") or "").strip()
+    entries = _profile_entries(taxonomy, doc, common)
+
+    def visible(p: dict, chain: tuple) -> set[str]:
+        shown: set[str] = set()
+        parent = named.get(p.get("extends") or "")
+        if parent is not None and parent["name"] not in chain:
+            shown = visible(parent, chain + (parent["name"],))
+        cats, chips = set(p.get("categories") or []), set(p.get("chips") or [])
+        ids, hide = p.get("fields") or [], p.get("hide") or []
+        for e in entries:
+            if e["category"] in cats or (e["chip"] and e["chip"] in chips) or any(_names_field(i, typ, e) for i in ids):
+                shown.add(e["path"])
+        for e in entries:
+            if e["internal"] or any(_names_field(i, typ, e) for i in hide) or (
+                    p.get("name") == SIMPLE_PROFILE and e["simpleHidden"]):
+                shown.discard(e["path"])
+        return shown
+
+    shown = visible(profile, (profile.get("name") or "",))
+    return [e["path"] for e in entries if e["path"] in shown]
+
+
+def profile_errors(profiles: list[dict], taxonomy: dict, docs: dict, common: Optional[dict] = None) -> list[str]:
+    """Problems with the named `profiles` (parse_profiles) against the taxonomy and the resolved control docs
+    `docs` ({type: resolved frontmatter}, the controls a profile can name): a bad or repeated name, no `all`, an
+    unknown key, an `extends` that names no profile (or loops), a category, chip, field id, Binding card, canvas
+    verb or control type no list holds, `internal` named, `petals` outside 0-5, `rows` / `json` not a bool.
+    Empty = clean."""
+    errors: list[str] = []
+    categories = {c["name"] for c in taxonomy["categories"]}
+    chips = {c["name"] for c in taxonomy["chips"]} | {CONTROL_CHIP}
+    paths = {typ: {e["path"] for e in _profile_entries(taxonomy, d, common)} for typ, d in docs.items()}
+    bare = {e["name"] for d in [*docs.values(), common or {}] for e in _profile_entries(taxonomy, d, None)
+            if e["theme"] or not e["group"]}
+    named = {p["name"]: p for p in profiles if p.get("name")}
+    seen: set[str] = set()
+    if profiles and BASE_PROFILE not in named:
+        errors.append(f"profiles: no `{BASE_PROFILE}` profile (the one an unknown name falls back to)")
+    for i, p in enumerate(profiles):
+        name = p.get("name") or ""
+        where = f"profiles.{name}" if name else f"profiles[{i}]"
+        if not _PROFILE_NAME.match(name):
+            errors.append(f"{where}: a profile needs a lowercase `name` (a-z, 0-9, -)")
+        elif name in seen:
+            errors.append(f"{where}: the name is used twice")
+        seen.add(name)
+        if not p.get("title"):
+            errors.append(f"{where}: no `title`")
+        for key in p.get("unknownKeys") or []:
+            errors.append(f"{where}: unknown key `{key}` (a profile has {', '.join(PROFILE_KEYS)})")
+        ext, chain = p.get("extends"), [name]
+        while ext:
+            if ext not in named:
+                errors.append(f"{where}: extends `{ext}`, which is not a named profile")
+                break
+            if ext in chain:
+                errors.append(f"{where}: extends loops ({' -> '.join(chain + [ext])})")
+                break
+            chain.append(ext)
+            ext = named[ext].get("extends")
+        for c in p.get("categories") or []:
+            if c == "internal":
+                errors.append(f"{where}: categories names `internal`; a profile never shows internal fields")
+            elif c not in categories:
+                errors.append(f"{where}: unknown category `{c}` (shared-fields.md categories:)")
+        for c in p.get("chips") or []:
+            if c not in chips:
+                errors.append(f"{where}: unknown chip `{c}` (shared-fields.md chips:, or `{CONTROL_CHIP}`)")
+        for key in ("fields", "hide"):
+            for fid in p.get(key) or []:
+                if "." in fid:
+                    typ, _, rest = fid.partition(".")
+                    if typ not in paths:
+                        errors.append(f"{where}: {key} `{fid}` names no control `{typ}`")
+                    elif rest not in paths[typ]:
+                        errors.append(f"{where}: {key} `{fid}` is not a field of {typ}")
+                elif fid not in bare:
+                    errors.append(f"{where}: {key} `{fid}` is no control's field (write <control>.<field>)")
+        for key, allowed in (("binding", PROFILE_BINDING), ("canvas", PROFILE_CANVAS), ("add", tuple(sorted(docs)))):
+            for v in p.get(key) or []:
+                if v not in allowed:
+                    errors.append(f"{where}: unknown {key} `{v}`" + (
+                        "" if key == "add" else f" ({', '.join(allowed)})"))
+        if "petals" in p and not (isinstance(p["petals"], int) and not isinstance(p["petals"], bool)
+                                  and 0 <= p["petals"] <= PROFILE_MAX_PETALS):
+            errors.append(f"{where}: petals is {p['petals']}; a chip has 0 to {PROFILE_MAX_PETALS}")
+        for key in PROFILE_FLAGS:
+            if key in p and not isinstance(p[key], bool):
+                errors.append(f"{where}: {key} is {p[key]}; write true or false")
+    return errors
+
+
+def profile_lint(docs_dir) -> list[str]:
+    """`profile_errors` for `docs_dir`/profiles.md against its shared-fields.md taxonomy and its placeable control
+    docs (control-def.md the common fields). Empty when the docs have no profiles.md."""
+    docs_dir = Path(docs_dir)
+    profiles = load_profiles(docs_dir)
+    if not profiles and not (docs_dir / PROFILES_DOC).is_file():
+        return []
+    taxonomy = load_taxonomy(docs_dir)
+    shared = load_shared(docs_dir)
+    docs: dict = {}
+    common = None
+    for f in sorted(docs_dir.glob("*.md")):
+        resolved = resolved_frontmatter(f.read_text(encoding="utf-8"), shared)
+        if not isinstance(resolved, dict) or "kind" in resolved:
+            continue
+        typ = str(resolved.get("type") or "").strip()
+        if typ == "control-def":
+            common = resolved
+        elif typ and str(resolved.get("category") or "").strip() in PLACEABLE_CATEGORIES:
+            docs.setdefault(typ, resolved)
+    if not profiles:
+        return [f"{PROFILES_DOC}: no profiles"]
+    return profile_errors(profiles, taxonomy, docs, common)
 
 
 def parse_doc(content: str, node_id: str, shared: Optional[dict] = None) -> Optional[dict]:
