@@ -49,6 +49,8 @@ SHARED_FIELDS = {
     "field", "role",
     # Tool data (document-contract.md#Extensions): preserved, never interpreted.
     "extensions",
+    # Colour slots (theming.md "Colour roles", app aif-5g98i.1): {slot: value} or a series list.
+    "colors",
     # What an older app shows when it doesn't know this type (layout-config.md
     # "Requires and fallback"); checked by _fallback_findings.
     "fallback",
@@ -88,6 +90,41 @@ def unit_name(unit: str) -> Optional[str]:
     if unit in UNIT_ALIASES:
         return UNIT_ALIASES[unit]
     return next((n for n in UNIT_NAMES if n.lower() == unit.lower()), None)
+
+
+#: A colour slot value (theming.md "Colour roles"): a role, a theme colour key, a `$name` or a
+#: hex colour, optionally `@<opacity 0-1>`. Mirrors the app's ColorSpec and the
+#: controldocs.schema.json `colorValue`.
+_COLOR_VALUE_RE = re.compile(
+    r"^(primary|secondary|tertiary|neutral|accentColor|foregroundColor|secondaryColor|tertiaryColor"
+    r"|surfacePrimary|surfaceSecondary|surfaceTertiary|borderColor|trackColor|statusOK|statusWarn"
+    r"|statusError|statusInfo|scrimColor|\$[A-Za-z_][A-Za-z0-9_-]*|#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?)"
+    r"(@(0(\.[0-9]+)?|1(\.0+)?))?$")
+
+
+def _colors_findings(ctype: str, value, entry: dict, spot: str, findings: list) -> None:
+    """A control's `colors`: `{slot: value | [values]}` or a bare list for its series slot.
+    Warns on a value the app cannot resolve (it falls back to the slot default) and on a
+    slot the control's doc does not declare (when it declares any)."""
+    slots = {s.get("slot"): s for s in entry.get("colorSlots") or [] if isinstance(s, dict)}
+    if isinstance(value, list):
+        pairs = [("", value)]
+    elif isinstance(value, dict):
+        pairs = list(value.items())
+    else:
+        findings.append(_f("warn", "bad_colors", spot,
+                           f"{ctype}.colors must be an object of slots or a list of colours"))
+        return
+    for slot, v in pairs:
+        where = f"{ctype}.colors" + (f".{slot}" if slot else "")
+        if slot and slots and slot not in slots:
+            findings.append(_f("warn", "bad_colors", spot,
+                               f"{where}: {ctype} has no colour slot '{slot}' (has {sorted(slots)})"))
+        for item in v if isinstance(v, list) else [v]:
+            if not isinstance(item, str) or not _COLOR_VALUE_RE.match(item.strip()):
+                findings.append(_f("warn", "bad_colors", spot,
+                                   f"{where} = {item!r} is not a role, theme colour or colour; "
+                                   f"the app draws the slot's default"))
 
 
 def _unit_findings(ctype: str, value, spot: str, findings: list) -> None:
@@ -887,6 +924,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
             continue
         if k == "unit":
             _unit_findings(ctype, v, spot, findings)
+        if k == "colors":
+            _colors_findings(ctype, v, entry, spot, findings)
         fd = fields.get(k)
         if fd and fd.get("type") == "enum" and fd.get("values") and isinstance(v, str):
             # The app never rejects a layout for an unrecognized enum — it renders the

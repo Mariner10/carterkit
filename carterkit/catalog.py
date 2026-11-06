@@ -393,6 +393,46 @@ def _block(lines: list[str], value=None):
     return items if items else mapping
 
 
+def _color_slots(front: list[str]) -> list[dict]:
+    """The `colorSlots:` key (app aif-5g98i.1, theming.md "Colour roles"): a block list of
+    `- slot:` maps or one flow line, as `[{slot, default, alias?, ...}]`. A `default` that is
+    a list makes a series slot. Entries without a slot or a default are skipped. Mirrors
+    ControlDocLoader.parseColorSlots."""
+    collecting = False
+    under: list[str] = []
+    raw = None
+    for line in front:
+        if not line.startswith((" ", "\t")) and ":" in line:
+            if collecting:
+                break
+            k, _, v = line.partition(":")
+            if k.strip() != "colorSlots":
+                continue
+            collecting = True
+            if v.strip():
+                raw = _decode(v)
+                break
+        elif collecting and line.strip():
+            under.append(line)
+    if not collecting:
+        return []
+    if raw is None:
+        raw = _block(under)
+    out = []
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, dict) or not _version(item.get("slot")):
+            continue
+        default = item.get("default")
+        if isinstance(default, list):
+            default = [d.strip().strip("\"'") for d in default if isinstance(d, str) and d.strip()]
+        elif isinstance(default, str):
+            default = default.strip().strip("\"'")
+        if not default:
+            continue
+        out.append({**item, "slot": _version(item["slot"]), "default": default})
+    return out
+
+
 def resolved_frontmatter(content: str, shared: Optional[dict] = None) -> Optional[dict]:
     """A doc's frontmatter in the resolved form controldocs.schema.json describes:
     every top-level key, `fields` / `themeFields` as their `use:`-expanded entries,
@@ -709,6 +749,9 @@ def parse_doc(content: str, node_id: str, shared: Optional[dict] = None) -> Opti
     facts = _io_facts(front)
     if facts is not None:
         meta["io"] = parse_io(facts)
+    slots = _color_slots(front)
+    if slots:
+        meta["colorSlots"] = slots
     meta["body"] = body
     meta["examples"] = extract_examples(body)
     return meta
@@ -806,6 +849,8 @@ def _compact(doc: dict, include_theme: bool = False) -> dict:
         out["fields"] = doc["fields"]
     if include_theme and doc.get("themeFields"):
         out["themeFields"] = doc["themeFields"]
+    if doc.get("colorSlots"):
+        out["colorSlots"] = doc["colorSlots"]
     if doc.get("examples"):
         out["examples"] = [e["name"] for e in doc["examples"]]
     return out

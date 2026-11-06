@@ -92,3 +92,48 @@ def test_layouts_without_a_palette_get_no_palette_findings():
     findings = validate.validate_layout(plain, CAT)
     assert not [f for f in findings if f["kind"] in {"palette_literal", "unknown_token", "bad_palette"}]
     assert palette.resolve(plain) == before
+
+
+def test_role_pairs_are_not_bad_palette_entries():
+    """Colour roles (app aif-5g98i.1): a role may be a {light, dark} pair; it is not a
+    `$name` token, so `$primary` against a pair is an unknown token with its own hint."""
+    layout = _layout()
+    layout["theme"]["palette"].update({"primary": {"light": "#111111", "dark": "#EEEEEE"},
+                                       "neutral": "#888888", "brand2": {"light": "#111111"}})
+    layout["tabs"][0]["children"][1]["tint"] = "$primary"
+    findings = validate.validate_layout(layout, CAT)
+    bad = {f["where"] for f in _kinds(findings, "bad_palette")}
+    assert "theme.palette.primary" not in bad
+    assert "theme.palette.brand2" in bad, "only the four roles may be pairs"
+    unknown = {f["where"]: f["detail"] for f in _kinds(findings, "unknown_token")}
+    assert "light and dark" in unknown["tabs[0].children[1].tint"]
+    tokens = palette.palette(layout)
+    assert tokens["neutral"] == "#888888", "a plain role is still a token"
+    assert "primary" not in tokens
+    assert palette.is_role_pair("secondary", {"dark": "#00FF00"})
+    assert not palette.is_role_pair("secondary", {"dark": "green"})
+
+
+def test_control_colors_values_are_checked():
+    """A control's `colors` (app aif-5g98i.1): roles, theme colour keys, `$name`s and hexes
+    (each with an optional `@opacity`) pass; anything else warns, since the app draws the
+    slot's default instead. A tab may carry its own `palette`."""
+    layout = {
+        "schemaVersion": 2, "name": "Roles", "version": 1,
+        "theme": {"palette": {"primary": {"light": "#111111", "dark": "#EEEEEE"}}},
+        "tabs": [{"title": "A", "icon": "star", "grid": {"columns": 2, "rows": 4},
+                  "palette": {"secondary": "#00FF00"}, "children": [
+            {"type": "gauge", "id": "c_ok", "label": "Ok", "position": [0, 0],
+             "colors": {"arc": "secondary", "track": "neutral@0.2", "label": "secondaryColor"}},
+            {"type": "gauge", "id": "c_bad", "label": "Bad", "position": [1, 0],
+             "colors": {"arc": "blue", "track": "primary@2"}},
+            {"type": "gauge", "id": "c_list", "label": "List", "position": [0, 1],
+             "colors": ["primary", "#FF0000", 3]},
+        ]}],
+    }
+    findings = validate.validate_layout(layout, CAT)
+    assert not [f for f in findings if f["kind"] == "unknown_field"]
+    bad = sorted(f["detail"].split(" = ")[0] for f in _kinds(findings, "bad_colors"))
+    assert bad == ["gauge.colors", "gauge.colors.arc", "gauge.colors.track"]
+    assert all(f["severity"] == "warn" for f in _kinds(findings, "bad_colors"))
+    assert not _kinds(findings, "bad_palette")

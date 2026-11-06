@@ -9,6 +9,8 @@ The lint here keeps authors (carterkit, the MCP, the designer) on tokens:
 - `unknown_token` (warn): a `$name` the palette doesn't define; the app drops the field
   and it falls back to its inherited default.
 - `bad_palette` (warn): a palette entry the app ignores (non-string, a `$ref`, a bad name).
+  A colour role (`primary`, `secondary`, `tertiary`, `neutral`) may be a `{light, dark}`
+  pair; that is not a token, so `"$primary"` against a pair is an `unknown_token`.
 
 A string is in a colour position when its key names a colour (`tint`, `*Color`,
 `*Background`, `*Gradient`, `colors`, `fill`, `stroke`), when it is an element of an
@@ -46,6 +48,19 @@ def is_color_key(key: str) -> bool:
     return any(f in k for f in _COLOR_FRAGMENTS)
 
 
+#: Colour roles (app aif-5g98i.1, theming.md "Colour roles"): these palette names may hold a
+#: `{light, dark}` pair, which the app resolves per scheme instead of as a `$name` token.
+ROLES = ("primary", "secondary", "tertiary", "neutral")
+
+
+def is_role_pair(name, value) -> bool:
+    """A colour role written as `{light, dark}` (one side may be missing)."""
+    if name not in ROLES or not isinstance(value, dict):
+        return False
+    sides = [value.get(k) for k in ("light", "dark")]
+    return any(isinstance(v, str) and _norm(v) is not None for v in sides)
+
+
 def _palette(layout, problems: list | None = None) -> dict[str, str]:
     theme = layout.get("theme") if isinstance(layout, dict) else None
     entries = theme.get("palette") if isinstance(theme, dict) else None
@@ -55,6 +70,8 @@ def _palette(layout, problems: list | None = None) -> dict[str, str]:
     for name in sorted(entries, key=str):
         value = entries[name]
         where = f"theme.palette.{name}"
+        if is_role_pair(name, value):
+            continue
         if not isinstance(value, str) or value.startswith(REF_PREFIX):
             why = "palette values must be literal colours; the app ignores this entry"
         elif not isinstance(name, str) or not _NAME_RE.match(name):
@@ -140,6 +157,9 @@ def palette_findings(layout: dict) -> list[tuple[str, str, str]]:
     problems: list = []
     tokens = _palette(layout, problems)
     out = [("bad_palette", where, why) for where, why in problems]
+    theme = layout.get("theme") if isinstance(layout, dict) else None
+    entries = theme.get("palette") if isinstance(theme, dict) else None
+    pairs = {n for n, v in entries.items() if is_role_pair(n, v)} if isinstance(entries, dict) else set()
     by_color: dict[str, list[str]] = {}
     for name, value in tokens.items():
         n = _norm(value)
@@ -148,7 +168,11 @@ def palette_findings(layout: dict) -> list[tuple[str, str, str]]:
     for where, value in color_strings(layout):
         name = ref_name(value)
         if name is not None:
-            if name not in tokens:
+            if name in pairs:
+                out.append(("unknown_token", where,
+                            f"'{value}' has light and dark colours, so it is not a token; "
+                            f"write '{name}' in a control's colors to follow the scheme"))
+            elif name not in tokens:
                 out.append(("unknown_token", where,
                             f"'{value}' is not in theme.palette; the app drops it and the "
                             f"field falls back to its default"))

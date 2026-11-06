@@ -169,3 +169,43 @@ def test_add_intent_keys_parsed_and_exposed():
     cat = catalog.build_catalog(DOCS)
     assert cat["button"]["starterPreset"] == {"label": "Button"}
     assert cat["button"]["addIntent"] == "change"
+
+
+_SLOTS_DOC = """---
+type: probe
+label: Probe
+category: controls
+fields:
+  - name: tint
+    type: color
+colorSlots:
+  - slot: arc
+    default: primary
+    alias: tint
+    since: next
+  - slot: series
+    default: [primary, "#34C759"]
+  - slot: broken
+---
+body
+"""
+
+
+def test_color_slots_parsed_and_in_the_catalog():
+    """colorSlots (app aif-5g98i.1, control-def.md "Colour slots"): the slots a control
+    draws, each with its default role and the old key that also sets it. Mirrors
+    ControlDocLoader.parseColorSlots and ColorRolesTests.docsDeclareColorSlots."""
+    doc = catalog.parse_doc(_SLOTS_DOC, "probe", {"fields": {}, "themeFields": {}})
+    assert [f["name"] for f in doc["fields"]] == ["tint"]
+    assert doc["colorSlots"] == [
+        {"slot": "arc", "default": "primary", "alias": "tint", "since": "next"},
+        {"slot": "series", "default": ["primary", "#34C759"]},
+    ]
+    assert catalog._compact(doc)["colorSlots"] == doc["colorSlots"]
+    flow = "---\ntype: p\nlabel: P\ncategory: controls\ncolorSlots: [{slot: fill, default: neutral@0.2}]\n---\n"
+    assert catalog.parse_doc(flow, "p", {"fields": {}, "themeFields": {}})["colorSlots"] == [
+        {"slot": "fill", "default": "neutral@0.2"}]
+    plain = catalog.parse_doc("---\ntype: p\nlabel: P\ncategory: controls\n---\n", "p", {"fields": {}, "themeFields": {}})
+    assert "colorSlots" not in plain
+    resolved = catalog.resolved_frontmatter(_SLOTS_DOC, {"fields": {}, "themeFields": {}})
+    assert [s["slot"] for s in resolved["colorSlots"]] == ["arc", "series", "broken"]

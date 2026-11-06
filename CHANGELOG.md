@@ -46,6 +46,12 @@ All notable changes to **carterkit** are documented here. This project follows
   `io:` block under `"io"` (`emits` / `receives` / `samples`, `sendsNothing`, `showsNothing`,
   `problems`), with payloads in their JSON types; `catalog.parse_io` reads raw facts. The schema
   check (`$defs/io`) runs once the vendored ControlDocs are re-synced from CAR-TER.
+- **Colour roles** (app aif-5g98i.1, ControlDocs theming.md "Colour roles"): the catalog reads a
+  doc's `colorSlots` (each slot's default role and the old key it aliases) and `build_catalog`
+  exposes them; `validate_layout` accepts a control's `colors` and warns (`bad_colors`) on a value
+  that is not a role, theme colour key, `$name` or colour, or on a slot the doc does not declare.
+  The palette lint accepts `primary`/`secondary`/`tertiary`/`neutral` as `{light, dark}` pairs and
+  explains `$primary` against a pair.
 
 ### Changed
 
