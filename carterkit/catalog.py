@@ -19,11 +19,18 @@ Public surface (all pure; `docs_dir` is injected for testability):
     resolved_frontmatter(content)    -> dict | None   the shape controldocs.schema.json checks
     parse_flow(text)                 -> list | dict | None   `[..]` / `{..}` (JSON or YAML flow)
     introduced(doc, field, value)    -> str   nearest `since` pin, else the doc's baseline
+    parse_io(facts)                  -> dict   a doc's `io:` facts (emits / receives / sample)
 
 Version pins (aif-xd1w8.1, control-def.md "Version pins"): docs, fields and enum values
 carry `since` / `changes` / `deprecated` / `removed` / `alias`; a doc's `baseline` (absent
 = DEFAULT_BASELINE) covers everything unpinned. A field's pinned values land in
 `valueMeta` ({value: pins}); `values` stays the plain list.
+
+io: facts (app bead aif-8whty.20; CAR-TER spec 2026-11-06-controls-explain-themselves.md):
+a doc's top-level `io:` list says what the control sends (`emits:`), what it can show or
+follow (`receives:`) and the editor's placeholder preview (`sample:`). parse_doc puts them
+under "io" (only when the doc has the key); payloads keep their JSON types. Mirrors
+ControlDocIO.swift.
 """
 
 from __future__ import annotations
@@ -363,9 +370,11 @@ def _top_level(front: list[str]) -> dict[str, str]:
     return out
 
 
-def _block(lines: list[str]):
+def _block(lines: list[str], value=None):
     """The indented lines under a valueless top-level key: a list of `- item` (a flow
-    value, a scalar, or a `k: v` map continued on the lines below), else a `k: v` map."""
+    value, a scalar, or a `k: v` map continued on the lines below), else a `k: v` map.
+    `value` reads each value (default: `_decode`)."""
+    read = value or _decode
     items: list = []
     mapping: dict = {}
     for line in lines:
@@ -374,13 +383,13 @@ def _block(lines: list[str]):
             t = t[2:].strip()
             if ":" in t and t[:1] not in "[{\"'":
                 k, _, v = t.partition(":")
-                items.append({k.strip(): _decode(v)})
+                items.append({k.strip(): read(v)})
             else:
-                items.append(_decode(t))
+                items.append(read(t))
         elif ":" in t:
             k, _, v = t.partition(":")
             target = items[-1] if items and isinstance(items[-1], dict) else mapping
-            target[k.strip()] = _decode(v)
+            target[k.strip()] = read(v)
     return items if items else mapping
 
 
@@ -418,6 +427,147 @@ def resolved_frontmatter(content: str, shared: Optional[dict] = None) -> Optiona
             under.append(line)
     close()
     return out
+
+
+# ─── io: facts (app bead aif-8whty.20) ───────────────────────────────────────
+
+IO_WHEN = ("change", "release", "tap", "hold", "submit", "pick", "detect", "lift", "drop", "settle", "land")
+IO_TYPES = ("bool", "number", "string", "color", "date", "id", "json")
+IO_SOURCES = ("hub", "mqtt", "http", "sensor", "store", "derive", "default")
+IO_ROLES = ("show", "follow")
+_IO_KINDS = ("emits", "receives", "sample")
+
+
+def _io_facts(front: list[str]) -> Optional[list[dict]]:
+    """The `- k: v` maps under a top-level `io:` with each value as written (stripped, not
+    decoded), so payloads keep their JSON types. None when the doc has no `io:` key."""
+    lines: Optional[list[str]] = None
+    inside = False
+    for line in front:
+        if not line.strip():
+            continue
+        if not line.startswith((" ", "\t")) and ":" in line:
+            inside = line.partition(":")[0].strip() == "io"
+            if inside and lines is None:
+                lines = []
+        elif inside and lines is not None:
+            lines.append(line)
+    if lines is None:
+        return None
+    block = _block(lines, value=str.strip)
+    return [f for f in block if isinstance(f, dict)] if isinstance(block, list) else []
+
+
+def _io_text(raw) -> Optional[str]:
+    if not isinstance(raw, str):
+        return None
+    v = _decode(raw)
+    return v.strip() or None if isinstance(v, str) else None
+
+
+def _io_payload(raw):
+    """A payload with its JSON types when it is strict JSON (`42`, `"#RRGGBB"`, `{"value": 3}`),
+    else the dialect's reading (every scalar a string). None when empty."""
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    try:
+        return json.loads(raw.strip())
+    except ValueError:
+        return _decode(raw)
+
+
+def parse_io(facts: list[dict]) -> dict:
+    """`io:` facts (raw `{key: text}` maps) as {"emits": [..], "receives": [..], "samples": [..],
+    "sendsNothing", "showsNothing", "problems"}. An emits fact gets `field` (default `action`),
+    a receives fact `role` (default `follow` when the doc emits its `value`, else `show`); pins
+    as on fields. Unusable facts are skipped and named in `problems`. Mirrors ControlDoc.IO."""
+    out: dict = {"emits": [], "receives": [], "samples": [], "sendsNothing": False,
+                 "showsNothing": False, "problems": []}
+    problems = out["problems"]
+    receives = []
+    for n, fact in enumerate(facts, 1):
+        kinds = [k for k in _IO_KINDS if k in fact]
+        if len(kinds) != 1:
+            problems.append(f"io fact {n}: needs exactly one of emits / receives / sample, has {kinds}")
+        elif kinds[0] == "emits":
+            _io_emit(fact, n, out)
+        elif kinds[0] == "receives":
+            receives.append((n, fact))
+        elif (value := _io_payload(fact["sample"])) is None:
+            problems.append(f"io fact {n}: sample has no payload")
+        else:
+            sample = {"sample": value}
+            for key in ("next", "for", "into"):
+                v = _io_payload(fact.get(key)) if key == "next" else _io_text(fact.get(key))
+                if v is not None:
+                    sample[key] = v
+            out["samples"].append(sample)
+    emits_value = any(e["emits"] == "value" for e in out["emits"])
+    for n, fact in receives:
+        _io_receive(fact, n, out, emits_value)
+    return out
+
+
+def _io_optional(fact: dict, entry: dict, text_keys=(), payload_keys=()) -> None:
+    for key in text_keys:
+        if (v := _io_text(fact.get(key))) is not None:
+            entry[key] = v
+    for key in payload_keys:
+        if (v := _io_payload(fact.get(key))) is not None:
+            entry[key] = v
+    entry.update(_pins(fact.get))
+
+
+def _io_emit(fact: dict, n: int, out: dict) -> None:
+    problems = out["problems"]
+    eid = _io_text(fact["emits"])
+    if not eid:
+        problems.append(f"io fact {n}: emits has no id")
+        return
+    if eid == "none":
+        out["sendsNothing"] = True
+        return
+    when, vtype, says = _io_text(fact.get("when")), _io_text(fact.get("type")), _io_text(fact.get("says"))
+    if when not in IO_WHEN or vtype not in IO_TYPES or not says:
+        problems.append(f"io emits {eid}: needs when (one of {', '.join(IO_WHEN)}), "
+                        f"type (one of {', '.join(IO_TYPES)}) and says")
+        return
+    tokens = _decode(fact.get("tokens", ""))
+    when_by = _decode(fact.get("whenBy", ""))
+    entry = {"emits": eid, "when": when, "type": vtype, "says": says, "field": _io_text(fact.get("field")) or "action",
+             "tokens": {k: v for k, v in tokens.items() if isinstance(v, str)} if isinstance(tokens, dict) else {},
+             "whenBy": {}}
+    for field, rule in (when_by.items() if isinstance(when_by, dict) else []):
+        for value, target in (rule.items() if isinstance(rule, dict) else []):
+            if target in IO_WHEN:
+                entry["whenBy"].setdefault(field, {})[value] = target
+            else:
+                problems.append(f"io emits {eid}: whenBy {field}.{value} is not a when")
+    _io_optional(fact, entry, ("title", "fallback", "also"), ("example", "hub"))
+    out["emits"].append(entry)
+
+
+def _io_receive(fact: dict, n: int, out: dict, emits_value: bool) -> None:
+    problems = out["problems"]
+    rid = _io_text(fact["receives"])
+    if not rid:
+        problems.append(f"io fact {n}: receives has no id")
+        return
+    if rid == "none":
+        out["showsNothing"] = True
+        return
+    vtype, says, reacts = _io_text(fact.get("type")), _io_text(fact.get("says")), _io_text(fact.get("reacts"))
+    role = _io_text(fact.get("role")) or ("follow" if emits_value else "show")
+    if vtype not in IO_TYPES or vtype == "id" or not says or not reacts or role not in IO_ROLES:
+        problems.append(f"io receives {rid}: needs type (not id), says, reacts and a role of show/follow")
+        return
+    raw_from = _decode(fact.get("from", ""))
+    sources = [s for s in raw_from if s in IO_SOURCES] if isinstance(raw_from, list) else []
+    if not sources or len(sources) != len(raw_from):
+        problems.append(f"io receives {rid}: from needs a flow list of {', '.join(IO_SOURCES)}")
+    entry = {"receives": rid, "role": role, "type": vtype, "from": sources, "says": says, "reacts": reacts}
+    _io_optional(fact, entry, (), ("example", "shape"))
+    out["receives"].append(entry)
 
 
 def parse_shared(content: str) -> dict[str, dict[str, dict]]:
@@ -556,6 +706,9 @@ def parse_doc(content: str, node_id: str, shared: Optional[dict] = None) -> Opti
             meta["fields"].append(
                 {"name": grp, "type": "object",
                  "description": "grouped config object (see grouped fields)"})
+    facts = _io_facts(front)
+    if facts is not None:
+        meta["io"] = parse_io(facts)
     meta["body"] = body
     meta["examples"] = extract_examples(body)
     return meta

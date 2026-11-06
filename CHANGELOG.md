@@ -41,6 +41,11 @@ All notable changes to **carterkit** are documented here. This project follows
   periodic task for live readouts). `codegen.generate_hub()` / `codegen.analyze_hub()` in Python;
   tests generate a hub from each starter kit and check it against the kit's own `hub.py`.
 
+- **`io:` facts in ControlDocs** (app bead aif-8whty.20): `catalog.parse_doc` returns a doc's
+  `io:` block under `"io"` (`emits` / `receives` / `samples`, `sendsNothing`, `showsNothing`,
+  `problems`), with payloads in their JSON types; `catalog.parse_io` reads raw facts. The schema
+  check (`$defs/io`) runs once the vendored ControlDocs are re-synced from CAR-TER.
+
 ### Changed
 
 - `carterkit gen` now writes the live-file hub script; `--stub` keeps the older `Hub(...)` stub.
