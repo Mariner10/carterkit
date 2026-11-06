@@ -99,7 +99,7 @@ fields:
     type: array
     description: Alias of add
     summary: Add numbers together
-    does: Works exactly like add: shows the sum of the arguments.
+    does: "Works exactly like add: shows the sum of the arguments."
   - name: of
     type: object
     description: "Argument of round, clamp, scale, band, since and until: a number, or an argument object (control, derive, clock, or another op)"

@@ -53,7 +53,7 @@ fields:
     default: M
     description: Error correction level
     summary: How much damage the code can survive
-    does: Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans.
+    does: "Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans."
     valueHelp: {"L": "lowest correction, simplest code, for clean screens", "M": "medium correction, a good everyday balance", "Q": "higher correction, survives some smudging", "H": "highest correction, densest code, survives scratches or a logo over it"}
   - name: hideBackground
     edit: part
@@ -66,16 +66,11 @@ fields:
     summary: The frosted card behind the code
     does: On removes the glass card so the code sits straight on the page; off keeps the card.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the card corners by 0 to 30 points.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -85,24 +80,28 @@ themeFields:
     summary: The space around the code inside the card
     does: Pushes the code in from the card edge by 0 to 24 points.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card fill
     does: Sets the color of the card behind the code, usually a faint tint.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The color of the less important text
     does: Recolors the secondary text around the code.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The color of the card outline
     does: Recolors the outline drawn around the card.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -112,6 +111,7 @@ themeFields:
     summary: How thick the card outline is
     does: Sets the card outline thickness from 0 to 5 points; 0 hides it.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

@@ -75,6 +75,21 @@ fields:
     description: Columns of the group's inner grid (grid.columns; the editor offers 1 to 12, as for a tab)
     summary: How many columns the group's controls share
     does: "Splits the group's card into this many equal columns (1 to 12); its controls sit on them."
+  - name: spacing
+    group: grid
+    title: Spacing
+    edit: scrub
+    unit: pt
+    depth: hold
+    under: columns
+    min: 0
+    max: 32
+    step: 1
+    default: 8
+    type: number
+    description: "Points between the group's cells, across and down (grid.spacing; default 8, the theme's grid gap)"
+    summary: How far apart the group's controls sit
+    does: "Sets the gap between the controls in the group's card, 0 to 32 points; 0 butts them together, and Default goes back to the theme's 8."
   - name: rows
     group: grid
     title: Rows
@@ -113,9 +128,9 @@ fields:
     step: 0.05
     default: 1
     type: number
-    description: "Size the group's controls draw at (grid.scale): a number from 0.3 to 1.5, or \"auto\" (rowHeight / 56); default 1. See Scale"
+    description: "Size the group's controls draw at (grid.scale): a number from 0.3 to 1.5, or \"auto\" (from the group's shape: the smaller of span rows / grid rows and span columns / grid columns, at most 1; rowHeight / 56 when the grid sets a rowHeight); default 1. See Scale"
     summary: How big the group's controls are drawn
-    does: "Draws every control in the group smaller or bigger, text, padding, corners and icons together, so a fine grid of short rows holds whole controls; taps still get a full-size target. Default goes back to 1."
+    does: "Draws every control in the group smaller or bigger, text, padding, corners and icons together, so a fine grid holds whole controls; taps still get a full-size target. Auto shrinks them by the group's shape: a group 1 row by 5 columns holding a 3 by 15 grid draws them at a third. Default goes back to 1."
   - name: children
     title: Contents
     type: object[]
@@ -254,7 +269,9 @@ A visual container that clusters controls into a glass card with its own interna
 
 ## Editing a group
 
-Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns, rows, row height and scale under a hold on Rows, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
+Tapping a group in the editor opens its Group pane. It edits the group's scalar fields above (name, header, background), its inner grid (the [[grid-dimensions]] fields: columns with spacing under a hold on Columns, rows with row height and scale under a hold on Rows, arrangement, landscape policy), and three keys of its `theme` that shape the card: `accentColor` (Tint), `cardPadding` (Padding) and `cornerRadius` (Corners). **Edit controls** opens the group so its children can be tapped and edited; **Ungroup** moves the children up into the parent where they sat; **Delete** removes the group and everything in it (undo brings it back).
+
+A container's page (a carousel page, an accordion section, a flip-card face) is a group too: inside it, tapping its open page chip opens the **Page** pane with the same chips (header, Columns with Spacing, Rows, Background and the card's theme, Padding among them), written into that page of the container's `panels`. A page does not expand, so it has no Expanded pose.
 
 **Collapsed | Expanded** (the `expand` field's `edit: pose`) flips the pane to the group's expanded layout: the grown card's grid (`expand.grid`), with each child the expand does not place yet as a ghost at its collapsed cell. Dragging a child into cells writes its `{ref, position, span}` entry in `expand.children` (the first one creates `expand`: `trigger: "tap"`, `style: "fullScreen"`, the group's columns on a taller grid); the corner handle resizes it (its `span`); dragging it off the card removes the ref, and once the expand places any child the unplaced ones fade while expanded (the pose then shows them on a faded shelf below the card, to drag in from there). Columns and Rows on the bar size `expand.grid`; **Don't expand** removes `expand`. Each drag is one undo step. Controls that exist only while expanded show with an Only here mark.
 
@@ -327,40 +344,44 @@ A group with no glass card and a pulse ring that flashes when a live event lands
 `grid.scale` draws the group's controls as proportional miniatures (or enlargements): text,
 padding, spacing, corner radii, icons and control sizes (toggle tracks, slider thumbs, stepper
 buttons) all scale together through the theme, so they stay crisp instead of being shrunk as a
-picture. It is what makes a fine grid work: a compact list card on 3 rows × 15 columns holds
-whole controls at a size that fits its short rows.
+picture. It is what makes a fine grid work: a group 1 row × 5 columns on its page holding a
+3 × 15 grid stacks three 1 × 1 controls in that one row, each looking like a 1 × 1 outside the
+group at a third of the size.
 
 | Value | Draws at |
 |-------|----------|
 | absent | 1 (as today) |
 | a number | that factor, clamped to 0.3 to 1.5 (0.5 = half size) |
-| `"auto"` | the row height over the default: `rowHeight / 56`, clamped (rows of 28 pt draw at 0.5). With `rowHeight: "auto"` it draws at 1 |
+| `"auto"` | the group's shape: the smaller of span rows / grid rows and span columns / grid columns, at most 1 (span 1 × 5 with a 3 × 15 grid: 1/3; span 2 × 4 with a 2 × 4 grid: 1). Each inner row is that factor times the page's row, so a 1 × 1 inside is a 1 × 1 outside at that size. A grid that sets a `rowHeight` number keeps `rowHeight / 56` (28 pt rows: 0.5); `rowHeight: "auto"` draws at 1 |
 
 - Taps stay full size: a button, toggle or stepper drawn smaller than 44 pt still takes a 44-pt
   touch around its centre.
-- It scales what is inside the group, not the group's own card and header (those follow the
-  grid the group sits in). A group nested inside a scaled group is scaled with it (its rows
-  too), times its own `scale`.
+- It scales what is inside the group, not the group's own header (it follows the grid the
+  group sits in). With `"auto"` from the shape the card's padding shrinks by the same factor,
+  and rows shrink further if the card and header leave less room than the span. A group nested
+  inside a scaled group is scaled with it (its rows too), times its own `scale`.
 - Visual controls (rings, gauges, charts) already scale their insides to their cell, so they
   look the same at any scale; the factor matters most for labels, buttons and inputs.
-- A list's `itemTemplate` grid takes `scale` too, so every row draws at it. An `expand` page
-  draws at its own `grid.scale`, and at 1 when it has no grid of its own.
+- A list's `itemTemplate` grid takes `scale` too, so every row draws at it; with `"auto"` a row
+  is one row cell, so a 3-row template draws at 1/3. An `expand` page draws at its own
+  `grid.scale` (`"auto"` from the foreground container measured in page cells), and at 1 when
+  it has no grid of its own.
+- The editor draws a group's inside at the same scale when you open it.
 
-A compact card: 3 short rows on 15 columns, drawn at `auto` (40 / 56 ≈ 0.71):
+Three 1 × 1 controls stacked in one row of a 5-column page: a 1 × 5 group with a 3 × 15 grid
+draws them at `auto` = min(1 / 3, 5 / 15) = 1/3:
 
 ```json
 {
   "type": "group",
-  "id": "compact-card",
+  "id": "mini-stack",
   "position": [0, 0],
-  "span": [3, 4],
-  "grid": { "columns": 15, "rows": 3, "rowHeight": 40, "scale": "auto" },
+  "span": [1, 5],
+  "grid": { "columns": 15, "rows": 3, "scale": "auto" },
   "children": [
-    { "type": "image", "id": "cc-icon", "position": [0, 0], "span": [3, 3], "systemName": "shippingbox" },
-    { "type": "label", "id": "cc-name", "position": [0, 3], "span": [1, 8], "text": "Example package", "subtitle": "1.2.0" },
-    { "type": "toggle", "id": "cc-auto", "position": [1, 3], "span": [1, 8], "label": "Auto update" },
-    { "type": "label", "id": "cc-size", "position": [2, 3], "span": [1, 8], "text": "Size: 1.1 MB", "style": "caption" },
-    { "type": "button", "id": "cc-go", "position": [0, 11], "span": [3, 4], "label": "Install" }
+    { "type": "label", "id": "ms-name", "position": [0, 0], "span": [1, 1], "text": "Name" },
+    { "type": "toggle", "id": "ms-on", "position": [1, 0], "span": [1, 1], "label": "On" },
+    { "type": "button", "id": "ms-go", "position": [2, 0], "span": [1, 1], "label": "Go" }
   ]
 }
 ```

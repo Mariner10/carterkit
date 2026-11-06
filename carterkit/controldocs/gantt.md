@@ -157,10 +157,11 @@ fields:
 themeFields:
   - use: cornerRadius
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
-    summary: Background color
+    summary: The colour behind the control
     does: Fills the Gantt chart background with this color.
   - name: secondaryColor
     type: color
@@ -168,62 +169,25 @@ themeFields:
     description: Task name color
     summary: Task name color
     does: Colors the task names.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: Highlight color
     does: Sets the accent color used to tint the Gantt chart when no tint is set.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Outline color
     does: Colors the outline drawn around the Gantt chart.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: Outline thickness
     does: Sets the outline width from 0 to 5 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the edges
     does: Adds padding between the Gantt chart edge and its content, 0 to 24 points.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: Main text color
     does: Colors the primary text on the Gantt chart.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Label text size
     does: Sets the label text size from 8 to 24 points.
-  - name: tertiaryColor
-    title: Faint text color
-    type: color
-    default: #FFFFFF4D
-    description: Tertiary text and ink color
+  - use: tertiaryColor
     summary: Dimmed text color
     does: Colors the faintest text and ink on the chart.
 ---

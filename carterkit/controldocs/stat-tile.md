@@ -227,22 +227,14 @@ themeFields:
     does: "Rounds the tile's corners from square (0) to 30 points."
   - use: controlPadding
     does: "Adds 0 to 24 points between the tile's edge and its content."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: "The fill behind the tile"
     does: "Paints the tile's background in this color including transparency."
   - use: accentColor
     does: "Tints the trend line wherever no color is set directly."
   - use: foregroundColor
     does: "Colors the big number and the title."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: "The quieter text color"
     does: "Colors the unit and the flat change text."
   - use: borderColor

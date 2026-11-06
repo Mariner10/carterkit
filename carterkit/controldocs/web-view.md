@@ -64,16 +64,11 @@ fields:
     summary: Whether the card behind it is drawn
     does: Removes the glass card, fill and border so only the page sits on the layout.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -83,24 +78,28 @@ themeFields:
     summary: The gap between card edge and page
     does: Sets the space inside the card around the page from 0 to 24 pt (default 8).
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card's fill color
     does: Fills the card behind the page with this color, default a faint white wash.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The color of the title
     does: Colors the label above the page, default a soft white.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The card's outline color
     does: Draws the card's outline in this color, default a faint white.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -110,6 +109,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the outline thickness from 0 to 5 pt (default 1).
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

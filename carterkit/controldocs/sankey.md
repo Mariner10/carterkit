@@ -156,6 +156,7 @@ fields:
 themeFields:
   - use: cornerRadius
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
@@ -167,62 +168,25 @@ themeFields:
     description: Node label color
     summary: Node name colour
     does: Colours the node labels.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: Highlight colour
     does: Sets the accent colour used to tint the control.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Outline colour
     does: Colours the control's outline.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: Outline thickness
     does: Sets the outline width, 0 to 5 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the edge
     does: Adds padding between the control's edge and its content, 0 to 24 points.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: Main text colour
     does: Colours the primary text.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Label text size
     does: Sets the title text size, 8 to 24 points.
-  - name: tertiaryColor
-    title: Faint text color
-    type: color
-    default: #FFFFFF4D
-    description: Tertiary text and ink color
+  - use: tertiaryColor
     summary: Faint text colour
     does: Colours the faintest text and ink.
 ---

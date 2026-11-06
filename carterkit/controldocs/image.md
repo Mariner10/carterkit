@@ -102,16 +102,11 @@ fields:
     does: Tints the symbol with the hex color listed for the incoming value; photos are not tinted.
     summary: Show different colors for different values
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -121,24 +116,28 @@ themeFields:
     summary: The gap between card edge and picture
     does: Sets the space inside the card around the picture from 0 to 24 pt (default 8).
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card's fill color
     does: Fills the card behind the picture with this color, default a faint white wash.
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
     summary: The color of the symbol
     does: Colors the fallback symbol when no tint or color map applies, default white.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The card's outline color
     does: Draws the card's outline in this color, default a faint white.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5

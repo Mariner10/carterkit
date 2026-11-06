@@ -187,32 +187,16 @@ themeFields:
     does: Rounds the background's corners by this many points, 0 to 30.
   - use: controlPadding
     does: Sets the gap between the control's edge and its content in points, 0 to 24.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The panel behind the control
     does: Fills the background with this colour (default a faint white).
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The theme's highlight colour
     does: Sets the default fill colour when no tint is given (default #667eea).
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The main text colour
     does: Colours the centre number and title text (default white).
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The quieter text colour
     does: Colours the less prominent text such as the unit (default translucent white).
   - use: borderColor

@@ -110,16 +110,11 @@ fields:
     summary: Starting messages shown until new ones arrive
     does: Fills the console with these lines before any synced line arrives.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the corners are
     does: Rounds the corners of the console card.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -129,30 +124,35 @@ themeFields:
     summary: Space inside the card
     does: Sets the gap between the card edge and the header and log.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card background
     does: Fills the whole card behind the header and log in this color.
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
     summary: The highlight color
     does: Sets the theme accent color the console uses when no tint is set.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: Softer text color
     does: Colors the header label and the timestamps.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline color
     does: Draws the card outline in this color.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -162,6 +162,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the thickness of the card outline in points.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -170,18 +171,10 @@ themeFields:
     description: Label text size
     summary: How big the title is
     does: Sets the size of the header label text.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: Main text color
     does: Colors lines that have no level or an unknown one.
-  - name: surfaceSecondary
-    title: Second background color
-    type: color
-    default: #FFFFFF0A
-    description: Secondary surface fill
+  - use: surfaceSecondary
     summary: Log area color
     does: Fills the log area inside the card unless the style is transparent.
 ---

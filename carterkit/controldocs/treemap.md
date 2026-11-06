@@ -132,16 +132,11 @@ fields:
     does: Draws each block's value under its name on blocks tall enough to fit.
     group: treemapConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the corners are
     does: Rounds the control's corners from square to 30 points.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
@@ -159,14 +154,7 @@ themeFields:
     does: Draws the control's outline in this color.
   - use: borderWidth
     does: Sets the outline thickness from 0 to 5 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the edge
     does: Adds this much padding between the control's edge and the blocks.
   - use: foregroundColor

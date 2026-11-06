@@ -5,13 +5,36 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.19.0] — 2026-11-06
+
+Hubs can drive the app's new controls: confirmations, paged lists, expanding groups and sheets.
+
 ### Added
 
-- ControlDocs `- use: <name>` shared fields (app bead aif-fa4jj): `catalog.parse_doc` expands a
-  `fields:` / `themeFields:` entry from `controldocs/shared-fields.md` plus its `default`, `min`, `max`,
-  `step`, `does` and `since` overrides, exactly like the app; `catalog.load_shared` and
-  `catalog.use_errors` (unknown names, other overrides). The catalog is unchanged for every doc.
-- ControlDocs re-vendored from CAR-TER e5dc312c (the migrated docs); `typed.py` regenerated.
+- **`hub.confirm(title, message=None, ...)`** shows the app's own confirmation dialog (it names the
+  hub, so a layout cannot fake it) and returns `"confirm"`, `"cancel"`, `"timeout"` or `"busy"`;
+  `hub.confirm_sync()` for callers on another thread. Refusals (`not-hub`, `invalid`) raise `HubError`.
+- **`@hub.pages(list_id_or_reply_type)`** answers a paged list's page requests: the handler gets
+  `(offset, limit, cursor, query)` and returns items or `(items, next_cursor, total)`; the reply echoes
+  `req` and `query` and honours the list's `replyPath`.
+- **`hub.open_sheet(group_id=None, group=None, title=None, style=None)`** / **`hub.close_sheet(id)`**
+  open a group expanded in the foreground; close events arrive on `hub.on("sheet_closed")`.
+- **Group expand builders**: `ui.group(expand=..., action=...)`, `bind.expand_block(trigger=, style=,
+  grid=, children=)`, `bind.place(ref, position, span)` for re-placing a group's own children, and the
+  action kinds `bind.expand`, `bind.collapse`, `bind.toggle_expand`.
+- ControlDocs `- use: <name>` shared fields: `catalog.parse_doc` expands an entry from
+  `controldocs/shared-fields.md` plus its `default`, `min`, `max`, `step`, `does`, `since` and `summary`
+  overrides, exactly like the app; `catalog.load_shared` and `catalog.use_errors`.
+- ControlDocs version pins (`baseline`, `since`, `changes`, `deprecated`, `removed`, `alias`) on docs,
+  fields and enum values (plain strings or `{value, since}` objects), and a frontmatter JSON Schema
+  (`controldocs/controldocs.schema.json`) the catalog checks.
+
+### Changed
+
+- ControlDocs re-vendored from CAR-TER e6a13cea; `typed.py` regenerated (list paging and item
+  templates, card items, label `subtitle` / `lines`, grid `rowHeight: "auto"`, `scale` and `spacing`,
+  group `expand`, the confirm dialog on actions, the Binding and Ask editor hints).
+- `validate` accepts `{"expand": id}` actions and `expand` on groups (both were wrongly flagged).
 
 ## [0.18.1] — 2026-11-04
 

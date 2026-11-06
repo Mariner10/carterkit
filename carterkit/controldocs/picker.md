@@ -114,23 +114,12 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
   - use: surfacePrimary
     does: "Fills the card behind the picker with this color."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The highlight color
     does: "Sets the accent used for the picker highlights."
   - use: secondaryColor
@@ -151,7 +140,7 @@ themeFields:
     summary: How heavy the outline is
     does: "Sets the outline thickness from 0 to 5 points."
   - name: labelFontSize
-    title: Label text size
+    title: Title text size
     min: 8
     max: 24
     step: 1

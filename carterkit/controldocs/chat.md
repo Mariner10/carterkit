@@ -109,40 +109,39 @@ fields:
     summary: The chat's accent color
     does: Sets the accent color used by the chat bubbles.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the chat card's corners from 0 to 30 pt (default 12).
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card's fill color
     does: Fills the card behind the chat with this color, default a faint white wash.
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
     summary: The main highlight color
     does: Sets the accent color the chat uses for highlights, default a soft indigo.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The softer text color
     does: Colors secondary text such as names and timestamps, default a dimmed white.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The card's outline color
     does: Colors the outline drawn around the card.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -152,6 +151,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the card outline from 0 to 5 pt (default 1); 0 hides it.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

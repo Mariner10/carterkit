@@ -148,7 +148,7 @@ themeFields:
   - use: controlPadding
     does: Adds 0 to 24 points between the card's edge and the table.
   - name: surfacePrimary
-    title: Card fill
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
@@ -168,21 +168,10 @@ themeFields:
     description: Key/label text color
     summary: The quieter text shade
     does: Colors the key names when no key color is set.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline around the card
     does: Colors the card's edge line.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the outline is
     does: Draws the card's edge line 0 to 5 points thick; 0 removes it.
 ---

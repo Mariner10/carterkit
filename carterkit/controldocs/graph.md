@@ -331,16 +331,11 @@ fields:
     does: "Sets the smallest and largest pinch zoom as [min, max], default [0.3, 3.0]."
     group: graphConfig
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the corners are
     does: "Rounds the card behind the graph in points, 0 to 30; 0 is square."
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -350,24 +345,28 @@ themeFields:
     summary: Breathing room inside the card
     does: "Insets the graph from the card edge by this many points, 0 to 24."
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The card's own color
     does: "Fills the card behind the graph with this color, usually a faint translucent white."
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The quieter text color
     does: "Colors the less prominent text such as the header with this color."
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline of the card
     does: "Colors the card's border line."
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -377,6 +376,7 @@ themeFields:
     summary: How heavy the card outline is
     does: "Sets the card border thickness in points, 0 to 5; 0 hides it."
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

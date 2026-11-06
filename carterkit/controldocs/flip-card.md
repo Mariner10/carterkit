@@ -84,21 +84,10 @@ themeFields:
     description: Blur the card background
     summary: Frosted glass look
     does: Blurs what is behind each face card when on.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Outline color
     does: Colors the line around each face.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: Outline thickness
     does: Sets how thick the face outline is, 0 to 5 points.
   - name: cardPadding
@@ -115,11 +104,7 @@ themeFields:
     description: Padding inside each panel card
     summary: Space inside each face
     does: Sets the padding inside each face card, 0 to 32 points.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: Main text color
     does: Colors the main text on the faces.
 ---

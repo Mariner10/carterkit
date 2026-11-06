@@ -96,16 +96,11 @@ fields:
     summary: Hide the title
     does: Hides the header title, and the LIVE chip moves into the viewfinder.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the corners are
     does: Rounds the control's corners, from 0 (square) to 30 pt.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -115,6 +110,7 @@ themeFields:
     summary: Space inside the edges
     does: Sets the gap between the control's edge and its content, 0 to 24 pt.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
@@ -127,18 +123,21 @@ themeFields:
     summary: The idle icon color
     does: Tints the camera icon on the Tap to Start card.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The quieter text color
     does: Colors the smaller, secondary text.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline color
     does: Colors the outline drawn around the control.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -148,14 +147,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the outline thickness from 0 (none) to 5 pt.
   - use: foregroundColor
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Size of the title text
     does: Sets the title text size from 8 to 24 pt.
   - name: valueFontSize

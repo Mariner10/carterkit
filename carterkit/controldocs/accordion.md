@@ -82,21 +82,10 @@ themeFields:
     description: Blur the card background
     summary: A see-through blurred look for the cards
     does: Blurs whatever sits behind each section card when on; off leaves a plain flat fill.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline around each card
     does: Draws the card outline in this color, including transparency.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the outline is
     does: Sets the outline thickness from 0 (none) to 5 points.
   - name: cardPadding
@@ -127,11 +116,7 @@ themeFields:
     description: Control corner radius
     summary: How rounded the corners are
     does: Rounds the section cards from square (0) to 30 points.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The color of the heading words
     does: Paints the section headings and default text in this color.
 ---

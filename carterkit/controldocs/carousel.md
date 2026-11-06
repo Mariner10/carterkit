@@ -109,21 +109,10 @@ themeFields:
     description: Blur the card background
     summary: Whether the page cards look like frosted glass
     does: "On, content behind each page card is blurred; off, the card is a plain flat fill."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: "#FFFFFF1A"
-    description: Border color
+  - use: borderColor
     summary: The color of the thin outline around each page
     does: "Colors the outline drawn around every page card."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How thick the page outline is
     does: "Sets the outline width around each page card in points (0 hides it, 5 is heavy)."
   - name: cardPadding
@@ -140,18 +129,10 @@ themeFields:
     description: Padding inside each panel card
     summary: The breathing room between a page's edge and its contents
     does: "Insets the controls inside each page from the card edge by this many points (0 to 32)."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: "#FFFFFF"
-    description: Primary text color
+  - use: foregroundColor
     summary: The main color of writing on the pages
     does: "Colors the primary text inside the pages, such as titles."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: "#FFFFFF99"
-    description: Secondary text color
+  - use: secondaryColor
     summary: The softer color of supporting writing
     does: "Colors the secondary text inside the pages, such as captions and hints."
 ---

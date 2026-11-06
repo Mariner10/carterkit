@@ -144,6 +144,7 @@ themeFields:
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -153,30 +154,35 @@ themeFields:
     summary: Breathing room inside the card
     does: "Adds 0 to 24 points of space between the card edge and the field."
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The fill behind the box
     does: "Paints the card behind the field with this color."
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
     summary: The color of typed text
     does: "Colors the typed text and label with this color."
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: The color of the hint text
     does: "Colors the placeholder and secondary icons with this color."
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline color
     does: "Draws the card outline in this color."
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -186,6 +192,7 @@ themeFields:
     summary: How thick the outline is
     does: "Sets the outline thickness from 0 (none) to 5 points."
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

@@ -199,23 +199,12 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
   - use: surfacePrimary
     does: "Fills the card behind the slider with this color."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The highlight color
     does: "Sets the accent used for highlights on the slider."
   - use: foregroundColor
@@ -292,14 +281,7 @@ themeFields:
     description: Show thumb shadow
     summary: A soft shadow under the handle
     does: "Turns the shadow under the handle on or off."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the outline is
     does: "Sets the outline thickness from 0 to 5 points."
   - use: secondaryColor

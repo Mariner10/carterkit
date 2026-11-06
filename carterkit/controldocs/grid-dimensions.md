@@ -34,14 +34,25 @@ fields:
     description: "Points per row-unit in 2-D mode (default 56). The word \"auto\" sizes each row to its content instead (a list itemTemplate grid: compact rows)"
     summary: How tall one row is
     does: Sets the points one row-unit takes in 2-D mode, default 56; auto makes each row as tall as its content needs.
+  - name: spacing
+    edit: scrub
+    unit: pt
+    min: 0
+    max: 32
+    step: 1
+    default: 8
+    type: number
+    description: "Points between neighbouring cells, across and down (default 8, the theme's grid gap). Shrinks and grows with the grid's scale"
+    summary: The gap between controls
+    does: "Sets the gap between the grid's cells, 0 to 32 points; 0 butts the controls together, and Default goes back to the theme's 8. A scaled grid's gaps shrink with its controls."
   - name: scale
     min: 0.3
     max: 1.5
     step: 0.05
     type: number
-    description: "Size the grid's controls draw at: a number from 0.3 to 1.5 or \"auto\" (rowHeight / 56); default 1. See group-def Scale"
+    description: "Size the grid's controls draw at: a number from 0.3 to 1.5 or \"auto\" (from the group's shape: the smaller of span rows / grid rows and span columns / grid columns, at most 1; rowHeight / 56 when a rowHeight is set); default 1. See group-def Scale"
     summary: Shrink or grow the controls
-    does: Draws this grid's controls proportionally smaller or larger, 0.3 to 1.5; auto follows rowHeight divided by 56.
+    does: "Draws this grid's controls proportionally smaller or larger, 0.3 to 1.5; auto follows the group's shape, so a 1 by 5 group holding a 3 by 15 grid draws them at a third."
   - name: reflow
     type: string
     description: "Landscape policy for a tab's grid: 'auto' (default; columns double and children re-pack) or 'stretch' (keep the portrait cells, wider)"
@@ -107,17 +118,33 @@ a label with a `subtitle`, a button) stays compact instead of using fixed 56-pt 
 "itemTemplate": { "grid": { "columns": 4, "rows": 1, "rowHeight": "auto" }, "children": [ … ] }
 ```
 
+## `spacing`
+
+The gap between neighbouring cells, across and down, in points (default **8**, the theme's
+grid gap). It applies to every grid: a tab, a [[group-def|group]], a container's page, a list
+`itemTemplate` row and an expanded group. A child spanning several cells also covers the gaps
+between them, so with the default a 2-row control is `2 × rowHeight + 8` tall (the `64n - 8`
+rule in [[style-rules]]). `0` butts the controls together; a grid with a `scale` draws its gaps
+at that scale too, so a miniature keeps its proportions.
+
+```json
+"grid": { "columns": 4, "rows": 6, "spacing": 12 }
+```
+
 ## `scale`
 
 `scale` draws the controls on this grid as proportional miniatures: fonts, padding, spacing,
 corners, icons and control sizes shrink (or grow) together through the theme, and touch
-targets stay 44 pt. A number is the factor (0.3 to 1.5); `"auto"` follows the row height,
-`rowHeight / 56` (1 with `rowHeight: "auto"`). Use it with fine grids, such as a compact list
-card on 3 short rows × 15 columns. A grid nested in a scaled grid scales with it. Details and
-an example: [[group-def#Scale]].
+targets stay 44 pt. A number is the factor (0.3 to 1.5). `"auto"` follows the group's shape:
+the smaller of its span rows / grid rows and span columns / grid columns, at most 1, and each
+row is that factor times the page's row. A group 1 × 5 on its page with a 3 × 15 grid draws at
+1/3, so three 1 × 1 controls stack in its one row and each looks like a 1 × 1 outside at a third
+of the size. A list row counts as one row cell. With a `rowHeight` number `"auto"` keeps
+`rowHeight / 56`; with `rowHeight: "auto"` it is 1. A grid nested in a scaled grid scales with
+it. Details and an example: [[group-def#Scale]].
 
 ```json
-"grid": { "columns": 15, "rows": 3, "rowHeight": 40, "scale": "auto" }
+"grid": { "columns": 15, "rows": 3, "scale": "auto" }
 ```
 
 ## Sizing a control
@@ -191,6 +218,17 @@ Demonstrates `rowHeight: "auto"` with `scale: "auto"`: a one-row card whose rows
   "children": [
     { "type": "label", "id": "title", "position": [0, 0], "span": [1, 10], "label": "Water pump" },
     { "type": "button", "id": "go", "position": [0, 10], "span": [1, 5], "label": "Run" }
+  ] }
+```
+
+### Roomier gaps on a card row
+Demonstrates `spacing: 16`: the same three cards with twice the theme's gap between them.
+```json
+{ "grid": { "columns": 3, "rows": 2, "spacing": 16 },
+  "children": [
+    { "type": "statTile", "id": "in", "position": [0, 0], "span": [2, 1], "label": "Inside" },
+    { "type": "statTile", "id": "out", "position": [0, 1], "span": [2, 1], "label": "Outside" },
+    { "type": "statTile", "id": "hum", "position": [0, 2], "span": [2, 1], "label": "Humidity" }
   ] }
 ```
 

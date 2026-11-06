@@ -6,23 +6,26 @@ category: system
 depth: complete
 fields:
   - name: method
+    edit: data
     tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, sensor, local, derive)
     summary: Which way the value arrives
-    does: Picks the transport that feeds this control: a CAR-TER server, an MQTT topic, a polled web address, the phone's own sensor, the local store or a derived value.
+    does: "Picks the transport that feeds this control: a CAR-TER server, an MQTT topic, a polled web address, the phone's own sensor, the local store or a derived value."
   - name: type
     type: string
     description: Sync direction (listen)
     summary: Which direction to sync
     does: Marks the binding as one that listens for incoming values; leave it as listen.
   - name: event
+    edit: data
     tab: advanced
     type: string
     description: MeshSocket frame type to match (meshsocket). Server broadcasts arrive as "broadcast" (demux with filter.msg_type); any other name only matches frames routed to this device by route_msg_noreply
     summary: The kind of message to listen for
     does: Matches only server messages of this type, so the control updates when a frame with this name arrives; server broadcasts arrive as broadcast.
   - name: filter
+    edit: data
     tab: advanced
     type: object
     description: Key-value pairs to match incoming messages
@@ -49,6 +52,7 @@ fields:
     summary: Where the message says when it ends
     does: Reads an end time at this path and shows a countdown toward it on the control, widgets, Lock Screen and Live Activity until the next value arrives.
   - name: valuePath
+    edit: data
     tab: advanced
     type: string
     description: Dot-notation path to extract value
@@ -60,12 +64,14 @@ fields:
     summary: Which saved connection to use
     does: Reads from the named entry in the layout's sources, so many controls can share one broker or address.
   - name: topic
+    edit: data
     tab: advanced
     type: string
     description: MQTT topic filter to subscribe (mqtt; supports +/#)
     summary: The MQTT topic to follow
     does: Subscribes to this MQTT topic and updates the control with each message; + and # match several topics.
   - name: url
+    edit: data
     type: string
     description: Absolute URL to poll (http)
     summary: The web address to check
@@ -84,6 +90,7 @@ fields:
     summary: How often to check, in seconds
     does: Sets the seconds between each fetch of the web address.
   - name: collection
+    edit: data
     type: string
     description: Collection or view name in the local source (local, required)
     summary: Which saved list to read
@@ -117,6 +124,7 @@ fields:
     summary: Most rows to show
     does: Caps how many rows or groups reach the control, between 1 and 1000.
   - name: from
+    edit: data
     type: string
     description: The id of a layout derive entry this control shows (derive)
     summary: Which calculated value to show
@@ -127,6 +135,7 @@ fields:
     summary: Which event group this belongs to
     does: Ties the binding to a named event group so related controls receive their frames together.
   - name: sensor
+    edit: data
     type: string
     description: "On-device stream to bind when method is sensor, e.g. heading (see [[sensors]])"
     summary: Which phone sensor to read
@@ -144,6 +153,8 @@ transport; `method` picks the wire: `meshsocket` (a CAR-TER server),
 `mqtt`/`http` (see [[sources]]), `sensor` (this device's own hardware),
 `local` (the on-device [[local-store]]), or `derive` (a value the phone
 computes from other values, see [[derive]]).
+
+**Edit hint — the Binding view.** The fields marked `edit: data` (`method`, the address for each method: `event`, `topic`, `url`, `sensor`, `collection`, `from`; `filter`'s `msg_type`; `valuePath`) are the ones the edit pose's binding view edits up front for the first listener, with the last value received beside them. Further listeners and the other keys stay as written; the view's More holds the rest.
 
 ## Definition
 

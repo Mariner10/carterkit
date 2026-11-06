@@ -216,35 +216,20 @@ themeFields:
     summary: How rounded the corners are
     does: Rounds the control's corners from square (0) to 30 points.
   - use: controlPadding
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The fill behind the dial
     does: Paints the control's background in this color, including transparency.
   - use: accentColor
     does: Tints the dial's fill and accents wherever no color is set directly.
   - use: foregroundColor
     does: Colors the center number and primary text.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The quieter text color
     does: Colors the caption and other supporting text.
   - use: borderColor
     does: Draws the control's outline in this color.
   - use: borderWidth
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the caption is
     does: Sets the caption's text size from 8 to 24 points.
 ---

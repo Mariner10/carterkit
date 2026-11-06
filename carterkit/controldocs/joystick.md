@@ -100,6 +100,7 @@ themeFields:
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -109,24 +110,28 @@ themeFields:
     summary: Space inside the card
     does: Sets the padding between the card edge and the stick, from 0 to 24 pt (default 8).
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: Card background
     does: Fills the control's card background with this color.
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
     summary: Highlight color
     does: Sets the theme accent color for this control.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: Quiet text color
     does: Colors the label text under the stick.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
@@ -146,6 +151,7 @@ themeFields:
     summary: Card outline thickness
     does: Sets the card outline thickness from 0 to 5 pt (default 1).
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

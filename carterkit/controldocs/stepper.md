@@ -134,23 +134,12 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space between the card edge and the content
     does: "Sets the padding inside the card from 0 to 24 points."
   - use: surfacePrimary
     does: "Fills the card behind the stepper with this color."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The highlight color
     does: "Sets the accent used for highlights on the stepper."
   - use: borderColor
@@ -212,21 +201,10 @@ themeFields:
     description: Button icon color
     summary: The color of the plus and minus signs
     does: "Colors the symbols drawn on the buttons."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the outline is
     does: "Sets the card outline thickness from 0 to 5 points."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The softer text color
     does: "Colors the secondary text such as the title."
 ---

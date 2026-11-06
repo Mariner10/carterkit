@@ -84,33 +84,38 @@ themeFields:
   - use: cornerRadius
     does: Rounds the map corners from square (0) to 30 points.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
     type: number
     default: 8
     description: Internal padding
-    summary: Inner spacing
+    summary: The room inside the control
     does: Sets the padding inside the map frame, 0 to 24 points.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
-    summary: Background color
+    summary: The colour behind the control
     does: Fills the map card background with this color.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: Quieter text color
     does: Colors the secondary text on the map.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: Outline color
     does: Colors the line around the map.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -120,6 +125,7 @@ themeFields:
     summary: Outline thickness
     does: Sets how thick the outline is, 0 to 5 points.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -128,18 +134,10 @@ themeFields:
     description: Label text size
     summary: Label text size
     does: Sets the size of the header label text, 8 to 24 points.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: Highlight color
     does: Sets the accent tint used on the map.
-  - name: surfaceSecondary
-    title: Second background color
-    type: color
-    default: #FFFFFF0A
-    description: Secondary surface fill
+  - use: surfaceSecondary
     summary: Backdrop color
     does: Fills the secondary surface behind map details with this color.
 ---

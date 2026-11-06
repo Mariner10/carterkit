@@ -245,11 +245,7 @@ themeFields:
     description: Control corner radius
     summary: "How rounded the card corners are"
     does: "Rounds the control's outer corners from square (0) to 30 points."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: "The fill behind the grid"
     does: "Paints the control's background card in this color including transparency."
   - name: secondaryColor
@@ -261,11 +257,7 @@ themeFields:
     does: "Colors the header and axis label text in this color."
   - use: accentColor
     does: "Tints the grid ramp wherever no color is set directly."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: "The outline color"
     does: "Draws the card's border line in this color."
   - use: borderWidth
@@ -274,14 +266,7 @@ themeFields:
     does: "Adds 0 to 24 points between the card's edge and the grid."
   - use: foregroundColor
     does: "Colors the primary text such as the title and in-cell numbers."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: "How big the title text is"
     does: "Sets the header label size from 8 to 24 points."
   - use: tertiaryColor

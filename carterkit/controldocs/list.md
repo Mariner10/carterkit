@@ -149,6 +149,8 @@ fields:
     summary: The field whose text filters the rows
     does: "Sends that field's text as the search with every request, and starts the list over from the top when the text changes."
   - name: itemTemplate
+    edit: template
+    depth: surface
     title: Row design
     tab: advanced
     simple: hide
@@ -179,6 +181,7 @@ fields:
     valueHelp: {"plain": "rows sit inside the list's own card, as before", "card": "each templated row is its own card, styled by the template group"}
 themeFields:
   - name: cardPadding
+    title: Card padding
     type: number
     min: 0
     max: 32
@@ -197,28 +200,13 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space between the card edge and the rows
     does: "Adds 0 to 24 points of space inside the card around the rows."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The fill color of the card
     does: "Paints the card background in this color, usually a faint translucent tone."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The color of the row text
     does: "Colors the text in the rows with this color."
   - use: borderColor
@@ -561,6 +549,12 @@ The hub answers `catalogue_pages` with `{"msg_type": "catalogue_page", "req": "<
 The list has no look that switches it to another control type, and no long-press or detail view.
 
 ## Editor notes
+Edit row (on the list's pose) edits `itemTemplate` as one row: its first row is the template, a group you move,
+resize, add to and take controls out of, with the group's own chips (title, columns, rows, background, theme);
+every row below follows at once, each filled from its own item. A stepper cycles sample items from the hub page
+the list is on, else its synced or starting rows, else placeholders named after the template's fields. Each
+control shows the `{{item.<field>}}` it reads above it. On a list drawn as columns the first edit creates a
+template from its columns.
 `hideBackground`, `hideLabel` and `tint` (header color) change only the card and header, so with `hideLabel` on, the Header color field changes nothing on screen.
 
 ## Related

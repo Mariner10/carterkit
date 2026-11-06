@@ -230,13 +230,7 @@ fields:
     summary: "Hides the center number"
     does: "On, removes the readout from the donut center or hub; the slices still draw."
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: "How round the card corners are"
     does: "Rounds the card corners from 0 (square) to 30 points."
   - name: surfacePrimary
@@ -251,30 +245,14 @@ themeFields:
     description: Label text color
     summary: "The softer text color"
     does: "Colors the slice labels and legend text."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: "The highlight color"
     does: "Sets the accent used for the selected slice and highlights."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: "The outline around the card"
-    does: "Colors the card's outline."
   - use: borderWidth
     does: "Sets the card outline width from 0 to 5 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: "Space inside the card"
     does: "Sets the padding between the card edge and the chart from 0 to 24 points."
   - use: foregroundColor

@@ -84,16 +84,11 @@ fields:
   - use: confirm
     does: After each change a pill naming it with an Undo button shows for 3 seconds.
 themeFields:
-  - name: cornerRadius
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the outer bar is
     does: Rounds the outer edge of the whole control, 0 to 30 points.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -103,24 +98,28 @@ themeFields:
     summary: Space inside the bar edge
     does: Insets the segments from the bar edge by 0 to 24 points.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The bar background tint
     does: Fills the area behind the segments with this colour.
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
     summary: The main highlight colour
     does: Tints accent parts of the control such as the pill highlight when no tint is set.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline colour
     does: Colours the line drawn around the control.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -175,21 +174,10 @@ themeFields:
     description: Selected text color
     summary: The words of the picked choice
     does: Colours the label of the selected segment.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the outline is
     does: Sets the outline line weight, 0 (none) to 5 points.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The colour of supporting words
     does: Colours the quieter supporting text in the control.
 ---

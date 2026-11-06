@@ -131,25 +131,14 @@ themeFields:
     type: number
     default: 12
     description: Control corner radius
-  - name: controlPadding
+  - use: controlPadding
     summary: "Breathing room inside the button"
     does: "Adds 0 to 24 points of space between the edge and the content."
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
   - use: accentColor
     does: "Sets the default button fill or tint for every button without its own color."
-  - name: foregroundColor
+  - use: foregroundColor
     summary: "Color of the words and symbol"
     does: "Sets the label and symbol color on filled buttons."
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
   - use: borderColor
     does: "Colors the border drawn around the button."
   - name: borderWidth

@@ -167,35 +167,17 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The gap between card edge and contents
     does: Sets the space inside the card around the label and switch from 0 to 24 pt (default 8).
   - use: surfacePrimary
     does: Fills the card behind the control with this color, default a faint white wash.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The main highlight color
     does: Sets the highlight color the control uses where no color is set for it.
   - use: borderColor
     does: Draws the card outline in this color, default a faint white line.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the name text is
     does: Sets the label text size from 8 to 24 pt (default 12).
   - name: trackColor

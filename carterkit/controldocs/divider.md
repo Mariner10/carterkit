@@ -60,6 +60,7 @@ fields:
     does: Sets the line's height from 0.5 to 8 pt (default 1).
 themeFields:
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

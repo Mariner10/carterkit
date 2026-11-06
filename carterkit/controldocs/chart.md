@@ -335,6 +335,7 @@ themeFields:
   - use: cornerRadius
     does: "Rounds the chart card corners from square (0) to 30 points."
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -344,18 +345,21 @@ themeFields:
     summary: "Breathing room inside the edge"
     does: "Adds 0 to 24 points between the card edge and the plot."
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: "The fill behind the plot"
     does: "Paints the chart card background in this color including transparency."
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: "The color of axis labels"
     does: "Colors the axis and grid label text in this softer color."
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1
@@ -364,37 +368,18 @@ themeFields:
     description: Label text size
     summary: "The size of the labels"
     does: "Sets the heading and axis label text from 8 to 24 points."
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: "The theme highlight"
     does: "Colors the first series and selection highlights when no tint is set."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: "The outline color"
     does: "Draws the card outline in this color."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: "How heavy the outline is"
     does: "Sets the card outline from none (0) to 5 points."
   - use: foregroundColor
     does: "Colors the heading and the selection readout."
-  - name: tertiaryColor
-    title: Faint text color
-    type: color
-    default: #FFFFFF4D
-    description: Tertiary text and ink color
+  - use: tertiaryColor
     summary: "The faintest ink"
     does: "Colors the grid lines and the least prominent text."
 ---

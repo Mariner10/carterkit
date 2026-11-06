@@ -284,6 +284,7 @@ fields:
 themeFields:
   - use: cornerRadius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -293,6 +294,7 @@ themeFields:
     summary: Space inside the card
     does: Sets the gap between the card edge and the icon, 0 to 24 points.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
@@ -305,12 +307,14 @@ themeFields:
     summary: The icon's default color
     does: Colors the glyph when no tint is set.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The card's outline color
     does: Colors the outline around the card.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -319,11 +323,7 @@ themeFields:
     description: Border width
     summary: How thick the outline is
     does: Sets the card outline thickness in points; 0 removes it.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The caption color
     does: Colors the caption text under the glyph.
 ---

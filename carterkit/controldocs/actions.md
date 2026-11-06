@@ -6,6 +6,7 @@ icon: bolt.fill
 category: system
 fields:
   - name: method
+    edit: data
     tab: advanced
     type: string
     description: Transport method (meshsocket, mqtt, http, local)
@@ -17,12 +18,14 @@ fields:
     summary: "Wait for a reply or not"
     does: "broadcast sends and moves on; request waits for the reply, which only a route_msg command ever gets (meshsocket only)."
   - name: event
+    edit: data
     tab: advanced
     type: string
     description: MeshSocket frame type, sent verbatim — must be a relay verb (broadcast_request, route_msg, route_msg_noreply); the command name goes in payload.msg_type
     summary: "The message type sent"
     does: "Sent as-is as the MeshSocket frame type, so it must be a relay verb such as broadcast_request; the command name goes in the payload instead."
   - name: payload
+    edit: data
     tab: advanced
     type: object
     description: Data to send (supports {{value}} substitution); for broadcast_request include msg_type so servers can demux
@@ -34,6 +37,7 @@ fields:
     summary: "Which connection to use"
     does: "Sends through the layout's named source (mqtt, http or local) instead of spelling out the address."
   - name: topic
+    edit: data
     tab: advanced
     type: string
     description: MQTT topic to publish to
@@ -46,6 +50,7 @@ fields:
     summary: "Keep the last message"
     does: "Publishes with the MQTT retained flag so new subscribers get the last value straight away."
   - name: url
+    edit: data
     type: string
     description: Absolute request URL (http)
     summary: "The full web address"
@@ -74,6 +79,7 @@ fields:
     does: "Chooses the on-device store operation the action runs: write, change, remove or read rows, or adjust a single saved value."
     valueHelp: {"insert": "adds a new entry to the collection", "update": "changes the fields you name on the entry with this id", "upsert": "updates the entry if it exists, otherwise adds it", "delete": "removes the entry with this id", "select": "moves the collection's selection to the entry with this id", "set": "patches the named fields of a singleton collection's one row", "increment": "adds the step to a number field of a singleton collection", "decrement": "subtracts the step from a number field of a singleton collection", "toggle": "flips a true or false field of a singleton collection"}
   - name: collection
+    edit: data
     type: string
     description: Collection the op targets (local)
     summary: "Which list to change"
@@ -101,6 +107,7 @@ fields:
     summary: "How much to add or take"
     does: "The step an increment or decrement applies, 1 when unset; a decrement subtracts it, and whole-number fields only take whole steps."
   - name: confirm
+    edit: ask
     summary: "Ask before sending"
     does: "Shows the app's own confirmation dialog first; the action goes out only when the user taps the confirm button. It applies to taps, form submits and drags in the app; a widget, Live Activity, Control Center or Siri press cannot draw the dialog, so those never fire it."
     title: Confirm first
@@ -134,18 +141,24 @@ fields:
     default: false
     description: Red confirm button in the confirmation dialog
   - name: expand
+    edit: pick-control
+    axis: group
     summary: "Open a group's expanded view"
     does: "Expands the group (or, from a control inside a list row, that list's row) with this id, as if its card was tapped. No transport is used, so `method` can be left out."
     title: Expand group
     type: string
     description: Expand the group with this id (see group-def Expand). No method needed
   - name: collapse
+    edit: pick-control
+    axis: group
     summary: "Close a group's expanded view"
     does: "Closes the expanded view when it was opened from the group (or list row) with this id; nothing happens otherwise."
     title: Collapse group
     type: string
     description: Close the expanded view of the group with this id
   - name: toggleExpand
+    edit: pick-control
+    axis: group
     summary: "Open or close a group's expanded view"
     does: "Closes the group's expanded view when it is open, opens it when it is not."
     title: Toggle expand
@@ -156,6 +169,10 @@ fields:
 How controls send commands — the outbound half of the **standardized connection
 block**. The payload vocabulary (`{{value}}` and friends) is identical across
 transports; `method` picks the wire.
+
+**Edit hint — the Binding view.** The fields marked `edit: data` (`method`, the address for each method: `event`, `topic`, `url`, `collection`; `payload`, with `{{value}}`) are the ones the edit pose's binding view edits up front as what using the control sends. A payload must be a JSON object; the other keys (`mode`, `headers`) stay as written.
+
+**Edit hint — Ask first.** `confirm` names `edit: ask`: the binding view's send card asks what a tap does (Send, or one of the `edit: pick-control` / `axis: group` fields here, `expand`, `collapse`, `toggleExpand`, with a group picked from the layout) and whether it asks first: Never, Undo after (the control's own `confirm: true` pill, offered when the control's doc has it) or Ask before (`confirm: "dialog"`), with the app's dialog drawn live so `confirmTitle`, `confirmMessage` and `confirmLabel` are typed on it and `destructive` turns its button red.
 
 ## Definition
 

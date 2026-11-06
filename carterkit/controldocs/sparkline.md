@@ -84,7 +84,7 @@ fields:
     tab: style
     type: array
     description: Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint.
-    does: Colors the line and fill by height: each part takes the color of the zone its value falls in.
+    does: "Colors the line and fill by height: each part takes the color of the zone its value falls in."
     summary: Colour the line by how high it is
   - name: colorBlend
     facet: colorByValue
@@ -121,6 +121,7 @@ fields:
 themeFields:
   - use: cornerRadius
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -130,30 +131,35 @@ themeFields:
     summary: Breathing room inside the edge
     does: Adds 0 to 24 points between the control's edge and its content.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The fill behind the control
     does: Paints the control's background in this color, including transparency.
   - name: accentColor
+    title: Accent color
     type: color
     default: #667eea
     description: Accent/tint color
     summary: The main highlight color
     does: Sets the accent color used for the control's tint when it has none of its own.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
     summary: Color of the quieter text
     does: Colors the label and other secondary text.
   - name: borderColor
+    title: Border color
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: Color of the outline
     does: Colors the control's border line.
   - name: borderWidth
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -163,6 +169,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the border line thickness from none (0) to 5 points.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

@@ -43,6 +43,7 @@ themeFields:
     summary: How round the corners are
     does: Rounds the control's corners, from 0 (square) to 30 pt.
   - name: controlPadding
+    title: Inner spacing
     min: 0
     max: 24
     step: 1
@@ -52,18 +53,21 @@ themeFields:
     summary: Space inside the edges
     does: Sets the gap between the control's edge and its content, 0 to 24 pt.
   - name: surfacePrimary
+    title: Background color
     type: color
     default: #FFFFFF0F
     description: Background fill
     summary: The background color
     does: Fills the control's background with this color.
   - name: foregroundColor
+    title: Text color
     type: color
     default: #FFFFFF
     description: Primary text color
     summary: The main text color
     does: Colors the main text on the control.
   - name: secondaryColor
+    title: Second text color
     type: color
     default: #FFFFFF99
     description: Secondary text color
@@ -92,6 +96,7 @@ themeFields:
     summary: How thick the outline is
     does: Sets the outline thickness from 0 (none) to 5 pt.
   - name: labelFontSize
+    title: Title text size
     min: 8
     max: 24
     step: 1

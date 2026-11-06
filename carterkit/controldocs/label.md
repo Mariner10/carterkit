@@ -131,23 +131,10 @@ fields:
     valueHelp: {"countdown": "the value is a time and the label counts down to it", "reach": "the value is guessed to move toward a target number until the next real reading"}
   - use: forecastTarget
     does: Gives the number the guessed value drifts toward, from -1000000 to 1000000.
-  - name: forecastTimeFrom
-    title: Arrival time from
-    tab: data
-    simple: hide
-    type: string
-    description: Id of the control whose value is the arrival time (epoch seconds or ISO-8601), for forecast "reach"
+  - use: forecastTimeFrom
     summary: Which other control says when it arrives
     does: Uses that control's time value as the moment the guess reaches the target, so the guess lands on time.
-  - name: forecastRate
-    title: Change per second
-    tab: data
-    simple: hide
-    type: number
-    min: -1000
-    max: 1000
-    step: 0.01
-    description: Keep moving by this much per second from the last real reading (forecast "reach", no time needed)
+  - use: forecastRate
     summary: How fast the guess keeps moving
     does: Moves the displayed number by this much every second after the last real reading, from -1000 to 1000.
   - name: unit
@@ -200,18 +187,12 @@ fields:
     does: Recolors the text to match the incoming value, for example green for running.
 themeFields:
   - name: secondaryColor
+    title: Subtitle color
     type: color
     description: Subtitle colour
     summary: The softer colour of the subtitle line
     does: Colours the subtitle under the label text; defaults to the theme's secondary text colour.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The breathing room inside the label
     does: Pushes the text in from the edges by 0 to 24 points.
   - name: cornerRadius
@@ -228,11 +209,7 @@ themeFields:
     description: Control corner radius (card behind the text, when a background is set)
     summary: How round the label's corners are
     does: Rounds the card behind the text from square at 0 to very round at 30 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The fill behind the text
     does: Paints the card behind the label in this color.
   - use: borderColor
@@ -251,11 +228,7 @@ themeFields:
     description: Border width
     summary: How thick the outline is
     does: Draws the border from 0 to 5 points thick; 0 hides it.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The main color of the words
     does: Sets the color the text is drawn in when no Color is chosen.
 ---

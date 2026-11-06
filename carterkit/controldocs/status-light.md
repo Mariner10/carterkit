@@ -104,46 +104,35 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: Rounds the card behind the light from square (0) to very round (30 pt).
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space between the card edge and the light
     does: Adds 0-24 pt of empty space inside the card around the dot and label.
   - name: surfacePrimary
-    title: Card fill
+    title: Background color
     type: color
     default: "#FFFFFF0F"
     description: Background fill
     summary: The color of the card behind the light
     does: Fills the card in this color; a low alpha shows the layout behind it.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: "#FFFFFF"
-    description: Primary text color
+  - use: foregroundColor
     summary: The color of the label and badge words
     does: Colors the label and the state text in the badge.
   - name: secondaryColor
-    title: Soft text color
+    title: Second text color
     type: color
     default: "#FFFFFF99"
     description: Secondary text color
     summary: The color of the quieter text
     does: Colors the dimmer secondary text of the control.
   - name: borderColor
-    title: Outline color
+    title: Border color
     type: color
     default: "#FFFFFF1A"
     description: Border color
     summary: The color of the card outline
     does: Draws the card outline in this color when the border width is above 0.
   - name: borderWidth
-    title: Outline thickness
+    title: Border thickness
     min: 0
     max: 5
     step: 0.5
@@ -153,7 +142,7 @@ themeFields:
     summary: How thick the card outline is
     does: Sets the outline thickness from 0 (none) to 5 pt.
   - name: labelFontSize
-    title: Label size
+    title: Title text size
     min: 8
     max: 24
     step: 1
