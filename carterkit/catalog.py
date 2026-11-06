@@ -16,6 +16,14 @@ Public surface (all pure; `docs_dir` is injected for testability):
     get_examples(docs_dir, control)  -> [{"name", "json"}]
     find_example(docs_dir, control, name) -> {"name", "json"} | None
     resolve_doc(docs_dir, control)   -> doc | None   accepts node_id OR control type
+    resolved_frontmatter(content)    -> dict | None   the shape controldocs.schema.json checks
+    parse_flow(text)                 -> list | dict | None   `[..]` / `{..}` (JSON or YAML flow)
+    introduced(doc, field, value)    -> str   nearest `since` pin, else the doc's baseline
+
+Version pins (aif-xd1w8.1, control-def.md "Version pins"): docs, fields and enum values
+carry `since` / `changes` / `deprecated` / `removed` / `alias`; a doc's `baseline` (absent
+= DEFAULT_BASELINE) covers everything unpinned. A field's pinned values land in
+`valueMeta` ({value: pins}); `values` stays the plain list.
 """
 
 from __future__ import annotations
@@ -62,10 +70,162 @@ def _parse_json(value: str, kind):
     return parsed if isinstance(parsed, kind) else None
 
 
+# ─── Flow values and version pins (app bead aif-xd1w8.1) ──────────────────────
+#
+# A `[..]` / `{..}` value is flow: JSON, or YAML flow with bare or quoted scalars
+# (`[filled, { value: pill, since: next }]`). Every scalar comes back a string, as
+# in the rest of the dialect. Mirrors ControlDocLoader.parseFlow.
+
+DEFAULT_BASELINE = "2.0"
+PIN_KEYS = ("since", "changes", "deprecated", "removed", "alias")
+_ESCAPES = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\", "/": "/"}
+
+
+def parse_flow(text: str):
+    """A flow list/map as nested lists/dicts of strings, or None when malformed."""
+    s, n = text, len(text)
+
+    def ws(i):
+        while i < n and s[i] in " \t":
+            i += 1
+        return i
+
+    def scalar(i, stops):
+        if i < n and s[i] in "\"'":
+            q, i, out = s[i], i + 1, []
+            while i < n and s[i] != q:
+                if q == '"' and s[i] == "\\" and i + 1 < n:
+                    e = s[i + 1]
+                    if e == "u" and i + 6 <= n:
+                        try:
+                            out.append(chr(int(s[i + 2:i + 6], 16)))
+                            i += 6
+                            continue
+                        except ValueError:
+                            pass
+                    out.append(_ESCAPES.get(e, "\\" + e))
+                    i += 2
+                    continue
+                out.append(s[i])
+                i += 1
+            return ("".join(out), i + 1) if i < n else (None, i)
+        j = i
+        while j < n and s[j] not in stops:
+            j += 1
+        return s[i:j].strip(), j
+
+    def value(i, stops):
+        i = ws(i)
+        if i < n and s[i] in "[{":
+            return container(i)
+        return scalar(i, stops)
+
+    def container(i):
+        close = "]" if s[i] == "[" else "}"
+        out = [] if close == "]" else {}
+        i = ws(i + 1)
+        while i < n and s[i] != close:
+            if close == "]":
+                item, i = value(i, ",]")
+                if item is None:
+                    return None, i
+                if item != "":
+                    out.append(item)
+            else:
+                key, i = scalar(ws(i), ":,}")
+                i = ws(i)
+                if key is None or i >= n or s[i] != ":":
+                    return None, i
+                item, i = value(i + 1, ",}")
+                if item is None:
+                    return None, i
+                out[key] = item
+            i = ws(i)
+            if i < n and s[i] == ",":
+                i = ws(i + 1)
+            elif i < n and s[i] != close:
+                return None, i
+        return (out, i + 1) if i < n else (None, i)
+
+    i = ws(0)
+    if i >= n or s[i] not in "[{":
+        return None
+    result, i = container(i)
+    return result if result is not None and ws(i) == n else None
+
+
+def _decode(value: str):
+    """A raw frontmatter value as the resolved form: flow decoded, else the string
+    with its double quotes trimmed (what both line parsers keep)."""
+    v = value.strip().strip('"')
+    if v[:1] in ("[", "{"):
+        parsed = parse_flow(v)
+        if parsed is not None:
+            return parsed
+    return v
+
+
+def _version(v) -> Optional[str]:
+    return v.strip().strip("\"'") or None if isinstance(v, str) else None
+
+
+def _pins(get) -> dict:
+    """The version pins `get(key)` yields (raw strings or decoded values), present ones only."""
+    out: dict = {}
+    for key in ("since", "deprecated", "removed"):
+        v = _version(get(key))
+        if v:
+            out[key] = v
+    raw = get("changes")
+    changes = _decode(raw) if isinstance(raw, str) else raw
+    if isinstance(changes, list):
+        items = [{"in": _version(c.get("in")), "note": str(c.get("note", "")).strip()}
+                 for c in changes if isinstance(c, dict)]
+        items = [c for c in items if c["in"] and c["note"]]
+        if items:
+            out["changes"] = items
+    alias = get("alias")
+    if isinstance(alias, str) and alias.strip().strip("\"'"):
+        out["alias"] = alias.strip().strip("\"'")
+    return out
+
+
+def _values(raw: str) -> tuple[list[str], dict[str, dict]]:
+    """An enum's `values:` as (value list, {value: pins}); items are strings or
+    `{value, since, changes, deprecated, removed, alias}` objects."""
+    items = parse_flow(raw.strip())
+    if not isinstance(items, list):
+        return _parse_str_array(raw), {}
+    values, meta = [], {}
+    for item in items:
+        if isinstance(item, str):
+            values.append(item)
+        elif isinstance(item, dict) and isinstance(item.get("value"), str):
+            values.append(item["value"])
+            pins = _pins(item.get)
+            if pins:
+                meta[item["value"]] = pins
+    return values, meta
+
+
+def introduced(doc: dict, field: Optional[dict] = None, value: Optional[str] = None) -> str:
+    """The version that brought `doc` (or its `field`, or that field's enum `value`):
+    the nearest `since` pin, else the doc's baseline."""
+    pinned = [doc.get("since")]
+    if field is not None:
+        pinned.insert(0, field.get("since"))
+        if value is not None:
+            pinned.insert(0, (field.get("valueMeta") or {}).get(value, {}).get("since"))
+    return next((p for p in pinned if p), doc.get("baseline") or DEFAULT_BASELINE)
+
+
 def _make_field(raw: dict[str, str]) -> dict:
     field: dict = {"name": raw.get("name", ""), "type": raw.get("type", "string")}
     if "values" in raw:
-        field["values"] = _parse_str_array(raw["values"])
+        field["values"], value_meta = _values(raw["values"])
+        if value_meta:
+            field["valueMeta"] = value_meta
+    field.update(_pins(raw.get))
     if "default" in raw:
         field["default"] = raw["default"]
     if raw.get("description"):
@@ -101,7 +261,8 @@ def _make_field(raw: dict[str, str]) -> dict:
 # overrides, and is expanded here exactly as the app's ControlDocLoader.FieldReader does.
 
 SHARED_DOC = "shared-fields.md"
-USE_OVERRIDES = ("default", "min", "max", "step", "does", "since", "summary")
+USE_OVERRIDES = ("default", "min", "max", "step", "does", "since", "summary",
+                 "changes", "deprecated", "removed", "alias")
 _FIELD_SECTIONS = ("fields", "themeFields")
 _BUNDLED_SHARED: Optional[dict] = None
 
@@ -115,9 +276,11 @@ def _read_fields(front: list[str], shared: dict) -> tuple[list[tuple[str, dict]]
     current: dict[str, str] = {}
     use: Optional[str] = None
     overrides: list[tuple[str, str]] = []
+    block: Optional[str] = None  # a key written with no value: `- item` lines below are its list
 
     def flush():
-        nonlocal current, use, overrides
+        nonlocal current, use, overrides, block
+        block = None
         if section is not None:
             if use is None:
                 if current:
@@ -157,12 +320,25 @@ def _read_fields(front: list[str], shared: dict) -> tuple[list[tuple[str, dict]]
         elif trimmed.startswith("- use:"):
             flush()
             use = trimmed[len("- use:"):].strip().strip("\"'")
+        elif trimmed.startswith("- ") and block is not None:
+            # A block list (`values:` then `- filled` / `- { value: pill, since: next }`)
+            # becomes the same flow text as `values: [filled, { value: pill, since: next }]`.
+            item = trimmed[2:].strip()
+            target = current if use is None else dict(overrides)
+            prev = target.get(block, "")
+            joined = f"{prev[:-1]}, {item}]" if prev.startswith("[") else f"[{item}]"
+            if use is None:
+                current[block] = joined
+            else:
+                overrides = [(k, v) for k, v in overrides if k != block] + [(block, joined)]
         elif ":" in trimmed:
             k, _, v = trimmed.partition(":")
+            k, v = k.strip(), v.strip().strip('"')
+            block = k if not v else None
             if use is not None:
-                overrides.append((k.strip(), v.strip().strip('"')))
+                overrides.append((k, v))
             else:
-                current[k.strip()] = v.strip().strip('"')
+                current[k] = v
     flush()
     return entries, errors
 
@@ -175,6 +351,73 @@ def _frontmatter(content: str) -> Optional[tuple[list[str], str]]:
         if lines[i].strip() == "---":
             return lines[1:i], "\n".join(lines[i + 1:]).strip()
     return None
+
+
+def _top_level(front: list[str]) -> dict[str, str]:
+    """Unindented `key: value` lines as raw strings (first one wins)."""
+    out: dict[str, str] = {}
+    for line in front:
+        if line.strip() and not line.startswith((" ", "\t")) and ":" in line:
+            key, _, value = line.partition(":")
+            out.setdefault(key.strip(), value.strip())
+    return out
+
+
+def _block(lines: list[str]):
+    """The indented lines under a valueless top-level key: a list of `- item` (a flow
+    value, a scalar, or a `k: v` map continued on the lines below), else a `k: v` map."""
+    items: list = []
+    mapping: dict = {}
+    for line in lines:
+        t = line.strip()
+        if t.startswith("- ") or t == "-":
+            t = t[2:].strip()
+            if ":" in t and t[:1] not in "[{\"'":
+                k, _, v = t.partition(":")
+                items.append({k.strip(): _decode(v)})
+            else:
+                items.append(_decode(t))
+        elif ":" in t:
+            k, _, v = t.partition(":")
+            target = items[-1] if items and isinstance(items[-1], dict) else mapping
+            target[k.strip()] = _decode(v)
+    return items if items else mapping
+
+
+def resolved_frontmatter(content: str, shared: Optional[dict] = None) -> Optional[dict]:
+    """A doc's frontmatter in the resolved form controldocs.schema.json describes:
+    every top-level key, `fields` / `themeFields` as their `use:`-expanded entries,
+    `[..]` / `{..}` values flow-decoded, scalars as strings. Mirrors
+    ControlDocLoader.resolvedFrontmatter. None when there is no frontmatter."""
+    fm = _frontmatter(content)
+    if fm is None:
+        return None
+    front = fm[0]
+    is_shared = any(line.strip() == "kind: shared-fields" for line in front)
+    entries, _ = _read_fields(front, {} if is_shared else (_bundled_shared() if shared is None else shared))
+    out: dict = {}
+    key: Optional[str] = None
+    under: list[str] = []
+
+    def close():
+        if key is not None and key not in out and key not in _FIELD_SECTIONS:
+            out[key] = _block(under) if under else ""
+
+    for line in front:
+        if not line.strip():
+            continue
+        if not line.startswith((" ", "\t")) and ":" in line:
+            close()
+            k, _, v = line.partition(":")
+            key, under = k.strip(), []
+            if key in _FIELD_SECTIONS:
+                out[key] = [{n: _decode(x) for n, x in raw.items()} for s, raw in entries if s == key]
+            elif v.strip() and key not in out:
+                out[key] = _decode(v)
+        elif key is not None:
+            under.append(line)
+    close()
+    return out
 
 
 def parse_shared(content: str) -> dict[str, dict[str, dict]]:
@@ -298,6 +541,11 @@ def parse_doc(content: str, node_id: str, shared: Optional[dict] = None) -> Opti
 
     if not meta["type"] or not meta["label"]:
         return None
+    # Version pins (aif-xd1w8.1): `baseline:` (absent = 2.0, the release pins start
+    # from), and the doc's own since/changes/deprecated/removed/alias.
+    top = _top_level(front)
+    meta["baseline"] = _version(top.get("baseline")) or DEFAULT_BASELINE
+    meta.update(_pins(top.get))
     # Fields tagged `group: fooConfig` live nested under that key in the JSON
     # (the app decodes them as a config object). Synthesize the umbrella field
     # when the doc doesn't declare it explicitly (heatmap does; the drag pack

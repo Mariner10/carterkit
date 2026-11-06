@@ -175,7 +175,6 @@ fields:
     tab: advanced
     type: object
     description: "Let the group grow into a foreground container with a corner close (X): {trigger: tap|hold|both, style: fullScreen|sheet, grid, children, title}. children are {ref, position, span} placements that move the group's own children, or controls that exist only when expanded. See Expand"
-    valueHelp: "trigger: tap (default), hold, both, none, a control id, or an array like [\"hold\", \"more\"]"
     summary: Let the group open up full screen
     does: "Tapping the card (a tap no child claims), holding it, or both: the group's card grows from where it sits into the whole screen (or a large sheet), its controls laid out bigger with more of them, and shrinks back when closed."
   - name: trigger
@@ -217,7 +216,6 @@ fields:
     description: "Fired by a tap on the group that no child claims (static text, images, gauges without an action, the card background and padding). Same shape as a control's action. A child's own taps and holds win. Ignored when `expand` also opens on tap"
     summary: Make the whole card tappable
     does: "Taps on the card's non-interactive parts send the action; buttons, toggles, sliders, inputs and rows with their own action keep their own taps. The card dips slightly while pressed."
-    valueHelp: "{method, event, payload} like a button's action"
   - name: extensions
     title: Extensions
     tab: advanced

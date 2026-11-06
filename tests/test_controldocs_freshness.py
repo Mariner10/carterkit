@@ -39,7 +39,7 @@ def _find_app_docs():
 
 
 def _app_docs_at_ref(docs_dir, ref):
-    """{name: bytes} for the *.md docs in docs_dir at git ref."""
+    """{name: bytes} for the *.md docs and *.schema.json in docs_dir at git ref."""
     top = subprocess.run(["git", "-C", str(docs_dir), "rev-parse", "--show-toplevel"],
                          capture_output=True, text=True, check=True).stdout.strip()
     rel = Path(docs_dir).resolve().relative_to(Path(top).resolve()).as_posix()
@@ -47,7 +47,7 @@ def _app_docs_at_ref(docs_dir, ref):
                            capture_output=True, text=True, check=True).stdout.split()
     return {n: subprocess.run(["git", "-C", top, "show", f"{ref}:{rel}/{n}"],
                               capture_output=True, check=True).stdout
-            for n in names if n.endswith(".md")}
+            for n in names if n.endswith((".md", ".schema.json"))}
 
 
 DEFAULT_REF = "master"
@@ -73,9 +73,9 @@ def _resolve_ref(docs_dir, env=None):
 
 
 def _docs(directory):
-    """Every *.md under the directory, keyed by its relative path (patterns/x.md too)."""
+    """Every *.md (and *.schema.json) under the directory, keyed by its relative path (patterns/x.md too)."""
     root = Path(directory)
-    return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*.md")}
+    return {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.name.endswith((".md", ".schema.json"))}
 
 
 def drift(app, kit):

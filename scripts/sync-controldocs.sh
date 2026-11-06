@@ -46,12 +46,12 @@ if [ "$CHECK" = 1 ]; then
     REL="${REL%/}"
     git -C "$TOP" rev-parse --verify -q "$APP_REF^{commit}" >/dev/null \
       || { echo "unknown app ref: $APP_REF" >&2; exit 2; }
-    app_names() { git -C "$TOP" ls-tree -r --name-only "$APP_REF:$REL" | grep '\.md$' || true; }
+    app_names() { git -C "$TOP" ls-tree -r --name-only "$APP_REF:$REL" | grep -E '\.md$|\.schema\.json$' || true; }
     app_has() { git -C "$TOP" cat-file -e "$APP_REF:$REL/$1" 2>/dev/null; }
     app_cat() { git -C "$TOP" show "$APP_REF:$REL/$1"; }
     SOURCE="$APP_REPO @ $APP_REF"
   else
-    app_names() { (cd "$APP_REPO" && find . -name '*.md' | sed 's#^\./##' | sort); }
+    app_names() { (cd "$APP_REPO" && find . \( -name '*.md' -o -name '*.schema.json' \) | sed 's#^\./##' | sort); }
     app_has() { [ -f "$APP_REPO/$1" ]; }
     app_cat() { cat "$APP_REPO/$1"; }
     SOURCE="$APP_REPO"
@@ -66,7 +66,7 @@ if [ "$CHECK" = 1 ]; then
       echo "differs:                $name"; drift=$((drift + 1))
     fi
   done < <(app_names)
-  for kit in $(cd "$DEST" && find . -name '*.md' | sed 's#^\./##' | sort); do
+  for kit in $(cd "$DEST" && find . \( -name '*.md' -o -name '*.schema.json' \) | sed 's#^\./##' | sort); do
     name="$kit"
     if ! app_has "$name"; then
       echo "only in carterkit:      $name"; drift=$((drift + 1))
@@ -82,9 +82,9 @@ fi
 
 [ "$REF_EXPLICIT" = 0 ] || [ -z "$APP_REF" ] || { echo "APP_REF only applies to --check" >&2; exit 2; }
 # The whole tree: top-level control docs plus subfolders (patterns/ since CAR-TER 2.0.1).
-find "$DEST" -name '*.md' -delete
-(cd "$APP_REPO" && find . -name '*.md' | sed 's#^\./##') | while IFS= read -r rel; do
+find "$DEST" \( -name '*.md' -o -name '*.schema.json' \) -delete
+(cd "$APP_REPO" && find . \( -name '*.md' -o -name '*.schema.json' \) | sed 's#^\./##') | while IFS= read -r rel; do
   mkdir -p "$DEST/$(dirname "$rel")"
   cp "$APP_REPO/$rel" "$DEST/$rel"
 done
-echo "vendored $(find "$DEST" -name '*.md' | wc -l | tr -d ' ') docs into carterkit/controldocs/"
+echo "vendored $(find "$DEST" \( -name '*.md' -o -name '*.schema.json' \) | wc -l | tr -d ' ') docs into carterkit/controldocs/"

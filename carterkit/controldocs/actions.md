@@ -136,21 +136,18 @@ fields:
   - name: expand
     summary: "Open a group's expanded view"
     does: "Expands the group (or, from a control inside a list row, that list's row) with this id, as if its card was tapped. No transport is used, so `method` can be left out."
-    valueHelp: "A group id, or a list id from a control inside one of its rows"
     title: Expand group
     type: string
     description: Expand the group with this id (see group-def Expand). No method needed
   - name: collapse
     summary: "Close a group's expanded view"
     does: "Closes the expanded view when it was opened from the group (or list row) with this id; nothing happens otherwise."
-    valueHelp: "A group id, or a list id from a control inside one of its rows"
     title: Collapse group
     type: string
     description: Close the expanded view of the group with this id
   - name: toggleExpand
     summary: "Open or close a group's expanded view"
     does: "Closes the group's expanded view when it is open, opens it when it is not."
-    valueHelp: "A group id, or a list id from a control inside one of its rows"
     title: Toggle expand
     type: string
     description: Expand the group with this id, or collapse it when already expanded

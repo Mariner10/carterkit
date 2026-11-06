@@ -60,7 +60,8 @@ def test_only_whitelisted_overrides_are_allowed():
     doc = catalog.parse_doc(probe("  - use: confirm\n    type: x\n    default: false"), "probe", shared)
     assert any("overrides `type`" in e for e in doc["useErrors"])
     assert any("`default` repeats the shared value" in e for e in doc["useErrors"])
-    assert catalog.USE_OVERRIDES == ("default", "min", "max", "step", "does", "since", "summary")
+    assert catalog.USE_OVERRIDES == ("default", "min", "max", "step", "does", "since", "summary",
+                                     "changes", "deprecated", "removed", "alias")
 
 
 def test_parse_doc_defaults_to_the_bundled_shared_fields():
