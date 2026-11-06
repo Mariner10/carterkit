@@ -7,7 +7,15 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
-- **Starter kits:** `carterkit new <dir> --template <kit>` scaffolds one of six small, complete
+- **Hub surfaces:** `hub.progress(...)` (a `Progress` handle: `update`, `pause`, `finish`, `fail`,
+  `cancelled_ok`, `cancelled`, `on_cancel`), `hub.toast(...)`, `hub.haptic(...)` and `hub.log(...)`
+  (a `LogStream` with a `logging` handler), from `carterkit/hub_surfaces.py`. Progress updates
+  coalesce to 4 frames/s with a stale heartbeat, log lines are paced at 200/s, running tasks and
+  open log titles are resent on reconnect, `progress_reply` / `toast_reply` are handled, and
+  `toast_sync`, `haptic_sync` and `update_sync` serve other threads. `ambient.task(...)` and
+  `content_state(tasks=)` feed the Dynamic Island. New `progress` starter kit; see
+  docs/hub-surfaces.md.
+- **Starter kits:** `carterkit new <dir> --template <kit>` scaffolds one of small, complete
   projects (`paged-cards`, `confirm-delete`, `live-dashboard`, `hub-form`, `scaled-grid`, `remote`),
   each a validated `layout.json`, a `hub.py` run with `python hub.py`, and a README;
   `carterkit new --list` names them.

@@ -65,7 +65,7 @@ error prints one line and keeps the last good version running.
 
 ## Starter kits
 
-Six small, complete projects to start from: each is a `layout.json` (clean under
+Seven small, complete projects to start from: each is a `layout.json` (clean under
 `carterkit validate`), a `hub.py` that serves it, and a README saying what it shows and
 what to change first. The data is placeholder (`Item 1`, `Thing 2`, `Option A`).
 
@@ -82,6 +82,7 @@ cd cards && python hub.py                     # QR once, then it is live on the 
 | `live-dashboard` | A gauge and a sparkline fed by one broadcast (`hub.push`), plus a readout and a Reset command |
 | `hub-form` | A form group whose Send submits the whole draft (`{{form}}`) to the hub, which checks it again and answers |
 | `scaled-grid` | 1 x 5 cards with a 3 x 15 grid drawn at 1/3 (`grid.scale: "auto"`), that expand to full size on a hold, and a sheet the hub opens (`hub.open_sheet`) |
+| `progress` | A task the app draws as a pill, a sheet and on the Island (`hub.progress`), with Cancel, a live log (`hub.log`) and a toast (`hub.toast`) |
 | `remote` | Toggles and sliders that only ask; the hub applies its rules and sends its state back (`hub.push(..., force=True)`) |
 
 `hub.py` loads its layout with `Layout.load("layout.json")` and keeps the behaviour in
@@ -310,6 +311,20 @@ The same surface works cross-process off the saved JSON — the layout file is t
 contract: `Hub("dashboard.json").push("temp", 21.5)`. Dynamic groups fill with
 `hub.fill(group, fragment)`; the hub answers late joiners with the last pushed values
 (control-state authority) by default.
+
+### Progress, toasts, haptics and a live log
+
+`hub.progress(...)` shows a task in the app (pill, sheet, Dynamic Island) with an optional Cancel
+that sets `task.cancelled`; `hub.toast(...)`, `hub.haptic(...)` and `hub.log(...)` draw the rest.
+Updates coalesce to 4 frames/s and a running task is resent when the hub reconnects;
+`ambient.task(...)` plus `content_state(tasks=)` feeds the Island while the app sleeps. See
+[docs/hub-surfaces.md](docs/hub-surfaces.md).
+
+```python
+async with hub.progress("Installing Example package", total=48, unit="items", cancellable=True) as task:
+    await task.update(done=12, detail="Downloading")
+await hub.toast("Example package installed", style="success", haptic="success")
+```
 
 ### Ask the user to confirm, and page long lists
 

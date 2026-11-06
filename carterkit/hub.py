@@ -44,6 +44,7 @@ from .client import CarterClient
 from .connection import Connection
 from .contract import is_group
 from .hub_extras import HubExtras
+from .hub_surfaces import HubSurfaces
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ def _walk_children(layout: dict):
         yield from walk(tab.get("children"))
 
 
-class Hub(HubExtras):
+class Hub(HubExtras, HubSurfaces):
     """The driving side of a layout: push values into syncs, handle actions.
 
     ``layout`` may be a :class:`carterkit.Layout`, a layout dict, or a path to a

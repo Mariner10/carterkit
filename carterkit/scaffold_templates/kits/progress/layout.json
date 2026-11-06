@@ -1,0 +1,32 @@
+{
+  "name": "Progress",
+  "id": "__ID__",
+  "version": 1,
+  "accentColor": "#667eea",
+  "tabs": [
+    {
+      "id": "progress-tab",
+      "title": "Progress",
+      "icon": "arrow.down.circle",
+      "grid": { "columns": 4, "rows": 6 },
+      "children": [
+        { "type": "button", "id": "start", "position": [0, 0], "span": [1, 4],
+          "label": "Start example task", "icon": "play.fill",
+          "action": { "method": "meshsocket", "event": "broadcast_request",
+                      "payload": { "msg_type": "task_start" } } },
+        { "type": "button", "id": "toast", "position": [1, 0], "span": [1, 2],
+          "label": "Toast", "icon": "text.bubble",
+          "action": { "method": "meshsocket", "event": "broadcast_request",
+                      "payload": { "msg_type": "task_toast" } } },
+        { "type": "button", "id": "buzz", "position": [1, 2], "span": [1, 2],
+          "label": "Haptic", "icon": "waveform",
+          "action": { "method": "meshsocket", "event": "broadcast_request",
+                      "payload": { "msg_type": "task_haptic" } } },
+        { "type": "label", "id": "status", "position": [2, 0], "span": [1, 4],
+          "text": "Start the task, then lock the phone",
+          "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast",
+                     "valuePath": "text", "filter": { "msg_type": "task_status" } }] }
+      ]
+    }
+  ]
+}

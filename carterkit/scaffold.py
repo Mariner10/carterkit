@@ -29,6 +29,7 @@ KITS = {
     "live-dashboard": "a gauge, a sparkline and a readout fed live by the hub's broadcasts",
     "hub-form": "a form whose Send reaches the hub, which checks it and answers",
     "scaled-grid": "a 1x5 card drawing a 3x15 grid at 1/3 (grid.scale auto) and a hub sheet",
+    "progress": "a task the app draws as a pill, a sheet and on the Island, with a live log and a toast",
     "remote": "toggles and sliders whose state the hub owns and sends back",
 }
 KIT_FILES = ("layout.json", "hub.py", "README.md")

@@ -28,7 +28,7 @@ from urllib.parse import quote, urlsplit, urlunsplit
 __all__ = [
     "APPLE_REFERENCE_EPOCH", "LA_ATTRIBUTES_TYPE", "CONTENT_STATE_VERSION",
     "SLOT_KINDS", "CarterAmbientError",
-    "apple_date", "slot", "content_state", "activity_attributes",
+    "apple_date", "slot", "task", "content_state", "activity_attributes",
     "canonical_layout_id",
     "live_activity_register", "live_activity_deregister", "live_activity_push",
     "mesh_broadcast", "glance_update",
@@ -215,8 +215,43 @@ def slot(control_id, label, kind, value, **extra):
     return out
 
 
+TASK_STATES = ("running", "paused", "stale", "reconnecting", "following", "done",
+               "failed", "cancelled", "lost")
+
+
+def task(id, title, *, hub=None, detail=None, fraction=None, state="running",
+         eta_at=None, stale=False, cancel=False):
+    """One Island row for `content_state(tasks=[...])` (spec: hub surfaces, `progress`).
+
+    `fraction` 0...1 (omit for indeterminate); `eta_at` is reference-date seconds
+    (``apple_date(time.time() + 90)``) and drives a countdown that moves without pushes.
+    Text is shortened for the Island: hub 24, title 40, detail 40."""
+    if not isinstance(id, str) or not 1 <= len(id) <= 64:
+        raise ValueError("id must be a string of 1-64 characters")
+    if not isinstance(title, str) or not title:
+        raise ValueError("title is required")
+    if state not in TASK_STATES:
+        raise ValueError(f"state must be one of {', '.join(TASK_STATES)}")
+    out = {"id": id, "title": title[:40], "state": state}
+    if hub:
+        out["hub"] = str(hub)[:24]
+    if detail:
+        out["detail"] = str(detail)[:40]
+    if fraction is not None:
+        _finite_number(fraction, "fraction")
+        out["fraction"] = min(1.0, max(0.0, fraction))
+    if eta_at is not None:
+        _finite_number(eta_at, "eta_at")
+        if eta_at > APPLE_REFERENCE_EPOCH:
+            raise ValueError("eta_at looks like a unix timestamp; pass apple_date(...)")
+        out["etaAt"] = eta_at
+    out["stale"] = bool(stale)
+    out["cancel"] = bool(cancel)
+    return out
+
+
 def content_state(*, hero=None, slots=None, is_connected=True, updated_at,
-                  hero_history=None):
+                  hero_history=None, tasks=None, tasks_more=0):
     """Build a `LayoutActivityAttributes.ContentState`.
 
     `updated_at` must already be reference-date seconds — pass
@@ -250,6 +285,16 @@ def content_state(*, hero=None, slots=None, is_connected=True, updated_at,
         state["heroHistory"] = history
     if len(state["slots"]) > 3:
         raise ValueError("a Live Activity supports at most 3 secondary slots")
+    if tasks:
+        rows = list(tasks)
+        for row in rows:
+            if not isinstance(row, dict) or not row.get("id") or not row.get("title"):
+                raise ValueError("tasks entries come from ambient.task(...)")
+        _finite_number(tasks_more, "tasks_more")
+        state["tasks"] = rows[:3]                 # the fourth task onward is only counted
+        more = len(rows) - 3 + int(tasks_more)
+        if more > 0:
+            state["tasksMore"] = more
     _json_size(state, 3072, "content_state")
     return state
 
