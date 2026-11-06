@@ -11,6 +11,28 @@ friendlyName: Flows
 oneLiner: Where amounts flow from and to
 aliases: [flow, funnel, diagram, sources, links, breakdown]
 starterPreset: {"label": "Flows"}
+io:
+  - emits: node
+    when: tap
+    title: When you tap a node
+    field: sankeyConfig.nodeAction
+    fallback: action
+    type: json
+    says: the tapped node's name with its total flow in and out
+    example: {"name": "Item 1", "in": 3, "out": 2}
+    also: Sends only when the tap selects a node, not when it clears the selection
+    since: next
+  - receives: nodes
+    role: show
+    type: json
+    shape: {"nodes": [{"name": "text", "color": "hex?"}], "links": [{"source": "node name or index", "target": "node name or index", "value": "number"}]}
+    from: [hub, mqtt, http, store]
+    says: nodes, and links between them each with an amount
+    reacts: nodes are re-stacked into columns and the ribbons resize to their new amounts
+    example: {"nodes": [{"name": "Item 1"}, {"name": "Item 2"}], "links": [{"source": "Item 1", "target": "Item 2", "value": 3}]}
+    since: next
+  - sample: {"nodes": [{"name": "Item 1"}, {"name": "Item 2"}, {"name": "Item 3"}, {"name": "Item 4"}], "links": [{"source": "Item 1", "target": "Item 3", "value": 3}, {"source": "Item 1", "target": "Item 4", "value": 1}, {"source": "Item 2", "target": "Item 4", "value": 2}]}
+    next: {"nodes": [{"name": "Item 1"}, {"name": "Item 2"}, {"name": "Item 3"}, {"name": "Item 4"}], "links": [{"source": "Item 1", "target": "Item 3", "value": 1}, {"source": "Item 1", "target": "Item 4", "value": 3}, {"source": "Item 2", "target": "Item 4", "value": 2}]}
 fields:
   - name: haptic
     tab: action
@@ -157,11 +179,7 @@ fields:
     group: sankeyConfig
 themeFields:
   - use: cornerRadius
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: Background colour
     does: Fills the control's background with this colour.
   - name: secondaryColor

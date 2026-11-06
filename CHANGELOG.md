@@ -7,6 +7,7 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ### Added
 
+- Tutorials start over (CAR-TER aif-6jc0k.15): `carterkit/tutorials/` is vendored from CAR-TER's `CAR-TER/Tutorials` at a pinned commit by `scripts/sync_tutorials.py` (adds `first-dial`; the code tutorials still come from the workspace pin until CAR-TER hosts them), `carterkit tutorial steps <app tutorial>` prints its `carter://tutorial/<id>` link and a QR,; the vendored ControlDocs (now with `profiles.md`) re-pin to CAR-TER master b2180541, and `typed.py` is regenerated.
 - Editor profiles (CAR-TER aif-qs8b0.11.1): `catalog.parse_profiles` / `load_profiles` read the app's
   `ControlDocs/profiles.md` (named filters over a control's editable fields by category, chip or field id),
   `catalog.profile_fields` resolves one against a control doc, `catalog.profile_errors` / `profile_lint` report an

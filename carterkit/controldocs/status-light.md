@@ -13,6 +13,18 @@ addRank: 6
 depth: complete
 starterPreset: {"label": "Status"}
 lookPresets: [{"id": "dot","name": "Dot","symbol": "circle.fill","set": {"style": "dot","pulse": null}},{"id": "badge","name": "Badge","symbol": "capsule.fill","set": {"style": "badge","pulse": null}},{"id": "pulsing","name": "Pulsing","symbol": "dot.radiowaves.left.and.right","set": {"style": "dot","pulse": true}}]
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a state word such as online, degraded or offline
+    reacts: the light takes the color listed for that word in the status colors (or its own color when the word is not listed), and the badge shape spells the word out
+    example: "online"
+    since: next
+  - sample: online
+    next: offline
 fields:
   - name: label
     edit: inline
@@ -95,61 +107,28 @@ fields:
     summary: The status shown before any update arrives
     does: Picks which statusColors entry the light shows at first, until a synced value or a live update replaces it.
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the card behind the light from square (0) to very round (30 pt).
   - use: controlPadding
     summary: Space between the card edge and the light
     does: Adds 0-24 pt of empty space inside the card around the dot and label.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: "#FFFFFF0F"
-    description: Background fill
+  - use: surfacePrimary
     summary: The color of the card behind the light
     does: Fills the card in this color; a low alpha shows the layout behind it.
   - use: foregroundColor
     summary: The color of the label and badge words
     does: Colors the label and the state text in the badge.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: "#FFFFFF99"
-    description: Secondary text color
+  - use: secondaryColor
     summary: The color of the quieter text
     does: Colors the dimmer secondary text of the control.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: "#FFFFFF1A"
-    description: Border color
+  - use: borderColor
     summary: The color of the card outline
     does: Draws the card outline in this color when the border width is above 0.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How thick the card outline is
     does: Sets the outline thickness from 0 (none) to 5 pt.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How large the label text is
     does: Sets the label height from 8 to 24 pt.
 ---

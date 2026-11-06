@@ -45,6 +45,24 @@ def test_app_tutorial_reads_but_has_nothing_to_start_or_check(tmp_path, capsys):
     assert main(["tutorial", "--check", "first-layout", "--step", "1"]) == 1
 
 
+def test_app_tutorial_prints_its_link_and_a_qr(capsys):
+    assert tutorials.app_link("first-dial") == "carter://tutorial/first-dial"
+    assert tutorials.app_link("first-dial", "range") == "carter://tutorial/first-dial?step=range"
+    assert main(["tutorial", "steps", "first-dial"]) == 0
+    out = capsys.readouterr().out
+    assert "carter://tutorial/first-dial\n" in out
+    assert "\u2588" in out or "\u2580" in out or "\u2584" in out        # the QR is drawn in block characters
+    assert main(["tutorial", "steps", "first-hub"]) == 0                # code tutorials print no app link
+    assert "carter://tutorial" not in capsys.readouterr().out
+
+
+def test_vendored_from_car_ter_with_profiles():
+    src = (Path(tutorials.__file__).parent / "tutorials" / "SOURCE").read_text()
+    assert "path: CAR-TER/Tutorials" in src and "dev-guide" not in src.split("also-path")[0]
+    assert {"first-dial", "first-layout"} <= set(tutorials.index())
+    assert (Path(tutorials.__file__).parent / "controldocs" / "profiles.md").is_file()
+
+
 @pytest.mark.parametrize("tid", CODE_TUTORIALS)
 def test_regions_are_the_tutorials_code(tid):
     """Each step's python block is exactly the kit's marked region: the code exists once."""

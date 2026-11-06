@@ -14,6 +14,18 @@ addRank: 4
 starterPreset: {"label": "Progress","min": 0,"max": 100,"progressStyle": "ring"}
 lookFormats: [{"id": "dial","name": "Dial","symbol": "gauge.medium","set": {"type": "gauge","gaugeStyle": "half"}},{"id": "ring","name": "Ring","symbol": "circle.circle","set": {"type": "progressRing","progressStyle": "ring"}},{"id": "bar","name": "Bar","symbol": "chart.bar.fill","set": {"type": "progressRing","progressStyle": "bar"}}]
 lookPresets: [{"id": "standard","name": "Standard","symbol": "circle.circle","set": {"hideValue": null}},{"id": "quiet","name": "Quiet","symbol": "eye.slash","set": {"hideValue": true}}]
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: number
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a number between the lowest and highest value
+    reacts: the ring or bar fills to it; a value past either end sits at that end
+    example: 40
+    since: next
+  - sample: 40
+    next: 75
 fields:
   - name: animation
     title: Motion
@@ -176,14 +188,7 @@ fields:
     summary: What the number is measured in
     does: Shows the number in the viewer's local unit, e.g. celsius reads 356°F in the US; min and max stay in that unit.
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the control's corners are
     does: Rounds the background's corners by this many points, 0 to 30.
   - use: controlPadding

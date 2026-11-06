@@ -12,6 +12,24 @@ oneLiner: Pick one from a list
 aliases: [dropdown, select, menu, choose, options, combo box]
 addRank: 7
 starterPreset: {"label": "Menu","options": ["One","Two","Three"]}
+io:
+  - emits: value
+    when: pick
+    title: When you pick an option
+    type: string
+    says: the option you picked, as its stored value
+    example: "Item 1"
+    also: Picking the option already chosen sends nothing
+    since: next
+  - receives: value
+    role: follow
+    type: string
+    from: [hub, mqtt, http, store, default]
+    says: the stored value of the option to select
+    reacts: that option becomes the selected one without sending; your next pick replaces it
+    example: "Item 1"
+    since: next
+  - sample: "Item 1"
 fields:
   - name: animation
     title: Motion
@@ -140,14 +158,7 @@ themeFields:
     description: Border width
     summary: How heavy the outline is
     does: "Sets the outline thickness from 0 to 5 points."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the label is
     does: "Sets the label text size from 8 to 24 points."
 ---

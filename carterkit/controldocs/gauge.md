@@ -218,16 +218,7 @@ fields:
     summary: What the number is measured in
     does: Shows the number in the viewer's local unit, e.g. celsius reads 70.7°F in the US.
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
-    summary: How rounded the corners are
-    does: Rounds the control's corners from square (0) to 30 points.
+  - use: cornerRadius
   - use: controlPadding
   - use: surfacePrimary
     summary: The fill behind the dial

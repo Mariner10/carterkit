@@ -99,55 +99,22 @@ fields:
 themeFields:
   - use: cornerRadius
     does: Rounds the map corners from square (0) to 30 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The room inside the control
     does: Sets the padding inside the map frame, 0 to 24 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The colour behind the control
     does: Fills the map card background with this color.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: Quieter text color
     does: Colors the secondary text on the map.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Outline color
     does: Colors the line around the map.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: Outline thickness
     does: Sets how thick the outline is, 0 to 5 points.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Label text size
     does: Sets the size of the header label text, 8 to 24 points.
   - use: accentColor

@@ -1,4 +1,111 @@
 {
+ "first-dial": {
+  "id": "first-dial",
+  "kind": "quickstart",
+  "level": "beginner",
+  "audience": "app",
+  "title": "Build your first layout",
+  "time": 5,
+  "builds": "A dial you set and try, named and saved to your library.",
+  "prerequisites": [],
+  "since": "2.2",
+  "uses": {
+   "controls": [
+    "control.gauge"
+   ],
+   "fields": [
+    "gauge.min",
+    "gauge.max",
+    "gauge.label"
+   ],
+   "docs": [],
+   "carterkit": [],
+   "profiles": [
+    "first-look"
+   ]
+  },
+  "result": "first-dial.layout.json",
+  "starterKit": null,
+  "next": [
+   "first-layout"
+  ],
+  "steps": [
+   {
+    "id": "place",
+    "goal": "Place a dial",
+    "do": {
+     "app": "In Studio, start a new blank layout. Tap **+** and choose **Dial**.",
+     "target": "editor.add"
+    },
+    "as": "dial",
+    "check": "A dial titled Dial sits on the page, marked 0 to 100.",
+    "expect": {
+     "signal": "editor.add",
+     "target": "gauge"
+    },
+    "profile": {
+     "add": [
+      "gauge"
+     ],
+     "canvas": [
+      "place",
+      "resize"
+     ]
+    }
+   },
+   {
+    "id": "range",
+    "goal": "Set its range",
+    "do": {
+     "app": "Tap **Range** and drag the two ends to **0** and **10**.",
+     "target": "editor.chip.control"
+    },
+    "check": "The dial is marked 0 to 10.",
+    "expect": {
+     "signal": "editor.change",
+     "target": "max",
+     "match": {
+      "is": 10
+     }
+    },
+    "profile": {
+     "chips": [
+      "control"
+     ],
+     "petals": 0,
+     "rows": false
+    }
+   },
+   {
+    "id": "try",
+    "goal": "Try it",
+    "do": {
+     "app": "Tap **Try** to run the page the way it will look on your phone.",
+     "target": "editor.try"
+    },
+    "check": "A banner above the page says you are trying it out, and the dial still reads 0 to 10.",
+    "expect": {
+     "signal": "editor.try"
+    },
+    "profile": {
+     "canvas": []
+    }
+   },
+   {
+    "id": "keep",
+    "goal": "Name it and keep it",
+    "do": {
+     "app": "Leave Try. Select the dial, tap **Text** and call it **My dial**, then tap **Done**.",
+     "target": "editor.save"
+    },
+    "check": "Your layout is in your library, with a dial titled My dial.",
+    "expect": {
+     "signal": "editor.save"
+    },
+    "profile": "first-look"
+   }
+  ]
+ },
  "first-hub": {
   "id": "first-hub",
   "kind": "tutorial",

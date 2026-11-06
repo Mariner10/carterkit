@@ -11,6 +11,26 @@ oneLiner: Messages back and forth
 aliases: [messages, conversation, assistant, ai, talk, inbox]
 depth: complete
 starterPreset: {"label": "Chat"}
+io:
+  - emits: message
+    when: submit
+    title: When you send a message
+    field: target
+    type: string
+    says: the message text
+    example: "Sample A"
+    also: It goes to the MeshSocket peer named in Target, or to the whole channel when Target is empty
+    since: next
+  - receives: lines
+    role: show
+    type: json
+    shape: {"event": "chat_response", "text": "text", "name": "text?"}
+    from: [hub]
+    says: a reply broadcast with its text and an optional sender name
+    reacts: the reply is added to the bottom of the conversation, shown under the sender name or the Target name
+    example: {"text": "Sample A"}
+    since: next
+  - sample: {"lines": [{"name": "Sample A", "text": "Sample A"}, {"name": "Sample B", "text": "Sample B"}]}
 fields:
   - name: label
     edit: inline
@@ -113,53 +133,20 @@ themeFields:
   - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the chat card's corners from 0 to 30 pt (default 12).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: Fills the card behind the chat with this color, default a faint white wash.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The main highlight color
     does: Sets the accent color the chat uses for highlights, default a soft indigo.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The softer text color
     does: Colors secondary text such as names and timestamps, default a dimmed white.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The card's outline color
     does: Colors the outline drawn around the card.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the card outline from 0 to 5 pt (default 1); 0 hides it.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
+  - use: labelFontSize
     does: Sets the header label size from 8 to 24 pt (default 12).
   - use: foregroundColor
     does: Colors the main message and label text, default white.

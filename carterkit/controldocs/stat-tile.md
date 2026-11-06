@@ -11,6 +11,18 @@ friendlyName: Stat tile
 oneLiner: A big number, its change, and a faint trend
 aliases: [kpi, metric, stat, number, counter, big number]
 starterPreset: {"label": "Downloads","unit": "today","statTileConfig": {"reference": 1000}}
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: number
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a number to show large, or a list of numbers that becomes the trend and shows its last point
+    reacts: the number updates and joins the faint trend under it; a list replaces the trend
+    example: 40
+    since: next
+  - sample: 40
+    next: 75
 fields:
   - name: label
     edit: inline
@@ -216,15 +228,7 @@ fields:
     does: "Draws the recent-history line under the number when on and hides it when off."
     group: statTileConfig
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
-    summary: "How rounded the corners are"
+  - use: cornerRadius
     does: "Rounds the tile's corners from square (0) to 30 points."
   - use: controlPadding
     does: "Adds 0 to 24 points between the tile's edge and its content."

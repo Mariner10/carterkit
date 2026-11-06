@@ -1,0 +1,18 @@
+{
+  "name": "My first dial",
+  "id": "first-dial-tutorial",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Main",
+      "icon": "gauge.medium",
+      "grid": { "columns": 2, "rows": 4 },
+      "children": [
+        {
+          "type": "gauge", "id": "dial", "position": [0, 0], "span": [2, 2],
+          "label": "My dial", "min": 0, "max": 10
+        }
+      ]
+    }
+  ]
+}

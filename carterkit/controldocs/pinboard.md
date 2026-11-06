@@ -11,6 +11,57 @@ friendlyName: Pin board
 oneLiner: Pin things onto a picture
 aliases: [board, notes, sticky, pins, corkboard, cards]
 starterPreset: {"label": "Pin board"}
+io:
+  - emits: pickup
+    when: lift
+    title: When you lift a pin
+    field: pinboardConfig.events.pickup
+    type: id
+    says: the lifted pin's id
+    example: "item-1"
+    tokens: {"item": "the pin's id", "from": "palette when it came from the options area, else surface"}
+    hub: {"item": "item-1", "from": "palette"}
+    since: next
+  - emits: place
+    when: drop
+    title: When you drop a pin
+    field: pinboardConfig.events.place
+    type: id
+    says: the dropped pin's id
+    example: "item-1"
+    tokens: {"item": "the pin's id", "x": "how far across, 0 to 1", "y": "how far down, 0 to 1"}
+    hub: {"item": "item-1", "x": 0.5, "y": 0.5}
+    also: Sends when you place a new pin or move a placed one; dragging a pin back to the options area removes it and sends only the layout
+    since: next
+  - emits: layout
+    when: settle
+    title: When the board settles
+    field: pinboardConfig.events.layout
+    type: json
+    says: every placed pin's position, plus the move that just happened
+    example: {"points": {"item-1": {"x": 0.5, "y": 0.5}}, "changed": {"item": "item-1", "x": 0.5, "y": 0.5}}
+    also: Keys you add to this action's payload are sent along with the arrangement; a removal sends no changed part
+    since: next
+  - emits: pin
+    when: tap
+    title: When you tap a placed pin
+    field: pinboardConfig.items
+    type: id
+    says: the tapped pin's id
+    example: "item-1"
+    also: Each pin carries its own action; a pin with none sends nothing
+    since: next
+  - receives: arrangement
+    role: follow
+    type: json
+    shape: {"points": {"itemId": {"x": "number 0 to 1", "y": "number 0 to 1"}}}
+    from: [hub, mqtt, http, store]
+    says: where each pin sits on the surface, as a fraction across and down
+    reacts: pins move to the positions it names; ids the board does not know are ignored
+    example: {"points": {"item-1": {"x": 0.5, "y": 0.5}}}
+    since: next
+  - sample: {"items": [{"id": "item-1", "label": "Item 1", "x": 0.3, "y": 0.4}, {"id": "item-2", "label": "Item 2"}, {"id": "item-3", "label": "Item 3"}]}
+    into: pinboardConfig
 fields:
   - name: haptic
     edit: look

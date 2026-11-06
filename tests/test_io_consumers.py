@@ -20,7 +20,7 @@ def test_doc_shows_io_section(capsys):
 
 
 def test_doc_without_io_has_no_section(capsys):
-    assert cli.main(["doc", "label"]) == 0
+    assert cli.main(["doc", "form"]) == 0
     assert "## Sends" not in capsys.readouterr().out
 
 
@@ -34,7 +34,7 @@ def test_emitted_action_is_clean():
 
 
 def test_doc_without_io_never_warns():
-    assert _io(_lay({"type": "label", "id": "l", "longPressAction": {"event": "x"}})) == []
+    assert _io(_lay({"type": "form", "id": "l", "longPressAction": {"event": "x"}})) == []
 
 
 def test_sync_shape_mismatch_warns():

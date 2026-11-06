@@ -11,6 +11,28 @@ friendlyName: Blocks
 oneLiner: Sizes compared as blocks
 aliases: [tree map, hierarchy, blocks, size, disk usage, proportion]
 starterPreset: {"label": "Blocks"}
+io:
+  - receives: items
+    role: show
+    type: json
+    shape: {"items": [{"label": "text", "value": "number?", "color": "hex?", "children": ["items?"]}]}
+    from: [hub, mqtt, http, store, default]
+    says: "items: a label and a size each, which can hold more items inside"
+    reacts: the blocks resize to their new share of the whole; a new label adds a block
+    example: {"items": [{"label": "Item 1", "value": 3}, {"label": "Item 2", "value": 2}]}
+    since: next
+  - emits: item
+    when: tap
+    title: When you tap a block
+    field: treemapConfig.itemAction
+    fallback: action
+    type: json
+    says: the tapped block, as JSON with its label, size and path
+    example: {"label": "Item 1", "value": 3, "path": [0]}
+    also: A block with items inside opens instead when drill down is on, and sends nothing
+    since: next
+  - sample: {"items": [{"label": "Item 1", "value": 4}, {"label": "Item 2", "value": 3}, {"label": "Item 3", "value": 2}, {"label": "Item 4", "value": 1}]}
+    next: {"items": [{"label": "Item 1", "value": 2}, {"label": "Item 2", "value": 3}, {"label": "Item 3", "value": 4}, {"label": "Item 4", "value": 1}]}
 fields:
   - name: haptic
     tab: action
@@ -136,11 +158,7 @@ themeFields:
   - use: cornerRadius
     summary: How round the corners are
     does: Rounds the control's corners from square to 30 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The fill behind the blocks
     does: Paints the control's background in this color, including transparency.
   - name: secondaryColor

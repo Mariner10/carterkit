@@ -11,6 +11,28 @@ friendlyName: Timeline
 oneLiner: Tasks laid out over time
 aliases: [schedule, timeline, project, tasks, plan, bars]
 starterPreset: {"label": "Timeline"}
+io:
+  - emits: task
+    when: tap
+    title: When you tap a task
+    field: taskAction
+    fallback: action
+    type: json
+    says: the task as its name, its place in the list and its progress from 0 to 1
+    example: {"name": "Item 1", "index": 0, "progress": 0.5}
+    also: With Editable on it also sends when you let go after dragging a bar to set progress
+    since: next
+  - receives: rows
+    role: show
+    type: json
+    shape: {"tasks": [{"name": "text", "start": "date or number", "end": "date or number?", "progress": "number?", "color": "hex?", "milestone": "true?"}]}
+    from: [hub, mqtt, http, store, default]
+    says: tasks with a name, a start and an end (dates or plain numbers, not mixed) and optional progress, color or milestone flag
+    reacts: the bars are redrawn on the new time axis; a milestone shows as a single point
+    example: {"tasks": [{"name": "Item 1", "start": 0, "end": 3, "progress": 0.5}]}
+    since: next
+  - sample: {"tasks": [{"name": "Item 1", "start": 0, "end": 3, "progress": 1}, {"name": "Item 2", "start": 2, "end": 6, "progress": 0.4}, {"name": "Item 3", "start": 5, "end": 8, "progress": 0}]}
+    next: {"tasks": [{"name": "Item 1", "start": 0, "end": 3, "progress": 1}, {"name": "Item 2", "start": 2, "end": 6, "progress": 0.8}, {"name": "Item 3", "start": 5, "end": 8, "progress": 0.2}]}
 fields:
   - name: haptic
     tab: action
@@ -157,11 +179,7 @@ fields:
     group: ganttConfig
 themeFields:
   - use: cornerRadius
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The colour behind the control
     does: Fills the Gantt chart background with this color.
   - name: secondaryColor

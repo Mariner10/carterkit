@@ -12,6 +12,22 @@ oneLiner: Pick a day or a time
 aliases: [calendar, time, date, schedule, clock, day]
 addRank: 8
 starterPreset: {"label": "When","datePickerMode": "date"}
+io:
+  - emits: value
+    when: change
+    title: When you change the date or time
+    type: date
+    says: the date and time you set, as an ISO 8601 string
+    example: "2026-01-01T00:00:00Z"
+    since: next
+  - receives: value
+    role: follow
+    type: date
+    from: [hub, mqtt, http, store, default]
+    says: an ISO 8601 date and time to show
+    reacts: the picker jumps to that date and time without sending anything; your next change replaces it
+    example: "2026-01-01T00:00:00Z"
+    since: next
 fields:
   - name: datePickerStyle
     edit: look
@@ -110,11 +126,7 @@ themeFields:
   - use: accentColor
     summary: The main highlight color
     does: "Colors the picker accents, such as the selected day, with this color."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The color of quieter text
     does: "Colors the label and other secondary text with this color."
   - use: borderColor
@@ -134,14 +146,7 @@ themeFields:
     description: Border width
     summary: How thick the card outline is
     does: "Sets the outline thickness from 0 (none) to 5 points."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the label text is
     does: "Sets the label text size from 8 to 24 points."
 ---

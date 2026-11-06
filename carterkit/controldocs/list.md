@@ -225,14 +225,7 @@ themeFields:
     description: Card item padding
     summary: The room inside each card item
     does: Pads the inside of every item when itemStyle is card, from 0 to 32 points.
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
   - use: controlPadding

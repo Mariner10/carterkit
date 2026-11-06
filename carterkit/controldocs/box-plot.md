@@ -11,6 +11,28 @@ friendlyName: Spread
 oneLiner: How a set of numbers spreads out
 aliases: [boxplot, distribution, quartile, whisker, spread, statistics]
 starterPreset: {"label": "Spread"}
+io:
+  - receives: series
+    role: show
+    type: json
+    shape: {"categories": ["text"], "samples": [["number"]], "stats": [{"min": "number", "q1": "number", "median": "number", "q3": "number", "max": "number", "outliers": ["number?"]}]}
+    from: [hub, mqtt, http, store, default]
+    says: "a column of raw numbers per category (or ready-made quartile stats, which win when both are sent)"
+    reacts: the boxes redraw from the new numbers; violins need the raw numbers
+    example: {"categories": ["Sample A", "Sample B"], "samples": [[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]]}
+    since: next
+  - emits: box
+    when: tap
+    title: When you tap a box
+    field: boxAction
+    fallback: action
+    type: json
+    says: the tapped category's five-number summary (index, min, q1, median, q3, max) as JSON
+    example: {"index": 0, "min": 1, "q1": 2, "median": 3, "q3": 4, "max": 5}
+    also: Dragging with scrub on only moves the highlight; nothing sends until you tap
+    since: next
+  - sample: {"categories": ["Sample A", "Sample B", "Sample C"], "samples": [[1, 2, 3, 4, 5, 9], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7, 8]]}
+    next: {"categories": ["Sample A", "Sample B", "Sample C"], "samples": [[2, 3, 4, 5, 6], [3, 4, 5, 6, 7], [1, 3, 5, 7, 9]]}
 fields:
   - name: haptic
     tab: action
@@ -196,11 +218,7 @@ fields:
     group: boxPlotConfig
 themeFields:
   - use: cornerRadius
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The colour behind the control
     does: Fills the box plot background with this color.
   - name: secondaryColor

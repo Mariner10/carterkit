@@ -12,6 +12,22 @@ oneLiner: Swipe between pages
 aliases: [swipe, slider, slideshow, gallery, pager, pages]
 addRank: 3
 starterPreset: {}
+io:
+  - emits: value
+    when: change
+    title: When you swipe to another page
+    type: number
+    says: the position of the page you landed on, counting from 0
+    example: 1
+    since: next
+  - receives: value
+    role: follow
+    type: number
+    from: [hub, mqtt, http, store, default]
+    says: the position of the page to show, counting from 0
+    reacts: the carousel pages to it with animation, riffling through any pages in between
+    example: 1
+    since: next
 fields:
   - name: carouselMode
     effect: behavior

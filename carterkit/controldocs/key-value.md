@@ -11,6 +11,27 @@ friendlyName: Details
 oneLiner: Labeled readings from one object
 aliases: [details, key value, properties, fields, info, readings]
 starterPreset: {"label": "Details"}
+io:
+  - emits: row
+    when: tap
+    title: When you tap a row
+    type: json
+    says: the tapped row's raw value
+    tokens: {"key": "the row's key, dot path included", "value": "the row's raw value"}
+    example: 1
+    also: Only when an action is set; with no action the table is read-only
+    since: next
+  - receives: items
+    role: show
+    type: json
+    shape: {"any key": "any value"}
+    from: [hub, mqtt, http, store]
+    says: one object whose keys become labeled rows (or a list of key and value pairs to fix the order)
+    reacts: every push replaces the whole table, so send the full object each time
+    example: {"Item 1": 1, "Item 2": 2}
+    since: next
+  - sample: {"Item 1": 1, "Item 2": 2, "Item 3": 3}
+    next: {"Item 1": 3, "Item 2": 2, "Item 3": 1}
 fields:
   - name: label
     edit: inline
@@ -137,23 +158,11 @@ fields:
     summary: The card behind the table
     does: When on the fill and border are removed so the readings sit straight on the page.
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
-    summary: How rounded the corners are
+  - use: cornerRadius
     does: Rounds the card's corners from square (0) to 30 points.
   - use: controlPadding
     does: Adds 0 to 24 points between the card's edge and the table.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The color of the card behind the table
     does: Fills the card with this color; a low-opacity white by default.
   - name: foregroundColor

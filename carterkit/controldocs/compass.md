@@ -11,6 +11,36 @@ friendlyName: Action ring
 oneLiner: Turn a ring to pick an action
 aliases: [heading, direction, bearing, north, orientation, navigation]
 starterPreset: {"label": "Ring"}
+io:
+  - emits: pucks
+    when: hold
+    title: When you aim at a puck
+    field: pucks
+    type: id
+    says: the id of the puck you are aiming at
+    example: "Item 1"
+    also: It sends after the needle stays within Tolerance of the puck for the Hold time; with a hold of 0 it sends at once. Each puck carries its own action
+    since: next
+  - emits: place
+    when: drop
+    title: When you drop a puck
+    field: events.place
+    type: json
+    tokens: {"item": "the puck's id", "x": "its place across the ring", "y": "its place down the ring", "bearing": "its bearing in degrees"}
+    says: the puck you dropped and its new bearing
+    example: {"item": "Item 1", "x": 0, "y": 0, "bearing": 90}
+    also: Only when Editable is on; a layout event with every puck follows
+    since: next
+  - receives: value
+    role: show
+    type: number
+    from: [sensor, hub, mqtt, http, store, default]
+    says: a heading in degrees, 0 for north, turning clockwise
+    reacts: the needle turns to it, and a puck fires when it is aimed at long enough
+    example: 90
+    since: next
+  - sample: 40
+    next: 130
 fields:
   - name: haptic
     edit: look

@@ -13,6 +13,17 @@ aliases: [box, card, container, cluster, frame, live, dynamic, slot]
 addRank: 1
 starterPreset: {"label": "Group", "grid": {"columns": 2, "rows": 2}, "children": []}
 starterVariants: [{"friendlyName": "Live group", "oneLiner": "A card your server fills as it runs", "addRank": 6, "preset": {"label": "Live Group", "dynamic": "dynamic-slot", "grid": {"columns": 2, "rows": 2}, "children": []}}]
+io:
+  - emits: tap
+    when: tap
+    title: When you tap the card
+    field: action
+    type: string
+    says: only what the action itself carries; the group adds no value
+    example: "true"
+    also: Fires only for a tap no child claims, and not when the group expands on tap
+    since: next
+  - receives: none
 fields:
   - name: type
     title: Type

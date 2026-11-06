@@ -14,6 +14,18 @@ addRank: 1
 starterPreset: {"label": "Text","text": "Hello"}
 lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "number","name": "Number","symbol": "number","set": {"formatValue": "decimal"}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
 lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: the text to show (a number is shown with its unit and format)
+    reacts: the text is replaced by the new value, through the value map, unit and format if set; before the first value the static text shows
+    example: "Sample A"
+    since: next
+  - sample: Sample A
+    next: Sample B
 fields:
   - name: text
     category: text

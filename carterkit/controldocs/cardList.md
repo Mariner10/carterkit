@@ -11,6 +11,18 @@ oneLiner: A stack of cards
 aliases: [cards, feed, tiles, items, results, stack]
 starterPreset: {}
 depth: complete
+io:
+  - emits: none
+  - receives: nodes
+    role: show
+    type: json
+    shape: {"nodes": [{"id": "text", "label": "text?", "group": "text?", "icon": "symbol?", "color": "hex?"}], "edges": []}
+    from: [hub, mqtt, http, store]
+    says: "nodes: an id with an optional name, category and icon each (links between nodes are ignored)"
+    reacts: the cards are rebuilt under their category headers; the search box keeps filtering them
+    example: {"nodes": [{"id": "item-1", "label": "Item 1", "group": "Row 1"}], "edges": []}
+    since: next
+  - sample: {"nodes": [{"id": "item-1", "label": "Item 1", "group": "Row 1"}, {"id": "item-2", "label": "Item 2", "group": "Row 1"}, {"id": "item-3", "label": "Item 3", "group": "Row 2"}], "edges": []}
 fields:
 ---
 

@@ -13,6 +13,18 @@ aliases: [trend, mini chart, tiny chart, spark, history, line]
 addRank: 5
 starterPreset: {"label": "Trend","sparklinePoints": 60}
 lookPresets: [{"id": "line","name": "Line","symbol": "chart.xyaxis.line","set": {"sparklineFill": null}},{"id": "filled","name": "Filled","symbol": "chart.line.uptrend.xyaxis","set": {"sparklineFill": true}}]
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: number
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a number to add to the line as its newest point, or a list of numbers that becomes the whole line
+    reacts: a single number joins the right end and the oldest point drops off once the line is full; a list replaces the line, skipping empty entries
+    example: 40
+    since: next
+  - sample: [41, 40, 44, 43, 47, 45]
+    next: 48
 fields:
   - name: sparklinePoints
     edit: scrub
@@ -120,62 +132,22 @@ fields:
     summary: Starting readings shown until new ones arrive
 themeFields:
   - use: cornerRadius
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: Breathing room inside the edge
-    does: Adds 0 to 24 points between the control's edge and its content.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: controlPadding
+  - use: surfacePrimary
     summary: The fill behind the control
     does: Paints the control's background in this color, including transparency.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The main highlight color
     does: Sets the accent color used for the control's tint when it has none of its own.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: Color of the quieter text
     does: Colors the label and other secondary text.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Color of the outline
     does: Colors the control's border line.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the border line thickness from none (0) to 5 points.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Size of the label text
     does: Sets the label's text size from 8 to 24 points.
 ---

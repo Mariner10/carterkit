@@ -11,6 +11,16 @@ oneLiner: A web page inside your app
 aliases: [web, browser, webpage, url, site, embed]
 depth: complete
 starterPreset: {"label": "Web page","url": "https://example.com"}
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, store, derive]
+    says: a web address, with its scheme (https://...)
+    reacts: the page loads that address in place of the configured url; a value that is not a full address is ignored and the url stays
+    example: "https://example.com"
+    since: next
 fields:
   - name: url
     chip: Page
@@ -68,56 +78,20 @@ themeFields:
   - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The gap between card edge and page
     does: Sets the space inside the card around the page from 0 to 24 pt (default 8).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: Fills the card behind the page with this color, default a faint white wash.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The color of the title
     does: Colors the label above the page, default a soft white.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The card's outline color
     does: Draws the card's outline in this color, default a faint white.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the outline thickness from 0 to 5 pt (default 1).
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
+  - use: labelFontSize
     does: Sets the label text size from 8 to 24 pt (default 12).
 ---
 

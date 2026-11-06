@@ -176,14 +176,7 @@ fields:
     does: Rounds the knob corners from 0 (square) to 13.5 pt (a circle).
   - use: confirm
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
   - use: controlPadding

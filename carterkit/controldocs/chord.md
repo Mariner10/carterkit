@@ -11,6 +11,28 @@ friendlyName: Connections
 oneLiner: How things connect to each other
 aliases: [relationships, connections, circular, flow, matrix]
 starterPreset: {"label": "Connections"}
+io:
+  - receives: cells
+    role: show
+    type: json
+    shape: {"labels": ["text"], "matrix": [["number"]], "colors": ["hex?"]}
+    from: [hub, mqtt, http, store, default]
+    says: a name per group and a square grid of numbers, where row one column two is the flow from group one to group two
+    reacts: arcs and ribbons resize to the new flows; a new set of labels redraws the ring
+    example: {"labels": ["Sample A", "Sample B"], "matrix": [[0, 3], [2, 0]]}
+    since: next
+  - emits: arc
+    when: tap
+    title: When you tap an arc
+    field: arcAction
+    fallback: action
+    type: json
+    says: the tapped group's label and total flow, as JSON
+    example: {"label": "Sample A", "total": 3}
+    also: Dragging with scrub on only moves the spotlight; nothing sends until you tap
+    since: next
+  - sample: {"labels": ["Sample A", "Sample B", "Sample C"], "matrix": [[0, 5, 3], [5, 0, 1], [3, 1, 0]]}
+    next: {"labels": ["Sample A", "Sample B", "Sample C"], "matrix": [[0, 2, 4], [2, 0, 3], [4, 3, 0]]}
 fields:
   - name: haptic
     tab: action
@@ -117,11 +139,7 @@ themeFields:
   - use: cornerRadius
     summary: How round the corners are
     does: Rounds the control's corners from 0 to 30 pt (default 12).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The colour behind the control
     does: Fills the control's background with this color.
   - name: secondaryColor

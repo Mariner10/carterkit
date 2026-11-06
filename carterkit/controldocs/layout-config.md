@@ -150,7 +150,10 @@ fields:
     since: next
     tab: advanced
     type: object
-    description: "What the layout's hub may draw in the app: false for nothing, or {'progress', 'toast', 'haptic', 'log', 'island'} bools, each default true; absent = all on. The person's own off wins (see docs/HUB-SURFACES.md)"
+    edit: surfaces
+    depth: surface
+    chip: Hub
+    description: "What the layout's hub may draw in the app: false for nothing, or an object of the [[hub-surfaces]] keys (progress, toast, haptic, island, log), each default on; absent = all on. The person's own off wins (see docs/HUB-SURFACES.md)"
     summary: What your hub may show
     does: Lets the layout's hub show progress, toasts, haptics, logs and Island tasks, or turns each one off.
   - name: url

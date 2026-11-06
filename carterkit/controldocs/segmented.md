@@ -12,6 +12,25 @@ oneLiner: Pick one of a few options
 aliases: [tabs, tab bar, choice, options, radio, switcher]
 addRank: 6
 starterPreset: {"options": ["One","Two","Three"]}
+io:
+  - emits: value
+    when: pick
+    title: When you pick a choice
+    type: string
+    says: the stored value of the choice you tapped (not its friendly label)
+    example: "One"
+    also: Tapping the choice that is already selected sends nothing
+    since: next
+  - receives: value
+    role: follow
+    type: string
+    from: [hub, mqtt, http, store, default]
+    says: the stored value of the choice to select
+    reacts: that segment lights up without sending anything; a value that matches no choice stays shown until you pick one
+    example: "One"
+    since: next
+  - sample: One
+    next: Two
 fields:
   - name: animation
     tab: style
@@ -88,45 +107,19 @@ themeFields:
   - use: cornerRadius
     summary: How round the outer bar is
     does: Rounds the outer edge of the whole control, 0 to 30 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the bar edge
     does: Insets the segments from the bar edge by 0 to 24 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The bar background tint
     does: Fills the area behind the segments with this colour.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The main highlight colour
     does: Tints accent parts of the control such as the pill highlight when no tint is set.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline colour
     does: Colours the line drawn around the control.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the segment words are
     does: Sets the segment label size, 8 to 24 points.
   - name: trackColor

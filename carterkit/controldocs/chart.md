@@ -11,6 +11,27 @@ friendlyName: Chart
 oneLiner: Lines or bars over time
 aliases: [graph, plot, line chart, bar chart, trend, timeline]
 starterPreset: {"label": "Chart"}
+io:
+  - receives: series
+    role: show
+    type: json
+    shape: {"categories": ["text?"], "series": [{"name": "text?", "type": "line|bar|area|scatter|histogram|waterfall?", "color": "hex?", "values": ["number?"], "points": [{"x": "number", "y": "number"}]}]}
+    from: [hub, mqtt, http, store, default]
+    says: "series: a list of numbers (or x and y points) each, with optional category names"
+    reacts: the lines and bars redraw to the new numbers; a missing number leaves a gap
+    example: {"categories": ["Item 1", "Item 2", "Item 3"], "series": [{"name": "Series 1", "values": [1, 3, 2]}]}
+    since: next
+  - emits: datum
+    when: tap
+    title: When you tap a bar or point
+    field: chartConfig.datumAction
+    fallback: action
+    type: json
+    says: the tapped bar or point, as JSON with its series, category, index and numbers
+    example: {"index": 1, "y": 3, "series": "Series 1", "category": "Item 2"}
+    since: next
+  - sample: {"categories": ["Item 1", "Item 2", "Item 3"], "series": [{"name": "Series 1", "values": [1, 3, 2]}]}
+    next: {"categories": ["Item 1", "Item 2", "Item 3"], "series": [{"name": "Series 1", "values": [3, 1, 2]}]}
 fields:
   - name: haptic
     tab: action
@@ -336,38 +357,15 @@ fields:
 themeFields:
   - use: cornerRadius
     does: "Rounds the chart card corners from square (0) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
-    summary: "Breathing room inside the edge"
+  - use: controlPadding
     does: "Adds 0 to 24 points between the card edge and the plot."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: "The fill behind the plot"
     does: "Paints the chart card background in this color including transparency."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: "The color of axis labels"
     does: "Colors the axis and grid label text in this softer color."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: "The size of the labels"
     does: "Sets the heading and axis label text from 8 to 24 points."
   - use: accentColor

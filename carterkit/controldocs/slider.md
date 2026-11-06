@@ -210,14 +210,7 @@ fields:
   - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you set a value."
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
   - use: controlPadding

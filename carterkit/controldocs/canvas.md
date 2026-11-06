@@ -11,6 +11,28 @@ oneLiner: Place things anywhere on a surface
 aliases: [draw, drawing, sketch, paint, shapes, freeform]
 depth: complete
 starterPreset: {"label": "Canvas"}
+io:
+  - emits: place
+    when: drop
+    title: When you drop a card
+    field: events.place
+    type: json
+    tokens: {"item": "the card's id", "x": "its left edge, 0 to 1", "y": "its top edge, 0 to 1", "w": "its width, 0 to 1", "h": "its height, 0 to 1"}
+    says: the card you dropped and its new position and size
+    example: {"item": "Item 1", "x": 0.25, "y": 0.5, "w": 0.25, "h": 0.25}
+    also: Only when Editable is on; a layout event with every card's frame follows, and lifting a card sends a pickup first
+    since: next
+  - receives: arrangement
+    role: follow
+    type: json
+    shape: {"frames": {"id": {"x": "number", "y": "number", "w": "number", "h": "number"}}}
+    from: [hub, mqtt, http, store]
+    says: a frame (position and size, as fractions from 0 to 1) for each card id
+    reacts: the cards move to their new frames; ids that are not on the canvas are ignored and cards left out stay where they were configured
+    example: {"frames": {"Item 1": {"x": 0.25, "y": 0.5, "w": 0.25, "h": 0.25}}}
+    since: next
+  - sample: {"frames": {"Item 1": {"x": 0.1, "y": 0.1, "w": 0.4, "h": 0.3}, "Item 2": {"x": 0.5, "y": 0.5, "w": 0.4, "h": 0.3}}}
+    next: {"frames": {"Item 1": {"x": 0.5, "y": 0.1, "w": 0.4, "h": 0.3}, "Item 2": {"x": 0.1, "y": 0.5, "w": 0.4, "h": 0.3}}}
 fields:
   - name: haptic
     edit: look

@@ -11,6 +11,27 @@ oneLiner: Dots joined by lines
 aliases: [network, nodes, edges, diagram, relationships, links]
 depth: complete
 starterPreset: {"label": "Network"}
+io:
+  - emits: node
+    when: tap
+    title: When you tap a node
+    field: nodeAction
+    type: id
+    says: the id of the node you tapped
+    example: "Item 1"
+    also: A node's own tap behavior wins over this action
+    since: next
+  - receives: nodes
+    role: show
+    type: json
+    shape: {"nodes": [{"id": "text", "label": "text?", "group": "text?", "color": "hex?", "size": "number?"}], "edges": [{"from": "id", "to": "id"}]}
+    from: [hub, mqtt, http, store, default]
+    says: nodes, each with an id and an optional label, group, color and size, and edges joining two node ids
+    reacts: the layout settles with the new nodes and lines; nodes that are gone fade out
+    example: {"nodes": [{"id": "Item 1"}, {"id": "Item 2"}], "edges": [{"from": "Item 1", "to": "Item 2"}]}
+    since: next
+  - sample: {"nodes": [{"id": "Item 1"}, {"id": "Item 2"}, {"id": "Item 3"}], "edges": [{"from": "Item 1", "to": "Item 2"}, {"from": "Item 1", "to": "Item 3"}]}
+    next: {"nodes": [{"id": "Item 1"}, {"id": "Item 2"}, {"id": "Item 3"}, {"id": "Item 4"}], "edges": [{"from": "Item 1", "to": "Item 2"}, {"from": "Item 1", "to": "Item 3"}, {"from": "Item 3", "to": "Item 4"}]}
 fields:
   - name: label
     edit: inline
@@ -338,55 +359,22 @@ themeFields:
   - use: cornerRadius
     summary: How round the corners are
     does: "Rounds the card behind the graph in points, 0 to 30; 0 is square."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Breathing room inside the card
     does: "Insets the graph from the card edge by this many points, 0 to 24."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The card's own color
     does: "Fills the card behind the graph with this color, usually a faint translucent white."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The quieter text color
     does: "Colors the less prominent text such as the header with this color."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline of the card
     does: "Colors the card's border line."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How heavy the card outline is
     does: "Sets the card border thickness in points, 0 to 5; 0 hides it."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: The size of the header text
     does: "Sets the header label size in points, 8 to 24."
   - use: foregroundColor

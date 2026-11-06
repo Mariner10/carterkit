@@ -12,6 +12,9 @@ oneLiner: An empty gap
 aliases: [gap, space, padding, blank, empty, filler]
 addRank: 2
 starterPreset: {}
+io:
+  - emits: none
+  - receives: none
 fields:
 ---
 

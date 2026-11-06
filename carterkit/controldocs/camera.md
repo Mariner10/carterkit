@@ -11,6 +11,18 @@ friendlyName: Scanner
 oneLiner: Scan a barcode or QR code
 aliases: [photo, picture, scan, capture, video, webcam]
 starterPreset: {"label": "Scan","scan": ["barcode"]}
+io:
+  - emits: value
+    when: detect
+    title: When the camera reads a code or text
+    type: string
+    tokens: {"kind": "what was read: a symbology name such as qr, or text"}
+    says: the decoded code or recognised text
+    example: "Sample A"
+    whenBy: {"sendMode": {"tap": "tap"}}
+    also: In auto mode a steady detection sends once, and the same value waits out the debounce before it can send again; in tap mode only the item you tap sends. The shutter, if on, sends the snapshot to its own action
+    since: next
+  - receives: none
 fields:
   - name: label
     edit: inline
@@ -115,21 +127,10 @@ themeFields:
   - use: cornerRadius
     summary: How round the corners are
     does: Rounds the control's corners, from 0 (square) to 30 pt.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the edges
     does: Sets the gap between the control's edge and its content, 0 to 24 pt.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The background color
     does: Fills the control's background with this color.
   - name: accentColor
@@ -138,29 +139,13 @@ themeFields:
     description: Idle-state icon tint
     summary: The idle icon color
     does: Tints the camera icon on the Tap to Start card.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The quieter text color
     does: Colors the smaller, secondary text.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline color
     does: Colors the outline drawn around the control.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the outline thickness from 0 (none) to 5 pt.
   - use: foregroundColor
   - use: labelFontSize

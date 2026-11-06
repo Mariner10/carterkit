@@ -11,6 +11,18 @@ friendlyName: QR code
 oneLiner: A code a phone camera can scan
 aliases: [qr, barcode, scan, code, link, share]
 starterPreset: {"label": "QR code","text": "https://example.com"}
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, store, derive]
+    says: the text to turn into a code
+    reacts: the code is redrawn to encode the new text, replacing the configured text
+    example: "Sample A"
+    since: next
+  - sample: "Sample A"
+    next: "Sample B"
 fields:
   - name: label
     edit: inline
@@ -71,55 +83,21 @@ themeFields:
   - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the card corners by 0 to 30 points.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The space around the code inside the card
     does: Pushes the code in from the card edge by 0 to 24 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The card fill
     does: Sets the color of the card behind the code, usually a faint tint.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
-    summary: The color of the less important text
+  - use: secondaryColor
     does: Recolors the secondary text around the code.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The color of the card outline
     does: Recolors the outline drawn around the card.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
+  - use: borderWidth
     summary: How thick the card outline is
     does: Sets the card outline thickness from 0 to 5 points; 0 hides it.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the caption is
     does: Sizes the caption below the code from 8 to 24 points.
   - use: foregroundColor

@@ -12,6 +12,25 @@ oneLiner: Type something in
 aliases: [text field, input, textbox, entry, type, search box]
 addRank: 5
 starterPreset: {"label": "Text box","placeholder": "Type here"}
+io:
+  - emits: value
+    when: submit
+    title: When you press Return or Send
+    type: string
+    says: the text in the field
+    example: "Sample A"
+    also: With clear on submit the field empties right after sending
+    since: next
+  - receives: value
+    role: follow
+    type: string
+    from: [hub, mqtt, http, store, default]
+    says: the text to put in the field
+    reacts: the field shows that text without sending it; your next Return or Send replaces it
+    example: "Sample A"
+    since: next
+  - sample: Sample A
+    next: Sample B
 fields:
   - name: placeholder
     edit: inline
@@ -144,62 +163,24 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Breathing room inside the card
     does: "Adds 0 to 24 points of space between the card edge and the field."
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The fill behind the box
     does: "Paints the card behind the field with this color."
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The color of typed text
     does: "Colors the typed text and label with this color."
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: The color of the hint text
     does: "Colors the placeholder and secondary icons with this color."
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline color
     does: "Draws the card outline in this color."
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: "Sets the outline thickness from 0 (none) to 5 points."
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the name above the box is
     does: "Sets the header label text size from 8 to 24 points."
 ---

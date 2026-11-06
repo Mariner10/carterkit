@@ -7,6 +7,7 @@
   "oneOf": [
     { "$ref": "#/$defs/patternDoc" },
     { "$ref": "#/$defs/sharedFieldsDoc" },
+    { "$ref": "#/$defs/profilesDoc" },
     { "$ref": "#/$defs/controlDoc" }
   ],
   "$defs": {
@@ -332,6 +333,48 @@
         "deprecated": { "$ref": "#/$defs/version" },
         "removed": { "$ref": "#/$defs/version" },
         "alias": { "$ref": "#/$defs/name" }
+      }
+    },
+    "profilesDoc": {
+      "description": "profiles.md: the named editor profiles, each a filter over a control's editable fields (docs/superpowers/specs/2026-11-06-editor-profiles.md).",
+      "type": "object",
+      "required": ["kind", "profiles"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "profiles" },
+        "title": { "type": "string" },
+        "profiles": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/editorProfile" } }
+      }
+    },
+    "profileName": { "description": "A named editor profile's id.", "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "fieldIds": {
+      "description": "Editor profile field ids: `<control>.<field path>` (`gauge.min`, `chart.theme.accentColor`) or a field's bare name.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_.$-]*$" }
+    },
+    "editorProfile": {
+      "description": "One profiles.md entry. CAR-TERTests/ControlDocProfileTests and carterkit catalog.profile_lint check every id against the taxonomy and the docs.",
+      "type": "object",
+      "required": ["name", "title", "since"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/profileName" },
+        "title": { "type": "string", "pattern": "\\S" },
+        "extends": { "$ref": "#/$defs/profileName" },
+        "categories": { "type": "array", "items": { "$ref": "#/$defs/categoryId" } },
+        "chips": { "type": "array", "items": { "$ref": "#/$defs/categoryId" } },
+        "fields": { "$ref": "#/$defs/fieldIds" },
+        "hide": { "$ref": "#/$defs/fieldIds" },
+        "petals": { "type": "string", "pattern": "^[0-5]$" },
+        "rows": { "$ref": "#/$defs/flag" },
+        "json": { "$ref": "#/$defs/flag" },
+        "binding": { "type": "array", "items": { "enum": ["emits", "receives", "ask", "feel", "wiring"] } },
+        "add": { "type": "array", "items": { "$ref": "#/$defs/name" } },
+        "canvas": { "type": "array", "items": { "enum": ["place", "move", "resize", "delete", "pages"] } },
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" },
+        "deprecated": { "$ref": "#/$defs/version" },
+        "removed": { "$ref": "#/$defs/version" }
       }
     }
   }

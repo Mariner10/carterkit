@@ -1,7 +1,12 @@
-# Tutorials source pin (read by carterkit/scripts/sync_controldocs.py --dest carterkit/tutorials)
-# carterkit renders tutorials; it never authors them. Re-pin: set commit, then run
-#   uv run --with pyyaml python carterkit/scripts/sync_controldocs.py --dest carterkit/tutorials
-repo: http://10.10.10.5:3000/Mariner10/CAR-TER-workspace.git
-path: dev-guide/tutorials
+# Tutorials source pin (read by scripts/sync_tutorials.py)
+# carterkit renders tutorials; it never authors them. CAR-TER/Tutorials is the one home. Re-pin: set commit, then run
+#   uv run --with pyyaml python scripts/sync_tutorials.py
+repo: http://10.10.10.5:3000/Mariner10/CAR-TER.git
+path: CAR-TER/Tutorials
 index: frontmatter
-commit: a0d9f9e67ee8d84977e35989f6cbabde47b86fa4
+commit: bd01ba06090e70506b0638ed1392158dc72ba364
+# Code tutorials CAR-TER does not host yet (their kits live here); dropped once CAR-TER carries them.
+also-repo: http://10.10.10.5:3000/Mariner10/CAR-TER-workspace.git
+also-path: dev-guide/tutorials
+also-commit: a0d9f9e67ee8d84977e35989f6cbabde47b86fa4
+also-only: first-hub.md, live-dashboard.md

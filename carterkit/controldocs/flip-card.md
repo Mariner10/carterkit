@@ -12,6 +12,27 @@ oneLiner: "Two sides: tap to flip"
 aliases: [flip, card, reveal, two-sided, front back, flashcard]
 addRank: 4
 starterPreset: {}
+io:
+  - emits: value
+    when: tap
+    title: When you flip it
+    field: action
+    type: number
+    says: the number of the face now showing, counting from 0
+    example: 1
+    whenBy: {"flipTrigger": {"longPress": "hold"}}
+    also: Faces flip in order and wrap round to the first
+    since: next
+  - receives: value
+    role: follow
+    type: number
+    from: [hub, mqtt, http, store, default]
+    says: the number of the face to show, counting from 0
+    reacts: the card flips to that face, turning once for each face it passes
+    example: 1
+    since: next
+  - sample: 0
+    next: 1
 fields:
   - name: flipTrigger
     effect: behavior

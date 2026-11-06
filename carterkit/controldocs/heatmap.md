@@ -11,6 +11,28 @@ friendlyName: Heat grid
 oneLiner: Colored squares that show how much
 aliases: [heat map, density, grid, intensity, matrix, calendar heatmap]
 starterPreset: {"label": "Heat grid"}
+io:
+  - emits: cell
+    when: change
+    title: When you edit a cell
+    field: heatmapConfig.cellAction
+    fallback: action
+    type: json
+    says: the edited cell as row, column and new value
+    example: {"row": 0, "col": 1, "value": 1}
+    also: Only when editable is on; each tapped or painted cell sends once. With sendMode matrix nothing is sent per cell; the whole grid goes out once, about 0.4 seconds after the edits stop
+    since: next
+  - receives: cells
+    role: show
+    type: json
+    shape: {"values": [["number"]], "rows": ["text?"], "cols": ["text?"]}
+    from: [hub, mqtt, http, store]
+    says: a grid of numbers, with optional row and column labels (a bare list of lists works too)
+    reacts: each cell recolors to its new number; your own edits show at once until the next push replaces them
+    example: {"values": [[1, 2], [3, 4]], "rows": ["Row 1", "Row 2"], "cols": ["Column 1", "Column 2"]}
+    since: next
+  - sample: {"values": [[1, 2, 3], [3, 2, 1], [2, 3, 1]], "rows": ["Row 1", "Row 2", "Row 3"], "cols": ["Column 1", "Column 2", "Column 3"]}
+    next: {"values": [[3, 2, 1], [1, 2, 3], [2, 1, 3]], "rows": ["Row 1", "Row 2", "Row 3"], "cols": ["Column 1", "Column 2", "Column 3"]}
 fields:
   - name: haptic
     tab: action
@@ -240,14 +262,7 @@ fields:
     does: "Sets the number that maps to the first scale color; smaller values stay at that color."
     group: heatmapConfig
 themeFields:
-  - name: cornerRadius
-    title: Corner roundness
-    min: 0
-    max: 30
-    step: 1
-    type: number
-    default: 12
-    description: Control corner radius
+  - use: cornerRadius
     summary: "How rounded the card corners are"
     does: "Rounds the control's outer corners from square (0) to 30 points."
   - use: surfacePrimary

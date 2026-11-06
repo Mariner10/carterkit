@@ -130,6 +130,16 @@ def _prose(section: str) -> str:
     return render_text(_FENCE.sub("", section)).strip()
 
 
+def app_link(tid: str, step: Optional[str] = None) -> str:
+    """The deep link that opens an app tutorial (optionally at a step) in CAR-TER."""
+    return f"carter://tutorial/{tid}" + (f"?step={step}" if step else "")
+
+
+def _qr_ascii(link: str) -> str:
+    from . import qr
+    return qr.encode(link, ecc="M").ascii()
+
+
 def list_lines() -> list[str]:
     idx = index()
     width = max((len(i) for i in idx), default=0)
@@ -145,7 +155,9 @@ def steps_text(tid: str) -> str:
     if meta.get("prerequisites"):
         out.append("First: " + ", ".join(f"carterkit tutorial steps {p}" for p in meta["prerequisites"]))
     if meta["audience"] == "app":
-        out.append("This one is done in the app: open Learn > Guides in CAR-TER, or read it on the website.")
+        link = app_link(tid)
+        out.append("This one is done in the app: open Settings > Help in CAR-TER, or scan this to open it there.")
+        out += [link, "", _qr_ascii(link)]
     elif meta.get("starterKit"):
         out.append(f"Start: carterkit tutorial --start {tid} my-{meta['starterKit']}   "
                    f"Finished: carterkit new my-{meta['starterKit']} --template {meta['starterKit']}")

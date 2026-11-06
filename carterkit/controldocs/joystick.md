@@ -11,6 +11,16 @@ oneLiner: Steer with your thumb
 aliases: [stick, pad, direction, steer, drive, gamepad]
 depth: complete
 starterPreset: {"label": "Joystick"}
+io:
+  - emits: value
+    when: change
+    title: While you move the stick
+    type: json
+    says: the stick position as x and y, each from -1 to 1 (up is positive y)
+    example: {"x": 0.5, "y": -0.25}
+    also: Sends at the send rate while the stick is outside the deadzone; on release it sends one last position, which is x 0 and y 0 unless the stick is sticky
+    since: next
+  - receives: none
 fields:
   - name: label
     edit: inline
@@ -100,42 +110,19 @@ themeFields:
     description: Control corner radius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the card
     does: Sets the padding between the card edge and the stick, from 0 to 24 pt (default 8).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: Card background
     does: Fills the control's card background with this color.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: Highlight color
     does: Sets the theme accent color for this control.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: Quiet text color
     does: Colors the label text under the stick.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: Card outline color
     does: Colors the outline around the card.
   - name: borderWidth
@@ -151,14 +138,7 @@ themeFields:
     description: Border width
     summary: Card outline thickness
     does: Sets the card outline thickness from 0 to 5 pt (default 1).
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: Label text size
     does: Sets the label text size from 8 to 24 pt (default 12).
 ---

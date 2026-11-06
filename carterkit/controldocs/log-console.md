@@ -11,6 +11,19 @@ oneLiner: Lines of messages as they arrive
 aliases: [console, log, terminal, output, messages, tail]
 depth: complete
 starterPreset: {"label": "Log"}
+io:
+  - emits: none
+  - receives: lines
+    role: show
+    type: json
+    shape: {"text": "text", "level": "text?"}
+    from: [hub, mqtt, http, store, default]
+    says: one log line per message, a text and an optional level
+    reacts: each message adds a line at the bottom, colored by its level; the oldest lines drop off past the line limit, and the view follows the newest line unless auto-scroll is off
+    example: {"text": "Sample A"}
+    since: next
+  - sample: {"text": "Sample A"}
+    next: {"text": "Sample B"}
 fields:
   - name: label
     edit: inline
@@ -116,63 +129,24 @@ themeFields:
   - use: cornerRadius
     summary: How round the corners are
     does: Rounds the corners of the console card.
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the card
     does: Sets the gap between the card edge and the header and log.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The card background
     does: Fills the whole card behind the header and log in this color.
-  - name: accentColor
-    title: Accent color
-    type: color
-    default: #667eea
-    description: Accent/tint color
+  - use: accentColor
     summary: The highlight color
     does: Sets the theme accent color the console uses when no tint is set.
-  - name: secondaryColor
-    title: Second text color
-    type: color
-    default: #FFFFFF99
-    description: Secondary text color
+  - use: secondaryColor
     summary: Softer text color
     does: Colors the header label and the timestamps.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The outline color
     does: Draws the card outline in this color.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the thickness of the card outline in points.
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
-    summary: How big the title is
+  - use: labelFontSize
     does: Sets the size of the header label text.
   - use: foregroundColor
     summary: Main text color

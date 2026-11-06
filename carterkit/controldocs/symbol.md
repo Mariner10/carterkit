@@ -12,6 +12,23 @@ oneLiner: An icon that can animate
 aliases: [icon, sf symbol, glyph, emoji, shape, picture]
 addRank: 8
 starterPreset: {"systemName": "star.fill","label": "Symbol"}
+io:
+  - emits: value
+    when: tap
+    title: When you tap the symbol
+    type: string
+    says: the name of the symbol being shown
+    example: "Sample A"
+    since: next
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, store, default]
+    says: a symbol name to show, a state word to match, or a number that fills the symbol
+    reacts: the symbol swaps, tints or fills to match it, and plays its effect when active
+    example: "Sample A"
+    since: next
+  - sample: true
 fields:
   - name: systemName
     chip: Symbol
@@ -288,22 +305,10 @@ fields:
     does: Holds the rendering, effect, particle, loop and tap settings below; leave it out for a still symbol.
 themeFields:
   - use: cornerRadius
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: Space inside the card
     does: Sets the gap between the card edge and the icon, 0 to 24 points.
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: Sets the color behind the icon.
   - name: foregroundColor
     type: color
@@ -311,22 +316,10 @@ themeFields:
     description: Default glyph colour
     summary: The icon's default color
     does: Colors the glyph when no tint is set.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The card's outline color
     does: Colors the outline around the card.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the card outline thickness in points; 0 removes it.
   - use: secondaryColor
     summary: The caption color

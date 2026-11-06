@@ -12,6 +12,23 @@ oneLiner: Headings that open and close
 aliases: [collapse, expand, section, fold, disclosure, faq]
 addRank: 5
 starterPreset: {}
+io:
+  - emits: value
+    when: tap
+    title: When you open or close a section
+    type: number
+    says: the position of the section you opened, counting from 0 (-1 when you collapse it)
+    example: 1
+    also: In multi mode sections open independently and the value is only the last one you toggled
+    since: next
+  - receives: value
+    role: follow
+    type: number
+    from: [hub, mqtt, http, store, default]
+    says: the position of the section to open, counting from 0 (-1 closes all)
+    reacts: that section opens (in single mode, stepping through the sections in between); multi mode keeps its own open set
+    example: 1
+    since: next
 fields:
   - name: accordionMode
     effect: behavior

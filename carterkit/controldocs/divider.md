@@ -12,6 +12,9 @@ aliases: [line, separator, rule, break, split, hr]
 addRank: 1
 depth: complete
 starterPreset: {"label": "Section"}
+io:
+  - emits: none
+  - receives: none
 fields:
   - name: label
     edit: inline
@@ -59,14 +62,7 @@ fields:
     summary: How thick the line is
     does: Sets the line's height from 0.5 to 8 pt (default 1).
 themeFields:
-  - name: labelFontSize
-    title: Title text size
-    min: 8
-    max: 24
-    step: 1
-    type: number
-    default: 12
-    description: Label text size
+  - use: labelFontSize
     summary: How big the label is
     does: Sets the section label's text size from 8 to 24 pt (default 12).
   - use: foregroundColor

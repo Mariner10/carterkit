@@ -11,6 +11,26 @@ friendlyName: Radar
 oneLiner: Several scores on one shape
 aliases: [spider, web, polar, compare, skills, star chart]
 starterPreset: {"label": "Radar"}
+io:
+  - receives: series
+    role: show
+    type: json
+    shape: {"axes": ["text"], "series": [{"name": "text?", "color": "hex?", "values": ["number"]}], "max": "number?"}
+    from: [hub, mqtt, http, store, default]
+    says: "axes (the spokes) and series: a list of numbers, one per axis, each"
+    reacts: the shape grows or shrinks to the new numbers along each axis
+    example: {"axes": ["Item 1", "Item 2", "Item 3"], "series": [{"name": "Series 1", "values": [3, 2, 1]}]}
+    since: next
+  - emits: value
+    when: release
+    title: When you let go of the shape
+    type: json
+    says: the axis names and the first series' numbers, as JSON
+    example: {"axes": ["Item 1", "Item 2", "Item 3"], "values": [3, 2, 1]}
+    also: Only when editing is on; dragging a corner redraws the shape live and sends once on release
+    since: next
+  - sample: {"axes": ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"], "series": [{"name": "Series 1", "values": [3, 2, 4, 1, 3]}]}
+    next: {"axes": ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"], "series": [{"name": "Series 1", "values": [4, 1, 2, 3, 4]}]}
 fields:
   - name: haptic
     tab: action
@@ -189,11 +209,7 @@ fields:
     group: radarConfig
 themeFields:
   - use: cornerRadius
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
+  - use: surfacePrimary
     summary: The colour behind the control
     does: Fills the radar chart background with this color.
   - name: secondaryColor

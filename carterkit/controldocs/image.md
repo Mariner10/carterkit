@@ -12,6 +12,16 @@ aliases: [picture, photo, icon, logo, thumbnail, img]
 addRank: 7
 depth: complete
 starterPreset: {"systemName": "photo"}
+io:
+  - emits: none
+  - receives: value
+    role: show
+    type: string
+    from: [hub, mqtt, http, sensor, store, derive, default]
+    says: a picture address, or a code (a number, state word or true/false) that the icon, picture and color maps turn into a symbol
+    reacts: the picture changes to the one that matches; a code with no match uses the default entry, then the control's own symbol; a bare code is never read as an address
+    example: "1"
+    since: next
 fields:
   - name: systemName
     edit: symbol
@@ -106,46 +116,18 @@ themeFields:
   - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the control's card corners from 0 to 30 pt (default 12).
-  - name: controlPadding
-    title: Inner spacing
-    min: 0
-    max: 24
-    step: 1
-    type: number
-    default: 8
-    description: Internal padding
+  - use: controlPadding
     summary: The gap between card edge and picture
     does: Sets the space inside the card around the picture from 0 to 24 pt (default 8).
-  - name: surfacePrimary
-    title: Background color
-    type: color
-    default: #FFFFFF0F
-    description: Background fill
-    summary: The card's fill color
+  - use: surfacePrimary
     does: Fills the card behind the picture with this color, default a faint white wash.
-  - name: foregroundColor
-    title: Text color
-    type: color
-    default: #FFFFFF
-    description: Primary text color
+  - use: foregroundColor
     summary: The color of the symbol
     does: Colors the fallback symbol when no tint or color map applies, default white.
-  - name: borderColor
-    title: Border color
-    type: color
-    default: #FFFFFF1A
-    description: Border color
+  - use: borderColor
     summary: The card's outline color
     does: Draws the card's outline in this color, default a faint white.
-  - name: borderWidth
-    title: Border thickness
-    min: 0
-    max: 5
-    step: 0.5
-    type: number
-    default: 1
-    description: Border width
-    summary: How thick the outline is
+  - use: borderWidth
     does: Sets the outline thickness from 0 to 5 pt (default 1).
 ---
 
