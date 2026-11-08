@@ -164,7 +164,8 @@ def test_fakehub_records_frames_and_answers_prompts():
         return fake
 
     fake = asyncio.run(go())
-    assert fake.frames("m") == [{"msg_type": "m", "text": "hello"}] and fake.frames("other") == []
+    frames = [{k: v for k, v in f.items() if k != "_sentAt"} for f in fake.frames("m")]
+    assert frames == [{"msg_type": "m", "text": "hello"}] and fake.frames("other") == []
     assert fake.routed("prompt") == []
 
 

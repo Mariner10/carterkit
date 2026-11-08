@@ -50,6 +50,11 @@ def _hub(ui, **kw):
     return hub
 
 
+def _unstamped(payload):
+    """A sent payload without the `_sentAt` the hub stamps on every frame."""
+    return {k: v for k, v in payload.items() if k != "_sentAt"}
+
+
 def test_frame_for_derives_filter_and_valuepath():
     ui, temp, target, scenes = _thermostat()
     hub = _hub(ui)
@@ -74,7 +79,7 @@ def test_push_broadcasts_and_snapshots_state():
 
     frame = asyncio.run(run())
     assert frame == {"msg_type": "climate", "temp": 21.5}
-    assert hub.client._sock.sent == [("broadcast_request", frame)]
+    assert [(t, _unstamped(p)) for t, p in hub.client._sock.sent] == [("broadcast_request", frame)]
     assert hub.client._control_state == {"temp": 21.5}   # authority snapshot
 
 
@@ -241,7 +246,8 @@ def test_live_end_to_end_author_serve_drive():
 
     asyncio.run(run())
     assert got["cmd"] == {"msg_type": "set_target", "value": 22.0}
-    assert {"msg_type": "climate", "temp": 21.5} in got["frames"]
+    assert {"msg_type": "climate", "temp": 21.5} in [_unstamped(f) for f in got["frames"]
+                                                      if isinstance(f, dict)]
     snaps = [f for f in got["frames"] if isinstance(f, dict)
              and f.get("msg_type") == "control_snapshot"]
     assert snaps and snaps[0]["controls"] == {"temp": 21.5}
@@ -279,13 +285,13 @@ def test_hub_acks_only_commands_a_demux_handler_ran_for():
         await deliver({"msg_type": "set_target", "value": 21,
                        "_cmd": "c-1", "_from": "Phone"})
         assert got and got[0]["value"] == 21
-        acks = [p for _, p in hub.client._sock.sent
+        acks = [_unstamped(p) for _, p in hub.client._sock.sent
                 if p.get("msg_type") == "command_ack"]
         assert acks == [{"msg_type": "command_ack", "cmd_id": "c-1",
                          "to": "Phone", "ok": True}]
         # unmatched command → NOT handled → silence (app times out + reverts)
         await deliver({"msg_type": "someone.elses", "_cmd": "c-2", "_from": "Phone"})
-        acks = [p for _, p in hub.client._sock.sent
+        acks = [_unstamped(p) for _, p in hub.client._sock.sent
                 if p.get("msg_type") == "command_ack"]
         assert len(acks) == 1
 
@@ -413,3 +419,26 @@ def test_describe_push_reply_lines():
     assert "updated" in d({"ok": True, "updated": True}, "X")
     assert "unchanged" in d({"ok": True, "skipped": True}, "X")
     assert "Studio session" in d({"ok": True}, "X") and "Studio session" in d(None, "X")
+
+
+def test_pushed_and_broadcast_frames_carry_sent_at():
+    import time
+    ui, *_ = _thermostat()
+    hub = _hub(ui)
+    before = int(time.time() * 1000) - 1000
+    asyncio.run(hub.push("temp", 21.5))
+    asyncio.run(hub.broadcast("climate", {"temp": 22}))
+    after = int(time.time() * 1000) + 1000
+    frames = [p for t, p in hub.client._sock.sent if t == "broadcast_request"]
+    assert len(frames) >= 2
+    for p in frames:
+        assert isinstance(p["_sentAt"], int) and not isinstance(p["_sentAt"], bool)
+        assert before <= p["_sentAt"] <= after
+    assert frames[0] == {"msg_type": "climate", "temp": 21.5, "_sentAt": frames[0]["_sentAt"]}
+
+
+def test_caller_supplied_sent_at_is_kept():
+    ui, *_ = _thermostat()
+    hub = _hub(ui)
+    asyncio.run(hub.client.broadcast_frame({"msg_type": "x", "_sentAt": 123}))
+    assert hub.client._sock.sent[-1] == ("broadcast_request", {"msg_type": "x", "_sentAt": 123})

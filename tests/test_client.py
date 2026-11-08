@@ -71,7 +71,7 @@ def test_broadcast_sealed_peer_opens():
         assert t == "broadcast_request"
         assert E2EESession.is_envelope(payload)
         peer = E2EESession(bytes([1]) * 32, is_device_side=False)
-        assert peer.open(payload) == {"msg_type": "hello", "v": 1, "_from": "hub"}   # sealed sender stamp
+        assert _unstamped(peer.open(payload)) == {"msg_type": "hello", "v": 1, "_from": "hub"}   # sealed sender stamp
 
     asyncio.run(run())
 
@@ -110,7 +110,7 @@ def test_cleartext_when_no_key():
         c = _client(key=None)
         await c.broadcast("hello", {"v": 1})
         _, payload = c._sock.sent[0]
-        assert payload == {"msg_type": "hello", "v": 1}
+        assert _unstamped(payload) == {"msg_type": "hello", "v": 1}
         assert not E2EESession.is_envelope(payload)
 
     asyncio.run(run())
@@ -129,7 +129,7 @@ def test_room_broadcast_uses_group_cipher():
         _, payload = c._sock.sent[0]
         assert E2EESession.is_envelope(payload)
         peer = E2EESession.group(bytes([1]) * 32)  # a room member opens the hub's broadcast
-        assert peer.open(payload) == {"msg_type": "metrics", "cpu": 7, "_from": "hub"}
+        assert _unstamped(peer.open(payload)) == {"msg_type": "metrics", "cpu": 7, "_from": "hub"}
 
     asyncio.run(run())
 
@@ -445,7 +445,7 @@ def test_command_ack_ok_when_handler_reports_handled():
         assert got[0]["msg_type"] == "light.power"
         t, ack = c._sock.sent[0]
         assert t == "broadcast_request"
-        assert ack == {"msg_type": "command_ack", "cmd_id": "c-1",
+        assert _unstamped(ack) == {"msg_type": "command_ack", "cmd_id": "c-1",
                        "to": "Phone", "ok": True}
 
     asyncio.run(run())
@@ -981,6 +981,11 @@ class _Clock:
         return self.t
 
 
+def _unstamped(payload):
+    """A payload without the `_sentAt` the hub stamps on every frame."""
+    return {k: v for k, v in payload.items() if k != "_sentAt"}
+
+
 def _acks(c):
     return [p for _, p in c._sock.sent if p.get("msg_type") == "command_ack"]
 
@@ -1005,7 +1010,7 @@ def test_duplicate_cmd_skips_handler_and_reacks(tmp_path):
         await c._dispatch_broadcast(_cmd("c-1"))
         await c._dispatch_broadcast(_cmd("c-1"))
         assert len(got) == 1
-        assert _acks(c) == [{"msg_type": "command_ack", "cmd_id": "c-1",
+        assert [_unstamped(a) for a in _acks(c)] == [{"msg_type": "command_ack", "cmd_id": "c-1",
                              "to": "Phone", "ok": True}] * 2
 
     asyncio.run(run())

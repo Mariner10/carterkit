@@ -14,6 +14,7 @@ All notable changes to **carterkit** are documented here. This project follows
   unknown category, chip, field id, Binding card, canvas verb or control type, and `catalog.profile_manifest` gives
   the `categories`, `chips` and `profiles` lists CAR-TER's `scripts/gen-capabilities.py` writes into
   `capabilities.json`. The vendored ControlDocs gain `profiles.md` with the next sync.
+- Hub frames carry `_sentAt` (CAR-TER aif-xye17): every broadcast a hub sends (`push`, `broadcast`, `fill`, `push_tab`, command acks) is stamped with the send time in epoch ms, so the app's HubHealth can show each hub's delay; a caller-supplied `_sentAt` is kept.
 
 ## [0.20.0] — 2026-11-06
 

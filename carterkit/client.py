@@ -356,6 +356,17 @@ def device_refresh_http(validator_url, device_id, refresh_token, *, timeout=10,
 #: it from beside a sealed frame's ciphertext and drops a copy sealed inside.
 RELAY_SENDER_KEY = "_relayFrom"
 
+#: Frame key a hub stamps with its send time (epoch ms); the app's HubHealth reads it.
+SENT_AT_KEY = "_sentAt"
+
+
+def stamp_sent_at(frame):
+    """Return `frame` with `_sentAt` (integer epoch ms, taken now) added. A copy: the
+    caller's dict is untouched. A `_sentAt` the caller already set is kept as is."""
+    if not isinstance(frame, dict) or SENT_AT_KEY in frame:
+        return frame
+    return {**frame, SENT_AT_KEY: int(time.time() * 1000)}
+
 #: Frames the relay itself emits (or answers) in plaintext even inside an E2EE room.
 #: Always passed through `_open` untouched, whatever `strict_e2ee` says.
 _RELAY_CONTROL_TYPES = frozenset({
@@ -962,8 +973,9 @@ class CarterClient:
 
     async def broadcast_frame(self, frame):
         """Broadcast a pre-assembled payload verbatim (no msg_type is forced on it) —
-        the escape hatch for frames whose shape a control's sync filter dictates."""
-        await self._sock.send("broadcast_request", self._seal(frame))
+        the escape hatch for frames whose shape a control's sync filter dictates.
+        Stamps `_sentAt` (see :func:`stamp_sent_at`) unless the caller supplied one."""
+        await self._sock.send("broadcast_request", self._seal(stamp_sent_at(frame)))
 
     async def chat(self, text, *, name="Server", role="device", channel=None, msg_id=None, **extra):
         """Send a channel chat message a chat control will display, as a bubble from `name`.
