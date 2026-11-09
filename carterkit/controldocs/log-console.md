@@ -107,6 +107,8 @@ fields:
   - name: logColors
     tab: style
     type: object
+    edit: map
+    columns: [{"name": "level", "title": "Level", "type": "string", "edit": "inline", "required": true, "values": ["error", "warn", "info", "debug", "success"], "default": "level{n}"}, {"name": "color", "title": "Color", "type": "color", "edit": "color", "required": true, "default": "#8E8E93"}]
     description: "Map log levels to colors: {\"error\": \"#FF3B30\", \"warn\": \"#FF9500\"}"
     summary: Colors for each kind of message
     does: Colors each line by its level name, for example error or warn, overriding the theme's built-in level colors.
@@ -116,10 +118,11 @@ fields:
     title: Color
     tab: style
     type: color
-    default: "#667eea"
-    description: Accent color
-    summary: The accent color
-    does: Stores an accent color for the console; lines take their colors from the level colors and the theme, so it shows no change today.
+    default: "#FFFFFF"
+    changes: [{in: next, note: "Colors the lines with no level (the text color slot)"}]
+    description: Color of the lines with no level
+    summary: The color of the text
+    does: Colors the lines with no level, or a level no color names; lines with a level keep their level color.
   - name: defaultValue
     type: array
     description: Seed lines shown before the first sync (strings, or objects with text and level)
@@ -136,8 +139,8 @@ themeFields:
     summary: The card background
     does: Fills the whole card behind the header and log in this color.
   - use: accentColor
-    summary: The highlight color
-    does: Sets the theme accent color the console uses when no tint is set.
+    summary: Not used by the console
+    does: Changes nothing here; the console draws no accent color. Its Color (tint) and the neutral role color the text.
   - use: secondaryColor
     summary: Softer text color
     does: Colors the header label and the timestamps.
@@ -154,6 +157,13 @@ themeFields:
   - use: surfaceSecondary
     summary: Log area color
     does: Fills the log area inside the card unless the style is transparent.
+colorSlots:
+  - slot: text
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the text
+    does: Colors the lines with no level, or a level no color names; until set it follows the neutral role, the text color. Level colors (logColors, then the theme's error, warning, info and success colors) still win.
 ---
 
 # Log Console
@@ -181,7 +191,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `autoScroll` | bool | `true` | Auto-scroll to latest line |
 | `controlHeight` | number | — | Console area height in points (default: compact, capped at 200). Set it to fill a tall grid span |
 | `logColors` | object | — | Map log levels to colors |
-| `tint` | color | `"#667eea"` | Accent color |
+| `tint` | color | text color | Color of the lines with no level (the `text` colour slot) |
 | `defaultValue` | array | — | Seed lines shown before the first sync: strings or `{text, level}` objects. See [[control-def#defaultValue per type]] |
 
 ## Examples

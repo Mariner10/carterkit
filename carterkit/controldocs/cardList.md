@@ -10,6 +10,7 @@ friendlyName: Cards
 oneLiner: A stack of cards
 aliases: [cards, feed, tiles, items, results, stack]
 starterPreset: {}
+card: {"draws": "each", "padding": "10", "says": "There is no outer card: the search box and every row are cards, and the Background chip shapes each of them.", "since": "next"}
 depth: complete
 io:
   - emits: none
@@ -24,6 +25,27 @@ io:
     since: next
   - sample: {"nodes": [{"id": "item-1", "label": "Item 1", "group": "Row 1"}, {"id": "item-2", "label": "Item 2", "group": "Row 1"}, {"id": "item-3", "label": "Item 3", "group": "Row 2"}], "edges": []}
 fields:
+  - name: placeholder
+    edit: inline
+    depth: surface
+    since: next
+    title: Search hint
+    type: string
+    default: Search
+    description: "Placeholder text shown in the search field while it is empty (default: Search)."
+    summary: The hint inside the search box
+    does: Replaces the grey word shown in the search box until you type, e.g. Search models.
+colorSlots:
+  - slot: icon
+    default: primary
+    since: next
+    summary: The color of the card symbols
+    does: Colors the symbol a card shows when it has no live example; until the layout picks a color it follows the primary role.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the card names
+    does: Colors each card's name and the faint tile behind its symbol; until set it follows the neutral role, the text color. Descriptions and category names keep the softer text color.
 ---
 
 Not for store rows: this control browses documentation nodes. Rows from a store use the list control ([[list]]).
@@ -38,7 +60,7 @@ uses only the `nodes` (edges are ignored).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `searchPlaceholder` | string | `"Search"` | Placeholder text shown in the search field while it is empty |
+| `placeholder` | string | `"Search"` | Placeholder text shown in the search field while it is empty |
 
 ## Examples
 
@@ -79,7 +101,7 @@ A narrow tall list beside other controls.
   "id": "side-cards",
   "position": [6, 0],
   "span": [3, 6],
-  "searchPlaceholder": "Search models",
+  "placeholder": "Search models",
   "sync": [{ "method": "meshsocket", "type": "listen", "event": "broadcast", "filter": { "msg_type": "models" }, "valuePath": "graph" }]
 }
 ```

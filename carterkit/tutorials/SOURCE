@@ -4,7 +4,7 @@
 repo: http://10.10.10.5:3000/Mariner10/CAR-TER.git
 path: CAR-TER/Tutorials
 index: frontmatter
-commit: bd01ba06090e70506b0638ed1392158dc72ba364
+commit: 79f769666f07f9d11397c4764fb22298353d03ef
 # Code tutorials CAR-TER does not host yet (their kits live here); dropped once CAR-TER carries them.
 also-repo: http://10.10.10.5:3000/Mariner10/CAR-TER-workspace.git
 also-path: dev-guide/tutorials

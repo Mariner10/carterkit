@@ -8,7 +8,7 @@ time: 20
 builds: A gauge, a sparkline and a text readout that the hub moves once a second, with a button that sends a command back.
 prerequisites: [first-hub]
 since: "2.2"
-kit: ">=0.19"
+kit: ">=0.20"
 uses:
   controls: [control.gauge, control.sparkline, control.label, control.button]
   fields: []
@@ -27,44 +27,25 @@ steps:
     do:
       code: sensor
     check: "`read_level()` returns a number from 0 to 100 that drifts a little each time you call it."
-    expect:
-      calls:
-        - {fn: read_level, between: [0, 100]}
+    expect: {calls: [{fn: read_level, between: [0, 100]}]}
   - id: publish
     goal: Publish a reading
     do:
       code: publish
     check: "`publish(hub, 42.0, 40.0)` broadcasts a metrics frame with level 42.0 and a readout frame saying 42.0 % rising."
-    expect:
-      calls:
-        - {fn: publish, args: ["@hub", 42.0, 40.0]}
-      sent:
-        - {msg_type: metrics, level: 42.0}
-        - {msg_type: readout, text: 42.0 % rising}
+    expect: {calls: [{fn: publish, args: ["@hub", 42.0, 40.0]}], sent: [{msg_type: metrics, level: 42.0}, {msg_type: readout, text: "42.0 % rising"}]}
   - id: reset
     goal: Answer the button
     do:
       code: reset
     check: "`reset(hub, {})` puts the level back to 50 and publishes it at once."
-    expect:
-      calls:
-        - {fn: reset, args: ["@hub", {}]}
-      sent:
-        - {msg_type: metrics, level: 50.0}
-        - {msg_type: readout, text: 50.0 %}
+    expect: {calls: [{fn: reset, args: ["@hub", {}]}], sent: [{msg_type: metrics, level: 50.0}, {msg_type: readout, text: "50.0 %"}]}
   - id: loop
     goal: Keep it moving
     do:
       code: loop
     check: "With INTERVAL shortened, the hub broadcasts at least three readings by itself, and a Reset from the phone sends 50 straight away."
-    expect:
-      set: {INTERVAL: 0.005}
-      when:
-        - {msg_type: reset}
-      wait: 0.05
-      at_least: {metrics: 3, readout: 3}
-      sent:
-        - {msg_type: metrics, level: 50.0}
+    expect: {set: {INTERVAL: 0.005}, when: [{msg_type: reset}], wait: 0.05, at_least: {metrics: 3, readout: 3}, sent: [{msg_type: metrics, level: 50.0}]}
   - id: run
     goal: Watch it on a phone
     do:
@@ -74,7 +55,7 @@ steps:
 
 # A live dashboard
 
-A dashboard is the other half of **first-hub**: there the phone asked and the hub answered; here the hub
+A dashboard is the other half of [[tutorial:first-hub]]: there the phone asked and the hub answered; here the hub
 speaks first. Once a second it reads a value and broadcasts it, and every phone on the channel updates from the
 same frame with no work per viewer.
 
@@ -207,4 +188,4 @@ In CAR-TER open the layout list and tap **Scan**. The pairing is kept in `.carte
 run reconnects without a scan, and every save reaches the phone while it runs.
 
 > Things to get right: `statusLight` controls map strings such as `green` and `red`; a `logConsole` takes a bare
-> string, `{text, level}` or a list of either. Add interactivity next with **first-hub**.
+> string, `{text, level}` or a list of either.

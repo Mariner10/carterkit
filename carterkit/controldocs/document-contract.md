@@ -150,7 +150,7 @@ Ids are the stable keys for stored values, `sync` targeting, visibility
 references, glance tiles, sections and edits. Display text is never identity.
 
 - **Layout `id` = the installation.** A layout's top-level `id` names this
-  installed copy and its data. Copy, Make It Mine and copy-to-edit **re-mint** it
+  installed copy and its data. Copy, Add Layout and copy-to-edit **re-mint** it
   (and record the original in `provenance`). Importing a file whose `id` is already
   installed asks **Update** (keep the data) or **Install a copy** (new id, new
   data). Joining a shared room keeps the room's `id`.

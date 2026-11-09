@@ -41,8 +41,12 @@ fields:
     summary: How the number changes when it steps
     does: "Sets how the readout animates between values, from an instant swap to a soft glide."
     valueHelp: {"smooth": "an even natural transition", "snappy": "a quick firm change", "bouncy": "overshoots slightly then settles", "gentle": "a slow soft transition", "instant": "changes with no animation"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: min
     chip: Range
+    edit: range
+    depth: surface
     title: Lowest value
     bounds: none
     type: number
@@ -51,6 +55,10 @@ fields:
     summary: The count never goes below this
     does: "Sets the lowest number reachable; the minus button dims there."
   - name: max
+    edit: range
+    depth: hold
+    under: min
+    axis: max
     title: Highest value
     bounds: none
     type: number
@@ -59,6 +67,10 @@ fields:
     summary: The count never goes above this
     does: "Sets the highest number reachable; the plus button dims there."
   - name: step
+    edit: range
+    depth: hold
+    under: min
+    axis: step
     title: Step size
     bounds: none
     type: number
@@ -68,7 +80,7 @@ fields:
     does: "Changes the number by this amount per tap, in the control's own units; 0 or less acts as 1."
   - name: repeatOnHold
     effect: behavior
-    edit: part
+    edit: switch
     depth: hold
     title: Repeat while held
     tab: action
@@ -114,14 +126,19 @@ fields:
   - name: formatValue
     title: Number format
     tab: data
-    type: string
+    type: enum
+    values: [{ value: decimal, since: next }, { value: percent, since: next }, { value: time, since: next }, { value: duration, since: next }, { value: bytes, since: next }, { value: bytesKB, since: next }, { value: bps, since: next }, { value: relative, since: next }, { value: none, since: next }]
     default: decimal
-    description: "Value format: decimal, time, percent"
+    valueHelp: {"decimal": "a plain number like 72 or 3.5", "percent": "a whole percentage like 80%", "time": "minutes and seconds like 3:45, from a total in seconds", "duration": "a length of time like 1h 5m, from seconds", "bytes": "a size like 1.2 MB, from bytes", "bytesKB": "a size like 1.2 MB, from kilobytes", "bps": "a speed like 4 Mbps, from bits per second", "relative": "how long ago, like 5 min ago, from a date", "none": "no number shown"}
+    valueTitles: {"decimal": "Decimal", "percent": "Percent", "time": "Time", "duration": "Duration", "bytes": "Bytes", "bytesKB": "Kilobytes", "bps": "Bits per second", "relative": "Relative", "none": "None"}
+    valueSymbols: {"decimal": "number", "percent": "percent", "time": "clock", "duration": "timer", "bytes": "internaldrive", "bytesKB": "externaldrive", "bps": "speedometer", "relative": "clock.arrow.circlepath", "none": "nosign"}
+    description: "Value format: decimal, percent, time, duration, bytes, bytesKB, bps, relative or none; decimal:N, prefix:X and suffix:X also work in JSON"
     summary: How the number is written
     does: "Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit."
   - name: defaultValue
     edit: scrub
-    depth: surface
+    depth: hold
+    under: min
     title: Starting value
     bounds: none
     type: number
@@ -141,6 +158,8 @@ fields:
     summary: The buzz you feel on each tap
     does: "Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern."
     valueHelp: {"light": "a soft tap", "medium": "a firmer tap", "heavy": "a strong thump", "success": "a pleasant double tap", "warning": "a cautionary buzz", "error": "a sharp failure buzz", "selection": "a tiny tick like a picker"}
+    valueTitles: {"light": "Light", "medium": "Medium", "heavy": "Heavy", "success": "Success", "warning": "Warning", "error": "Error", "selection": "Selection"}
+    valueSymbols: {"light": "circle", "medium": "circle.fill", "heavy": "circle.inset.filled", "success": "checkmark.circle", "warning": "exclamationmark.triangle", "error": "xmark.octagon", "selection": "hand.tap"}
   - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you step."
 themeFields:
@@ -220,6 +239,25 @@ themeFields:
   - use: secondaryColor
     summary: The softer text color
     does: "Colors the secondary text such as the title."
+colorSlots:
+  - slot: button
+    default: primary
+    alias: theme.buttonColor
+    since: next
+    summary: The color of the plus and minus buttons
+    does: Fills the plus and minus buttons; until set they follow the primary role, or the stepper theme's button color when the layout chose one.
+  - slot: symbol
+    default: "#FFFFFF"
+    alias: theme.iconColor
+    since: next
+    summary: The color of the plus and minus signs
+    does: Draws the plus and minus signs; until set they keep the stepper theme's symbol color, white.
+  - slot: value
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the number
+    does: Colors the number and the icon; until set they follow the primary role.
 ---
 
 # Stepper

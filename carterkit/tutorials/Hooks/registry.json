@@ -1,0 +1,1152 @@
+{
+  "appVersion" : "2.0.1",
+  "facts" : [
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "demo",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "layout",
+      "params" : [
+
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "tab",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "connected",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "connectionKind",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "local",
+        "connectPlus",
+        "none"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "pipesHealthy",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "pinned",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "pinnedCount",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "layoutCount",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "hasPro",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "hasConnectPlus",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "tier",
+      "params" : [
+
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "xray",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "editing",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "studioOpen",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "pickerOpen",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "screen",
+      "params" : [
+
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "platform",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "iphone",
+        "ipad"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "orientation",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "portrait",
+        "landscape"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "reduceMotion",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "installedDays",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "launchCount",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "hasTarget",
+      "params" : [
+        "target"
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "controlExists",
+      "params" : [
+        "id"
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "controlType",
+      "params" : [
+        "id"
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "controlValue",
+      "params" : [
+        "id"
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "notificationsAuthorized",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "locationAuthorized",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "appVersion",
+      "params" : [
+
+      ],
+      "type" : "version"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "locale",
+      "params" : [
+
+      ],
+      "type" : "string"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "founder",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "firstLaunch",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "abBucket",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "paneMode",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "none",
+        "layouts",
+        "hub",
+        "menu"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "paneDetent",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "pane",
+        "full"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "infoOpen",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot"
+      ],
+      "id" : "infoSection",
+      "params" : [
+
+      ],
+      "type" : "string",
+      "values" : [
+        "overview",
+        "notifications",
+        "history",
+        "dataFlow",
+        "capabilities",
+        "permissions",
+        "room",
+        "hubs",
+        "connection",
+        "secrets"
+      ]
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "layoutInLibrary",
+      "params" : [
+        "id"
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "layoutPinned",
+      "params" : [
+        "id"
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "layoutIsCurrent",
+      "params" : [
+        "id"
+      ],
+      "type" : "bool"
+    },
+    {
+      "comparators" : [
+        "truthy",
+        "is",
+        "isNot",
+        "gte",
+        "lte"
+      ],
+      "id" : "libraryCount",
+      "params" : [
+
+      ],
+      "type" : "number"
+    },
+    {
+      "comparators" : [
+        "truthy"
+      ],
+      "id" : "searchActive",
+      "params" : [
+
+      ],
+      "type" : "bool"
+    }
+  ],
+  "infoSections" : [
+    "overview",
+    "notifications",
+    "history",
+    "dataFlow",
+    "capabilities",
+    "permissions",
+    "room",
+    "hubs",
+    "connection",
+    "secrets"
+  ],
+  "labels" : {
+    "cards" : [
+      "Binding",
+      "It can also follow a color",
+      "It can also follow a date",
+      "It can also follow a number",
+      "It can also follow an arrangement",
+      "It can also follow on\/off",
+      "It can also follow text",
+      "MQTT topic",
+      "My Data",
+      "New value",
+      "Nowhere",
+      "Other controls",
+      "Phone sensors",
+      "Save on this phone",
+      "Web address",
+      "What it shows",
+      "When the board settles",
+      "When the camera reads a code or text",
+      "When the wheel stops",
+      "When you aim at a puck",
+      "When you change the date or time",
+      "When you choose a color",
+      "When you drop a card",
+      "When you drop a pin",
+      "When you drop a puck",
+      "When you edit a cell",
+      "When you flip it",
+      "When you hold it",
+      "When you let go",
+      "When you let go of the shape",
+      "When you lift a card",
+      "When you lift a pin",
+      "When you open or close a section",
+      "When you pick a choice",
+      "When you pick an option",
+      "When you press Return or Send",
+      "When you send a message",
+      "When you slide it",
+      "When you swipe to another page",
+      "When you tap a bar or point",
+      "When you tap a block",
+      "When you tap a box",
+      "When you tap a node",
+      "When you tap a placed pin",
+      "When you tap a row",
+      "When you tap a slice",
+      "When you tap a task",
+      "When you tap an arc",
+      "When you tap it",
+      "When you tap plus or minus",
+      "When you tap the card",
+      "When you tap the symbol",
+      "While you move the stick",
+      "Your hub"
+    ],
+    "chips" : [
+      "Background",
+      "Cards",
+      "Chat",
+      "Code",
+      "Colour",
+      "Compare",
+      "Default value",
+      "Items",
+      "Lines",
+      "Look",
+      "Look ahead",
+      "Lowest value",
+      "Map",
+      "Options",
+      "Page",
+      "Panels",
+      "Picture",
+      "Pins",
+      "Pucks",
+      "Range",
+      "Rows",
+      "Scan",
+      "Send button",
+      "Stick",
+      "Symbol",
+      "Text",
+      "Touch"
+    ],
+    "targets" : {
+      "editor.add" : [
+        "+",
+        "Action ring",
+        "Add",
+        "Blocks",
+        "Button",
+        "Cards",
+        "Chart",
+        "Chat",
+        "Choice",
+        "Color",
+        "Connections",
+        "Date & time",
+        "Details",
+        "Dial",
+        "Divider",
+        "Flip card",
+        "Flows",
+        "Free canvas",
+        "Group",
+        "Heat grid",
+        "Joystick",
+        "Live group",
+        "Log",
+        "Map",
+        "Menu",
+        "Network",
+        "Pages",
+        "Picture",
+        "Pie",
+        "Pin board",
+        "Plus \/ minus",
+        "QR code",
+        "Radar",
+        "Ring",
+        "Scanner",
+        "Sections",
+        "Slider",
+        "Sort board",
+        "Space",
+        "Spread",
+        "Stat tile",
+        "Status dot",
+        "Switch",
+        "Symbol",
+        "Table",
+        "Text",
+        "Text box",
+        "Timeline",
+        "Trend line",
+        "Web page"
+      ],
+      "editor.save" : [
+        "Done"
+      ],
+      "editor.try" : [
+        "Done",
+        "Try it"
+      ]
+    }
+  },
+  "paneDetents" : [
+    "pane",
+    "full"
+  ],
+  "paneModes" : [
+    "layouts",
+    "hub",
+    "menu"
+  ],
+  "schema" : 2,
+  "signals" : [
+    {
+      "carriesValue" : false,
+      "id" : "app.launch"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "app.firstLaunch"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "app.foreground"
+    },
+    {
+      "carriesValue" : true,
+      "id" : "app.installedDays",
+      "value" : "days"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.loaded",
+      "target" : "layout name"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.loadFailed"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.stale"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.pinned"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.shared"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "layout.imported"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "tab.switch",
+      "target" : "tab index"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "control.interact",
+      "target" : "control.<id>"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "control.appeared",
+      "target" : "control type"
+    },
+    {
+      "carriesValue" : true,
+      "id" : "control.valueChanged",
+      "target" : "control.<id>",
+      "value" : "the control's value"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "picker.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "picker.close"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "templates.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "template.loaded",
+      "target" : "template id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "studio.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "studio.create"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "studio.claude"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "studio.connect"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.created"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.select",
+      "target" : "control.<id>"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.add",
+      "target" : "control type",
+      "value" : "{control: <the new control's id>}"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.attributes"
+    },
+    {
+      "carriesValue" : true,
+      "id" : "editor.change",
+      "target" : "field",
+      "value" : "the field's new value (none: removed)"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.save"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.discard"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.choose",
+      "target" : "stage choice id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.addSheet.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.addIntent",
+      "target" : "intent"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.chip",
+      "target" : "chip"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.binding"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "editor.try"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.open",
+      "target" : "collection[:entry id]"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.browse",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.add",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.edit",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.delete",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.undo",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "entry.restore",
+      "target" : "collection"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "connection.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "connection.connected"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "connection.dropped"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "connection.paired"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "connection.qrScanned"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "xray.on"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "xray.off"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "xray.inspect",
+      "target" : "control.<id>"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "settings.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "support.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "paywall.open"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "purchase.completed",
+      "target" : "product id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "glance.tapped"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "notification.opened"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "deeplink.opened",
+      "target" : "host"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.open",
+      "target" : "layouts|hub|menu"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.close"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.detent",
+      "target" : "pane|full"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.search",
+      "target" : "query"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.layout.selected",
+      "target" : "layout id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.layout.pinned",
+      "target" : "layout id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.layout.unpinned"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.layout.reordered"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.row.menu",
+      "target" : "layout id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "pane.action",
+      "target" : "studio|templates|scan"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "menu.row",
+      "target" : "menu row id"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.open",
+      "target" : "section"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.section",
+      "target" : "section"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.close"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.apply"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.rename"
+    },
+    {
+      "carriesValue" : false,
+      "id" : "info.delete"
+    }
+  ],
+  "targetParams" : {
+    "mode" : [
+      "layouts",
+      "hub",
+      "menu"
+    ],
+    "section" : [
+      "overview",
+      "notifications",
+      "history",
+      "dataFlow",
+      "capabilities",
+      "permissions",
+      "room",
+      "hubs",
+      "connection",
+      "secrets"
+    ]
+  },
+  "targets" : [
+    "header.title",
+    "header.connection",
+    "header.pipes",
+    "header.studio",
+    "header.settings",
+    "header.tabs",
+    "canvas",
+    "picker.heading",
+    "picker.search",
+    "picker.pinned",
+    "picker.layouts",
+    "picker.actions",
+    "picker.templates",
+    "templates.featured",
+    "templates.starters",
+    "templates.load",
+    "studio.create",
+    "studio.new",
+    "studio.claude",
+    "studio.connect",
+    "studio.input",
+    "editor.canvas",
+    "editor.add",
+    "editor.tray",
+    "editor.inspector",
+    "editor.attributes",
+    "editor.save",
+    "editor.agent",
+    "editor.binding",
+    "editor.try",
+    "connection.status",
+    "connection.hub",
+    "connection.qr",
+    "settings.feed",
+    "settings.paywall",
+    "pane",
+    "pane.grabber",
+    "pane.search",
+    "pane.recent",
+    "pane.row.current",
+    "pane.actions",
+    "pane.actions.studio",
+    "pane.actions.templates",
+    "pane.actions.scan",
+    "hub.connection",
+    "hub.info",
+    "hub.hubs",
+    "hub.pipes",
+    "hub.studioSession",
+    "hub.details",
+    "info",
+    "info.tabs",
+    "info.apply",
+    {
+      "pattern" : "canvas.tab.<n>"
+    },
+    {
+      "pattern" : "control.<id>"
+    },
+    {
+      "pattern" : "group.<id>"
+    },
+    {
+      "pattern" : "templates.card.<id>"
+    },
+    {
+      "pattern" : "editor.tray.<type>"
+    },
+    {
+      "pattern" : "editor.addChoice.<id>"
+    },
+    {
+      "pattern" : "editor.addIntent.<intent>"
+    },
+    {
+      "pattern" : "editor.attributes.<field>"
+    },
+    {
+      "pattern" : "editor.chip.<chip>"
+    },
+    {
+      "pattern" : "editor.petal.<field>"
+    },
+    {
+      "pattern" : "settings.row.<id>"
+    },
+    {
+      "pattern" : "xray.control.<id>"
+    },
+    {
+      "pattern" : "pane.row.<layoutId>.pin"
+    },
+    {
+      "pattern" : "pane.row.<layoutId>.reorder"
+    },
+    {
+      "pattern" : "pane.row.<layoutId>"
+    },
+    {
+      "pattern" : "menu.row.<id>"
+    },
+    {
+      "pattern" : "info.section.<section>"
+    },
+    {
+      "pattern" : "info.card.<section>.<slug>"
+    }
+  ],
+  "version" : "2.0.1"
+}

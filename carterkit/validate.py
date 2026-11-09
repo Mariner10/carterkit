@@ -1991,10 +1991,13 @@ def _io_doc(ctype: str):
 def _sync_produces(s: dict):
     """The kind of value a sync entry delivers when that is knowable from the layout alone:
     a local aggregate is a number ("count" or sum/avg/min/max/distinct), a local stage
-    with groupBy or no aggregate delivers rows (json); anything else is unknown (None)."""
+    with groupBy or no aggregate delivers rows (json), unless a valuePath picks one value out of
+    them (any kind); anything else is unknown (None)."""
     if s.get("method") != "local":
         return None
     agg = s.get("aggregate")
+    if s.get("groupBy") is None and s.get("valuePath"):
+        return None
     if agg is None or s.get("groupBy") is not None:
         return "json"
     op = agg if isinstance(agg, str) else (agg.get("op") if isinstance(agg, dict) else None)

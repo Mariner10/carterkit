@@ -40,6 +40,8 @@ fields:
     summary: How the choice change animates
     does: "Sets how the shown choice transitions when the value changes, from instant swap to a soft glide."
     valueHelp: {"smooth": "an even natural transition", "snappy": "a quick firm change", "bouncy": "overshoots slightly then settles", "gentle": "a slow soft change", "instant": "swaps with no transition"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: optionIcons
     title: Choice symbols
     type: array
@@ -60,7 +62,8 @@ fields:
     does: "Writes this text when the list is empty (default No options) or nothing is selected (default Choose…)."
   - name: options
     chip: Options
-    edit: options
+    edit: rows
+    columns: [{"name": "value", "title": "Choice", "type": "string", "edit": "inline", "self": true, "default": "Option {n}"}, {"name": "label", "title": "Shown as", "type": "string", "edit": "inline", "in": "optionLabels"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol", "in": "optionIcons"}]
     depth: surface
     title: Choices
     type: array
@@ -79,6 +82,8 @@ fields:
     summary: How the list is shown
     does: "Switches between a compact dropdown, a spinning wheel, or a list shown in full."
     valueHelp: {"menu": "a compact button that opens a dropdown", "wheel": "a spinning drum you scroll to a choice", "inline": "every choice shown as a tappable list"}
+    valueTitles: {"menu": "Menu", "wheel": "Wheel", "inline": "Inline"}
+    valueSymbols: {"menu": "list.bullet.rectangle", "wheel": "dial.medium", "inline": "list.bullet"}
   - name: label
     edit: inline
     depth: surface
@@ -105,25 +110,41 @@ fields:
     does: "Selects this choice when the layout first appears; it should match one of the stored values."
   - name: haptic
     title: Tap feel
-    edit: look
-    depth: hold
-    under: pickerStyle
     tab: action
     type: enum
-    values: [light, medium, heavy, success, warning, error, selection]
+    values: [light, medium, heavy, { value: rigid, since: next }, { value: soft, since: next }, success, warning, error, selection]
     default: selection
     description: Default haptic on change
     summary: The buzz felt when you change the choice
     does: "Plays this haptic on the phone each time a new choice is picked (default selection)."
-    valueHelp: {"light": "a faint tap", "medium": "a firm tap", "heavy": "a strong thud", "success": "a happy double tap", "warning": "a cautionary buzz", "error": "a sharp triple buzz", "selection": "a tiny tick like scrolling a wheel"}
+    valueHelp: {"rigid": "a firm sharp click", "soft": "a gentle cushioned tap", "light": "a faint tap", "medium": "a firm tap", "heavy": "a strong thud", "success": "a happy double tap", "warning": "a cautionary buzz", "error": "a sharp triple buzz", "selection": "a tiny tick like scrolling a wheel"}
+    valueTitles: {"rigid": "Rigid", "soft": "Soft", "light": "Light", "medium": "Medium", "heavy": "Heavy", "success": "Success", "warning": "Warning", "error": "Error", "selection": "Selection"}
+    valueSymbols: {"rigid": "square.fill", "soft": "cloud.fill", "light": "circle", "medium": "circle.fill", "heavy": "circle.inset.filled", "success": "checkmark.circle", "warning": "exclamationmark.triangle", "error": "xmark.octagon", "selection": "hand.tap"}
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Title shown
+    type: bool
+    default: false
+    description: Hide the label
+    summary: Hide the title
+    does: Hides the label text above the control.
+  - name: hideBackground
+    since: next
+    edit: part
+    depth: hold
+    title: No background card
+    type: bool
+    default: false
+    description: Remove glass background
+    summary: Whether the card behind it is drawn
+    does: Removes the frosted card behind the control so it sits on the page.
   - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice."
 themeFields:
   - name: cornerRadius
     title: Corner roundness
-    edit: scrub
-    depth: hold
-    under: pickerStyle
     unit: pt
     min: 0
     max: 30
@@ -146,9 +167,6 @@ themeFields:
   - use: borderColor
   - name: borderWidth
     title: Border thickness
-    edit: scrub
-    depth: hold
-    under: pickerStyle
     unit: pt
     min: 0
     max: 5
@@ -161,6 +179,13 @@ themeFields:
   - use: labelFontSize
     summary: How big the label is
     does: "Sets the label text size from 8 to 24 points."
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The highlight color
+    does: Tints the menu, wheel and inline choices; until set it follows the primary role.
 ---
 
 # Picker
@@ -171,7 +196,7 @@ A scrollable selection for long option lists. Stores a `.string` value.
 `"picker"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -284,6 +309,6 @@ For example, `"options": ["eco", "comfort", "sport"]` with `"optionLabels": ["Ec
 Empty options show `placeholder` (default “No options”). A picker with an empty selection shows `placeholder` (default “Choose…”); an unknown nonempty selection remains visible until the user picks an available option. Live option changes never silently select or send a replacement value.
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[segmented-control]] — For shorter option lists
 - [[actions]] — `{{value}}` substitution

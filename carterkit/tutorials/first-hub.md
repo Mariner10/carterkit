@@ -8,7 +8,7 @@ time: 20
 builds: A remote whose hub owns the state; its toggles and sliders only ask, and the hub decides and sends every value back.
 prerequisites: [first-layout]
 since: "2.2"
-kit: ">=0.19"
+kit: ">=0.20"
 uses:
   controls: [control.toggle, control.slider, control.button, control.label]
   fields: []
@@ -27,47 +27,25 @@ steps:
     do:
       code: state
     check: "`STATE` in hub.py holds Power on, Mute off, Volume 30 and Brightness 70."
-    expect:
-      module: {STATE: {power: true, mute: false, volume: 30, brightness: 70}}
+    expect: {module: {STATE: {power: true, mute: false, volume: 30, brightness: 70}}}
   - id: rules
     goal: Write the hub's rules
     do:
       code: rules
     check: "`apply(\"volume\", 95)` answers Volume stops at 80, and with Power off every other control answers that it stays as it was."
-    expect:
-      calls:
-        - {fn: apply, args: [volume, 95], returns: Volume stops at 80}
-        - {fn: apply, args: [power, false], returns: Power off}
-        - {fn: apply, args: [mute, true], returns: "Power is off: mute stays as it was"}
+    expect: {calls: [{fn: apply, args: [volume, 95], returns: Volume stops at 80}, {fn: apply, args: [power, false], returns: Power off}, {fn: apply, args: [mute, true], returns: "Power is off: mute stays as it was"}]}
   - id: echo
     goal: Send every value back
     do:
       code: echo
     check: "`send_state(hub, \"Ready\")` broadcasts a state frame for each of the four controls and a Ready status."
-    expect:
-      calls:
-        - {fn: send_state, args: ["@hub", Ready]}
-      sent:
-        - {msg_type: power_state, value: true}
-        - {msg_type: volume_state, value: 30}
-        - {msg_type: brightness_state, value: 70}
-        - {msg_type: remote_status, text: Ready}
+    expect: {calls: [{fn: send_state, args: ["@hub", Ready]}], sent: [{msg_type: power_state, value: true}, {msg_type: volume_state, value: 30}, {msg_type: brightness_state, value: 70}, {msg_type: remote_status, text: Ready}]}
   - id: listen
     goal: Listen for the phone
     do:
       code: listen
     check: "A phone that asks for Volume 95 is sent Volume 80 and the status Volume stops at 80; asked for Brightness 10 while Power is off, it is sent 70 again."
-    expect:
-      when:
-        - {msg_type: set_volume, value: 95}
-        - {msg_type: set_power, value: false}
-        - {msg_type: set_brightness, value: 10}
-        - {msg_type: remote_reset}
-      sent:
-        - {msg_type: volume_state, value: 80}
-        - {msg_type: remote_status, text: Volume stops at 80}
-        - {msg_type: brightness_state, value: 70}
-        - {msg_type: remote_status, text: Back to the defaults}
+    expect: {when: [{msg_type: set_volume, value: 95}, {msg_type: set_power, value: false}, {msg_type: set_brightness, value: 10}, {msg_type: remote_reset}], sent: [{msg_type: volume_state, value: 80}, {msg_type: remote_status, text: Volume stops at 80}, {msg_type: brightness_state, value: 70}, {msg_type: remote_status, text: Back to the defaults}]}
   - id: run
     goal: Run it on a phone
     do:
@@ -77,7 +55,7 @@ steps:
 
 # Your first hub
 
-In the **first-layout** tutorial a dial and a slider shared a value on your phone. Here a small program, the **hub**,
+In [[tutorial:first-layout]] a dial and a slider shared a value on your phone. Here a small program, the **hub**,
 owns the value instead, and the controls only ask. That one change is how every real device works: the phone is
 never the authority, so two phones, a physical knob and the program all stay in agreement.
 
@@ -245,4 +223,4 @@ In CAR-TER open the layout list and tap **Scan**. Try Volume at the top, then Po
 control snaps back. That is the hub being the authority.
 
 > Targeting one server instead of the whole channel? Use a routed action (`route_msg` with a `target_id`)
-> instead of `broadcast_request`; see [[meshsocket-protocol]]. Next: **live-dashboard**.
+> instead of `broadcast_request`; see [[meshsocket-protocol]]. Next: [[tutorial:live-dashboard]].

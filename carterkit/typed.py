@@ -119,8 +119,8 @@ class ScopeControls:
             tint (color, default #667eea): First-category color and palette seed. Does: Colors the first box and seeds the color of the others.
             formatValue (string): Formatter for axis/readout numbers. Does: Formats the axis labels and the median readout, e.g. as a unit or with fixed decimals.
             boxAction (object): boxAction. Does: Fires this action when you tap a box, passing its five-number summary as {{value}}.
-            barCornerRadius (number, default 3): Box corner rounding. Does: Rounds the box corners from square (0) to 30 points.
-            boxWidth (number, default 0.55): Box width as a fraction of the category slot. Does: Sets each box's width as a fraction (0 to 1) of its category slot.
+            barCornerRadius (number, default 3): Box corner rounding. Does: Rounds the box corners from square (0) to 30 points; box mode only (violins ignore it).
+            boxWidth (number, default 0.55): Box width as a fraction of the category slot. Does: Sets each box's width as a fraction (0 to 1) of its category slot; in violin mode it does nothing.
             colors (string[]): Per-category color cycle. Does: Cycles through this list of colors, one per category, instead of the built-in palette.
             scrub (bool, default false): Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap). Does: Lets a drag sweep the selection across categories with a tick for each change; the action still fires only on tap.
             showGrid (bool, default true): Horizontal grid lines. Does: Shows or hides the horizontal grid lines behind the boxes.
@@ -160,7 +160,7 @@ class ScopeControls:
         size: Literal['compact', 'default', 'large'] | None = None,
         tint: _Str | None = None,
         hideLabel: _Bool | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
         repeatOnHold: _Bool | None = None,
         valueMap: _Obj | None = None,
         iconMap: _Obj | None = None,
@@ -178,7 +178,7 @@ class ScopeControls:
             size (enum, default default): Size variant. Does: Scales the button's height and text between compact, normal and large. Values: compact = small and tight, for crowded grids, default = the normal size, large = tall and roomy, easy to hit.
             tint (color, default #667eea): Accent color. Does: Recolors the fill, border or text (per Look) to the chosen color.
             hideLabel (bool, default false): Show icon only. Does: When on, the label text disappears and only the symbol remains.
-            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
+            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
             repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set). Does: Holding the button refires its action repeatedly, speeding up the longer you hold.
             valueMap (object): Synced value → button text ("default" catches the rest). Does: Replaces the label with the text matching the synced value, e.g. true shows Pause.
             iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect). Does: Swaps the symbol to the one matching the synced value, with a replace animation.
@@ -214,6 +214,9 @@ class ScopeControls:
         debounce: _Num | None = None,
         torch: _Bool | None = None,
         snapshot: _Bool | None = None,
+        snapshotAction: _Obj | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        icon: _Str | None = None,
         snapshotQuality: _Num | None = None,
         snapshotMaxDimension: _Num | None = None,
         hideLabel: _Bool | None = None,
@@ -230,6 +233,9 @@ class ScopeControls:
             debounce (number, default 3): Seconds before the same decoded value can fire again. Does: Holds back the same scanned value from firing again for this many seconds (0 to 30).
             torch (bool, default true): Show a torch toggle while scanning. Does: Shows a torch toggle in the viewfinder while scanning.
             snapshot (bool, default false): Show a shutter button (implied when snapshotAction is set). Does: Shows a shutter button that takes a photo while the camera is running.
+            snapshotAction (object): Action fired on the shutter with {{image}}, {{width}}, {{height}}; falls back to action when omitted. Does: Runs this command with the photo each time the shutter is pressed.
+            haptic (enum, default light): Haptic played when a code or text is sent. Does: Plays this haptic on the phone each time a detection is sent. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz, selection = a tiny click like scrolling a picker.
+            icon (string): SF Symbol on the Tap to Start card. Does: Draws this SF Symbol on the Tap to Start card instead of the camera glyph.
             snapshotQuality (number, default 0.6): JPEG quality 0–1 (auto-lowered to fit the mesh frame budget). Does: Sets the photo's JPEG quality from 0 to 1; it is lowered automatically if the photo is too big to send.
             snapshotMaxDimension (number, default 1280): Longest snapshot edge in pixels. Does: Caps the photo's longest side, 240 to 4096 pixels.
             hideLabel (bool, default false): Hide the header label (the LIVE chip moves into the viewfinder). Does: Hides the header title, and the LIVE chip moves into the viewfinder.
@@ -237,7 +243,7 @@ class ScopeControls:
         Example:
             ui.camera('intake-scanner', position=[0, 0], span=[3, 4], label='Scan Inventory', scan=['barcode'], symbologies=['qr', 'ean13', 'code128'], debounce=5, action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inventory_scan', 'code': '{{value}}', 'kind': '{{kind}}'}})
         """
-        return self._ctl("camera", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
+        return self._ctl("camera", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotAction=snapshotAction, haptic=haptic, icon=icon, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
 
     def canvas(
         self, id: str | None = None, *,
@@ -307,15 +313,19 @@ class ScopeControls:
         enabled: Any = None,
         pulse: Any = None,
         fallback: Any = None,
+        placeholder: _Str | None = None,
         **props: Any,
     ) -> "Control":
         """Cards: A stack of cards
         (catalog type `cardList`)
 
+        Fields:
+            placeholder (string, default Search): Placeholder text shown in the search field while it is empty (default: Search). Does: Replaces the grey word shown in the search box until you type, e.g. Search models.
+
         Example:
             ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
-        return self._ctl("cardList", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback), props)
+        return self._ctl("cardList", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, placeholder=placeholder), props)
 
     def carousel(
         self, id: str | None = None, *,
@@ -335,7 +345,9 @@ class ScopeControls:
         pulse: Any = None,
         fallback: Any = None,
         carouselMode: Literal['paged', 'coverflow', 'deck'] | None = None,
-        indicator: Literal['dots', 'bars', 'none'] | None = None,
+        indicator: Literal['dots', 'bars', 'numeric', 'none'] | None = None,
+        carouselPeek: _Num | None = None,
+        carouselStyle: Literal['glass', 'translucent', 'liquidGlass'] | None = None,
         autoAdvance: _Num | None = None,
         loop: _Bool | None = None,
         panels: _Obj | None = None,
@@ -348,7 +360,9 @@ class ScopeControls:
 
         Fields:
             carouselMode (enum, default paged): Presentation style for the panels. Does: Switches between one full page at a time, a tilted row of neighbors, or a stack of cards. Values: paged = one full-width page at a time that snaps into place, coverflow = the active page centered with smaller tilted neighbors at the sides, deck = pages stacked like cards; the front card swipes away to show the next.
-            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, none = no page marks shown.
+            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars (or a page count) below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, numeric = the page number as text, such as 2 / 5, none = no page marks shown.
+            carouselPeek (number, default 0): Paged mode neighbour peek, as a fraction of the width. Does: In paged style, shows a sliver of the neighbouring pages at the sides (0 none, 0.3 a wide peek).
+            carouselStyle (enum, default glass): Panel chrome style. Does: Chooses the page card material: standard glass, a see-through tint, or liquid glass. Values: glass = the standard frosted glass card, translucent = a lighter see-through card, liquidGlass = the liquid glass material.
             autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
             loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
             panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
@@ -358,7 +372,7 @@ class ScopeControls:
         Example:
             ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
-        return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
+        return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
     def chart(
         self, id: str | None = None, *,
@@ -383,6 +397,7 @@ class ScopeControls:
         tint: _Str | None = None,
         formatValue: _Str | None = None,
         barCornerRadius: _Num | None = None,
+        defaultType: Literal['bar', 'line', 'area', 'scatter', 'histogram', 'waterfall'] | None = None,
         bins: _Num | None = None,
         colors: _StrList | None = None,
         datumAction: _Obj | None = None,
@@ -424,13 +439,14 @@ class ScopeControls:
             tint (color, default #667eea): First-series color and palette seed. Does: Colors the first series and seeds the colors of the rest, as any hex color.
             formatValue (string): Formatter for axis/readout numbers (see control-def). Does: Formats the axis labels and the selection readout, for example with units or fixed decimals.
             barCornerRadius (number, default 3): Bar corner rounding. Does: Rounds the corners of every bar from square (0) to 30 points.
+            defaultType (enum, default bar): Drawing type for every series that sets no type of its own. Does: Draws each series that has no type of its own as this kind; a series with its own type keeps it. Values: bar = vertical bars, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
             bins (number): Bin count for histogram series. Does: Splits the histogram samples into 1 to 50 bars; left unset it uses about the square root of the sample count.
             colors (string[]): Series color cycle (per-series color wins). Does: Gives series one, two, three and so on these hex colors in order; a color set on a series itself wins.
             datumAction (object): datumAction. Does: Runs this action on tap with the tapped datum as JSON in the value placeholder.
             horizontal (bool, default false): Horizontal bars — categories run down the leading edge. Does: Turns the bars to run left to right with the categories listed down the left edge.
             lineWidth (number, default 2): Line/area stroke width. Does: Sets the stroke of line and area series from 0.5 to 12 points.
             glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the marks in their own colors, 0 (off) to 30 points wide.
-            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends and the default, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
             maxPoints (number, default 100): Rolling window applied to {'append': …} pushes. Does: Caps a streaming series at 10 to 1000 points so the oldest drop off as new ones are appended.
             negativeColor (color): Falling waterfall delta. Does: Paints waterfall bars with a negative change in this color instead of system red.
             pointSize (number, default 6): Scatter point / vertex dot diameter. Does: Sets the diameter of scatter points and line vertex dots from 2 to 20 points.
@@ -447,7 +463,7 @@ class ScopeControls:
             yMax (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the highest value on the vertical axis instead of fitting the data.
             yMin (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the lowest value on the vertical axis instead of fitting the data.
             name (string): Legend name and append routing key. Does: Labels the series in the legend and is the key a streamed append uses to find it.
-            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars and the default, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
             color (color): Series colour (hex); wins over chartConfig.colors. Does: Paints that series in this hex color, overriding the color list.
             values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas. Does: Gives the height at each position in order lined up with the categories; null leaves a gap.
             points (array): Explicit [x, y] pairs for scatter or unevenly sampled series. Does: Places each mark at its own x and y pair, for scatter or unevenly spaced data.
@@ -457,7 +473,7 @@ class ScopeControls:
         Example:
             ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
         """
-        return self._ctl("chart", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
+        return self._ctl("chart", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, defaultType=defaultType, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
 
     def chat(
         self, id: str | None = None, *,
@@ -497,15 +513,15 @@ class ScopeControls:
             label (string): Header label. Does: Shows this text in the chat's header bar.
             config (object): ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint. Does: Holds the chat's options (target, typing dots, receipts, reactions, replies, images, history, color) in one object.
             allowClear (bool): Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless. Does: Shows a Clear Chat menu in the header that empties this device's messages only; other people's windows are untouched.
-            allowImages (bool): allowImages. Does: Turns image attachments on or off for this chat.
+            allowImages (bool): No effect yet: the app has no image attachments. Does: Does nothing yet; the chat has no image attachments whichever way this is set.
             allowReactions (bool): allowReactions. Does: Adds a React choice to the long-press menu and shows emoji reactions on messages when on.
             allowReplies (bool): allowReplies. Does: Adds a Reply choice to the long-press menu and shows replies in threads when on.
             historyCount (number): historyCount. Does: Keeps only this many of the latest messages (1 to 50, default 50) in the window and in history sent to peers.
             showReadReceipts (bool): showReadReceipts. Does: Shows delivery and read marks under your messages when on.
             showTypingIndicators (bool): showTypingIndicators. Does: Shows animated typing dots while the other side is typing when on.
-            systemMessageEvents (string[]): systemMessageEvents. Does: Lists event names meant to appear as system notes in the chat; the app does not act on it yet.
+            systemMessageEvents (string[]): No effect yet: the app does not read it. Does: Does nothing yet; event names listed here are not shown as system notes.
             target (string): target. Does: Sends your messages to the named MeshSocket peer as a private companion chat; leave it empty to chat with the whole channel.
-            tint (color): tint. Does: Sets the accent color used by the chat bubbles.
+            tint (color): Color of your bubbles and highlights; unset they follow the theme accent. Does: Fills your message bubbles and colors names, reply marks and the send arrow; unset, the bubbles keep the theme's accent gradient.
 
         Example:
             ui.chat('team-chat', position=[0, 0], span=[4, 4], label='Team Chat', config={'target': 'hub-server', 'showTypingIndicators': True, 'showReadReceipts': True, 'allowReactions': True, 'allowReplies': True, 'historyCount': 100})
@@ -582,6 +598,10 @@ class ScopeControls:
         fallback: Any = None,
         label: _Str | None = None,
         defaultValue: _Str | None = None,
+        icon: _Str | None = None,
+        tint: _Str | None = None,
+        hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -591,12 +611,16 @@ class ScopeControls:
         Fields:
             label (string): Display label. Does: Shows this text above the color swatch.
             defaultValue (string): Initial hex color. Does: Sets the color shown before anyone picks one, as a hex value like #F4B860.
+            icon (string): SF Symbol shown beside the label, tinted with tint. Does: Draws this SF Symbol beside the label; leave it empty for no icon.
+            tint (color): Color of the symbol. Does: Colors the symbol beside the label, as any hex color.
+            hideLabel (bool, default false): Hide the label above the swatch. Does: Hides the label shown above the color swatch.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the swatch so it sits on the page.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.color_picker('lr-color', position=[1, 3], defaultValue='#F4B860', label='Color', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'color', 'payload': {'room': 'living', 'hex': '{{value}}'}}})
         """
-        return self._ctl("colorPicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, defaultValue=defaultValue, confirm=confirm), props)
+        return self._ctl("colorPicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, defaultValue=defaultValue, icon=icon, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, confirm=confirm), props)
 
     def compass(
         self, id: str | None = None, *,
@@ -620,6 +644,7 @@ class ScopeControls:
         controlHeight: _Num | None = None,
         tolerance: _Num | None = None,
         dwell: _Num | None = None,
+        tint: _Str | None = None,
         showCardinals: _Bool | None = None,
         cardinalSize: _Num | None = None,
         cardinalColor: _Str | None = None,
@@ -638,9 +663,10 @@ class ScopeControls:
             controlHeight (number, default 420): Rendered height in points (required in flow-mode grids). Does: Sets the ring's height in points, which also sets its size since it is square.
             tolerance (number, default 15): Half-angle (°) within which the needle counts as pointing at a puck. Does: Counts the needle as pointing at a puck when it is within this many degrees of it.
             dwell (number, default 1.2): Seconds to hold on a puck before its action fires (0 = instant). Does: Waits this many seconds of steady aim at a puck before its action fires; 0 fires at once.
+            tint (color): Needle and accent color (default the theme accent); pucks keep their own tint. Does: Colors the needle and the ring accents; unset follows the theme accent color, and a puck's own tint still wins for that puck.
             showCardinals (bool, default true): Draw N/E/S/W ticks. Does: Draws the N, E, S and W letters around the ring when on.
             cardinalSize (number, default 13): Cardinal glyph point size. Does: Sets the size of the N, E, S and W letters in points.
-            cardinalColor (color): E/S/W cardinal color (default secondary grey; N always follows tint). Does: Colors the N, E, S and W letters; they use a neutral grey when not set.
+            cardinalColor (color): E/S/W cardinal color (default the theme's faint tertiary grey; all four letters share it, N included). Does: Colors the N, E, S and W letters; all four letters (N included) use the theme's faint grey when not set; the Color chip does not recolor them.
             editable (bool, default true): Allow dragging pucks to re-bearing them. Does: Lets you drag pucks around the ring to change their direction when on; off locks them all.
             events (object): events. Does: Runs these actions when a puck is picked up, dropped or the layout changes.
             pucks (object): pucks. Does: Places one puck on the ring per entry at its bearing; aiming at it fires its action.
@@ -649,7 +675,7 @@ class ScopeControls:
         Example:
             ui.compass('action-ring', position=[0, 0], span=[7, 4], controlHeight=420, label='Action Ring', defaultValue=5, compassConfig={'tolerance': 20, 'dwell': 1.0, 'pucks': [{'id': 'lights', 'label': 'Lights', 'icon': 'lightbulb.fill', 'tint': '#FF9500', 'bearing': 0, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'music', 'label': 'Music', 'icon': 'music.note', 'tint': '#FF2D55', 'bearing': 90, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'lock', 'label': 'Lock', 'icon': 'lock.fill', 'tint': '#34C759', 'bearing': 180, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}]}, sync=[{'method': 'sensor', 'sensor': 'heading'}])
         """
-        return self._ctl("compass", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
+        return self._ctl("compass", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, tint=tint, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
 
     def date_picker(
         self, id: str | None = None, *,
@@ -675,7 +701,9 @@ class ScopeControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        hideLabel: _Bool | None = None,
+        animation: Literal['smooth', 'snappy', 'bouncy', 'gentle', 'instant'] | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -690,13 +718,15 @@ class ScopeControls:
             label (string): Display label. Does: Writes this text next to the date or time field.
             tint (color, default #667eea): Accent color. Does: Colors the selected day and highlights in the picker with this color.
             defaultValue (string): Initial ISO 8601 date string. Does: Starts the picker on this ISO 8601 moment when the layout first appears.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, rigid = a firm sharp click, soft = a gentle cushioned tap, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            hideLabel (bool, default false): Hide the label. Does: Hides the label text above the control.
+            animation (enum): Motion profile for value changes. Does: Sets how the control transitions when the value changes, from instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft change, instant = swaps with no transition.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
         """
-        return self._ctl("datePicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
+        return self._ctl("datePicker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, hideLabel=hideLabel, animation=animation, confirm=confirm), props)
 
     def divider(
         self, id: str | None = None, *,
@@ -726,7 +756,7 @@ class ScopeControls:
 
         Fields:
             label (string): Optional section label centered on the divider. Does: Shows this text centered on the divider with a line on each side, in the label font size and the line color; empty gives a plain line.
-            tint (color, default #FFFFFF): Line color. Does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
+            tint (color): Line color (unset = the text color at 20%). Does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
             style (enum, default line): Line style. Does: Switches the line between solid and dashed. Values: line = one unbroken solid line, dashed = a row of short dashes with small gaps.
             lineThickness (number, default 1): Line thickness in points. Does: Sets the line's height from 0.5 to 8 pt (default 1).
 
@@ -877,7 +907,7 @@ class ScopeControls:
         (catalog type `gauge`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
             min (number, default 0): Minimum value. Does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
             max (number, default 100): Maximum value. Does: The value shown at the full end of the arc; readings at or above it fill the arc completely.
             gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Does: Switches between a wide 180° half dial and a 360° square ring. Values: half = a half-circle dial that is wide and short, full = a closed ring that is square.
@@ -967,7 +997,7 @@ class ScopeControls:
             attractionForce (number, default 0.01): How strongly connected nodes pull together. Does: Pulls connected nodes closer together; 0.01 is gentle and larger values draw linked dots into tight clusters.
             backgroundColor (color): Graph canvas background. Does: Fills the graph canvas with this hex color; the default is a near-black navy.
             centerForce (number, default 0.02): How strongly nodes are pulled toward center. Does: Pulls every node toward the canvas center; 0.02 keeps it loose and larger values squeeze the cloud into the middle.
-            contentEvent (string): (Reserved) Event for content-push model. Does: Reserved for a future content-push feature, so setting it changes nothing on screen.
+            contentEvent (string): Dead. Reserved for a content-push model; nothing reads it. Does: Dead: reserved for a future content-push feature, so setting it changes nothing on screen.
             damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction). Does: Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner.
             draggable (bool, default true): Allow dragging individual nodes. Does: On lets a finger drag a single node and the rest follow; off keeps every dot where physics puts it.
             edgeColor (color): Default edge line color. Does: Colors every line between nodes with this hex color unless an edge sets its own.
@@ -986,10 +1016,10 @@ class ScopeControls:
             nodeBorderColor (color): Border stroke color. Does: Colors the outline drawn around nodes; it only shows when the outline width is above 0.
             nodeBorderWidth (number, default 0): Border stroke width around nodes. Does: Draws an outline of this thickness in points, 0 to 5; 0 means no outline.
             nodeColor (color): Default node fill color (hex). Does: Fills every node with this hex color unless its group or its own color overrides it.
-            nodeHighlightColor (color): Color when node is active/selected. Does: Switches a node to this hex color while it is active or selected.
+            nodeHighlightColor (color): Dead. Nothing reads it; a selected node is not recoloured. Does: Dead: the graph never reads this colour, so setting it changes nothing on screen.
             nodeSize (number, default 8.0): Base node radius in points. Does: Sets the base node radius in points, 2 to 40; a node's size multiplier scales it.
-            particleColor (color): (Reserved) Particle color. Does: Reserved for the particle color, so setting it changes nothing on screen.
-            particleSpeed (number): (Reserved) Particle animation speed. Does: Reserved for the particle speed, so setting it changes nothing on screen.
+            particleColor (color): Color of the particles running along the edges (falls back to the edge colour). Does: Colors the particles that travel along the edges when showParticles is on; unset uses the edge color.
+            particleSpeed (number): Speed multiplier of the edge particles (1 = normal). Does: Scales how fast the particles run along the edges when showParticles is on; 1 is the normal pace.
             repulsionForce (number, default 100): How strongly nodes push apart. Does: Pushes every pair of nodes apart; larger values spread the network out and smaller ones pack it tight.
             showLabels (bool, default true): Show text labels under nodes. Does: On writes each node's label under it; off shows bare dots.
             showParticles (bool, default false): Animated particles travelling along edges. Does: On animates small particles running along the edges; off leaves the lines still.
@@ -1035,7 +1065,7 @@ class ScopeControls:
         discrete: _Bool | None = None,
         drag: _Bool | None = None,
         editable: _Bool | None = None,
-        sendMode: _Str | None = None,
+        sendMode: Literal['cell', 'matrix'] | None = None,
         showColLabels: _Bool | None = None,
         showRowLabels: _Bool | None = None,
         showScale: _Bool | None = None,
@@ -1065,7 +1095,7 @@ class ScopeControls:
             discrete (bool, default false): Treat values as palette indices instead of a continuous range. Does: When on each value is a whole-number index into the colors list so cells show flat palette colors instead of a gradient.
             drag (bool, default true): Drag paints the first-touched cell's new value across cells. Does: When on a drag copies the first-touched cell's new value across every cell the finger crosses; off limits edits to single taps.
             editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle). Does: When on tapping a cell cycles it to the next palette color or toggles between 0 and the top value.
-            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once.
+            sendMode (enum, default cell): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once. Values: cell = every edited cell is sent on its own, matrix = the whole grid is sent once the edits pause.
             showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned). Does: Shows the column names above the grid and thins them out when space is tight.
             showRowLabels (bool, default true): Row labels down the leading edge (when rows present). Does: Shows the row names at the left edge of the grid.
             showScale (bool, default false): Gradient scale legend under the grid (continuous only). Does: Adds a gradient legend beneath a continuous grid or a Less to More row in calendar mode.
@@ -1112,7 +1142,7 @@ class ScopeControls:
 
         Fields:
             systemName (string): SF Symbol name (fallback/placeholder). Does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
-            url (string): Static remote image URL. Does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol.
+            url (string): Static remote image URL (an asset:// address is reserved, not loaded yet). Does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol. Addresses starting asset:// are reserved for pictures bundled with a layout and are not loaded yet.
             style (enum): Visual style variant. Does: Clips the picture to rounded corners (12 pt) or a full circle; an image roundness value overrides it. Values: rounded = softly rounded corners, circle = clipped to a circle or pill.
             imageCornerRadius (number): Custom corner radius. Does: Rounds the picture's corners from 0 to 60 pt, overriding the Shape choice.
             imageShadow (number, default 0): Soft shadow blur under the image (0 = none). Does: Blurs a dark shadow under the picture from 0 (none) to 30 pt, with room added around it so it is not cut off.
@@ -1151,6 +1181,7 @@ class ScopeControls:
         sticky: _Bool | None = None,
         sendRate: _Num | None = None,
         hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         **props: Any,
     ) -> "Control":
         """Joystick: Steer with your thumb
@@ -1164,11 +1195,12 @@ class ScopeControls:
             sticky (bool, default false): Stick stays where released instead of snapping to center. Does: When on, the stick stays where you released it and sends that position once; when off, it springs back to center and sends x 0, y 0.
             sendRate (number, default 0.1): Throttle interval in seconds for action firing. Does: Sets the minimum seconds between sends while you hold the stick outside the dead zone (0.1-10, default 0.1).
             hideLabel (bool, default false): Hide label and coordinate readout. Does: When on, hides the label and the x/y readout under the stick.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the stick so it sits on the page.
 
         Example:
             ui.joystick('drive-stick', position=[0, 0], span=[3, 3], label='Drive', tint='#FF2D55', style='analog', deadzone=0.15, sendRate=0.05, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'robot', 'type': 'drive', 'payload': {'x': '$value.x', 'y': '$value.y'}}})
         """
-        return self._ctl("joystick", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel), props)
+        return self._ctl("joystick", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
     def key_value(
         self, id: str | None = None, *,
@@ -1216,7 +1248,7 @@ class ScopeControls:
             maxRows (number, default 0): Cap on rendered rows (0 = all of them). Does: Stops drawing after this many rows (0 to 200); 0 shows them all.
             format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …). Does: Prints every number in rows without their own format as a percent, duration, size or with a unit suffix such as °C.
             colorMap (object): Value → hex tint, so a value can carry its own status color. Does: Tints a value with the color listed for it (for example true green and false red); unlisted values use the normal value color.
-            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color; the key names follow it unless they have their own.
+            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color and tints the row symbols; the key names do not follow it (they use the softer text color unless Key color is set). Unset it follows the theme text color.
             keyTint (color): Color of the key names (default: the theme's secondary color). Does: Colors the names of the readings; unset uses the softer theme text color.
             valueTint (color): Color of the values when no colorMap entry matches (default: tint). Does: Colors the values that have no status color; unset follows the accent color.
             hideLabel (bool, default false): Hide the header label. Does: When on the header line is removed and the table moves up to fill the space.
@@ -1272,7 +1304,7 @@ class ScopeControls:
 
         Fields:
             text (string): Static display text (overridden by sync). Does: Sets the words on the label; a synced value replaces them as soon as one arrives.
-            label (string): Alternative to text. Does: Shows this text when Text is empty; the label reads the same either way.
+            label (string): Alternative to text. Does: Shows this text when no Text is set at all; an empty Text shows blank, not this. Otherwise the label reads the same either way.
             subtitle (string): A quieter second line under the text (caption size, secondary color). In a list itemTemplate it takes {{item.<field>}}. Does: Adds a compact second line in the caption size and the theme's secondary color; leave it empty for a single line.
             lines (number, default 1): Most lines the text may take (1 = truncate, N = wrap up to N, 0 = wrap freely). Also limits the subtitle. Does: Keeps the text on one line, or lets it wrap onto up to 10 lines; 0 wraps as far as it needs.
             icon (string): SF Symbol before text. Does: Draws the named SF Symbol in front of the text, in the same color and size.
@@ -1406,7 +1438,7 @@ class ScopeControls:
             autoScroll (bool, default true): Auto-scroll to latest line. Does: Keeps the view pinned to the latest line as new ones arrive, until you drag up to read older ones.
             controlHeight (number): Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span. Does: Sets the height of the console area in points; without it the area stays compact at no more than 200.
             logColors (object): Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}. Does: Colors each line by its level name, for example error or warn, overriding the theme's built-in level colors.
-            tint (color, default #667eea): Accent color. Does: Stores an accent color for the console; lines take their colors from the level colors and the theme, so it shows no change today.
+            tint (color, default #FFFFFF): Color of the lines with no level. Does: Colors the lines with no level, or a level no color names; lines with a level keep their level color.
             defaultValue (array): Seed lines shown before the first sync (strings, or objects with text and level). Does: Fills the console with these lines before any synced line arrives.
 
         Example:
@@ -1437,6 +1469,29 @@ class ScopeControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         mapConfig: _Obj | None = None,
+        markerStyle: Literal['dot', 'symbol', 'puck'] | None = None,
+        recenter: Literal['auto', 'always', 'initial', 'off'] | None = None,
+        markerSizeProperty: _Str | None = None,
+        markerSizeDomain: Any | None = None,
+        markerSizeRange: Any | None = None,
+        markerColorProperty: _Str | None = None,
+        markerLabelProperty: _Str | None = None,
+        rippleProperty: _Str | None = None,
+        rippleThreshold: _Num | None = None,
+        ripple: _Obj | None = None,
+        maxMarkers: _Num | None = None,
+        center: Any | None = None,
+        markersPath: _Str | None = None,
+        markerLatProperty: _Str | None = None,
+        markerLngProperty: _Str | None = None,
+        markerIdProperty: _Str | None = None,
+        coordinateOrder: Literal['lnglat', 'latlng'] | None = None,
+        minWeight: _Num | None = None,
+        markerSymbol: _Str | None = None,
+        markerSymbolProperty: _Str | None = None,
+        motion: _Bool | None = None,
+        motionDuration: _Num | None = None,
+        hideLabel: _Bool | None = None,
         controlHeight: _Num | None = None,
         **props: Any,
     ) -> "Control":
@@ -1450,12 +1505,35 @@ class ScopeControls:
             label (string): Header label above the map. Does: Shows this text as a header above the map.
             tint (color, default #667eea): Default marker color (used when a marker carries none). Does: Colors every pin that does not bring its own color.
             mapConfig (object): Property→style mapping for GeoJSON feeds (marker size/color/label/ripple). Does: Tells the map which properties of your data set pin size, color, label and ripple.
+            markerStyle (enum, default dot): How each pin is drawn (mapConfig.markerStyle). Does: Draws each pin as a plain dot, a bare SF Symbol (named by mapConfig.markerSymbol), or a symbol inside a filled circle. Values: dot = a plain round dot, symbol = a bare symbol such as an airplane, puck = a symbol inside a filled circle.
+            recenter (enum, default auto): How the camera reacts to new data (mapConfig.recenter). Does: Chooses when the camera refits to the pins as new data arrives. Values: auto = frames and follows the pins, but stops once you pan or zoom yourself, always = refits to the pins on every update, initial = frames the pins once and then stays put, off = never moves the camera.
+            markerSizeProperty (string): Numeric feed property that drives pin size (mapConfig.markerSizeProperty), scaled from markerSizeDomain into markerSizeRange. Does: Sizes each pin from this number in your data, so bigger readings draw bigger pins.
+            markerSizeDomain (number[], default [0, 10]): Input range [low, high] of markerSizeProperty (mapConfig.markerSizeDomain). Does: Treats readings at the low end as the smallest pin and at the high end as the largest.
+            markerSizeRange (number[], default [8, 30]): Output pin diameter range [smallest, largest] in points (mapConfig.markerSizeRange). Does: Sets the smallest and largest pin size in points.
+            markerColorProperty (string): Feed property holding a hex color for each pin (mapConfig.markerColorProperty). Does: Colors each pin with the hex color found under this name in your data.
+            markerLabelProperty (string): Feed property used as each pin's label (mapConfig.markerLabelProperty). Does: Writes this value from your data beside each pin.
+            rippleProperty (string): Numeric feed property that decides which pins ripple (mapConfig.rippleProperty). Does: Pulses a ring around every pin whose reading here reaches the ripple threshold.
+            rippleThreshold (number, default 0): rippleProperty >= rippleThreshold makes that pin ripple (mapConfig.rippleThreshold). Does: Pulses only the pins whose reading is at least this number.
+            ripple (object): Ring styling for rippling pins: color, period (s, default 1.6), radius (pt, default 44) (mapConfig.ripple). Does: Sets the ring's color, how long one pulse takes, and how wide it grows.
+            maxMarkers (number, default 400): Cap on drawn pins; a public feed can be unbounded (mapConfig.maxMarkers). Does: Draws at most this many pins, so a huge feed stays smooth.
+            center (number[]): Fixed camera centre [lat, lng] instead of fitting the data; combines with recenter (mapConfig.center). Does: Points the map at this latitude and longitude instead of framing the pins.
+            markersPath (string): Dot-path to the array of point objects in a non-GeoJSON payload, e.g. "ac" (mapConfig.markersPath). Does: Reads the pins from the list found under this name in your data.
+            markerLatProperty (string): Property holding latitude on each point object, e.g. "lat"; switches to object-array mode (mapConfig.markerLatProperty). Does: Places each pin at the latitude found under this name.
+            markerLngProperty (string): Property holding longitude on each point object, e.g. "lon" (mapConfig.markerLngProperty). Does: Places each pin at the longitude found under this name.
+            markerIdProperty (string): Property giving each pin a stable identity across updates; needed for smooth motion (mapConfig.markerIdProperty). Does: Keeps each pin the same pin across updates, so it glides instead of jumping.
+            coordinateOrder (enum, default lnglat): Order of raw [a, b, weight] number triples, GeoJSON-style lnglat or latlng (mapConfig.coordinateOrder). Does: Reads each number pair as longitude then latitude, or latitude then longitude. Values: lnglat = each pair is longitude then latitude, the GeoJSON order, latlng = each pair is latitude then longitude.
+            minWeight (number): In number-triple mode, drop points whose weight is below this before capping (mapConfig.minWeight). Does: Leaves out points whose weight is below this number, keeping the strongest ones.
+            markerSymbol (string): Default SF Symbol name for the symbol and puck pin styles, e.g. "airplane" (mapConfig.markerSymbol). Does: Draws this symbol for each pin when the pin style is symbol or puck.
+            markerSymbolProperty (string): Per-object property naming an SF Symbol, overriding markerSymbol (mapConfig.markerSymbolProperty). Does: Gives each pin the symbol named under this value in your data.
+            motion (bool, default false): Glide pins between updates instead of snapping; needs markerIdProperty with more than one pin (mapConfig.motion). Does: Moves each pin smoothly to its new position when fresh data arrives.
+            motionDuration (number, default 1.2): Seconds one position glide takes; set near the poll interval (mapConfig.motionDuration). Does: Takes this many seconds to move a pin to its new spot.
+            hideLabel (bool, default false): Hide the header label above the map. Does: On hides the title row above the map even when a label is set; off shows it.
             controlHeight (number): Map height in points in a flow-mode grid (2-D grids size it by rowSpan). Does: Sets the map height from 120 to 1200 points when the grid flows; 2-D grids use row span instead.
 
         Example:
             ui.map('vehicle-location', position=[0, 0], span=[3, 4], mapStyle='standard', mapInteractive=True, mapZoom=0.005, label='Vehicle', tint='#FF3B30', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'gps_update'}, 'valuePath': 'map_data'}])
         """
-        return self._ctl("map", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, controlHeight=controlHeight), props)
+        return self._ctl("map", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, markerStyle=markerStyle, recenter=recenter, markerSizeProperty=markerSizeProperty, markerSizeDomain=markerSizeDomain, markerSizeRange=markerSizeRange, markerColorProperty=markerColorProperty, markerLabelProperty=markerLabelProperty, rippleProperty=rippleProperty, rippleThreshold=rippleThreshold, ripple=ripple, maxMarkers=maxMarkers, center=center, markersPath=markersPath, markerLatProperty=markerLatProperty, markerLngProperty=markerLngProperty, markerIdProperty=markerIdProperty, coordinateOrder=coordinateOrder, minWeight=minWeight, markerSymbol=markerSymbol, markerSymbolProperty=markerSymbolProperty, motion=motion, motionDuration=motionDuration, hideLabel=hideLabel, controlHeight=controlHeight), props)
 
     def picker(
         self, id: str | None = None, *,
@@ -1483,7 +1561,9 @@ class ScopeControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -1500,13 +1580,15 @@ class ScopeControls:
             label (string): Display label. Does: Writes this text as the picker title.
             tint (color, default #667eea): Accent color. Does: Colors the selected choice and the picker accent with this color.
             defaultValue (string): Initially selected option. Does: Selects this choice when the layout first appears; it should match one of the stored values.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            hideLabel (bool, default false): Hide the label. Does: Hides the label text above the control.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the control so it sits on the page.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice.
 
         Example:
             ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
-        return self._ctl("picker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
+        return self._ctl("picker", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, hideLabel=hideLabel, hideBackground=hideBackground, confirm=confirm), props)
 
     def pie_chart(
         self, id: str | None = None, *,
@@ -1609,7 +1691,7 @@ class ScopeControls:
         paletteLabel: _Str | None = None,
         hidePalette: _Bool | None = None,
         events: _Obj | None = None,
-        items: _Obj | None = None,
+        items: _Arr | None = None,
         pinboardConfig: _Obj | None = None,
         **props: Any,
     ) -> "Control":
@@ -1626,7 +1708,7 @@ class ScopeControls:
             paletteLabel (string, default Items): Header for the option area. Does: Sets the header over the option area, e.g. Unplaced devices instead of Items.
             hidePalette (bool, default false): Hide the option area (surfaces whose markers all start placed). Does: Removes the option area so only the surface shows, for boards whose markers all start placed.
             events (object): events. Does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a marker.
-            items (object): items. Does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
+            items (array): items. Does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
             pinboardConfig (object): Grouped config object (see grouped fields). Does: Groups the backdrop, shape, search, palette, events and items settings; any entry left out uses its default.
 
         Example:
@@ -1675,7 +1757,7 @@ class ScopeControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
             min (number, default 0): Minimum value (0%). Does: Sets the value at 0% fill, in the control's unit (e.g. 0).
             max (number, default 100): Maximum value (100%). Does: Sets the value at 100% fill, in the control's unit (e.g. 100).
             progressStyle (enum, default ring): Circular ring or linear bar. Does: Switches the display between a circular ring and a horizontal bar. Values: ring = a circular ring with the number in the middle, bar = a thin horizontal bar with the title and number above.
@@ -1721,6 +1803,7 @@ class ScopeControls:
         tint: _Str | None = None,
         qrBackground: _Str | None = None,
         correctionLevel: Literal['L', 'M', 'Q', 'H'] | None = None,
+        hideLabel: _Bool | None = None,
         hideBackground: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -1733,12 +1816,13 @@ class ScopeControls:
             tint (color, default #FFFFFF): QR code foreground color. Does: Recolors the dark squares of the code; keep it strongly different from the background so cameras can read it.
             qrBackground (color): Fill behind the code (default: none, the card shows through). Does: Fills a solid color behind the squares; left empty, the card shows through.
             correctionLevel (enum, default M): Error correction level. Does: Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans. Values: L = lowest correction, simplest code, for clean screens, M = medium correction, a good everyday balance, Q = higher correction, survives some smudging, H = highest correction, densest code, survives scratches or a logo over it.
+            hideLabel (bool, default false): Hide the caption below the code. Does: On hides the title line under the code; off shows it when a title is set.
             hideBackground (bool, default false): Remove glass card background. Does: On removes the glass card so the code sits straight on the page; off keeps the card.
 
         Example:
             ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
         """
-        return self._ctl("qrCode", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideBackground=hideBackground), props)
+        return self._ctl("qrCode", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
     def radar(
         self, id: str | None = None, *,
@@ -1887,7 +1971,7 @@ class ScopeControls:
         style: Literal['default', 'pills', 'stars'] | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -1895,15 +1979,15 @@ class ScopeControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
+            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
             optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Each segment shows this text in place of its stored value; a blank entry falls back to the value.
             placeholder (string): Text shown when no options are available or a picker has no selection. Does: Shows this text, e.g. No options, where the segments would be when the list is empty.
             options (array): Segment labels (string array). Does: Creates one segment per entry, in order; two to five fit best.
             optionIcons (array): SF Symbols parallel to options. Does: Draws an SF Symbol on each segment at the same position as its option; missing entries show none.
             style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Does: Switches between the system segmented bar, separate capsule buttons and a row of tappable stars. Values: default = the standard iOS segmented bar, pills = separate capsule buttons with the chosen one tinted, stars = a row of stars where tapping one fills up to it and sends its number.
             tint (color, default #667eea): Accent for pills style. Does: Colours the selected pill background and the filled stars; the default bar ignores it.
-            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker and the default.
+            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears; with no starting choice and nothing stored, the first option starts selected.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After each change a pill naming it with an Undo button shows for 3 seconds.
 
         Example:
@@ -2003,8 +2087,8 @@ class ScopeControls:
         hidePalette: _Bool | None = None,
         columns: _Num | None = None,
         events: _Obj | None = None,
-        items: _Obj | None = None,
-        zones: _Obj | None = None,
+        items: _Arr | None = None,
+        zones: _Arr | None = None,
         sortboardConfig: _Obj | None = None,
         **props: Any,
     ) -> "Control":
@@ -2020,8 +2104,8 @@ class ScopeControls:
             hidePalette (bool, default false): Hide the option area (server-seeded boards where items start placed). Does: Removes the option area so only the columns show, for boards whose items all start placed.
             columns (number, default 2): How many zone columns to lay out. Does: Lays the zones out in this many columns side by side, 1 to 12.
             events (object): events. Does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a card.
-            items (object): items. Does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
-            zones (object): zones. Does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
+            items (array): items. Does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
+            zones (array): zones. Does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
             sortboardConfig (object): Grouped config object (see grouped fields). Does: Groups the search, palette, columns, events, items and zones settings; any entry left out uses its default.
 
         Example:
@@ -2093,7 +2177,7 @@ class ScopeControls:
             lineWidth (number): Line stroke width in points. Omit to scale with the control's height. Does: Draws the line this many points thick; when not set it grows with the control's height.
             sparklineFill (bool, default false): Fill the area under the line with a gradient. Does: Fills the area under the line with a fading tint when on; off leaves just the line.
             glowRadius (number, default 0): Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a soft glow in the line's own color behind it; 0 turns it off.
-            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Does: Shapes the two ends of the line as rounded, flat or squared off. Values: round = rounded ends and the default, butt = flat ends that stop exactly at the last point, square = flat ends that extend a little past the last point.
+            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Does: Shapes the two ends of the line as rounded, flat or squared off. Values: round = rounded ends, butt = flat ends that stop exactly at the last point, square = flat ends that extend a little past the last point.
             colorByValue (array): Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint. Does: Colors the line and fill by height: each part takes the color of the zone its value falls in.
             colorBlend (number, default 0): How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue. Does: Softens the edges between the color zones, from sharp bands at 0 to one smooth gradient at 1.
             tint (color, default #667eea): Line and fill color. Does: Colors the line and its fill; color zones replace it when set.
@@ -2162,7 +2246,7 @@ class ScopeControls:
             glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the trend line from 0 (off) to 30 points wide.
             lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Does: Rounds, flattens or squares the two ends of the trend line. Values: round = soft rounded ends, butt = flat ends cut exactly at the data point, square = flat ends that stick out half a stroke past the data point.
             hideBackground (bool, default false): Remove the card (and its threshold tint). Does: Removes the card fill and its zone tint when on so the number floats on the layout.
-            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll and the default, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
+            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
             reference (number): The value the change is measured against (yesterday, target…). Does: Sets the baseline in the tile's unit; the arrow and change show the value minus this.
             referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives. Does: Reads the baseline from this dot path in the same data as the value and replaces Compare against once it arrives.
             deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Does: Shows the change as a percent of the baseline or as the plain difference in the tile's unit. Values: percent = change as a percent of the baseline, absolute = change as the plain difference in the value's unit.
@@ -2247,7 +2331,7 @@ class ScopeControls:
         hideValue: _Bool | None = None,
         label: _Str | None = None,
         icon: _Str | None = None,
-        formatValue: _Str | None = None,
+        formatValue: Literal['decimal', 'percent', 'time', 'duration', 'bytes', 'bytesKB', 'bps', 'relative', 'none'] | None = None,
         defaultValue: _Num | None = None,
         haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
         confirm: _Bool | None = None,
@@ -2266,7 +2350,7 @@ class ScopeControls:
             hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value. Does: Removes the visible number between the buttons; the title and buttons stay and VoiceOver still reads the value.
             label (string): Display label. Does: Writes this text as the title of the stepper.
             icon (string): SF Symbol before value. Does: Shows this SF Symbol before the value.
-            formatValue (string, default decimal): Value format: decimal, time, percent. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit.
+            formatValue (enum, default decimal): Value format: decimal, percent, time, duration, bytes, bytesKB, bps, relative or none; decimal:N, prefix:X and suffix:X also work in JSON. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit. Values: decimal = a plain number like 72 or 3.5, percent = a whole percentage like 80%, time = minutes and seconds like 3:45, from a total in seconds, duration = a length of time like 1h 5m, from seconds, bytes = a size like 1.2 MB, from bytes, bytesKB = a size like 1.2 MB, from kilobytes, bps = a speed like 4 Mbps, from bits per second, relative = how long ago, like 5 min ago, from a date, none = no number shown.
             defaultValue (number): Initial value. Does: Shows this number (within lowest to highest) until something else sets it.
             haptic (enum, default light): Default haptic on step. Does: Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern. Values: light = a soft tap, medium = a firmer tap, heavy = a strong thump, success = a pleasant double tap, warning = a cautionary buzz, error = a sharp failure buzz, selection = a tiny tick like a picker.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you step.
@@ -2337,26 +2421,26 @@ class ScopeControls:
             hideBackground (bool, default false): Remove glass background. Does: Turned on, the glass card is removed and the icon floats on the page.
             iconMap (object): Incoming value → SF Symbol name ("default" catches the rest). Does: Swaps the glyph to the symbol listed for the incoming value, with default catching any other value.
             colorMap (object): Incoming value → hex tint. Does: Tints the glyph with the hex color listed for the incoming value.
-            haptic (enum): Touch feedback on tap (default light). Does: Plays this haptic feedback each time the symbol is tapped; light when not set. Values: none = no haptic, light = a small light tap and the default, medium = a medium tap, heavy = a strong tap, soft = a rounded cushioned tap, rigid = a sharp firm tap, selection = a tiny tick like scrolling a picker, success = a success pattern, warning = a warning pattern, error = an error pattern.
-            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Does: Chooses how the symbol's layers take color. Values: monochrome = one color for the whole glyph and the default, hierarchical = layers shaded from one color, strongest first, palette = each layer gets its own color from the palette list, multicolor = the symbol's own built-in colors and ignores the tint.
+            haptic (enum): Touch feedback on tap (default light). Does: Plays this haptic feedback each time the symbol is tapped; light when not set. Values: none = no haptic, light = a small light tap, medium = a medium tap, heavy = a strong tap, soft = a rounded cushioned tap, rigid = a sharp firm tap, selection = a tiny tick like scrolling a picker, success = a success pattern, warning = a warning pattern, error = an error pattern.
+            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Does: Chooses how the symbol's layers take color. Values: monochrome = one color for the whole glyph, hierarchical = layers shaded from one color, strongest first, palette = each layer gets its own color from the palette list, multicolor = the symbol's own built-in colors and ignores the tint.
             palette (array): Hex colour per layer (primary, secondary, tertiary) for palette rendering. Does: Colors the symbol's layers in order, primary first, when the colouring is palette.
-            weight (enum, default regular): Glyph weight. Does: Sets the stroke thickness of the glyph. Values: ultraLight = the thinnest lines, thin = very fine lines, light = fine lines, regular = normal lines and the default, medium = slightly heavier lines, semibold = fairly heavy lines, bold = heavy lines, heavy = very heavy lines, black = the heaviest lines.
-            variant (enum, default none): Symbol variant applied on top of the name. Does: Applies a variant to the symbol name, such as a circle around it or a slash through it. Values: none = the symbol exactly as named and the default, fill = the filled version, circle = the glyph inside a circle, square = the glyph inside a square, rectangle = the glyph inside a rectangle, slash = a diagonal slash through the glyph.
+            weight (enum, default regular): Glyph weight. Does: Sets the stroke thickness of the glyph. Values: ultraLight = the thinnest lines, thin = very fine lines, light = fine lines, regular = normal lines, medium = slightly heavier lines, semibold = fairly heavy lines, bold = heavy lines, heavy = very heavy lines, black = the heaviest lines.
+            variant (enum, default none): Symbol variant applied on top of the name. Does: Applies a variant to the symbol name, such as a circle around it or a slash through it. Values: none = the symbol exactly as named, fill = the filled version, circle = the glyph inside a circle, square = the glyph inside a square, rectangle = the glyph inside a rectangle, slash = a diagonal slash through the glyph.
             size (number): Explicit point size (default scales to the cell). Does: Sets the glyph's point size; left empty it scales to fill the cell.
-            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles. Values: none = no animation and the default, rain = slanted drops falling below the symbol, snow = flakes falling and drifting below the symbol, sparkle = four-point stars twinkling around the symbol, pulse = the icon fades in and out, breathe = the icon gently grows and shrinks, variableColor = the icon's layers light up in sequence, rotate = the icon spins, wiggle = the icon shakes to get attention, bounce = the icon hops, scale = the icon is held larger or smaller.
+            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles. Values: none = no animation, rain = slanted drops falling below the symbol, snow = flakes falling and drifting below the symbol, sparkle = four-point stars twinkling around the symbol, pulse = the icon fades in and out, breathe = the icon gently grows and shrinks, variableColor = the icon's layers light up in sequence, rotate = the icon spins, wiggle = the icon shakes to get attention, bounce = the icon hops, scale = the icon is held larger or smaller.
             particleColor (color): Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor). Does: Overrides the color of the custom particles instead of the tint or palette.
             particleIntensity (number, default 0.65): Rain, snow, sparkle density (0 hides particles). Does: Sets how dense the particles are from 0 to 1, with 0 hiding them.
             particleAngle (number, default -18): Rain/snow direction in degrees from vertical (negative left, positive right). Does: Tilts falling particles from straight down, negative toward the left and positive toward the right.
             effectOptions (array): Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol …. Does: Adds Apple's modifiers such as byLayer, clockwise or iterative to a native effect.
-            loop (enum, default continuous): How the effect repeats. Does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time. Values: continuous = repeats without stopping and the default, periodic = plays, waits the loop delay, then plays again, once = plays one time and stops.
+            loop (enum, default continuous): How the effect repeats. Does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time. Values: continuous = repeats without stopping, periodic = plays, waits the loop delay, then plays again, once = plays one time and stops.
             loopCount (number): periodic only — plays before stopping (omit for forever). Does: With periodic looping, stops the effect after this many plays; empty means forever.
             loopDelay (number, default 1): periodic only — seconds between plays. Does: With periodic looping, waits this many seconds between plays.
             speed (number, default 1): Playback speed multiplier. Does: Multiplies the animation speed; 2 plays twice as fast and 0.5 half as fast.
             activeWhen (string, default always): always | truthy | a state word the synced value must equal. Does: Plays the effect always, only when the synced value is true, or only when it equals the state word you give.
             variableMin (number, default 0): Numeric value at which the variable layers are empty. Does: The synced number at which the symbol's variable layers show as empty.
             variableMax (number, default 100): Numeric value at which the variable layers are full. Does: The synced number at which the symbol's variable layers show as full.
-            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Does: Animates the swap when the glyph changes to a different symbol. Values: replace = the old glyph morphs into the new one and the default, replace.downUp = the old glyph slides down and the new one comes up, replace.upUp = both glyphs move up, replace.offUp = the old glyph fades while the new one moves up, replace.magic = matching parts of the two glyphs morph into each other, none = swaps instantly with no animation.
-            tapEffect (enum, default none): One-shot effect played on tap. Does: Plays this effect once each time the symbol is tapped. Values: none = no animation and the default, bounce = the icon hops once, pulse = the icon fades once, variableColor = the layers light up once in sequence, wiggle = the icon shakes once, rotate = the icon spins once, breathe = the icon grows and shrinks once.
+            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Does: Animates the swap when the glyph changes to a different symbol. Values: replace = the old glyph morphs into the new one, replace.downUp = the old glyph slides down and the new one comes up, replace.upUp = both glyphs move up, replace.offUp = the old glyph fades while the new one moves up, replace.magic = matching parts of the two glyphs morph into each other, none = swaps instantly with no animation.
+            tapEffect (enum, default none): One-shot effect played on tap. Does: Plays this effect once each time the symbol is tapped. Values: none = no animation, bounce = the icon hops once, pulse = the icon fades once, variableColor = the layers light up once in sequence, wiggle = the icon shakes once, rotate = the icon spins once, breathe = the icon grows and shrinks once.
             triggers (array): Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]. Does: Plays a one-shot effect each time a matching server event arrives.
             symbolConfig (object): Full configuration object holding every field marked group symbolConfig. Does: Holds the rendering, effect, particle, loop and tap settings below; leave it out for a still symbol.
 
@@ -2562,6 +2646,7 @@ class ScopeControls:
         webInteractive: _Bool | None = None,
         webScrollEnabled: _Bool | None = None,
         webRefreshInterval: _Num | None = None,
+        hideLabel: _Bool | None = None,
         hideBackground: _Bool | None = None,
         **props: Any,
     ) -> "Control":
@@ -2574,12 +2659,13 @@ class ScopeControls:
             webInteractive (bool, default true): Allow user interaction. Does: When off, touches pass through the page so it is display only; when on, links and forms work.
             webScrollEnabled (bool, default true): Allow scrolling. Does: When off, the page stays at its top position and cannot be dragged; when on, you can scroll it.
             webRefreshInterval (number): Auto-refresh interval in seconds. Does: Reloads the page every this many seconds (1 to 3600) while it is on screen; leave it unset for no automatic reload.
+            hideLabel (bool, default false): Hide the header label. Does: On hides the title row above the page even when a label is set; off shows it.
             hideBackground (bool, default false): Remove glass card background. Does: Removes the glass card, fill and border so only the page sits on the layout.
 
         Example:
             ui.web_view('grafana', position=[0, 0], span=[4, 4], label='Metrics Dashboard', url='https://grafana.local/d/overview?kiosk', webInteractive=True, webScrollEnabled=False, webRefreshInterval=30)
         """
-        return self._ctl("webView", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideBackground=hideBackground), props)
+        return self._ctl("webView", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
 
 class BuildControls:
@@ -2654,8 +2740,8 @@ class BuildControls:
             tint (color, default #667eea): First-category color and palette seed. Does: Colors the first box and seeds the color of the others.
             formatValue (string): Formatter for axis/readout numbers. Does: Formats the axis labels and the median readout, e.g. as a unit or with fixed decimals.
             boxAction (object): boxAction. Does: Fires this action when you tap a box, passing its five-number summary as {{value}}.
-            barCornerRadius (number, default 3): Box corner rounding. Does: Rounds the box corners from square (0) to 30 points.
-            boxWidth (number, default 0.55): Box width as a fraction of the category slot. Does: Sets each box's width as a fraction (0 to 1) of its category slot.
+            barCornerRadius (number, default 3): Box corner rounding. Does: Rounds the box corners from square (0) to 30 points; box mode only (violins ignore it).
+            boxWidth (number, default 0.55): Box width as a fraction of the category slot. Does: Sets each box's width as a fraction (0 to 1) of its category slot; in violin mode it does nothing.
             colors (string[]): Per-category color cycle. Does: Cycles through this list of colors, one per category, instead of the built-in palette.
             scrub (bool, default false): Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap). Does: Lets a drag sweep the selection across categories with a tick for each change; the action still fires only on tap.
             showGrid (bool, default true): Horizontal grid lines. Does: Shows or hides the horizontal grid lines behind the boxes.
@@ -2683,7 +2769,7 @@ class BuildControls:
         size: Literal['compact', 'default', 'large'] | None = None,
         tint: _Str | None = None,
         hideLabel: _Bool | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
         repeatOnHold: _Bool | None = None,
         valueMap: _Obj | None = None,
         iconMap: _Obj | None = None,
@@ -2701,7 +2787,7 @@ class BuildControls:
             size (enum, default default): Size variant. Does: Scales the button's height and text between compact, normal and large. Values: compact = small and tight, for crowded grids, default = the normal size, large = tall and roomy, easy to hit.
             tint (color, default #667eea): Accent color. Does: Recolors the fill, border or text (per Look) to the chosen color.
             hideLabel (bool, default false): Show icon only. Does: When on, the label text disappears and only the symbol remains.
-            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
+            haptic (enum, default medium): Haptic feedback on press. Does: Plays the chosen buzz on the phone each time the button is pressed. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz for failure, selection = a tiny click like scrolling a picker.
             repeatOnHold (bool, default false): Keep firing the action while held, using the system repeat behavior (ignored when longPressAction/longPressGroup is set). Does: Holding the button refires its action repeatedly, speeding up the longer you hold.
             valueMap (object): Synced value → button text ("default" catches the rest). Does: Replaces the label with the text matching the synced value, e.g. true shows Pause.
             iconMap (object): Synced value → SF Symbol name (swaps with the native replace effect). Does: Swaps the symbol to the one matching the synced value, with a replace animation.
@@ -2725,6 +2811,9 @@ class BuildControls:
         debounce: _Num | None = None,
         torch: _Bool | None = None,
         snapshot: _Bool | None = None,
+        snapshotAction: _Obj | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        icon: _Str | None = None,
         snapshotQuality: _Num | None = None,
         snapshotMaxDimension: _Num | None = None,
         hideLabel: _Bool | None = None,
@@ -2741,6 +2830,9 @@ class BuildControls:
             debounce (number, default 3): Seconds before the same decoded value can fire again. Does: Holds back the same scanned value from firing again for this many seconds (0 to 30).
             torch (bool, default true): Show a torch toggle while scanning. Does: Shows a torch toggle in the viewfinder while scanning.
             snapshot (bool, default false): Show a shutter button (implied when snapshotAction is set). Does: Shows a shutter button that takes a photo while the camera is running.
+            snapshotAction (object): Action fired on the shutter with {{image}}, {{width}}, {{height}}; falls back to action when omitted. Does: Runs this command with the photo each time the shutter is pressed.
+            haptic (enum, default light): Haptic played when a code or text is sent. Does: Plays this haptic on the phone each time a detection is sent. Values: light = a faint tick, medium = a normal tap, heavy = a firm thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a short double-tap for done, warning = a sharper alert buzz, error = a harsh triple buzz, selection = a tiny click like scrolling a picker.
+            icon (string): SF Symbol on the Tap to Start card. Does: Draws this SF Symbol on the Tap to Start card instead of the camera glyph.
             snapshotQuality (number, default 0.6): JPEG quality 0–1 (auto-lowered to fit the mesh frame budget). Does: Sets the photo's JPEG quality from 0 to 1; it is lowered automatically if the photo is too big to send.
             snapshotMaxDimension (number, default 1280): Longest snapshot edge in pixels. Does: Caps the photo's longest side, 240 to 4096 pixels.
             hideLabel (bool, default false): Hide the header label (the LIVE chip moves into the viewfinder). Does: Hides the header title, and the LIVE chip moves into the viewfinder.
@@ -2748,7 +2840,7 @@ class BuildControls:
         Example:
             ui.camera('intake-scanner', position=[0, 0], span=[3, 4], label='Scan Inventory', scan=['barcode'], symbologies=['qr', 'ean13', 'code128'], debounce=5, action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'inventory_scan', 'code': '{{value}}', 'kind': '{{kind}}'}})
         """
-        return self._ctl("camera", dict(id=id, position=position, span=span, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
+        return self._ctl("camera", dict(id=id, position=position, span=span, label=label, scan=scan, symbologies=symbologies, sendMode=sendMode, debounce=debounce, torch=torch, snapshot=snapshot, snapshotAction=snapshotAction, haptic=haptic, icon=icon, snapshotQuality=snapshotQuality, snapshotMaxDimension=snapshotMaxDimension, hideLabel=hideLabel), props)
 
     def canvas(
         self, *,
@@ -2794,15 +2886,19 @@ class BuildControls:
         id: str,
         position: Sequence[int] | None = None,
         span: Sequence[int] | None = None,
+        placeholder: _Str | None = None,
         **props: Any,
     ) -> dict[str, Any]:
         """Cards: A stack of cards
         (catalog type `cardList`)
 
+        Fields:
+            placeholder (string, default Search): Placeholder text shown in the search field while it is empty (default: Search). Does: Replaces the grey word shown in the search box until you type, e.g. Search models.
+
         Example:
             ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
-        return self._ctl("cardList", dict(id=id, position=position, span=span), props)
+        return self._ctl("cardList", dict(id=id, position=position, span=span, placeholder=placeholder), props)
 
     def carousel(
         self, *,
@@ -2810,7 +2906,9 @@ class BuildControls:
         position: Sequence[int] | None = None,
         span: Sequence[int] | None = None,
         carouselMode: Literal['paged', 'coverflow', 'deck'] | None = None,
-        indicator: Literal['dots', 'bars', 'none'] | None = None,
+        indicator: Literal['dots', 'bars', 'numeric', 'none'] | None = None,
+        carouselPeek: _Num | None = None,
+        carouselStyle: Literal['glass', 'translucent', 'liquidGlass'] | None = None,
         autoAdvance: _Num | None = None,
         loop: _Bool | None = None,
         panels: _Obj | None = None,
@@ -2823,7 +2921,9 @@ class BuildControls:
 
         Fields:
             carouselMode (enum, default paged): Presentation style for the panels. Does: Switches between one full page at a time, a tilted row of neighbors, or a stack of cards. Values: paged = one full-width page at a time that snaps into place, coverflow = the active page centered with smaller tilted neighbors at the sides, deck = pages stacked like cards; the front card swipes away to show the next.
-            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, none = no page marks shown.
+            indicator (enum, default dots): Page indicator style. Does: Draws a row of dots or bars (or a page count) below the pages with the current one in the accent color, or hides it. Values: dots = a row of small round dots, bars = a row of short flat bars, numeric = the page number as text, such as 2 / 5, none = no page marks shown.
+            carouselPeek (number, default 0): Paged mode neighbour peek, as a fraction of the width. Does: In paged style, shows a sliver of the neighbouring pages at the sides (0 none, 0.3 a wide peek).
+            carouselStyle (enum, default glass): Panel chrome style. Does: Chooses the page card material: standard glass, a see-through tint, or liquid glass. Values: glass = the standard frosted glass card, translucent = a lighter see-through card, liquidGlass = the liquid glass material.
             autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
             loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
             panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
@@ -2833,7 +2933,7 @@ class BuildControls:
         Example:
             ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
-        return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
+        return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
     def chart(
         self, *,
@@ -2846,6 +2946,7 @@ class BuildControls:
         tint: _Str | None = None,
         formatValue: _Str | None = None,
         barCornerRadius: _Num | None = None,
+        defaultType: Literal['bar', 'line', 'area', 'scatter', 'histogram', 'waterfall'] | None = None,
         bins: _Num | None = None,
         colors: _StrList | None = None,
         datumAction: _Obj | None = None,
@@ -2887,13 +2988,14 @@ class BuildControls:
             tint (color, default #667eea): First-series color and palette seed. Does: Colors the first series and seeds the colors of the rest, as any hex color.
             formatValue (string): Formatter for axis/readout numbers (see control-def). Does: Formats the axis labels and the selection readout, for example with units or fixed decimals.
             barCornerRadius (number, default 3): Bar corner rounding. Does: Rounds the corners of every bar from square (0) to 30 points.
+            defaultType (enum, default bar): Drawing type for every series that sets no type of its own. Does: Draws each series that has no type of its own as this kind; a series with its own type keeps it. Values: bar = vertical bars, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
             bins (number): Bin count for histogram series. Does: Splits the histogram samples into 1 to 50 bars; left unset it uses about the square root of the sample count.
             colors (string[]): Series color cycle (per-series color wins). Does: Gives series one, two, three and so on these hex colors in order; a color set on a series itself wins.
             datumAction (object): datumAction. Does: Runs this action on tap with the tapped datum as JSON in the value placeholder.
             horizontal (bool, default false): Horizontal bars — categories run down the leading edge. Does: Turns the bars to run left to right with the categories listed down the left edge.
             lineWidth (number, default 2): Line/area stroke width. Does: Sets the stroke of line and area series from 0.5 to 12 points.
             glowRadius (number, default 0): Soft glow behind bars, lines and points in their own colours, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the marks in their own colors, 0 (off) to 30 points wide.
-            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends and the default, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
+            lineCap (enum, default round): End shape of the lines. Cross-control, same on every control. Does: Rounds, flattens or squares the ends of line strokes. Values: round = soft half-circle ends, butt = flat ends cut exactly at the last point, square = flat ends that extend a little past the last point.
             maxPoints (number, default 100): Rolling window applied to {'append': …} pushes. Does: Caps a streaming series at 10 to 1000 points so the oldest drop off as new ones are appended.
             negativeColor (color): Falling waterfall delta. Does: Paints waterfall bars with a negative change in this color instead of system red.
             pointSize (number, default 6): Scatter point / vertex dot diameter. Does: Sets the diameter of scatter points and line vertex dots from 2 to 20 points.
@@ -2910,7 +3012,7 @@ class BuildControls:
             yMax (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the highest value on the vertical axis instead of fitting the data.
             yMin (number): Pin the value axis (bars baseline at 0 by default). Does: Fixes the lowest value on the vertical axis instead of fitting the data.
             name (string): Legend name and append routing key. Does: Labels the series in the legend and is the key a streamed append uses to find it.
-            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars and the default, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
+            type (enum, default bar): Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely. Does: Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart. Values: bar = vertical bars, line = a line joining the points, area = a line with the space beneath it filled, scatter = loose dots at x and y positions, histogram = raw samples grouped into frequency bars, waterfall = bars that step up and down from a running level.
             color (color): Series colour (hex); wins over chartConfig.colors. Does: Paints that series in this hex color, overriding the color list.
             values (number[]): Y values at implicit x = 0, 1, 2 (aligned with categories); null is a gap. Histogram - raw samples to bin; waterfall - signed deltas. Does: Gives the height at each position in order lined up with the categories; null leaves a gap.
             points (array): Explicit [x, y] pairs for scatter or unevenly sampled series. Does: Places each mark at its own x and y pair, for scatter or unevenly spaced data.
@@ -2920,7 +3022,7 @@ class BuildControls:
         Example:
             ui.chart('cpu-chart', position=[0, 0], span=[3, 4], label='CPU / GPU', chartConfig={'showLegend': True, 'smooth': True, 'maxPoints': 60}, defaultValue='{"series":[{"name":"CPU","type":"area","values":[42,51,38,64,55]},{"name":"GPU","type":"line","values":[20,34,28,41,36]}]}', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'telemetry'}, 'valuePath': 'chart'}])
         """
-        return self._ctl("chart", dict(id=id, position=position, span=span, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
+        return self._ctl("chart", dict(id=id, position=position, span=span, haptic=haptic, label=label, chartConfig=chartConfig, tint=tint, formatValue=formatValue, barCornerRadius=barCornerRadius, defaultType=defaultType, bins=bins, colors=colors, datumAction=datumAction, horizontal=horizontal, lineWidth=lineWidth, glowRadius=glowRadius, lineCap=lineCap, maxPoints=maxPoints, negativeColor=negativeColor, pointSize=pointSize, positiveColor=positiveColor, scrub=scrub, showGrid=showGrid, showLegend=showLegend, showValues=showValues, showXAxis=showXAxis, showYAxis=showYAxis, smooth=smooth, stacked=stacked, totalColor=totalColor, yMax=yMax, yMin=yMin, name=name, type=type, color=color, values=values, points=points, sizes=sizes, totals=totals), props)
 
     def chat(
         self, *,
@@ -2948,15 +3050,15 @@ class BuildControls:
             label (string): Header label. Does: Shows this text in the chat's header bar.
             config (object): ChatConfig: target, showTypingIndicators, showReadReceipts, allowReactions, allowReplies, allowImages, historyCount, tint. Does: Holds the chat's options (target, typing dots, receipts, reactions, replies, images, history, color) in one object.
             allowClear (bool): Show the local \\"Clear Chat\\" affordance in the header (default true). Server-driven clears are always honored regardless. Does: Shows a Clear Chat menu in the header that empties this device's messages only; other people's windows are untouched.
-            allowImages (bool): allowImages. Does: Turns image attachments on or off for this chat.
+            allowImages (bool): No effect yet: the app has no image attachments. Does: Does nothing yet; the chat has no image attachments whichever way this is set.
             allowReactions (bool): allowReactions. Does: Adds a React choice to the long-press menu and shows emoji reactions on messages when on.
             allowReplies (bool): allowReplies. Does: Adds a Reply choice to the long-press menu and shows replies in threads when on.
             historyCount (number): historyCount. Does: Keeps only this many of the latest messages (1 to 50, default 50) in the window and in history sent to peers.
             showReadReceipts (bool): showReadReceipts. Does: Shows delivery and read marks under your messages when on.
             showTypingIndicators (bool): showTypingIndicators. Does: Shows animated typing dots while the other side is typing when on.
-            systemMessageEvents (string[]): systemMessageEvents. Does: Lists event names meant to appear as system notes in the chat; the app does not act on it yet.
+            systemMessageEvents (string[]): No effect yet: the app does not read it. Does: Does nothing yet; event names listed here are not shown as system notes.
             target (string): target. Does: Sends your messages to the named MeshSocket peer as a private companion chat; leave it empty to chat with the whole channel.
-            tint (color): tint. Does: Sets the accent color used by the chat bubbles.
+            tint (color): Color of your bubbles and highlights; unset they follow the theme accent. Does: Fills your message bubbles and colors names, reply marks and the send arrow; unset, the bubbles keep the theme's accent gradient.
 
         Example:
             ui.chat('team-chat', position=[0, 0], span=[4, 4], label='Team Chat', config={'target': 'hub-server', 'showTypingIndicators': True, 'showReadReceipts': True, 'allowReactions': True, 'allowReplies': True, 'historyCount': 100})
@@ -3009,6 +3111,10 @@ class BuildControls:
         span: Sequence[int] | None = None,
         label: _Str | None = None,
         defaultValue: _Str | None = None,
+        icon: _Str | None = None,
+        tint: _Str | None = None,
+        hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3018,12 +3124,16 @@ class BuildControls:
         Fields:
             label (string): Display label. Does: Shows this text above the color swatch.
             defaultValue (string): Initial hex color. Does: Sets the color shown before anyone picks one, as a hex value like #F4B860.
+            icon (string): SF Symbol shown beside the label, tinted with tint. Does: Draws this SF Symbol beside the label; leave it empty for no icon.
+            tint (color): Color of the symbol. Does: Colors the symbol beside the label, as any hex color.
+            hideLabel (bool, default false): Hide the label above the swatch. Does: Hides the label shown above the color swatch.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the swatch so it sits on the page.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.color_picker('lr-color', position=[1, 3], defaultValue='#F4B860', label='Color', action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'hue-bridge', 'type': 'color', 'payload': {'room': 'living', 'hex': '{{value}}'}}})
         """
-        return self._ctl("colorPicker", dict(id=id, position=position, span=span, label=label, defaultValue=defaultValue, confirm=confirm), props)
+        return self._ctl("colorPicker", dict(id=id, position=position, span=span, label=label, defaultValue=defaultValue, icon=icon, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, confirm=confirm), props)
 
     def compass(
         self, *,
@@ -3035,6 +3145,7 @@ class BuildControls:
         controlHeight: _Num | None = None,
         tolerance: _Num | None = None,
         dwell: _Num | None = None,
+        tint: _Str | None = None,
         showCardinals: _Bool | None = None,
         cardinalSize: _Num | None = None,
         cardinalColor: _Str | None = None,
@@ -3053,9 +3164,10 @@ class BuildControls:
             controlHeight (number, default 420): Rendered height in points (required in flow-mode grids). Does: Sets the ring's height in points, which also sets its size since it is square.
             tolerance (number, default 15): Half-angle (°) within which the needle counts as pointing at a puck. Does: Counts the needle as pointing at a puck when it is within this many degrees of it.
             dwell (number, default 1.2): Seconds to hold on a puck before its action fires (0 = instant). Does: Waits this many seconds of steady aim at a puck before its action fires; 0 fires at once.
+            tint (color): Needle and accent color (default the theme accent); pucks keep their own tint. Does: Colors the needle and the ring accents; unset follows the theme accent color, and a puck's own tint still wins for that puck.
             showCardinals (bool, default true): Draw N/E/S/W ticks. Does: Draws the N, E, S and W letters around the ring when on.
             cardinalSize (number, default 13): Cardinal glyph point size. Does: Sets the size of the N, E, S and W letters in points.
-            cardinalColor (color): E/S/W cardinal color (default secondary grey; N always follows tint). Does: Colors the N, E, S and W letters; they use a neutral grey when not set.
+            cardinalColor (color): E/S/W cardinal color (default the theme's faint tertiary grey; all four letters share it, N included). Does: Colors the N, E, S and W letters; all four letters (N included) use the theme's faint grey when not set; the Color chip does not recolor them.
             editable (bool, default true): Allow dragging pucks to re-bearing them. Does: Lets you drag pucks around the ring to change their direction when on; off locks them all.
             events (object): events. Does: Runs these actions when a puck is picked up, dropped or the layout changes.
             pucks (object): pucks. Does: Places one puck on the ring per entry at its bearing; aiming at it fires its action.
@@ -3064,7 +3176,7 @@ class BuildControls:
         Example:
             ui.compass('action-ring', position=[0, 0], span=[7, 4], controlHeight=420, label='Action Ring', defaultValue=5, compassConfig={'tolerance': 20, 'dwell': 1.0, 'pucks': [{'id': 'lights', 'label': 'Lights', 'icon': 'lightbulb.fill', 'tint': '#FF9500', 'bearing': 0, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'music', 'label': 'Music', 'icon': 'music.note', 'tint': '#FF2D55', 'bearing': 90, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}, {'id': 'lock', 'label': 'Lock', 'icon': 'lock.fill', 'tint': '#34C759', 'bearing': 180, 'action': {'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'home', 'type': 'scene', 'payload': {'name': '{{value}}'}}}}]}, sync=[{'method': 'sensor', 'sensor': 'heading'}])
         """
-        return self._ctl("compass", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
+        return self._ctl("compass", dict(id=id, position=position, span=span, haptic=haptic, label=label, controlHeight=controlHeight, tolerance=tolerance, dwell=dwell, tint=tint, showCardinals=showCardinals, cardinalSize=cardinalSize, cardinalColor=cardinalColor, editable=editable, events=events, pucks=pucks, compassConfig=compassConfig), props)
 
     def date_picker(
         self, *,
@@ -3078,7 +3190,9 @@ class BuildControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        hideLabel: _Bool | None = None,
+        animation: Literal['smooth', 'snappy', 'bouncy', 'gentle', 'instant'] | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3093,13 +3207,15 @@ class BuildControls:
             label (string): Display label. Does: Writes this text next to the date or time field.
             tint (color, default #667eea): Accent color. Does: Colors the selected day and highlights in the picker with this color.
             defaultValue (string): Initial ISO 8601 date string. Does: Starts the picker on this ISO 8601 moment when the layout first appears.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new date or time is chosen. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thud, rigid = a firm sharp click, soft = a gentle cushioned tap, success = the double tap of a success, warning = a two-pulse warning, error = a sharp triple buzz of an error, selection = the faint tick of picking an item.
+            hideLabel (bool, default false): Hide the label. Does: Hides the label text above the control.
+            animation (enum): Motion profile for value changes. Does: Sets how the control transitions when the value changes, from instant swap to a soft glide. Values: smooth = an even natural transition, snappy = a quick firm change, bouncy = overshoots slightly then settles, gentle = a slow soft change, instant = swaps with no transition.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after each local write.
 
         Example:
             ui.date_picker('alarm-time', position=[0, 0], span=[1, 2], datePickerMode='time', datePickerStyle='compact', label='Wake Up', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'set_alarm', 'time': '{{value}}'}})
         """
-        return self._ctl("datePicker", dict(id=id, position=position, span=span, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
+        return self._ctl("datePicker", dict(id=id, position=position, span=span, datePickerStyle=datePickerStyle, datePickerMode=datePickerMode, dateMin=dateMin, dateMax=dateMax, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, hideLabel=hideLabel, animation=animation, confirm=confirm), props)
 
     def divider(
         self, *,
@@ -3117,7 +3233,7 @@ class BuildControls:
 
         Fields:
             label (string): Optional section label centered on the divider. Does: Shows this text centered on the divider with a line on each side, in the label font size and the line color; empty gives a plain line.
-            tint (color, default #FFFFFF): Line color. Does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
+            tint (color): Line color (unset = the text color at 20%). Does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
             style (enum, default line): Line style. Does: Switches the line between solid and dashed. Values: line = one unbroken solid line, dashed = a row of short dashes with small gaps.
             lineThickness (number, default 1): Line thickness in points. Does: Sets the line's height from 0.5 to 8 pt (default 1).
 
@@ -3232,7 +3348,7 @@ class BuildControls:
         (catalog type `gauge`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            animation (enum): Motion profile for value changes. Does: The needle or arc eases to each new value; instant jumps with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
             min (number, default 0): Minimum value. Does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
             max (number, default 100): Maximum value. Does: The value shown at the full end of the arc; readings at or above it fill the arc completely.
             gaugeStyle (enum, default half): Shorthand: half = 180° arc, full = 360° circle. Does: Switches between a wide 180° half dial and a 360° square ring. Values: half = a half-circle dial that is wide and short, full = a closed ring that is square.
@@ -3310,7 +3426,7 @@ class BuildControls:
             attractionForce (number, default 0.01): How strongly connected nodes pull together. Does: Pulls connected nodes closer together; 0.01 is gentle and larger values draw linked dots into tight clusters.
             backgroundColor (color): Graph canvas background. Does: Fills the graph canvas with this hex color; the default is a near-black navy.
             centerForce (number, default 0.02): How strongly nodes are pulled toward center. Does: Pulls every node toward the canvas center; 0.02 keeps it loose and larger values squeeze the cloud into the middle.
-            contentEvent (string): (Reserved) Event for content-push model. Does: Reserved for a future content-push feature, so setting it changes nothing on screen.
+            contentEvent (string): Dead. Reserved for a content-push model; nothing reads it. Does: Dead: reserved for a future content-push feature, so setting it changes nothing on screen.
             damping (number, default 0.9): Velocity dampening per tick (0-1, lower = more friction). Does: Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner.
             draggable (bool, default true): Allow dragging individual nodes. Does: On lets a finger drag a single node and the rest follow; off keeps every dot where physics puts it.
             edgeColor (color): Default edge line color. Does: Colors every line between nodes with this hex color unless an edge sets its own.
@@ -3329,10 +3445,10 @@ class BuildControls:
             nodeBorderColor (color): Border stroke color. Does: Colors the outline drawn around nodes; it only shows when the outline width is above 0.
             nodeBorderWidth (number, default 0): Border stroke width around nodes. Does: Draws an outline of this thickness in points, 0 to 5; 0 means no outline.
             nodeColor (color): Default node fill color (hex). Does: Fills every node with this hex color unless its group or its own color overrides it.
-            nodeHighlightColor (color): Color when node is active/selected. Does: Switches a node to this hex color while it is active or selected.
+            nodeHighlightColor (color): Dead. Nothing reads it; a selected node is not recoloured. Does: Dead: the graph never reads this colour, so setting it changes nothing on screen.
             nodeSize (number, default 8.0): Base node radius in points. Does: Sets the base node radius in points, 2 to 40; a node's size multiplier scales it.
-            particleColor (color): (Reserved) Particle color. Does: Reserved for the particle color, so setting it changes nothing on screen.
-            particleSpeed (number): (Reserved) Particle animation speed. Does: Reserved for the particle speed, so setting it changes nothing on screen.
+            particleColor (color): Color of the particles running along the edges (falls back to the edge colour). Does: Colors the particles that travel along the edges when showParticles is on; unset uses the edge color.
+            particleSpeed (number): Speed multiplier of the edge particles (1 = normal). Does: Scales how fast the particles run along the edges when showParticles is on; 1 is the normal pace.
             repulsionForce (number, default 100): How strongly nodes push apart. Does: Pushes every pair of nodes apart; larger values spread the network out and smaller ones pack it tight.
             showLabels (bool, default true): Show text labels under nodes. Does: On writes each node's label under it; off shows bare dots.
             showParticles (bool, default false): Animated particles travelling along edges. Does: On animates small particles running along the edges; off leaves the lines still.
@@ -3366,7 +3482,7 @@ class BuildControls:
         discrete: _Bool | None = None,
         drag: _Bool | None = None,
         editable: _Bool | None = None,
-        sendMode: _Str | None = None,
+        sendMode: Literal['cell', 'matrix'] | None = None,
         showColLabels: _Bool | None = None,
         showRowLabels: _Bool | None = None,
         showScale: _Bool | None = None,
@@ -3396,7 +3512,7 @@ class BuildControls:
             discrete (bool, default false): Treat values as palette indices instead of a continuous range. Does: When on each value is a whole-number index into the colors list so cells show flat palette colors instead of a gradient.
             drag (bool, default true): Drag paints the first-touched cell's new value across cells. Does: When on a drag copies the first-touched cell's new value across every cell the finger crosses; off limits edits to single taps.
             editable (bool, default false): Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle). Does: When on tapping a cell cycles it to the next palette color or toggles between 0 and the top value.
-            sendMode (string): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once.
+            sendMode (enum, default cell): cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s). Does: cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once. Values: cell = every edited cell is sent on its own, matrix = the whole grid is sent once the edits pause.
             showColLabels (bool, default true): Column labels along the top (when cols present; auto-thinned). Does: Shows the column names above the grid and thins them out when space is tight.
             showRowLabels (bool, default true): Row labels down the leading edge (when rows present). Does: Shows the row names at the left edge of the grid.
             showScale (bool, default false): Gradient scale legend under the grid (continuous only). Does: Adds a gradient legend beneath a continuous grid or a Less to More row in calendar mode.
@@ -3431,7 +3547,7 @@ class BuildControls:
 
         Fields:
             systemName (string): SF Symbol name (fallback/placeholder). Does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
-            url (string): Static remote image URL. Does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol.
+            url (string): Static remote image URL (an asset:// address is reserved, not loaded yet). Does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol. Addresses starting asset:// are reserved for pictures bundled with a layout and are not loaded yet.
             style (enum): Visual style variant. Does: Clips the picture to rounded corners (12 pt) or a full circle; an image roundness value overrides it. Values: rounded = softly rounded corners, circle = clipped to a circle or pill.
             imageCornerRadius (number): Custom corner radius. Does: Rounds the picture's corners from 0 to 60 pt, overriding the Shape choice.
             imageShadow (number, default 0): Soft shadow blur under the image (0 = none). Does: Blurs a dark shadow under the picture from 0 (none) to 30 pt, with room added around it so it is not cut off.
@@ -3458,6 +3574,7 @@ class BuildControls:
         sticky: _Bool | None = None,
         sendRate: _Num | None = None,
         hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
         """Joystick: Steer with your thumb
@@ -3471,11 +3588,12 @@ class BuildControls:
             sticky (bool, default false): Stick stays where released instead of snapping to center. Does: When on, the stick stays where you released it and sends that position once; when off, it springs back to center and sends x 0, y 0.
             sendRate (number, default 0.1): Throttle interval in seconds for action firing. Does: Sets the minimum seconds between sends while you hold the stick outside the dead zone (0.1-10, default 0.1).
             hideLabel (bool, default false): Hide label and coordinate readout. Does: When on, hides the label and the x/y readout under the stick.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the stick so it sits on the page.
 
         Example:
             ui.joystick('drive-stick', position=[0, 0], span=[3, 3], label='Drive', tint='#FF2D55', style='analog', deadzone=0.15, sendRate=0.05, action={'method': 'meshsocket', 'mode': 'send', 'event': 'route_msg_noreply', 'payload': {'target_name': 'robot', 'type': 'drive', 'payload': {'x': '$value.x', 'y': '$value.y'}}})
         """
-        return self._ctl("joystick", dict(id=id, position=position, span=span, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel), props)
+        return self._ctl("joystick", dict(id=id, position=position, span=span, label=label, tint=tint, style=style, deadzone=deadzone, sticky=sticky, sendRate=sendRate, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
     def key_value(
         self, *,
@@ -3511,7 +3629,7 @@ class BuildControls:
             maxRows (number, default 0): Cap on rendered rows (0 = all of them). Does: Stops drawing after this many rows (0 to 200); 0 shows them all.
             format (string): Default number format for rows without their own (percent, duration, bytes, suffix:°C, …). Does: Prints every number in rows without their own format as a percent, duration, size or with a unit suffix such as °C.
             colorMap (object): Value → hex tint, so a value can carry its own status color. Does: Tints a value with the color listed for it (for example true green and false red); unlisted values use the normal value color.
-            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color; the key names follow it unless they have their own.
+            tint (color): Value color when no colorMap entry matches. Does: Colors the values that have no status color and tints the row symbols; the key names do not follow it (they use the softer text color unless Key color is set). Unset it follows the theme text color.
             keyTint (color): Color of the key names (default: the theme's secondary color). Does: Colors the names of the readings; unset uses the softer theme text color.
             valueTint (color): Color of the values when no colorMap entry matches (default: tint). Does: Colors the values that have no status color; unset follows the accent color.
             hideLabel (bool, default false): Hide the header label. Does: When on the header line is removed and the table moves up to fill the space.
@@ -3555,7 +3673,7 @@ class BuildControls:
 
         Fields:
             text (string): Static display text (overridden by sync). Does: Sets the words on the label; a synced value replaces them as soon as one arrives.
-            label (string): Alternative to text. Does: Shows this text when Text is empty; the label reads the same either way.
+            label (string): Alternative to text. Does: Shows this text when no Text is set at all; an empty Text shows blank, not this. Otherwise the label reads the same either way.
             subtitle (string): A quieter second line under the text (caption size, secondary color). In a list itemTemplate it takes {{item.<field>}}. Does: Adds a compact second line in the caption size and the theme's secondary color; leave it empty for a single line.
             lines (number, default 1): Most lines the text may take (1 = truncate, N = wrap up to N, 0 = wrap freely). Also limits the subtitle. Does: Keeps the text on one line, or lets it wrap onto up to 10 lines; 0 wraps as far as it needs.
             icon (string): SF Symbol before text. Does: Draws the named SF Symbol in front of the text, in the same color and size.
@@ -3667,7 +3785,7 @@ class BuildControls:
             autoScroll (bool, default true): Auto-scroll to latest line. Does: Keeps the view pinned to the latest line as new ones arrive, until you drag up to read older ones.
             controlHeight (number): Console area height in points (default: compact, capped at 200). Set it when the console should fill a tall grid span. Does: Sets the height of the console area in points; without it the area stays compact at no more than 200.
             logColors (object): Map log levels to colors: {\\"error\\": \\"#FF3B30\\", \\"warn\\": \\"#FF9500\\"}. Does: Colors each line by its level name, for example error or warn, overriding the theme's built-in level colors.
-            tint (color, default #667eea): Accent color. Does: Stores an accent color for the console; lines take their colors from the level colors and the theme, so it shows no change today.
+            tint (color, default #FFFFFF): Color of the lines with no level. Does: Colors the lines with no level, or a level no color names; lines with a level keep their level color.
             defaultValue (array): Seed lines shown before the first sync (strings, or objects with text and level). Does: Fills the console with these lines before any synced line arrives.
 
         Example:
@@ -3686,6 +3804,29 @@ class BuildControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         mapConfig: _Obj | None = None,
+        markerStyle: Literal['dot', 'symbol', 'puck'] | None = None,
+        recenter: Literal['auto', 'always', 'initial', 'off'] | None = None,
+        markerSizeProperty: _Str | None = None,
+        markerSizeDomain: Any | None = None,
+        markerSizeRange: Any | None = None,
+        markerColorProperty: _Str | None = None,
+        markerLabelProperty: _Str | None = None,
+        rippleProperty: _Str | None = None,
+        rippleThreshold: _Num | None = None,
+        ripple: _Obj | None = None,
+        maxMarkers: _Num | None = None,
+        center: Any | None = None,
+        markersPath: _Str | None = None,
+        markerLatProperty: _Str | None = None,
+        markerLngProperty: _Str | None = None,
+        markerIdProperty: _Str | None = None,
+        coordinateOrder: Literal['lnglat', 'latlng'] | None = None,
+        minWeight: _Num | None = None,
+        markerSymbol: _Str | None = None,
+        markerSymbolProperty: _Str | None = None,
+        motion: _Bool | None = None,
+        motionDuration: _Num | None = None,
+        hideLabel: _Bool | None = None,
         controlHeight: _Num | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3699,12 +3840,35 @@ class BuildControls:
             label (string): Header label above the map. Does: Shows this text as a header above the map.
             tint (color, default #667eea): Default marker color (used when a marker carries none). Does: Colors every pin that does not bring its own color.
             mapConfig (object): Property→style mapping for GeoJSON feeds (marker size/color/label/ripple). Does: Tells the map which properties of your data set pin size, color, label and ripple.
+            markerStyle (enum, default dot): How each pin is drawn (mapConfig.markerStyle). Does: Draws each pin as a plain dot, a bare SF Symbol (named by mapConfig.markerSymbol), or a symbol inside a filled circle. Values: dot = a plain round dot, symbol = a bare symbol such as an airplane, puck = a symbol inside a filled circle.
+            recenter (enum, default auto): How the camera reacts to new data (mapConfig.recenter). Does: Chooses when the camera refits to the pins as new data arrives. Values: auto = frames and follows the pins, but stops once you pan or zoom yourself, always = refits to the pins on every update, initial = frames the pins once and then stays put, off = never moves the camera.
+            markerSizeProperty (string): Numeric feed property that drives pin size (mapConfig.markerSizeProperty), scaled from markerSizeDomain into markerSizeRange. Does: Sizes each pin from this number in your data, so bigger readings draw bigger pins.
+            markerSizeDomain (number[], default [0, 10]): Input range [low, high] of markerSizeProperty (mapConfig.markerSizeDomain). Does: Treats readings at the low end as the smallest pin and at the high end as the largest.
+            markerSizeRange (number[], default [8, 30]): Output pin diameter range [smallest, largest] in points (mapConfig.markerSizeRange). Does: Sets the smallest and largest pin size in points.
+            markerColorProperty (string): Feed property holding a hex color for each pin (mapConfig.markerColorProperty). Does: Colors each pin with the hex color found under this name in your data.
+            markerLabelProperty (string): Feed property used as each pin's label (mapConfig.markerLabelProperty). Does: Writes this value from your data beside each pin.
+            rippleProperty (string): Numeric feed property that decides which pins ripple (mapConfig.rippleProperty). Does: Pulses a ring around every pin whose reading here reaches the ripple threshold.
+            rippleThreshold (number, default 0): rippleProperty >= rippleThreshold makes that pin ripple (mapConfig.rippleThreshold). Does: Pulses only the pins whose reading is at least this number.
+            ripple (object): Ring styling for rippling pins: color, period (s, default 1.6), radius (pt, default 44) (mapConfig.ripple). Does: Sets the ring's color, how long one pulse takes, and how wide it grows.
+            maxMarkers (number, default 400): Cap on drawn pins; a public feed can be unbounded (mapConfig.maxMarkers). Does: Draws at most this many pins, so a huge feed stays smooth.
+            center (number[]): Fixed camera centre [lat, lng] instead of fitting the data; combines with recenter (mapConfig.center). Does: Points the map at this latitude and longitude instead of framing the pins.
+            markersPath (string): Dot-path to the array of point objects in a non-GeoJSON payload, e.g. "ac" (mapConfig.markersPath). Does: Reads the pins from the list found under this name in your data.
+            markerLatProperty (string): Property holding latitude on each point object, e.g. "lat"; switches to object-array mode (mapConfig.markerLatProperty). Does: Places each pin at the latitude found under this name.
+            markerLngProperty (string): Property holding longitude on each point object, e.g. "lon" (mapConfig.markerLngProperty). Does: Places each pin at the longitude found under this name.
+            markerIdProperty (string): Property giving each pin a stable identity across updates; needed for smooth motion (mapConfig.markerIdProperty). Does: Keeps each pin the same pin across updates, so it glides instead of jumping.
+            coordinateOrder (enum, default lnglat): Order of raw [a, b, weight] number triples, GeoJSON-style lnglat or latlng (mapConfig.coordinateOrder). Does: Reads each number pair as longitude then latitude, or latitude then longitude. Values: lnglat = each pair is longitude then latitude, the GeoJSON order, latlng = each pair is latitude then longitude.
+            minWeight (number): In number-triple mode, drop points whose weight is below this before capping (mapConfig.minWeight). Does: Leaves out points whose weight is below this number, keeping the strongest ones.
+            markerSymbol (string): Default SF Symbol name for the symbol and puck pin styles, e.g. "airplane" (mapConfig.markerSymbol). Does: Draws this symbol for each pin when the pin style is symbol or puck.
+            markerSymbolProperty (string): Per-object property naming an SF Symbol, overriding markerSymbol (mapConfig.markerSymbolProperty). Does: Gives each pin the symbol named under this value in your data.
+            motion (bool, default false): Glide pins between updates instead of snapping; needs markerIdProperty with more than one pin (mapConfig.motion). Does: Moves each pin smoothly to its new position when fresh data arrives.
+            motionDuration (number, default 1.2): Seconds one position glide takes; set near the poll interval (mapConfig.motionDuration). Does: Takes this many seconds to move a pin to its new spot.
+            hideLabel (bool, default false): Hide the header label above the map. Does: On hides the title row above the map even when a label is set; off shows it.
             controlHeight (number): Map height in points in a flow-mode grid (2-D grids size it by rowSpan). Does: Sets the map height from 120 to 1200 points when the grid flows; 2-D grids use row span instead.
 
         Example:
             ui.map('vehicle-location', position=[0, 0], span=[3, 4], mapStyle='standard', mapInteractive=True, mapZoom=0.005, label='Vehicle', tint='#FF3B30', sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'gps_update'}, 'valuePath': 'map_data'}])
         """
-        return self._ctl("map", dict(id=id, position=position, span=span, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, controlHeight=controlHeight), props)
+        return self._ctl("map", dict(id=id, position=position, span=span, mapStyle=mapStyle, mapInteractive=mapInteractive, mapZoom=mapZoom, label=label, tint=tint, mapConfig=mapConfig, markerStyle=markerStyle, recenter=recenter, markerSizeProperty=markerSizeProperty, markerSizeDomain=markerSizeDomain, markerSizeRange=markerSizeRange, markerColorProperty=markerColorProperty, markerLabelProperty=markerLabelProperty, rippleProperty=rippleProperty, rippleThreshold=rippleThreshold, ripple=ripple, maxMarkers=maxMarkers, center=center, markersPath=markersPath, markerLatProperty=markerLatProperty, markerLngProperty=markerLngProperty, markerIdProperty=markerIdProperty, coordinateOrder=coordinateOrder, minWeight=minWeight, markerSymbol=markerSymbol, markerSymbolProperty=markerSymbolProperty, motion=motion, motionDuration=motionDuration, hideLabel=hideLabel, controlHeight=controlHeight), props)
 
     def picker(
         self, *,
@@ -3720,7 +3884,9 @@ class BuildControls:
         label: _Str | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
+        hideLabel: _Bool | None = None,
+        hideBackground: _Bool | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3737,13 +3903,15 @@ class BuildControls:
             label (string): Display label. Does: Writes this text as the picker title.
             tint (color, default #667eea): Accent color. Does: Colors the selected choice and the picker accent with this color.
             defaultValue (string): Initially selected option. Does: Selects this choice when the layout first appears; it should match one of the stored values.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a new choice is picked (default selection). Values: light = a faint tap, medium = a firm tap, heavy = a strong thud, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a happy double tap, warning = a cautionary buzz, error = a sharp triple buzz, selection = a tiny tick like scrolling a wheel.
+            hideLabel (bool, default false): Hide the label. Does: Hides the label text above the control.
+            hideBackground (bool, default false): Remove glass background. Does: Removes the frosted card behind the control so it sits on the page.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you pick a choice.
 
         Example:
             ui.picker('drive-mode', position=[0, 0], options=['eco', 'comfort', 'sport'], optionLabels=['Economy', 'Comfort', 'Sport'], optionIcons=['leaf', 'car', 'bolt'], defaultValue='eco')
         """
-        return self._ctl("picker", dict(id=id, position=position, span=span, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, confirm=confirm), props)
+        return self._ctl("picker", dict(id=id, position=position, span=span, animation=animation, optionIcons=optionIcons, optionLabels=optionLabels, placeholder=placeholder, options=options, pickerStyle=pickerStyle, label=label, tint=tint, defaultValue=defaultValue, haptic=haptic, hideLabel=hideLabel, hideBackground=hideBackground, confirm=confirm), props)
 
     def pie_chart(
         self, *,
@@ -3822,7 +3990,7 @@ class BuildControls:
         paletteLabel: _Str | None = None,
         hidePalette: _Bool | None = None,
         events: _Obj | None = None,
-        items: _Obj | None = None,
+        items: _Arr | None = None,
         pinboardConfig: _Obj | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3839,7 +4007,7 @@ class BuildControls:
             paletteLabel (string, default Items): Header for the option area. Does: Sets the header over the option area, e.g. Unplaced devices instead of Items.
             hidePalette (bool, default false): Hide the option area (surfaces whose markers all start placed). Does: Removes the option area so only the surface shows, for boards whose markers all start placed.
             events (object): events. Does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a marker.
-            items (object): items. Does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
+            items (array): items. Does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
             pinboardConfig (object): Grouped config object (see grouped fields). Does: Groups the backdrop, shape, search, palette, events and items settings; any entry left out uses its default.
 
         Example:
@@ -3876,7 +4044,7 @@ class BuildControls:
         (catalog type `progressRing`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
+            animation (enum): Motion profile for value changes. Does: The fill eases to each new value; instant jumps with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new value with no travel.
             min (number, default 0): Minimum value (0%). Does: Sets the value at 0% fill, in the control's unit (e.g. 0).
             max (number, default 100): Maximum value (100%). Does: Sets the value at 100% fill, in the control's unit (e.g. 100).
             progressStyle (enum, default ring): Circular ring or linear bar. Does: Switches the display between a circular ring and a horizontal bar. Values: ring = a circular ring with the number in the middle, bar = a thin horizontal bar with the title and number above.
@@ -3910,6 +4078,7 @@ class BuildControls:
         tint: _Str | None = None,
         qrBackground: _Str | None = None,
         correctionLevel: Literal['L', 'M', 'Q', 'H'] | None = None,
+        hideLabel: _Bool | None = None,
         hideBackground: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -3922,12 +4091,13 @@ class BuildControls:
             tint (color, default #FFFFFF): QR code foreground color. Does: Recolors the dark squares of the code; keep it strongly different from the background so cameras can read it.
             qrBackground (color): Fill behind the code (default: none, the card shows through). Does: Fills a solid color behind the squares; left empty, the card shows through.
             correctionLevel (enum, default M): Error correction level. Does: Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans. Values: L = lowest correction, simplest code, for clean screens, M = medium correction, a good everyday balance, Q = higher correction, survives some smudging, H = highest correction, densest code, survives scratches or a logo over it.
+            hideLabel (bool, default false): Hide the caption below the code. Does: On hides the title line under the code; off shows it when a title is set.
             hideBackground (bool, default false): Remove glass card background. Does: On removes the glass card so the code sits straight on the page; off keeps the card.
 
         Example:
             ui.qr_code('wifi-qr', position=[0, 0], span=[2, 2], label='Guest Wi-Fi', text='WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', tint='#FFFFFF', correctionLevel='H')
         """
-        return self._ctl("qrCode", dict(id=id, position=position, span=span, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideBackground=hideBackground), props)
+        return self._ctl("qrCode", dict(id=id, position=position, span=span, label=label, text=text, tint=tint, qrBackground=qrBackground, correctionLevel=correctionLevel, hideLabel=hideLabel, hideBackground=hideBackground), props)
 
     def radar(
         self, *,
@@ -4040,7 +4210,7 @@ class BuildControls:
         style: Literal['default', 'pills', 'stars'] | None = None,
         tint: _Str | None = None,
         defaultValue: _Str | None = None,
-        haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
+        haptic: Literal['light', 'medium', 'heavy', 'rigid', 'soft', 'success', 'warning', 'error', 'selection'] | None = None,
         confirm: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -4048,15 +4218,15 @@ class BuildControls:
         (catalog type `segmentedControl`)
 
         Fields:
-            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease and the default, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
+            animation (enum): Motion profile for value changes. Does: The selected highlight eases to a new choice; instant makes it jump with no travel. Values: smooth = an even ease, snappy = a quick move that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft glide, instant = jumps straight to the new choice with no travel.
             optionLabels (array): Display labels parallel to options; actions and sync use the original option values. Does: Each segment shows this text in place of its stored value; a blank entry falls back to the value.
             placeholder (string): Text shown when no options are available or a picker has no selection. Does: Shows this text, e.g. No options, where the segments would be when the list is empty.
             options (array): Segment labels (string array). Does: Creates one segment per entry, in order; two to five fit best.
             optionIcons (array): SF Symbols parallel to options. Does: Draws an SF Symbol on each segment at the same position as its option; missing entries show none.
             style (enum, default default): System segmented, capsule pills, or tap-a-star rating (options "1"…"N"; sends the number). Does: Switches between the system segmented bar, separate capsule buttons and a row of tappable stars. Values: default = the standard iOS segmented bar, pills = separate capsule buttons with the chosen one tinted, stars = a row of stars where tapping one fills up to it and sends its number.
             tint (color, default #667eea): Accent for pills style. Does: Colours the selected pill background and the filled stars; the default bar ignores it.
-            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears.
-            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker and the default.
+            defaultValue (string): Initially selected option. Does: The segment matching this option is highlighted when the control first appears; with no starting choice and nothing stored, the first option starts selected.
+            haptic (enum, default selection): Default haptic on change. Does: Plays this haptic on the phone each time a different segment is selected. Values: light = a small soft tap, medium = a medium tap, heavy = a strong thump, rigid = a firm sharp click, soft = a gentle cushioned tap, success = a confirming double pulse, warning = an alert pulse, error = a sharp failure buzz, selection = a tiny tick like scrolling a picker.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: After each change a pill naming it with an Undo button shows for 3 seconds.
 
         Example:
@@ -4132,8 +4302,8 @@ class BuildControls:
         hidePalette: _Bool | None = None,
         columns: _Num | None = None,
         events: _Obj | None = None,
-        items: _Obj | None = None,
-        zones: _Obj | None = None,
+        items: _Arr | None = None,
+        zones: _Arr | None = None,
         sortboardConfig: _Obj | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -4149,8 +4319,8 @@ class BuildControls:
             hidePalette (bool, default false): Hide the option area (server-seeded boards where items start placed). Does: Removes the option area so only the columns show, for boards whose items all start placed.
             columns (number, default 2): How many zone columns to lay out. Does: Lays the zones out in this many columns side by side, 1 to 12.
             events (object): events. Does: Holds the pickup, place and layout actions that fire as you lift, drop and settle a card.
-            items (object): items. Does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
-            zones (object): zones. Does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
+            items (array): items. Does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
+            zones (array): zones. Does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
             sortboardConfig (object): Grouped config object (see grouped fields). Does: Groups the search, palette, columns, events, items and zones settings; any entry left out uses its default.
 
         Example:
@@ -4198,7 +4368,7 @@ class BuildControls:
             lineWidth (number): Line stroke width in points. Omit to scale with the control's height. Does: Draws the line this many points thick; when not set it grows with the control's height.
             sparklineFill (bool, default false): Fill the area under the line with a gradient. Does: Fills the area under the line with a fading tint when on; off leaves just the line.
             glowRadius (number, default 0): Soft glow behind the line in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a soft glow in the line's own color behind it; 0 turns it off.
-            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Does: Shapes the two ends of the line as rounded, flat or squared off. Values: round = rounded ends and the default, butt = flat ends that stop exactly at the last point, square = flat ends that extend a little past the last point.
+            lineCap (enum, default round): End shape of the line. Cross-control, same on every control. Does: Shapes the two ends of the line as rounded, flat or squared off. Values: round = rounded ends, butt = flat ends that stop exactly at the last point, square = flat ends that extend a little past the last point.
             colorByValue (array): Color zones [{limit, color}] — the line and fill take the zone colour of the value at each height. Overrides tint. Does: Colors the line and fill by height: each part takes the color of the zone its value falls in.
             colorBlend (number, default 0): How much the zone colors blend, 0–1. 0 = hard boundaries, 1 = one smooth gradient. Needs colorByValue. Does: Softens the edges between the color zones, from sharp bands at 0 to one smooth gradient at 1.
             tint (color, default #667eea): Line and fill color. Does: Colors the line and its fill; color zones replace it when set.
@@ -4255,7 +4425,7 @@ class BuildControls:
             glowRadius (number, default 0): Soft glow behind the history curve in its own colour, in points (0 = none). Cross-control, same on every control. Does: Adds a glow behind the trend line from 0 (off) to 30 points wide.
             lineCap (enum, default round): End shape of the history curve. Cross-control, same on every control. Does: Rounds, flattens or squares the two ends of the trend line. Values: round = soft rounded ends, butt = flat ends cut exactly at the data point, square = flat ends that stick out half a stroke past the data point.
             hideBackground (bool, default false): Remove the card (and its threshold tint). Does: Removes the card fill and its zone tint when on so the number floats on the layout.
-            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll and the default, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
+            animation (enum): Motion profile for the number roll. Does: The number rolls to each new value; instant swaps it with no roll. Values: smooth = an even roll, snappy = a quick roll that settles fast, bouncy = overshoots slightly then springs back, gentle = a slow and soft roll, instant = swaps straight to the new number with no roll.
             reference (number): The value the change is measured against (yesterday, target…). Does: Sets the baseline in the tile's unit; the arrow and change show the value minus this.
             referencePath (string): Dot path in the same payload as the value to a live reference; overrides reference once it arrives. Does: Reads the baseline from this dot path in the same data as the value and replaces Compare against once it arrives.
             deltaMode (enum, default percent): Percent change, or the absolute difference in the value's unit. Does: Shows the change as a percent of the baseline or as the plain difference in the tile's unit. Values: percent = change as a percent of the baseline, absolute = change as the plain difference in the value's unit.
@@ -4318,7 +4488,7 @@ class BuildControls:
         hideValue: _Bool | None = None,
         label: _Str | None = None,
         icon: _Str | None = None,
-        formatValue: _Str | None = None,
+        formatValue: Literal['decimal', 'percent', 'time', 'duration', 'bytes', 'bytesKB', 'bps', 'relative', 'none'] | None = None,
         defaultValue: _Num | None = None,
         haptic: Literal['light', 'medium', 'heavy', 'success', 'warning', 'error', 'selection'] | None = None,
         confirm: _Bool | None = None,
@@ -4337,7 +4507,7 @@ class BuildControls:
             hideValue (bool, default false): Hide the numeric readout; keep the buttons, label, and spoken value. Does: Removes the visible number between the buttons; the title and buttons stay and VoiceOver still reads the value.
             label (string): Display label. Does: Writes this text as the title of the stepper.
             icon (string): SF Symbol before value. Does: Shows this SF Symbol before the value.
-            formatValue (string, default decimal): Value format: decimal, time, percent. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit.
+            formatValue (enum, default decimal): Value format: decimal, percent, time, duration, bytes, bytesKB, bps, relative or none; decimal:N, prefix:X and suffix:X also work in JSON. Does: Changes the readout from a plain number such as 72 to a time like 3:45 or a percentage like 80%; suffix:text adds a unit. Values: decimal = a plain number like 72 or 3.5, percent = a whole percentage like 80%, time = minutes and seconds like 3:45, from a total in seconds, duration = a length of time like 1h 5m, from seconds, bytes = a size like 1.2 MB, from bytes, bytesKB = a size like 1.2 MB, from kilobytes, bps = a speed like 4 Mbps, from bits per second, relative = how long ago, like 5 min ago, from a date, none = no number shown.
             defaultValue (number): Initial value. Does: Shows this number (within lowest to highest) until something else sets it.
             haptic (enum, default light): Default haptic on step. Does: Plays this vibration on every step: light to heavy taps or a success warning error or selection pattern. Values: light = a soft tap, medium = a firmer tap, heavy = a strong thump, success = a pleasant double tap, warning = a cautionary buzz, error = a sharp failure buzz, selection = a tiny tick like a picker.
             confirm (bool, default false): After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off). Does: Shows a pill naming the change with an Undo button for 3 seconds after you step.
@@ -4396,26 +4566,26 @@ class BuildControls:
             hideBackground (bool, default false): Remove glass background. Does: Turned on, the glass card is removed and the icon floats on the page.
             iconMap (object): Incoming value → SF Symbol name ("default" catches the rest). Does: Swaps the glyph to the symbol listed for the incoming value, with default catching any other value.
             colorMap (object): Incoming value → hex tint. Does: Tints the glyph with the hex color listed for the incoming value.
-            haptic (enum): Touch feedback on tap (default light). Does: Plays this haptic feedback each time the symbol is tapped; light when not set. Values: none = no haptic, light = a small light tap and the default, medium = a medium tap, heavy = a strong tap, soft = a rounded cushioned tap, rigid = a sharp firm tap, selection = a tiny tick like scrolling a picker, success = a success pattern, warning = a warning pattern, error = an error pattern.
-            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Does: Chooses how the symbol's layers take color. Values: monochrome = one color for the whole glyph and the default, hierarchical = layers shaded from one color, strongest first, palette = each layer gets its own color from the palette list, multicolor = the symbol's own built-in colors and ignores the tint.
+            haptic (enum): Touch feedback on tap (default light). Does: Plays this haptic feedback each time the symbol is tapped; light when not set. Values: none = no haptic, light = a small light tap, medium = a medium tap, heavy = a strong tap, soft = a rounded cushioned tap, rigid = a sharp firm tap, selection = a tiny tick like scrolling a picker, success = a success pattern, warning = a warning pattern, error = an error pattern.
+            renderingMode (enum, default monochrome): SF rendering mode — multicolor uses the symbol's own colours. Does: Chooses how the symbol's layers take color. Values: monochrome = one color for the whole glyph, hierarchical = layers shaded from one color, strongest first, palette = each layer gets its own color from the palette list, multicolor = the symbol's own built-in colors and ignores the tint.
             palette (array): Hex colour per layer (primary, secondary, tertiary) for palette rendering. Does: Colors the symbol's layers in order, primary first, when the colouring is palette.
-            weight (enum, default regular): Glyph weight. Does: Sets the stroke thickness of the glyph. Values: ultraLight = the thinnest lines, thin = very fine lines, light = fine lines, regular = normal lines and the default, medium = slightly heavier lines, semibold = fairly heavy lines, bold = heavy lines, heavy = very heavy lines, black = the heaviest lines.
-            variant (enum, default none): Symbol variant applied on top of the name. Does: Applies a variant to the symbol name, such as a circle around it or a slash through it. Values: none = the symbol exactly as named and the default, fill = the filled version, circle = the glyph inside a circle, square = the glyph inside a square, rectangle = the glyph inside a rectangle, slash = a diagonal slash through the glyph.
+            weight (enum, default regular): Glyph weight. Does: Sets the stroke thickness of the glyph. Values: ultraLight = the thinnest lines, thin = very fine lines, light = fine lines, regular = normal lines, medium = slightly heavier lines, semibold = fairly heavy lines, bold = heavy lines, heavy = very heavy lines, black = the heaviest lines.
+            variant (enum, default none): Symbol variant applied on top of the name. Does: Applies a variant to the symbol name, such as a circle around it or a slash through it. Values: none = the symbol exactly as named, fill = the filled version, circle = the glyph inside a circle, square = the glyph inside a square, rectangle = the glyph inside a rectangle, slash = a diagonal slash through the glyph.
             size (number): Explicit point size (default scales to the cell). Does: Sets the glyph's point size; left empty it scales to fill the cell.
-            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles. Values: none = no animation and the default, rain = slanted drops falling below the symbol, snow = flakes falling and drifting below the symbol, sparkle = four-point stars twinkling around the symbol, pulse = the icon fades in and out, breathe = the icon gently grows and shrinks, variableColor = the icon's layers light up in sequence, rotate = the icon spins, wiggle = the icon shakes to get attention, bounce = the icon hops, scale = the icon is held larger or smaller.
+            effect (enum, default none): Native symbol effect or custom rain, snow, sparkle animation. Does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles. Values: none = no animation, rain = slanted drops falling below the symbol, snow = flakes falling and drifting below the symbol, sparkle = four-point stars twinkling around the symbol, pulse = the icon fades in and out, breathe = the icon gently grows and shrinks, variableColor = the icon's layers light up in sequence, rotate = the icon spins, wiggle = the icon shakes to get attention, bounce = the icon hops, scale = the icon is held larger or smaller.
             particleColor (color): Custom particle colour (default tint; blue rain, white snow, yellow sparkles in multicolor). Does: Overrides the color of the custom particles instead of the tint or palette.
             particleIntensity (number, default 0.65): Rain, snow, sparkle density (0 hides particles). Does: Sets how dense the particles are from 0 to 1, with 0 hiding them.
             particleAngle (number, default -18): Rain/snow direction in degrees from vertical (negative left, positive right). Does: Tilts falling particles from straight down, negative toward the left and positive toward the right.
             effectOptions (array): Effect modifiers in Apple's words: iterative, cumulative, reversing, hideInactiveLayers, up, down, clockwise, byLayer, wholeSymbol …. Does: Adds Apple's modifiers such as byLayer, clockwise or iterative to a native effect.
-            loop (enum, default continuous): How the effect repeats. Does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time. Values: continuous = repeats without stopping and the default, periodic = plays, waits the loop delay, then plays again, once = plays one time and stops.
+            loop (enum, default continuous): How the effect repeats. Does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time. Values: continuous = repeats without stopping, periodic = plays, waits the loop delay, then plays again, once = plays one time and stops.
             loopCount (number): periodic only — plays before stopping (omit for forever). Does: With periodic looping, stops the effect after this many plays; empty means forever.
             loopDelay (number, default 1): periodic only — seconds between plays. Does: With periodic looping, waits this many seconds between plays.
             speed (number, default 1): Playback speed multiplier. Does: Multiplies the animation speed; 2 plays twice as fast and 0.5 half as fast.
             activeWhen (string, default always): always | truthy | a state word the synced value must equal. Does: Plays the effect always, only when the synced value is true, or only when it equals the state word you give.
             variableMin (number, default 0): Numeric value at which the variable layers are empty. Does: The synced number at which the symbol's variable layers show as empty.
             variableMax (number, default 100): Numeric value at which the variable layers are full. Does: The synced number at which the symbol's variable layers show as full.
-            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Does: Animates the swap when the glyph changes to a different symbol. Values: replace = the old glyph morphs into the new one and the default, replace.downUp = the old glyph slides down and the new one comes up, replace.upUp = both glyphs move up, replace.offUp = the old glyph fades while the new one moves up, replace.magic = matching parts of the two glyphs morph into each other, none = swaps instantly with no animation.
-            tapEffect (enum, default none): One-shot effect played on tap. Does: Plays this effect once each time the symbol is tapped. Values: none = no animation and the default, bounce = the icon hops once, pulse = the icon fades once, variableColor = the layers light up once in sequence, wiggle = the icon shakes once, rotate = the icon spins once, breathe = the icon grows and shrinks once.
+            transition (enum): How a glyph change animates (default replace; none when the value is numeric). Does: Animates the swap when the glyph changes to a different symbol. Values: replace = the old glyph morphs into the new one, replace.downUp = the old glyph slides down and the new one comes up, replace.upUp = both glyphs move up, replace.offUp = the old glyph fades while the new one moves up, replace.magic = matching parts of the two glyphs morph into each other, none = swaps instantly with no animation.
+            tapEffect (enum, default none): One-shot effect played on tap. Does: Plays this effect once each time the symbol is tapped. Values: none = no animation, bounce = the icon hops once, pulse = the icon fades once, variableColor = the layers light up once in sequence, wiggle = the icon shakes once, rotate = the icon spins once, breathe = the icon grows and shrinks once.
             triggers (array): Server events that play a one-shot effect: [{ event, filter?, effect, effectOptions? }]. Does: Plays a one-shot effect each time a matching server event arrives.
             symbolConfig (object): Full configuration object holding every field marked group symbolConfig. Does: Holds the rendering, effect, particle, loop and tap settings below; leave it out for a still symbol.
 
@@ -4573,6 +4743,7 @@ class BuildControls:
         webInteractive: _Bool | None = None,
         webScrollEnabled: _Bool | None = None,
         webRefreshInterval: _Num | None = None,
+        hideLabel: _Bool | None = None,
         hideBackground: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -4585,9 +4756,10 @@ class BuildControls:
             webInteractive (bool, default true): Allow user interaction. Does: When off, touches pass through the page so it is display only; when on, links and forms work.
             webScrollEnabled (bool, default true): Allow scrolling. Does: When off, the page stays at its top position and cannot be dragged; when on, you can scroll it.
             webRefreshInterval (number): Auto-refresh interval in seconds. Does: Reloads the page every this many seconds (1 to 3600) while it is on screen; leave it unset for no automatic reload.
+            hideLabel (bool, default false): Hide the header label. Does: On hides the title row above the page even when a label is set; off shows it.
             hideBackground (bool, default false): Remove glass card background. Does: Removes the glass card, fill and border so only the page sits on the layout.
 
         Example:
             ui.web_view('grafana', position=[0, 0], span=[4, 4], label='Metrics Dashboard', url='https://grafana.local/d/overview?kiosk', webInteractive=True, webScrollEnabled=False, webRefreshInterval=30)
         """
-        return self._ctl("webView", dict(id=id, position=position, span=span, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideBackground=hideBackground), props)
+        return self._ctl("webView", dict(id=id, position=position, span=span, url=url, label=label, webInteractive=webInteractive, webScrollEnabled=webScrollEnabled, webRefreshInterval=webRefreshInterval, hideLabel=hideLabel, hideBackground=hideBackground), props)

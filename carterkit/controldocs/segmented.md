@@ -39,7 +39,9 @@ fields:
     description: Motion profile for value changes
     summary: How the highlight slides between choices
     does: The selected highlight eases to a new choice; instant makes it jump with no travel.
-    valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new choice with no travel"}
+    valueHelp: {"smooth": "an even ease", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new choice with no travel"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: optionLabels
     type: array
     description: Display labels parallel to options; actions and sync use the original option values
@@ -52,7 +54,8 @@ fields:
     does: Shows this text, e.g. No options, where the segments would be when the list is empty.
   - name: options
     chip: Options
-    edit: options
+    edit: rows
+    columns: [{"name": "value", "title": "Choice", "type": "string", "edit": "inline", "self": true, "default": "Option {n}"}, {"name": "label", "title": "Shown as", "type": "string", "edit": "inline", "in": "optionLabels"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol", "in": "optionIcons"}]
     depth: surface
     title: Choices
     type: array
@@ -75,6 +78,8 @@ fields:
     summary: Plain bar, round pills or stars
     does: Switches between the system segmented bar, separate capsule buttons and a row of tappable stars.
     valueHelp: {"default": "the standard iOS segmented bar", "pills": "separate capsule buttons with the chosen one tinted", "stars": "a row of stars where tapping one fills up to it and sends its number"}
+    valueTitles: {"default": "Default", "pills": "Pills", "stars": "Stars"}
+    valueSymbols: {"default": "textformat", "pills": "capsule", "stars": "star.fill"}
   - name: tint
     edit: color
     depth: surface
@@ -88,19 +93,18 @@ fields:
     type: string
     description: Initially selected option
     summary: Which choice starts selected
-    does: The segment matching this option is highlighted when the control first appears.
+    does: The segment matching this option is highlighted when the control first appears; with no starting choice and nothing stored, the first option starts selected.
   - name: haptic
-    edit: look
-    depth: hold
-    under: style
     tab: action
     type: enum
-    values: [light, medium, heavy, success, warning, error, selection]
+    values: [light, medium, heavy, { value: rigid, since: next }, { value: soft, since: next }, success, warning, error, selection]
     default: selection
     description: Default haptic on change
     summary: The tap feel when you change choice
     does: Plays this haptic on the phone each time a different segment is selected.
-    valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thump", "success": "a confirming double pulse", "warning": "an alert pulse", "error": "a sharp failure buzz", "selection": "a tiny tick like scrolling a picker and the default"}
+    valueHelp: {"rigid": "a firm sharp click", "soft": "a gentle cushioned tap", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thump", "success": "a confirming double pulse", "warning": "an alert pulse", "error": "a sharp failure buzz", "selection": "a tiny tick like scrolling a picker"}
+    valueTitles: {"rigid": "Rigid", "soft": "Soft", "light": "Light", "medium": "Medium", "heavy": "Heavy", "success": "Success", "warning": "Warning", "error": "Error", "selection": "Selection"}
+    valueSymbols: {"rigid": "square.fill", "soft": "cloud.fill", "light": "circle", "medium": "circle.fill", "heavy": "circle.inset.filled", "success": "checkmark.circle", "warning": "exclamationmark.triangle", "error": "xmark.octagon", "selection": "hand.tap"}
   - use: confirm
     does: After each change a pill naming it with an Undo button shows for 3 seconds.
 themeFields:
@@ -174,6 +178,37 @@ themeFields:
   - use: secondaryColor
     summary: The colour of supporting words
     does: Colours the quieter supporting text in the control.
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The highlight color on pills and stars
+    does: Tints the chosen pill and the filled stars; until set it follows the primary role.
+  - slot: track
+    default: "#39393D"
+    alias: theme.trackColor
+    since: next
+    summary: The color behind the segments
+    does: Fills the bar behind the segments; until set it keeps the segmented theme's track color, light or dark.
+  - slot: selected
+    default: "#636366"
+    alias: theme.selectedColor
+    since: next
+    summary: The color of the chosen segment
+    does: Fills the chosen segment; until set it keeps the segmented theme's pill color, light or dark.
+  - slot: text
+    default: "#FFFFFF99"
+    alias: theme.textColor
+    since: next
+    summary: The words of choices not picked
+    does: Colors the labels of segments that are not chosen; until set it keeps the segmented theme's text color.
+  - slot: selectedText
+    default: "#FFFFFF"
+    alias: theme.selectedTextColor
+    since: next
+    summary: The words of the picked choice
+    does: Colors the chosen segment's label; until set it takes black or white, whichever reads on the chosen segment.
 ---
 
 # Segmented Control
@@ -184,7 +219,7 @@ A short option list displayed as inline segments. Stores a `.string` value.
 `"segmentedControl"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -322,6 +357,6 @@ For example, `"options": ["eco", "comfort", "sport"]` with `"optionLabels": ["Ec
 Empty options show `placeholder` (default “No options”). A picker with an empty selection shows `placeholder` (default “Choose…”); an unknown nonempty selection remains visible until the user picks an available option. Live option changes never silently select or send a replacement value.
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[picker]] — For longer option lists
 - [[actions]] — `{{value}}` substitution

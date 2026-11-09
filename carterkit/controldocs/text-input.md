@@ -71,6 +71,9 @@ fields:
     does: "Switches between a plain field, a search field, or a tall multi-line field."
     valueHelp: {"default": "a plain single-line field with a rounded background", "search": "a field with a magnifying glass and a clear button", "multiline": "a tall field that grows for several lines of text"}
   - name: sendButton
+    edit: switch
+    title: Send button
+    depth: hold
     type: bool
     default: false
     description: Growing composer with a Send button (Return inserts a newline)
@@ -107,7 +110,11 @@ fields:
     summary: A tiny button to switch typing help on the fly
     does: "Shows an Aa button that turns autocorrect on or off while the keyboard is open."
   - name: keyboard
-    chip: Keyboard
+    effect: behavior
+    edit: look
+    depth: hold
+    under: style
+    title: Keyboard
     type: enum
     values: [ascii, default, url, email, numbers]
     description: Keyboard type
@@ -115,6 +122,10 @@ fields:
     does: "Chooses the on-screen keyboard layout, such as email or number keys."
     valueHelp: {"ascii": "plain letters and symbols with no suggestions", "default": "the standard iPhone keyboard", "url": "keys for web addresses with a slash and dot", "email": "keys for email with an at sign", "numbers": "a number pad"}
   - name: clearOnSubmit
+    effect: behavior
+    edit: switch
+    title: Clear after sending
+    depth: hold
     tab: action
     type: bool
     default: false
@@ -132,6 +143,7 @@ fields:
     does: "Colors the cursor, search icon and Send button with this color."
   - name: hideBackground
     edit: part
+    title: Background
     depth: hold
     tab: style
     type: bool
@@ -141,6 +153,7 @@ fields:
     does: "Removes the frosted card behind the field so it floats on the page."
   - name: hideLabel
     edit: part
+    title: Label
     depth: hold
     type: bool
     default: false
@@ -151,9 +164,6 @@ fields:
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you submit."
 themeFields:
   - name: cornerRadius
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     min: 0
     max: 30
@@ -183,6 +193,13 @@ themeFields:
   - use: labelFontSize
     summary: How big the name above the box is
     does: "Sets the header label text size from 8 to 24 points."
+colorSlots:
+  - slot: text
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the typing
+    does: Colors the typed text, the caret and the icons; until set it follows the neutral role, the text color.
 ---
 
 # Text Input
@@ -193,7 +210,7 @@ A free text entry field. Stores a `.string` value. Fires action on submit (retur
 `"textInput"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -282,7 +299,7 @@ A growing chat-style box: Send submits, Return adds a newline, and the **Aa** bu
 
 ### Search box
 
-The `search` look adds a magnifying glass and a clear button, and the field empties itself after each submit (`clearOnSubmit`).
+The `search` look adds a magnifying glass. Pressing return sends the typed text through `action`; the search look does not honour `clearOnSubmit`, so the text stays in the box (the default look clears after a send).
 
 ```json
 {
@@ -349,5 +366,5 @@ The `email` keyboard shows the @ key, and `confirm` pops an Undo pill for 3 seco
 - The `{{value}}` placeholder is replaced with the current text content
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[actions]] — `{{value}}` substitution

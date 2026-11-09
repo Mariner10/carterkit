@@ -46,12 +46,48 @@ fields:
     description: Initial hex color
     summary: The starting color
     does: Sets the color shown before anyone picks one, as a hex value like #F4B860.
+  - name: icon
+    since: next
+    edit: symbol
+    depth: surface
+    title: Symbol
+    type: string
+    description: SF Symbol shown beside the label, tinted with tint
+    summary: A small picture beside the name
+    does: Draws this SF Symbol beside the label; leave it empty for no icon.
+  - name: tint
+    since: next
+    edit: color
+    depth: hold
+    under: icon
+    title: Symbol color
+    type: color
+    description: Color of the symbol
+    summary: The color of the small picture
+    does: Colors the symbol beside the label, as any hex color.
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Title shown
+    type: bool
+    default: false
+    description: Hide the label above the swatch
+    summary: Hide the title
+    does: Hides the label shown above the color swatch.
+  - name: hideBackground
+    since: next
+    edit: part
+    depth: hold
+    title: No background card
+    type: bool
+    default: false
+    description: Remove glass background
+    summary: Whether the card behind it is drawn
+    does: Removes the frosted card behind the swatch so it sits on the page.
   - use: confirm
 themeFields:
   - name: cornerRadius
-    edit: scrub
-    depth: hold
-    under: defaultValue
     unit: pt
     min: 0
     max: 30
@@ -73,18 +109,12 @@ themeFields:
     summary: The quieter text color
     does: Colors the smaller, secondary text.
   - name: borderColor
-    edit: color
-    depth: hold
-    under: defaultValue
     type: color
     default: #FFFFFF1A
     description: Border color
     summary: The outline color
     does: Colors the outline drawn around the control.
   - name: borderWidth
-    edit: scrub
-    depth: hold
-    under: defaultValue
     unit: pt
     min: 0
     max: 5
@@ -97,6 +127,13 @@ themeFields:
   - use: labelFontSize
     summary: Size of the title text
     does: Sets the title text size from 8 to 24 pt.
+colorSlots:
+  - slot: icon
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the icon
+    does: Colors the icon beside the well; until set it follows the neutral role, the text color.
 ---
 
 # Color Picker
@@ -113,6 +150,10 @@ Inherits all [[shared-properties]]. Key fields:
 |-------|------|---------|-------------|
 | `label` | string | — | Display label |
 | `defaultValue` | string | — | Initial hex color (e.g., `"#F4B860"`) |
+| `icon` | string | — | SF Symbol beside the label |
+| `tint` | color | accent | Color of the symbol |
+| `hideLabel` | bool | `false` | Hide the label |
+| `hideBackground` | bool | `false` | Remove the glass card |
 
 ## Examples
 
@@ -151,9 +192,7 @@ A squarer swatch with a thicker outline and larger label.
   "position": [0, 1],
   "label": "Strip",
   "defaultValue": "#FF6B6B",
-  "cornerRadius": 4,
-  "borderWidth": 2,
-  "labelFontSize": 16
+  "theme": { "cornerRadius": 4, "borderWidth": 2, "labelFontSize": 16 }
 }
 ```
 

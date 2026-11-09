@@ -15,7 +15,7 @@ io:
   - emits: message
     when: submit
     title: When you send a message
-    field: target
+    field: config.target
     type: string
     says: the message text
     example: "Sample A"
@@ -31,6 +31,7 @@ io:
     example: {"text": "Sample A"}
     since: next
   - sample: {"lines": [{"name": "Sample A", "text": "Sample A"}, {"name": "Sample B", "text": "Sample B"}]}
+card: {"draws": "card", "padding": "0", "says": "The messages run to the card's edge: the header and the composer carry their own padding, so the card adds none until you set one.", "since": "next"}
 fields:
   - name: label
     edit: inline
@@ -52,15 +53,11 @@ fields:
     summary: Lets you wipe the chat from here
     does: Shows a Clear Chat menu in the header that empties this device's messages only; other people's windows are untouched.
   - name: allowImages
-    effect: behavior
-    edit: part
-    depth: hold
-    title: Images
     type: bool
-    description: allowImages
+    description: "No effect yet: the app has no image attachments."
     group: config
-    summary: Lets people attach pictures
-    does: Turns image attachments on or off for this chat.
+    summary: Not wired up yet
+    does: Does nothing yet; the chat has no image attachments whichever way this is set.
   - name: allowReactions
     edit: part
     depth: hold
@@ -81,6 +78,11 @@ fields:
     summary: Lets people reply to a message
     does: Adds a Reply choice to the long-press menu and shows replies in threads when on.
   - name: historyCount
+    effect: behavior
+    edit: scrub
+    depth: hold
+    under: label
+    title: History
     min: 1
     max: 50
     step: 1
@@ -109,27 +111,30 @@ fields:
     does: Shows animated typing dots while the other side is typing when on.
   - name: systemMessageEvents
     type: string[]
-    description: systemMessageEvents
+    description: "No effect yet: the app does not read it."
     group: config
     summary: Events that show as notices
-    does: Lists event names meant to appear as system notes in the chat; the app does not act on it yet.
+    does: Does nothing yet; event names listed here are not shown as system notes.
   - name: target
+    edit: inline
+    depth: surface
+    title: Target
     type: string
     description: target
     group: config
     summary: Who to chat with
     does: Sends your messages to the named MeshSocket peer as a private companion chat; leave it empty to chat with the whole channel.
   - name: tint
-    edit: color
-    depth: surface
-    title: Color
-    tab: style
     type: color
-    description: tint
+    changes: [{in: next, note: "Fills your bubbles and colors the highlights (the bubble color slot)"}]
+    description: "Color of your bubbles and highlights; unset they follow the theme accent."
     group: config
-    summary: The chat's accent color
-    does: Sets the accent color used by the chat bubbles.
+    summary: The color of your messages
+    does: Fills your message bubbles and colors names, reply marks and the send arrow; unset, the bubbles keep the theme's accent gradient.
 themeFields:
+  - use: controlPadding
+    since: next
+    does: Pads the chat inside its card (default 0, so messages run to the card edge).
   - use: cornerRadius
     summary: How round the card corners are
     does: Rounds the chat card's corners from 0 to 30 pt (default 12).
@@ -152,6 +157,18 @@ themeFields:
     does: Colors the main message and label text, default white.
   - use: tertiaryColor
     does: Colors the faintest text and ink, default a very dim white.
+colorSlots:
+  - slot: bubble
+    default: primary
+    alias: config.tint
+    since: next
+    summary: The color of your messages
+    does: Fills your message bubbles and colors names, reply marks, read ticks and the send arrow; until the layout picks a color the bubbles keep the theme's accent gradient and the marks follow the primary role.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the message text
+    does: Colors the words of incoming messages and the message box, the typing dots and the faint bar washes; until set it follows the neutral role, the text color.
 ---
 
 # Chat
@@ -172,10 +189,10 @@ Inherits all [[shared-properties]]. Key fields:
 | `config.showReadReceipts` | bool | `true` | Show read receipts |
 | `config.allowReactions` | bool | `true` | Allow emoji reactions on messages |
 | `config.allowReplies` | bool | `true` | Allow threaded replies |
-| `config.allowImages` | bool | `false` | Allow image attachments |
+| `config.allowImages` | bool | `false` | Allow image attachments (no effect yet) |
 | `config.allowClear` | bool | `true` | Show the local **Clear Chat** control in the header. Server-driven `chat_clear` frames are honored regardless of this flag |
 | `config.historyCount` | number | `50` | Number of messages to keep in history |
-| `config.tint` | string | `"#667eea"` | Chat bubble accent color |
+| `config.tint` | color | theme accent | Your bubbles and highlights (the `bubble` colour slot) |
 
 ## Message actions (long-press)
 

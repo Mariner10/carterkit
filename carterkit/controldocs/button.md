@@ -12,6 +12,7 @@ oneLiner: Tap it to make something happen
 aliases: [tap, press, click, trigger, action, send]
 addRank: 1
 starterPreset: {"label": "Button"}
+card: {"draws": "face", "says": "The button's face is its card: the Background chip's padding, corners, border and shadow shape the face, while its fill stays the style's and its padding the size's until you set one.", "since": "next"}
 lookPresets: [{"id": "filled","name": "Filled","symbol": "capsule.fill","set": {"style": "filled"}},{"id": "outlined","name": "Outlined","symbol": "capsule","set": {"style": "outlined"}},{"id": "tinted","name": "Tinted","symbol": "capsule.lefthalf.filled","set": {"style": "tinted"}},{"id": "iconOnly","name": "Icon only","symbol": "circle.fill","set": {"style": "icon-only"}}]
 io:
   - emits: press
@@ -54,6 +55,8 @@ fields:
     summary: "How the button is dressed"
     does: "Switches the button between a solid fill, an outline, a faint tint, or just the symbol."
     valueHelp: {"filled": "solid colored block with light text", "outlined": "clear inside with a colored border", "outline": "same as outlined", "ghost": "no fill or border, just the colored text", "tinted": "soft wash of the color with colored text", "icon-only": "only the symbol, no text or block"}
+    valueTitles: {"filled": "Filled", "outlined": "Outlined", "outline": "Outline", "ghost": "Ghost", "tinted": "Tinted", "icon-only": "Icon only"}
+    valueSymbols: {"filled": "rectangle.fill", "outlined": "rectangle", "outline": "rectangle", "ghost": "textformat", "tinted": "rectangle.inset.filled", "icon-only": "star.square"}
     edit: look
     depth: surface
     title: Look
@@ -66,6 +69,8 @@ fields:
     summary: "How big the button is"
     does: "Scales the button's height and text between compact, normal and large."
     valueHelp: {"compact": "small and tight, for crowded grids", "default": "the normal size", "large": "tall and roomy, easy to hit"}
+    valueTitles: {"compact": "Compact", "default": "Default", "large": "Large"}
+    valueSymbols: {"compact": "arrow.down.right.and.arrow.up.left", "default": "square", "large": "arrow.up.left.and.arrow.down.right"}
     edit: look
     depth: hold
     under: style
@@ -97,14 +102,19 @@ fields:
   - name: haptic
     summary: "How the tap feels"
     does: "Plays the chosen buzz on the phone each time the button is pressed."
-    valueHelp: {"light": "a faint tick", "medium": "a normal tap", "heavy": "a firm thump", "success": "a short double-tap for done", "warning": "a sharper alert buzz", "error": "a harsh triple buzz for failure", "selection": "a tiny click like scrolling a picker"}
+    valueHelp: {"rigid": "a firm sharp click", "soft": "a gentle cushioned tap", "light": "a faint tick", "medium": "a normal tap", "heavy": "a firm thump", "success": "a short double-tap for done", "warning": "a sharper alert buzz", "error": "a harsh triple buzz for failure", "selection": "a tiny click like scrolling a picker"}
+    valueTitles: {"rigid": "Rigid", "soft": "Soft", "light": "Light", "medium": "Medium", "heavy": "Heavy", "success": "Success", "warning": "Warning", "error": "Error", "selection": "Selection"}
+    valueSymbols: {"rigid": "square.fill", "soft": "cloud.fill", "light": "circle", "medium": "circle.fill", "heavy": "circle.inset.filled", "success": "checkmark.circle", "warning": "exclamationmark.triangle", "error": "xmark.octagon", "selection": "hand.tap"}
     title: Vibration on tap
     tab: action
     type: enum
-    values: [light, medium, heavy, success, warning, error, selection]
+    values: [light, medium, heavy, { value: rigid, since: next }, { value: soft, since: next }, success, warning, error, selection]
     default: medium
     description: Haptic feedback on press
   - name: repeatOnHold
+    effect: behavior
+    edit: switch
+    depth: hold
     summary: "Keep going while held"
     does: "Holding the button refires its action repeatedly, speeding up the longer you hold."
     title: Repeat while held
@@ -118,6 +128,8 @@ fields:
     title: Words for values
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["true", "false", "default"], "default": "value{n}"}, {"name": "text", "title": "Text", "type": "string", "edit": "inline", "required": true, "default": ""}]
     description: Synced value → button text ("default" catches the rest)
   - name: iconMap
     summary: "Different pictures for different states"
@@ -125,6 +137,8 @@ fields:
     title: Symbols for values
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["true", "false", "default"], "default": "value{n}"}, {"name": "symbol", "title": "Symbol", "type": "string", "edit": "symbol", "required": true, "default": "circle"}]
     description: Synced value → SF Symbol name (swaps with the native replace effect)
   - name: colorMap
     summary: "Different colors for different states"
@@ -132,6 +146,8 @@ fields:
     title: Colors for values
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["true", "false", "default"], "default": "value{n}"}, {"name": "color", "title": "Color", "type": "color", "edit": "color", "required": true, "default": "#8E8E93"}]
     description: Synced value → hex tint
   - use: confirm
     does: "A pill naming the change appears for 3 seconds with an Undo button after each tap."
@@ -139,9 +155,6 @@ themeFields:
   - name: cornerRadius
     summary: "How round the corners are"
     does: "Rounds the button's corners from 0 (square) to 30 points (pill-like)."
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     title: Corner roundness
     min: 0
@@ -163,9 +176,6 @@ themeFields:
   - name: borderWidth
     summary: "How thick the outline is"
     does: "Draws the border 0 to 5 points thick; 0 hides it."
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     title: Border thickness
     min: 0
@@ -192,7 +202,7 @@ button with a `sync` can show server state through `valueMap` / `iconMap` / `col
 `"button"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -510,7 +520,7 @@ Tapping sends the normal action; holding runs a different one, here a full reset
 ```
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[style-properties#Button Styles]] — Style variants
 - [[actions]] — Action definition
 - [[long-press]] — Long-press behavior

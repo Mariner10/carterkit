@@ -113,7 +113,10 @@ fields:
     does: Gives blocks colors from this list in turn; a color set on an item wins.
     group: treemapConfig
   - name: drillDown
-    chip: Touch
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Drill down
     type: bool
     default: true
     description: Tap a parent to zoom into its children
@@ -121,6 +124,10 @@ fields:
     does: When on, tapping a block with items inside zooms into it; when off, every tap acts as a pick.
     group: treemapConfig
   - name: itemAction
+    edit: action
+    depth: hold
+    under: drillDown
+    title: Item action
     tab: action
     type: object
     description: itemAction
@@ -128,6 +135,10 @@ fields:
     does: Runs this action when you tap a block with nothing inside, passing its label, value and path.
     group: treemapConfig
   - name: scrub
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Scrub
     type: bool
     default: false
     description: Drag highlights the cell under the finger with a live readout (no drilling/actions until a tap)
@@ -179,6 +190,18 @@ themeFields:
   - use: foregroundColor
     does: Colors the block names and header text.
   - use: labelFontSize
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The treemap's own primary color
+    does: Colors the first tile and the back link while drilled in, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the tiles take in turn
+    does: Gives tiles one, two, three and so on these colors in order unless the treemap colors list is set, and a color on a tile itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Treemap

@@ -11,7 +11,7 @@ friendlyName: Flip card
 oneLiner: "Two sides: tap to flip"
 aliases: [flip, card, reveal, two-sided, front back, flashcard]
 addRank: 4
-starterPreset: {}
+starterPreset: {"flipTrigger":"tap","flipAxis":"horizontal","panels":[{"type":"group","id":"front","label":"Front","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"front-text","position":[0,0],"text":"Front"}]},{"type":"group","id":"back","label":"Back","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"back-text","position":[0,0],"text":"Back"}]}]}
 io:
   - emits: value
     when: tap
@@ -33,6 +33,7 @@ io:
     since: next
   - sample: 0
     next: 1
+card: {"draws": "each", "says": "Each face is a card of its own: the Background chip's padding, corners, border and shadow shape every face, and a face's own Background off drops its card.", "since": "next"}
 fields:
   - name: flipTrigger
     effect: behavior
@@ -46,6 +47,8 @@ fields:
     summary: What makes it flip
     does: Chooses whether a tap or a long press turns the card to its next face.
     valueHelp: {"tap": "a quick tap flips the card", "longPress": "press and hold to flip, so taps reach controls on the face"}
+    valueTitles: {"tap": "Tap", "longPress": "Press and hold"}
+    valueSymbols: {"tap": "hand.tap.fill", "longPress": "hand.point.up.left.fill"}
   - name: flipAxis
     edit: look
     depth: surface
@@ -57,6 +60,8 @@ fields:
     summary: Which way it turns
     does: Turns the card left-to-right around a vertical axis or top-to-bottom around a horizontal one.
     valueHelp: {"horizontal": "spins left to right like a page of a book", "vertical": "tips top to bottom like a notepad"}
+    valueTitles: {"horizontal": "Sideways", "vertical": "Up and down"}
+    valueSymbols: {"horizontal": "arrow.left.and.right", "vertical": "arrow.up.and.down"}
   - name: panels
     chip: Panels
     type: object
@@ -69,7 +74,6 @@ fields:
     description: Transition tuning, e.g. { profile, duration }
     summary: How the card animates when flipping
     does: Tunes the flip motion, such as speed, bounce and 3D depth.
-    summary: How the card animates when flipping
   - name: defaultValue
     min: 0
     step: 1
@@ -87,10 +91,7 @@ themeFields:
     summary: Face background
     does: Fills each face card with this color.
   - name: cornerRadius
-    edit: scrub
     unit: pt
-    depth: hold
-    under: flipAxis
     min: 0
     max: 30
     step: 1
@@ -113,10 +114,7 @@ themeFields:
     summary: Outline thickness
     does: Sets how thick the face outline is, 0 to 5 points.
   - name: cardPadding
-    edit: scrub
     unit: pt
-    depth: hold
-    under: flipAxis
     title: Card spacing
     min: 0
     max: 32
@@ -129,6 +127,12 @@ themeFields:
   - use: foregroundColor
     summary: Main text color
     does: Colors the main text on the faces.
+colorSlots:
+  - slot: title
+    default: neutral
+    since: next
+    summary: The color of the face titles
+    does: Colors the title at the top of each face; until the layout picks a color it follows the neutral role, the text color.
 ---
 
 # Flip Card

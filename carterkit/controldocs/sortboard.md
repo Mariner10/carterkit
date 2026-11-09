@@ -10,7 +10,7 @@ pickerCategory: Inputs
 friendlyName: Sort board
 oneLiner: Drag cards between columns
 aliases: [kanban, drag, reorder, sort, buckets, ranking]
-starterPreset: {"label": "Board"}
+starterPreset: {"label": "Board", "sortboardConfig": {"items": [{"id": "item-1", "label": "Item 1"}, {"id": "item-2", "label": "Item 2"}, {"id": "item-3", "label": "Item 3"}], "zones": [{"id": "column-1", "label": "Column 1"}, {"id": "column-2", "label": "Column 2"}]}}
 io:
   - emits: pickup
     when: lift
@@ -55,9 +55,7 @@ io:
     into: sortboardConfig
 fields:
   - name: haptic
-    edit: look
-    depth: hold
-    under: label
+    title: Feel
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
@@ -141,13 +139,17 @@ fields:
     group: sortboardConfig
   - name: items
     chip: Cards
-    type: object
+    type: array
+    edit: rows
+    columns: [{"name": "id", "title": "Id", "type": "string", "edit": "inline", "required": true, "default": "card{n}"}, {"name": "label", "title": "Label", "type": "string", "edit": "inline"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol"}, {"name": "tint", "title": "Tint", "type": "color", "edit": "color"}, {"name": "zone", "title": "Starts in", "type": "string", "edit": "inline"}, {"name": "locked", "title": "Locked", "type": "bool", "edit": "part"}]
     description: items
     summary: The cards you can move
     does: Lists the cards, each with an id, label, icon, tint, optional starting zone and a locked flag.
     group: sortboardConfig
   - name: zones
-    type: object
+    type: array
+    edit: rows
+    columns: [{"name": "id", "title": "Id", "type": "string", "edit": "inline", "required": true, "default": "zone{n}"}, {"name": "label", "title": "Label", "type": "string", "edit": "inline"}, {"name": "tint", "title": "Tint", "type": "color", "edit": "color"}, {"name": "capacity", "title": "Holds", "type": "number", "edit": "scrub", "min": 1, "max": 50, "step": 1}, {"name": "locked", "title": "Locked", "type": "bool", "edit": "part"}]
     description: zones
     summary: The columns cards go into
     does: Lists the zones, each with an id, label, tint and optional accepts, capacity and locked limits.
@@ -157,6 +159,22 @@ fields:
     description: Grouped config object (see grouped fields)
     summary: The board settings in one bundle
     does: Groups the search, palette, columns, events, items and zones settings; any entry left out uses its default.
+colorSlots:
+  - slot: card
+    default: primary
+    since: next
+    summary: The color of the cards
+    does: Fills and outlines each card that has no tint of its own; until the layout picks a color it follows the primary role.
+  - slot: zone
+    default: primary
+    since: next
+    summary: The color of the columns
+    does: Washes and outlines each column that has no tint of its own, and the option area; until set it follows the primary role.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the card words
+    does: Colors the card labels and the column titles; until set it follows the neutral role, the text color.
 ---
 
 # Sortboard

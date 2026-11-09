@@ -5,16 +5,25 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.21.0] — 2026-11-09
+
+App tutorials in the kit, editor profiles, hub send times, and ControlDocs at CAR-TER master 79f76966: every editable field now says what it does in plain words (`does`, `summary`, value titles, symbols and help) and carries the editor's `edit:` / `depth:` hints and colour slots.
+
 ### Added
 
-- Tutorials start over (CAR-TER aif-6jc0k.15): `carterkit/tutorials/` is vendored from CAR-TER's `CAR-TER/Tutorials` at a pinned commit by `scripts/sync_tutorials.py` (adds `first-dial`; the code tutorials still come from the workspace pin until CAR-TER hosts them), `carterkit tutorial steps <app tutorial>` prints its `carter://tutorial/<id>` link and a QR,; the vendored ControlDocs (now with `profiles.md`) re-pin to CAR-TER master b2180541, and `typed.py` is regenerated.
+- Tutorials start over (CAR-TER aif-6jc0k.15): `carterkit/tutorials/` is vendored from CAR-TER's `CAR-TER/Tutorials` at a pinned commit by `scripts/sync_tutorials.py` (adds `first-dial`; the code tutorials still come from the workspace pin until CAR-TER hosts them), `carterkit tutorial steps <app tutorial>` prints its `carter://tutorial/<id>` link and a QR; the vendored ControlDocs gain `profiles.md`.
 - Editor profiles (CAR-TER aif-qs8b0.11.1): `catalog.parse_profiles` / `load_profiles` read the app's
   `ControlDocs/profiles.md` (named filters over a control's editable fields by category, chip or field id),
   `catalog.profile_fields` resolves one against a control doc, `catalog.profile_errors` / `profile_lint` report an
   unknown category, chip, field id, Binding card, canvas verb or control type, and `catalog.profile_manifest` gives
   the `categories`, `chips` and `profiles` lists CAR-TER's `scripts/gen-capabilities.py` writes into
   `capabilities.json`. The vendored ControlDocs gain `profiles.md` with the next sync.
+- ControlDocs re-pinned to CAR-TER master 79f76966 (with `capabilities.json` and `controldocs.schema.json`), tutorials to the same commit (adds `touch-to-learn`, `style-any-control`, `not-updating` and the `quick-controls` starter layout); `typed.py` and `app_features.json` are regenerated.
 - Hub frames carry `_sentAt` (CAR-TER aif-xye17): every broadcast a hub sends (`push`, `broadcast`, `fill`, `push_tab`, command acks) is stamped with the send time in epoch ms, so the app's HubHealth can show each hub's delay; a caller-supplied `_sentAt` is kept.
+
+### Fixed
+
+- `validate`'s `io_sync_shape` no longer warns on a local sync with a `valuePath` (and no `groupBy`): it delivers one value out of the rows, not the rows, so a label showing a stored count is fine.
 
 ## [0.20.0] — 2026-11-06
 

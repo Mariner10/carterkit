@@ -162,9 +162,19 @@ Each field in a control doc's frontmatter may carry these authored keys:
 - `does` — one sentence: what visibly changes on the phone when the field is set
   (e.g. "Rounds the card behind the text; 0 is square"). Hold and scrub rows show it
   as their help text. (`effect:` is taken: it is the look/behavior category.)
+- `demo` — the situation a control page stages when someone taps this option, so its effect shows on the
+  hero (aif-8whty.44): `push` (push the next sample value in: animations, transitions), `press` (simulate the
+  interaction), `empty`, `stale` or `loading` (set that state), `none` (the look shows as it is). Write it only
+  where it can't be derived from the field's `effect:`, `category:` and name (`OptionDemo.situation`).
 - `valueHelp` — enum fields only; one-line JSON mapping each value to one line of
   help, e.g. `valueHelp: {"half": "a 180-degree arc", "full": "a closed ring"}`.
-  The editor shows it under the options.
+  The editor shows it under the options. Write one clause per value, in plain words, with no
+  "and the default" (the default is marked by the editor).
+- `valueTitles` — enum fields; one-line JSON mapping a value to its display name, where the key spelled
+  out reads wrong (`{"ean13": "EAN-13"}`); a value without one is the key spelled out as words.
+- `valueSymbols` — enum fields; one-line JSON mapping a value to a real SF Symbol name
+  (`{"half": "circle.lefthalf.filled"}`), drawn over the title on a choice chip and on the hold dial.
+  The doc lint (`ControlDocHintTests`) checks every name is a real symbol and every key is a value.
 
 A doc may declare `depth: complete` at the top level of its frontmatter. The depth
 lint (`ControlDocDepthTests`) then requires `summary` and `does` on every field, a

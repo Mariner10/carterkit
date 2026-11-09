@@ -15,7 +15,7 @@ io:
   - emits: node
     when: tap
     title: When you tap a node
-    field: nodeAction
+    field: graphConfig.nodeAction
     type: id
     says: the id of the node you tapped
     example: "Item 1"
@@ -84,9 +84,9 @@ fields:
     group: graphConfig
   - name: contentEvent
     type: string
-    description: (Reserved) Event for content-push model
-    summary: Not used yet
-    does: "Reserved for a future content-push feature, so setting it changes nothing on screen."
+    description: Dead. Reserved for a content-push model; nothing reads it
+    summary: Does nothing yet
+    does: "Dead: reserved for a future content-push feature, so setting it changes nothing on screen."
     group: graphConfig
   - name: damping
     min: 0
@@ -99,6 +99,10 @@ fields:
     does: "Scales motion each tick from 0 to 1; lower values add friction so the dots stop sooner."
     group: graphConfig
   - name: draggable
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Drag nodes
     chip: Touch
     type: bool
     default: true
@@ -198,6 +202,10 @@ fields:
     does: "Maps group names to hex colors so nodes whose group matches are filled with that color."
     group: graphConfig
   - name: interactive
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Pan and zoom
     type: bool
     default: true
     description: Allow pan and zoom
@@ -279,9 +287,9 @@ fields:
   - name: nodeHighlightColor
     tab: style
     type: color
-    description: Color when node is active/selected
-    summary: The color of the dot you touch
-    does: "Switches a node to this hex color while it is active or selected."
+    description: Dead. Nothing reads it; a selected node is not recoloured
+    summary: Does nothing yet
+    does: "Dead: the graph never reads this colour, so setting it changes nothing on screen."
     group: graphConfig
   - name: nodeSize
     edit: scrub
@@ -300,16 +308,16 @@ fields:
   - name: particleColor
     tab: style
     type: color
-    description: (Reserved) Particle color
-    summary: Not used yet
-    does: "Reserved for the particle color, so setting it changes nothing on screen."
+    description: Color of the particles running along the edges (falls back to the edge colour)
+    summary: The color of the moving particles
+    does: "Colors the particles that travel along the edges when showParticles is on; unset uses the edge color."
     group: graphConfig
   - name: particleSpeed
     bounds: none
     type: number
-    description: (Reserved) Particle animation speed
-    summary: Not used yet
-    does: "Reserved for the particle speed, so setting it changes nothing on screen."
+    description: Speed multiplier of the edge particles (1 = normal)
+    summary: How fast the particles move
+    does: "Scales how fast the particles run along the edges when showParticles is on; 1 is the normal pace."
     group: graphConfig
   - name: repulsionForce
     bounds: none
@@ -379,6 +387,61 @@ themeFields:
     does: "Sets the header label size in points, 8 to 24."
   - use: foregroundColor
     does: "Colors the header label and primary text with this color."
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The graph's own primary color
+    does: Colors the nodes until the node color is set; until a palette sets primary it keeps the graph's own blue (667EEA).
+  - slot: node
+    default: primary
+    alias: graphConfig.nodeColor
+    since: next
+    summary: The color of the dots
+    does: Fills every node without a color or group color of its own; until set the nodes take the main color.
+  - slot: highlight
+    default: primary
+    alias: graphConfig.nodeHighlightColor
+    since: next
+    summary: The color of the dot you touch
+    does: Fills the node you are dragging; until set it keeps its own color.
+  - slot: border
+    default: "#FFFFFF"
+    alias: graphConfig.nodeBorderColor
+    since: next
+    summary: The color of the node rings
+    does: Colors the ring the node border width draws; white until set.
+  - slot: edge
+    default: neutral
+    alias: graphConfig.edgeColor
+    since: next
+    summary: The color of the lines
+    does: Colors every edge without a color of its own; until set it follows the neutral role, the text color.
+  - slot: particles
+    default: neutral
+    alias: graphConfig.particleColor
+    since: next
+    summary: The color of the moving dots
+    does: Colors the particles that run along the edges; until set they take the edge color.
+  - slot: label
+    default: secondaryColor
+    alias: graphConfig.labelColor
+    since: next
+    summary: The color of the node names
+    does: Colors the labels beside the nodes; until set it keeps the theme's secondary text color.
+  - slot: background
+    default: neutral@0.06
+    alias: graphConfig.backgroundColor
+    since: next
+    summary: The color behind the graph
+    does: Fills the plot area; until set it is a faint wash of the neutral role that follows the card's opacity.
+  - slot: glow
+    default: primary
+    alias: graphConfig.glowColor
+    since: next
+    summary: The color of the glow
+    does: Colors the soft bloom behind the nodes; until a palette sets primary it keeps the graph's own blue (667EEA).
 ---
 
 # Graph
@@ -409,7 +472,7 @@ All fields are optional with sensible defaults.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `nodeAction` | [[actions\|ActionDefinition]] | — | Default action fired when any node is tapped (node ID as `{{value}}`) |
-| `contentEvent` | string | — | (Reserved) Event for content-push model |
+| `contentEvent` | string | — | Dead: nothing reads it (reserved for a content-push model) |
 
 ### Node Appearance
 
@@ -417,7 +480,7 @@ All fields are optional with sensible defaults.
 |-------|------|---------|-------------|
 | `nodeColor` | string | `"#667eea"` | Default node fill color (hex) |
 | `nodeSize` | number | `8.0` | Base node radius in points |
-| `nodeHighlightColor` | string | — | Color when node is active/selected |
+| `nodeHighlightColor` | string | — | Dead: nothing reads it |
 | `nodeBorderWidth` | number | `0` | Border stroke width around nodes |
 | `nodeBorderColor` | string | `"#FFFFFF"` | Border stroke color |
 
@@ -463,8 +526,8 @@ All fields are optional with sensible defaults.
 |-------|------|---------|-------------|
 | `backgroundColor` | string | `"#0D0D1A"` | Graph canvas background |
 | `showParticles` | bool | `false` | Animated particles travelling along edges |
-| `particleColor` | string | — | (Reserved) Particle color |
-| `particleSpeed` | number | — | (Reserved) Particle animation speed |
+| `particleColor` | string | edge colour | Particle colour when `showParticles` is on |
+| `particleSpeed` | number | `1` | Particle speed multiplier when `showParticles` is on |
 | `glowEnabled` | bool | `true` | Node glow effect |
 | `glowRadius` | number | `6.0` | Glow blur radius |
 | `glowColor` | string | `"#667eea"` | Glow color |
@@ -661,7 +724,7 @@ Demonstrates `edgeCurved` and `showLabels`: connections bow into soft curves and
 ```
 
 ### Flat dots, particles and outlines
-Demonstrates `glowEnabled`, `showParticles`, `nodeBorderWidth` and `nodeHighlightColor`: dots lose their halo, get a white ring, and small lights travel along the lines.
+Demonstrates `glowEnabled`, `showParticles`, `nodeBorderWidth` and `nodeHighlightColor` (which draws nothing): dots lose their halo, get a white ring, and small lights travel along the lines.
 ```json
 {
   "type": "graph",
@@ -754,7 +817,7 @@ Demonstrates `longPressGroup`: holding the graph opens a popup with a note about
 - The `size` field on nodes is a multiplier, not an absolute value. `size: 2.0` = twice the base `nodeSize`
 - For dense graphs (50+ nodes), consider reducing `repulsionForce` and increasing `damping` for faster settling
 - The canvas uses `Canvas` (immediate mode drawing) for performance — handles hundreds of nodes smoothly
-- Fields marked (Reserved) are defined in the schema but not yet rendered
+- Fields marked (Reserved) or Dead (`contentEvent`, `nodeHighlightColor`, node `icon`, edge `label`) are in the schema but nothing draws them
 
 ## Related
 - [[shared-properties]] — Base fields

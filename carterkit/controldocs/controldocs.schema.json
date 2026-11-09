@@ -61,7 +61,9 @@
         "title": { "$ref": "#/$defs/text" },
         "valueHelp": { "type": "object", "additionalProperties": { "type": "string" } },
         "valueTitles": { "type": "object", "additionalProperties": { "type": "string" } },
+        "valueSymbols": { "type": "object", "additionalProperties": { "type": "string" } },
         "valueGroups": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
+        "columns": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/rowColumn" } },
         "group": { "$ref": "#/$defs/name" },
         "tab": { "type": "string", "pattern": "^[a-z]+$" },
         "styles": { "type": "array", "items": { "type": "string" } },
@@ -84,6 +86,26 @@
         "deprecated": { "$ref": "#/$defs/version" },
         "removed": { "$ref": "#/$defs/version" },
         "alias": { "$ref": "#/$defs/name" }
+      }
+    },
+    "rowColumn": {
+      "description": "One column of an `edit: rows` field's `columns:` (aif-8whty.29): a key of each row, its type, and the kind its cell edits with. An `edit: map` field (aif-8whty.31) names two: the key (its `values` the keys Add offers first), then the value.",
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "title": { "$ref": "#/$defs/text" },
+        "type": { "enum": ["string", "number", "bool", "enum", "color"] },
+        "edit": { "enum": ["inline", "scrub", "look", "color", "symbol", "part"] },
+        "values": { "type": "array", "items": { "type": "string" } },
+        "default": {},
+        "min": { "$ref": "#/$defs/number" },
+        "max": { "$ref": "#/$defs/number" },
+        "step": { "$ref": "#/$defs/number" },
+        "required": { "$ref": "#/$defs/flag" },
+        "self": { "$ref": "#/$defs/flag" },
+        "in": { "$ref": "#/$defs/name" }
       }
     },
     "fieldList": { "type": "array", "items": { "$ref": "#/$defs/field" } },
@@ -200,6 +222,22 @@
       "type": "string",
       "pattern": "^(primary|secondary|tertiary|neutral|accentColor|foregroundColor|secondaryColor|tertiaryColor|surfacePrimary|surfaceSecondary|surfaceTertiary|borderColor|trackColor|statusOK|statusWarn|statusError|statusInfo|scrimColor|\\$[A-Za-z_][A-Za-z0-9_-]*|#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?)(@(0(\\.[0-9]+)?|1(\\.0+)?))?$"
     },
+    "card": {
+      "description": "`card:` (aif-8whty.5): how a control's card differs from the standard one. Absent = one card behind the whole control. Whatever it draws, the Background chip's padding, corners, border and shadow shape it.",
+      "type": "object",
+      "required": ["draws", "says"],
+      "additionalProperties": false,
+      "properties": {
+        "draws": {
+          "description": "card: one card behind the control; face: the control's own face is its card (its fill stays the style's); each: every panel or item is a card, no outer card; when-set: flat until a Background field is set, then the standard card.",
+          "enum": ["card", "face", "each", "when-set"]
+        },
+        "padding": { "$ref": "#/$defs/number" },
+        "says": { "type": "string", "pattern": "\\S" },
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" }
+      }
+    },
     "controlDoc": {
       "description": "A doc with a `type` and `label`: a control, a system doc (sync, theming), a theme pack, the style rules.",
       "type": "object",
@@ -223,6 +261,7 @@
         "lookFormats": { "type": "array", "items": { "type": "object", "required": ["id", "name", "set"] } },
         "lookPresets": { "type": "array", "items": { "type": "object", "required": ["id", "name", "set"] } },
         "constraints": { "type": "object" },
+        "card": { "$ref": "#/$defs/card" },
         "fields": { "$ref": "#/$defs/fieldList" },
         "themeFields": { "$ref": "#/$defs/fieldList" },
         "io": { "$ref": "#/$defs/io" },
@@ -305,6 +344,10 @@
         "tap": { "$ref": "#/$defs/namePatterns" },
         "petals": { "$ref": "#/$defs/namePatterns" },
         "petalTitles": { "type": "object", "additionalProperties": { "type": "string" } },
+        "aliases": {
+          "description": "A doc field path (`theme.cornerRadius`) to the chip field it is another name for: it lives where that field does.",
+          "type": "object", "additionalProperties": { "$ref": "#/$defs/name" }
+        },
         "always": { "$ref": "#/$defs/flag" },
         "since": { "$ref": "#/$defs/version" },
         "changes": { "$ref": "#/$defs/changes" },

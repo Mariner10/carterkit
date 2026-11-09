@@ -24,7 +24,7 @@ io:
   - emits: box
     when: tap
     title: When you tap a box
-    field: boxAction
+    field: boxPlotConfig.boxAction
     fallback: action
     type: json
     says: the tapped category's five-number summary (index, min, q1, median, q3, max) as JSON
@@ -84,6 +84,10 @@ fields:
     summary: How numbers are written
     does: Formats the axis labels and the median readout, e.g. as a unit or with fixed decimals.
   - name: boxAction
+    edit: action
+    depth: hold
+    under: scrub
+    title: Box action
     tab: action
     type: object
     description: boxAction
@@ -104,7 +108,7 @@ fields:
     default: 3
     description: Box corner rounding
     summary: Box roundness
-    does: Rounds the box corners from square (0) to 30 points.
+    does: Rounds the box corners from square (0) to 30 points; box mode only (violins ignore it).
     group: boxPlotConfig
   - name: boxWidth
     edit: scrub
@@ -119,7 +123,7 @@ fields:
     default: 0.55
     description: Box width as a fraction of the category slot
     summary: How wide the boxes are
-    does: Sets each box's width as a fraction (0 to 1) of its category slot.
+    does: Sets each box's width as a fraction (0 to 1) of its category slot; in violin mode it does nothing.
     group: boxPlotConfig
   - name: colors
     edit: list
@@ -132,6 +136,10 @@ fields:
     does: Cycles through this list of colors, one per category, instead of the built-in palette.
     group: boxPlotConfig
   - name: scrub
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Scrub
     type: bool
     default: false
     description: Drag sweeps the selection across categories with haptic ticks (readout only — the action still fires on tap)
@@ -248,6 +256,18 @@ themeFields:
   - use: tertiaryColor
     summary: Dimmed text color
     does: Colors the faintest text and ink on the chart.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The box plot's own primary color
+    does: Colors the first box, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the boxes take in turn
+    does: Gives boxes one, two, three and so on these colors in order unless the box plot colors list is set, and a color on a box in the data itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Box Plot
@@ -321,6 +341,8 @@ Or precomputed stats (wins over `samples` if both are present):
   ]
 }
 ```
+
+Note: `boxWidth` and `barCornerRadius` do nothing in violin mode.
 
 Note: `boxStyle: "violin"` needs raw `samples` for the density body; with only
 `stats` it falls back to the skeleton bar.

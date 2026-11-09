@@ -89,6 +89,8 @@ fields:
     summary: "Which day starts each week"
     does: "Sets the top row of each calendar column to Monday or Sunday."
     valueHelp: {"monday": "weeks run Monday to Sunday", "sunday": "weeks run Sunday to Saturday"}
+    valueTitles: {"monday": "Monday", "sunday": "Sunday"}
+    valueSymbols: {"monday": "calendar", "sunday": "calendar.badge.clock"}
     group: heatmapConfig
   - name: weeks
     category: look
@@ -102,6 +104,10 @@ fields:
     does: "Keeps only the most recent N weeks (1 to 106) and drops older ones."
     group: heatmapConfig
   - name: cellAction
+    edit: action
+    depth: hold
+    under: editable
+    title: Cell action
     tab: action
     type: object
     description: cellAction
@@ -111,7 +117,7 @@ fields:
   - name: cellCornerRadius
     edit: scrub
     depth: hold
-    under: cellGap
+    under: cellShape
     title: Cell roundness
     unit: pt
     tab: style
@@ -163,6 +169,8 @@ fields:
     summary: "Squares or dots"
     does: "Draws each cell as a rounded square or as a circle for a dot-matrix look."
     valueHelp: {"square": "rounded squares that tile the grid", "circle": "round dots like an LED matrix"}
+    valueTitles: {"square": "Square", "circle": "Circle"}
+    valueSymbols: {"square": "square.fill", "circle": "circle.fill"}
     group: heatmapConfig
   - name: colors
     edit: list
@@ -186,6 +194,10 @@ fields:
     does: "When on each value is a whole-number index into the colors list so cells show flat palette colors instead of a gradient."
     group: heatmapConfig
   - name: drag
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Paint by dragging
     type: bool
     default: true
     description: Drag paints the first-touched cell's new value across cells
@@ -193,6 +205,10 @@ fields:
     does: "When on a drag copies the first-touched cell's new value across every cell the finger crosses; off limits edits to single taps."
     group: heatmapConfig
   - name: editable
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Editable
     type: bool
     default: false
     description: "Tap cycles a cell (discrete: next palette index; continuous: 0 ↔ vMax toggle)"
@@ -200,8 +216,14 @@ fields:
     does: "When on tapping a cell cycles it to the next palette color or toggles between 0 and the top value."
     group: heatmapConfig
   - name: sendMode
+    title: Send as
     tab: action
-    type: string
+    type: enum
+    values: [{ value: cell, since: next }, { value: matrix, since: next }]
+    default: cell
+    valueHelp: {"cell": "every edited cell is sent on its own", "matrix": "the whole grid is sent once the edits pause"}
+    valueTitles: {"cell": "Each cell", "matrix": "Whole grid"}
+    valueSymbols: {"cell": "square.fill", "matrix": "square.grid.3x3.fill"}
     description: cell fires per change; matrix fires the whole dataset once an edit burst settles (~0.4s)
     summary: "How often edits are sent"
     does: "cell sends every change on its own while matrix waits about 0.4 seconds then sends the whole grid once."
@@ -254,7 +276,7 @@ fields:
     does: "Sets the number that maps to the last scale color; larger values stay at that color."
     group: heatmapConfig
   - name: vMin
-    chip: Range
+    chip: Heatmap
     bounds: none
     type: number
     description: Continuous color-scale bounds
@@ -291,6 +313,13 @@ themeFields:
     does: "Sets the header label size from 8 to 24 points."
   - use: tertiaryColor
     does: "Colors the dimmest text and empty-cell ink in this color."
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The heatmap's own primary color
+    does: Sets the color the ramp climbs to, the first discrete step and the calendar shades, unless the colors list is set; until the layout picks a color it follows the primary role.
 ---
 
 # Heatmap

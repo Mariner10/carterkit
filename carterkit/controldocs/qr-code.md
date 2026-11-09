@@ -34,6 +34,9 @@ fields:
     does: Shows this text in a small line below the QR code.
   - name: text
     chip: Code
+    edit: inline
+    depth: surface
+    title: Code text
     type: string
     description: Static content to encode (overridden by sync)
     does: Sets the content the code encodes; a synced value replaces it as soon as one arrives.
@@ -50,9 +53,9 @@ fields:
     does: Recolors the dark squares of the code; keep it strongly different from the background so cameras can read it.
   - name: qrBackground
     edit: color
-    depth: hold
-    under: tint
+    depth: surface
     title: Code background
+    tab: style
     type: color
     description: "Fill behind the code (default: none, the card shows through)"
     summary: The patch behind the code
@@ -69,6 +72,16 @@ fields:
     summary: How much damage the code can survive
     does: "Changes how dense the code looks: higher levels add more squares so a scratched or covered code still scans."
     valueHelp: {"L": "lowest correction, simplest code, for clean screens", "M": "medium correction, a good everyday balance", "Q": "higher correction, survives some smudging", "H": "highest correction, densest code, survives scratches or a logo over it"}
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Hide title
+    type: bool
+    default: false
+    description: Hide the caption below the code
+    summary: Show the code without its caption
+    does: On hides the title line under the code; off shows it when a title is set.
   - name: hideBackground
     edit: part
     depth: hold
@@ -102,6 +115,19 @@ themeFields:
     does: Sizes the caption below the code from 8 to 24 points.
   - use: foregroundColor
     does: Recolors the caption text below the code.
+colorSlots:
+  - slot: code
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the code
+    does: Colors the code's squares; until set it follows the neutral role, the text color.
+  - slot: background
+    default: "#00000000"
+    alias: qrBackground
+    since: next
+    summary: The color behind the code
+    does: Fills a rounded card behind the code; clear until set.
 ---
 
 # QR Code (display)
@@ -112,7 +138,7 @@ A **display** control that renders a QR code image from static text or a dynamic
 `"qrCode"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -121,6 +147,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `tint` | color | `"#FFFFFF"` | QR code foreground color |
 | `qrBackground` | color | — | Fill behind the code |
 | `correctionLevel` | string | `"M"` | Error correction level: `"L"`, `"M"`, `"Q"`, `"H"` |
+| `hideLabel` | bool | `false` | Hide the caption below the code |
 | `hideBackground` | bool | `false` | Remove glass card background |
 
 ## Examples
@@ -178,5 +205,5 @@ Encodes whatever value arrives over MeshSocket, such as a rotating pairing code;
 The QR code is read-only: it has no tap, long-press or detail view, so there is nothing to bind besides the synced value.
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[sync]] — Real-time data sync

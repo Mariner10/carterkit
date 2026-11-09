@@ -12,6 +12,7 @@ aliases: [switch, on off, checkbox, enable, flip, boolean]
 addRank: 2
 depth: complete
 starterPreset: {"label": "Switch"}
+card: {"draws": "card", "says": "In the button and icon styles the card lights with a wash of the colour while the switch is on.", "since": "next"}
 io:
   - emits: value
     when: change
@@ -41,6 +42,8 @@ fields:
     summary: How the switch moves when it flips
     does: Sets the speed and feel of the knob's travel between off and on, from instant to a slow ease.
     valueHelp: {"smooth": "an even natural glide", "snappy": "quick with a crisp stop", "bouncy": "overshoots slightly and settles", "gentle": "slow and soft", "instant": "no travel, it jumps straight to the new state"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: label
     edit: inline
     depth: surface
@@ -50,6 +53,8 @@ fields:
     summary: The name shown with the switch
     does: Shows this text above the switch in the label font size (8-24 pt, default 12).
   - name: icon
+    edit: symbol
+    depth: surface
     title: Symbol
     type: string
     description: SF Symbol
@@ -67,6 +72,8 @@ fields:
     summary: What the control looks like
     does: Switches the whole control between an iOS-style sliding switch, a tappable button and a single icon that swaps.
     valueHelp: {"switch": "a sliding track with a round knob", "button": "a tappable tile that glows in the on color when on", "icon-toggle": "one symbol that swaps between the on and off icons"}
+    valueTitles: {"switch": "Switch", "button": "Button", "icon-toggle": "Icon toggle"}
+    valueSymbols: {"switch": "switch.2", "button": "button.horizontal", "icon-toggle": "star.circle"}
   - name: defaultValue
     title: Initial on/off state
     type: bool
@@ -121,9 +128,12 @@ fields:
     summary: The buzz you feel on a tap
     does: Plays this haptic on the phone each time the control flips.
     valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "rigid": "a firm sharp click", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error", "selection": "the faint tick of picking an item"}
+    valueTitles: {"light": "Light", "medium": "Medium", "heavy": "Heavy", "rigid": "Rigid", "success": "Success", "warning": "Warning", "error": "Error", "selection": "Selection"}
+    valueSymbols: {"light": "circle", "medium": "circle.fill", "heavy": "circle.inset.filled", "rigid": "square.fill", "success": "checkmark.circle", "warning": "exclamationmark.triangle", "error": "xmark.octagon", "selection": "hand.tap"}
   - name: trackLength
     edit: scrub
-    depth: surface
+    depth: hold
+    under: icon
     title: Track length
     tab: style
     styles: [switch]
@@ -138,7 +148,7 @@ fields:
   - name: trackCurvature
     edit: scrub
     depth: hold
-    under: trackLength
+    under: icon
     title: Track curve
     tab: style
     styles: [switch]
@@ -240,6 +250,17 @@ themeFields:
     description: Track width
     summary: How wide the switch is
     does: Sets the track width from 30 to 100 pt (default 51).
+  - name: knobActiveColor
+    since: next
+    edit: color
+    depth: hold
+    under: tint
+    title: Knob color when on
+    styles: [switch]
+    type: color
+    description: Knob fill color while on; the knob blends to it as it travels (defaults to knobColor)
+    summary: The knob's color when the switch is on
+    does: Blends the knob to this color as the switch turns on; leave it empty to keep one knob color.
   - name: knobColor
     edit: color
     depth: hold
@@ -274,6 +295,37 @@ themeFields:
     does: Sets the card outline thickness from 0 (none) to 5 pt (default 1).
   - use: secondaryColor
     does: Colors the dimmer supporting text, default a soft translucent white.
+colorSlots:
+  - slot: lit
+    default: primary
+    alias: tint
+    since: next
+    summary: The color it lights up with
+    does: Lights the switch, the icon and the card glow while on; until set it follows the track-on color.
+  - slot: trackOn
+    default: primary
+    alias: theme.trackActiveColor
+    since: next
+    summary: The switch color when on
+    does: Fills the switch track while on when no on color is set; until set it follows the primary role, or the toggle theme's on color when the layout chose one.
+  - slot: track
+    default: "#39393D"
+    alias: theme.trackColor
+    since: next
+    summary: The switch color when off
+    does: Fills the switch track while off; until set it keeps the toggle theme's track color, light or dark.
+  - slot: knob
+    default: "#FFFFFF"
+    alias: theme.knobColor
+    since: next
+    summary: The color of the sliding knob
+    does: Fills the knob; until set it keeps the toggle theme's knob color, white.
+  - slot: knobOn
+    default: "#FFFFFF"
+    alias: theme.knobActiveColor
+    since: next
+    summary: The knob's color when on
+    does: Blends the knob to this color as the switch turns on; until set the knob keeps one color.
 ---
 
 # Toggle

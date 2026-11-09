@@ -10,7 +10,7 @@ pickerCategory: Charts
 friendlyName: Radar
 oneLiner: Several scores on one shape
 aliases: [spider, web, polar, compare, skills, star chart]
-starterPreset: {"label": "Radar"}
+starterPreset: {"label": "Radar", "defaultValue": "{\"axes\":[\"Speed\",\"Range\",\"Torque\",\"Grip\"],\"series\":[{\"values\":[8,5,7,6]}]}"}
 io:
   - receives: series
     role: show
@@ -71,7 +71,8 @@ fields:
     does: Formats the numeric value beside each vertex, e.g. as a whole number or a percent.
   - name: colors
     edit: list
-    depth: surface
+    depth: hold
+    under: tint
     title: Series colors
     tab: style
     type: string[]
@@ -90,6 +91,9 @@ fields:
     does: Draws each series as a rounded shape instead of a polygon with straight edges.
     group: radarConfig
   - name: editable
+    edit: switch
+    title: Drag to edit
+    depth: hold
     type: bool
     default: false
     description: Drag the **first** series' vertices along their axes
@@ -138,8 +142,10 @@ fields:
     summary: The shape of the outline corners
     does: Rounds, cuts or sharpens the corners of each series outline.
     valueHelp: {"round": "soft rounded corners", "butt": "corners cut flat", "square": "sharp pointed corners"}
+    valueTitles: {"round": "Round", "butt": "Flat", "square": "Pointed"}
+    valueSymbols: {"round": "capsule.fill", "butt": "rectangle.fill", "square": "square.fill"}
   - name: maxValue
-    chip: Range
+    chip: Radar
     bounds: none
     type: number
     description: Per-axis maximum (payload max wins)
@@ -148,8 +154,7 @@ fields:
     group: radarConfig
   - name: rings
     edit: scrub
-    depth: hold
-    under: fillOpacity
+    depth: surface
     title: Grid rings
     min: 1
     max: 12
@@ -215,9 +220,9 @@ themeFields:
   - name: secondaryColor
     type: color
     default: #FFFFFF99
-    description: Axis label color
-    summary: Axis label color
-    does: Colors the axis labels on the radar chart.
+    description: Heading and axis label color
+    summary: Heading and axis label color
+    does: Colors the heading and the axis labels on the radar chart.
   - use: accentColor
     summary: Highlight color
     does: Sets the accent color used to tint the radar chart when no tint is set.
@@ -236,6 +241,18 @@ themeFields:
   - use: labelFontSize
     summary: Label text size
     does: Sets the label text size from 8 to 24 points.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The radar's own primary color
+    does: Colors the first series, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#FF6B6B", "#34C759", "#FF9500", "#4D96FF", "#BF5AF2"]
+    since: next
+    summary: The colors the series take in turn
+    does: Gives series one, two, three and so on these colors in order unless the radar colors list is set, and a color on a series itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Radar

@@ -24,6 +24,9 @@ io:
 fields:
   - name: url
     chip: Page
+    edit: inline
+    depth: surface
+    title: Web address
     type: string
     description: URL to load
     summary: The web page to show
@@ -57,6 +60,12 @@ fields:
     summary: Whether the page can be scrolled
     does: When off, the page stays at its top position and cannot be dragged; when on, you can scroll it.
   - name: webRefreshInterval
+    effect: behavior
+    edit: scrub
+    depth: hold
+    under: url
+    title: Refresh every
+    unit: s
     min: 1
     max: 3600
     step: 1
@@ -64,6 +73,16 @@ fields:
     description: Auto-refresh interval in seconds
     summary: How often the page reloads by itself
     does: Reloads the page every this many seconds (1 to 3600) while it is on screen; leave it unset for no automatic reload.
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Hide title
+    type: bool
+    default: false
+    description: Hide the header label
+    summary: Show the page without its title row
+    does: On hides the title row above the page even when a label is set; off shows it.
   - name: hideBackground
     edit: part
     depth: hold
@@ -93,6 +112,12 @@ themeFields:
     does: Sets the outline thickness from 0 to 5 pt (default 1).
   - use: labelFontSize
     does: Sets the label text size from 8 to 24 pt (default 12).
+colorSlots:
+  - slot: label
+    default: secondaryColor
+    since: next
+    summary: The color of the title
+    does: Colors the label above the page; until set it keeps the theme's secondary text color.
 ---
 
 # Web View
@@ -103,7 +128,7 @@ An embedded web browser that renders a URL inline within the layout grid. Suppor
 `"webView"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -112,6 +137,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `webInteractive` | bool | `true` | Allow user interaction |
 | `webScrollEnabled` | bool | `true` | Allow scrolling |
 | `webRefreshInterval` | number | — | Auto-refresh interval in seconds |
+| `hideLabel` | bool | `false` | Hide the header label |
 | `hideBackground` | bool | `false` | Remove glass card background |
 
 ## Examples
@@ -162,4 +188,4 @@ A browsable page with no frosted card or title row.
 ```
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields

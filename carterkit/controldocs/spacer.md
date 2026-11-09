@@ -15,6 +15,7 @@ starterPreset: {}
 io:
   - emits: none
   - receives: none
+card: {"draws": "when-set", "says": "Empty until you set a Background field; then the gap is a card, a block of colour the Background chip shapes.", "since": "next"}
 fields:
 ---
 

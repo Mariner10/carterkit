@@ -33,9 +33,48 @@
    {
     "id": "place",
     "goal": "Place a dial",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Studio**, then **New Layout**, name it and tap **Create**.",
+      "points": {
+       "Menu": "header.settings",
+       "Studio": "menu.row.studio",
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     },
+     "studio": {
+      "app": "Tap **New Layout**, name it and tap **Create**.",
+      "points": {
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     }
+    },
     "do": {
-     "app": "In Studio, start a new blank layout. Tap **+** and choose **Dial**.",
-     "target": "editor.add"
+     "app": "Tap **Add** and choose **Dial**.",
+     "target": "editor.add",
+     "points": {
+      "Add": "editor.add",
+      "Dial": "editor.addChoice.gauge"
+     }
+    },
+    "already": {
+     "fact": "controlCount",
+     "id": "gauge",
+     "match": {
+      "gte": 1
+     }
     },
     "as": "dial",
     "check": "A dial titled Dial sits on the page, marked 0 to 100.",
@@ -57,7 +96,7 @@
     "id": "range",
     "goal": "Set its range",
     "do": {
-     "app": "Tap **Range** and drag the two ends to **0** and **10**.",
+     "app": "Tap **Range** and set Highest value to **10**.",
      "target": "editor.chip.control"
     },
     "check": "The dial is marked 0 to 10.",
@@ -72,18 +111,41 @@
      "chips": [
       "control"
      ],
-     "petals": 0,
-     "rows": false
+     "petals": 0
     }
    },
    {
     "id": "try",
     "goal": "Try it",
-    "do": {
-     "app": "Tap **Try** to run the page the way it will look on your phone.",
-     "target": "editor.try"
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "canvas": {
+      "app": "Tap **Menu**, then **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     },
+     "studio": {
+      "app": "Close Studio, then tap **Menu** and **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     }
     },
-    "check": "A banner above the page says you are trying it out, and the dial still reads 0 to 10.",
+    "do": {
+     "app": "Tap **More** (⋯) beside the dial's chips and choose **Try it** to run the page with test data.",
+     "target": "editor.pose.more",
+     "points": {
+      "More": "editor.pose.more",
+      "Try it": "editor.pose.more.tryIt"
+     }
+    },
+    "check": "A banner above the page reads Trying it out, and the dial is still marked 0 to 10.",
     "expect": {
      "signal": "editor.try"
     },
@@ -95,7 +157,7 @@
     "id": "keep",
     "goal": "Name it and keep it",
     "do": {
-     "app": "Leave Try. Select the dial, tap **Text** and call it **My dial**, then tap **Done**.",
+     "app": "Tap **Done** on the banner. Select the dial, tap **Text** and call it **My dial**, then tap **Done** at the top.",
      "target": "editor.save"
     },
     "check": "Your layout is in your library, with a dial titled My dial.",
@@ -118,7 +180,7 @@
    "first-layout"
   ],
   "since": "2.2",
-  "kit": ">=0.19",
+  "kit": ">=0.20",
   "uses": {
    "controls": [
     "control.toggle",
@@ -337,10 +399,49 @@
   "steps": [
    {
     "id": "place",
-    "goal": "Place a gauge",
+    "goal": "Place a dial",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Studio**, then **New Layout**, name it and tap **Create**.",
+      "points": {
+       "Menu": "header.settings",
+       "Studio": "menu.row.studio",
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     },
+     "studio": {
+      "app": "Tap **New Layout**, name it and tap **Create**.",
+      "points": {
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     }
+    },
     "do": {
-     "app": "In Studio, start a new blank layout. Tap **+** and choose **Dial**.",
-     "target": "editor.add"
+     "app": "Tap **Add** and choose **Dial**.",
+     "target": "editor.add",
+     "points": {
+      "Add": "editor.add",
+      "Dial": "editor.addChoice.gauge"
+     }
+    },
+    "already": {
+     "fact": "controlCount",
+     "id": "gauge",
+     "match": {
+      "gte": 1
+     }
     },
     "as": "dial",
     "check": "A dial titled Dial sits on the page, marked 0 to 100.",
@@ -361,11 +462,39 @@
    {
     "id": "bind",
     "goal": "Give it a value to show",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Studio**, then **New Layout**, name it and tap **Create**.",
+      "points": {
+       "Menu": "header.settings",
+       "Studio": "menu.row.studio",
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     },
+     "studio": {
+      "app": "Tap **New Layout**, name it and tap **Create**.",
+      "points": {
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     }
+    },
     "do": {
-     "app": "Tap **Binding**. Under **What it shows**, choose **My Data**, then **New value**. Call it **Level** and make it a number.",
+     "app": "Tap **Binding**. Under **What it shows**, choose **My Data**, then **New value**. Call it **Level** and add it.",
      "target": "editor.binding"
     },
-    "check": "The Binding header says the dial shows Level, and the needle rests at 0, where Level starts.",
+    "check": "Level is ticked under My Data, and the needle rests at 0, where Level starts.",
     "expect": {
      "signal": "editor.change",
      "target": "sync"
@@ -384,7 +513,7 @@
     "id": "range",
     "goal": "Set its range",
     "do": {
-     "app": "Tap **Range** and drag the two ends to **0** and **10**.",
+     "app": "Tap **Range** and set Highest value to **10**.",
      "target": "editor.chip.control"
     },
     "check": "The dial is marked 0 to 10.",
@@ -399,19 +528,48 @@
      "chips": [
       "control"
      ],
-     "petals": 0,
-     "rows": false
+     "petals": 0
     }
    },
    {
     "id": "add-slider",
-    "goal": "Add a slider under it",
+    "goal": "Add a slider",
+    "where": [
+     "editor"
+    ],
+    "getThere": {
+     "pose": {
+      "app": "Tap **Done** under the dial to put it down.",
+      "points": {
+       "Done": "editor.pose.done"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     },
+     "studio": {
+      "app": "Close Studio, then tap **Menu** and **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     }
+    },
     "do": {
-     "app": "Tap **+**, choose **Slider** and drop it under the dial.",
-     "target": "editor.add"
+     "app": "Tap **Done** under the dial to put it down, then tap **Add** and choose **Slider**.",
+     "target": "editor.pose.done",
+     "points": {
+      "Done": "editor.pose.done",
+      "Add": "editor.add",
+      "Slider": "editor.addChoice.slider"
+     }
     },
     "as": "knob",
-    "check": "A slider sits under the dial.",
+    "check": "A slider titled Slider sits on the page with the dial, set from 0 to 100.",
     "expect": {
      "signal": "editor.add",
      "target": "slider"
@@ -429,11 +587,39 @@
    {
     "id": "send",
     "goal": "Make the slider set Level",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Studio**, then **New Layout**, name it and tap **Create**.",
+      "points": {
+       "Menu": "header.settings",
+       "Studio": "menu.row.studio",
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     },
+     "studio": {
+      "app": "Tap **New Layout**, name it and tap **Create**.",
+      "points": {
+       "New Layout": "studio.new",
+       "Create": "studio.create"
+      }
+     }
+    },
     "do": {
-     "app": "With the slider selected, tap **Binding**. Under **When you let go**, choose **Save on this phone**, then **Level**.",
+     "app": "With the slider selected, tap **Binding**. Under **When you slide it**, choose **Save on this phone**, then **Level**.",
      "target": "editor.binding"
     },
-    "check": "The slider's Binding says it saves Level when you let go.",
+    "check": "Level is ticked under Save on this phone, and My Data keeps what the slider sends in Level.",
     "expect": {
      "signal": "editor.change",
      "target": "action"
@@ -452,7 +638,7 @@
     "id": "match",
     "goal": "Give the slider the same range",
     "do": {
-     "app": "Tap **Range** and set the slider's ends to **0** and **10**, like the dial's.",
+     "app": "Tap **Range** and set Highest value to **10**, like the dial's.",
      "target": "editor.chip.control"
     },
     "check": "The slider runs from 0 to 10.",
@@ -467,16 +653,39 @@
      "chips": [
       "control"
      ],
-     "petals": 0,
-     "rows": false
+     "petals": 0
     }
    },
    {
     "id": "try",
     "goal": "Try it",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "canvas": {
+      "app": "Tap **Menu**, then **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     },
+     "studio": {
+      "app": "Close Studio, then tap **Menu** and **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     }
+    },
     "do": {
-     "app": "Tap **Try**. Drag the slider to the middle and let go.",
-     "target": "editor.try"
+     "app": "Tap **More** (⋯) beside the slider's chips and choose **Try it**. Drag the slider to the middle and let go.",
+     "target": "editor.pose.more",
+     "points": {
+      "More": "editor.pose.more",
+      "Try it": "editor.pose.more.tryIt"
+     }
     },
     "check": "The needle swings to 5. Drag again and it follows.",
     "expect": {
@@ -495,10 +704,10 @@
     "id": "keep",
     "goal": "Name it and keep it",
     "do": {
-     "app": "Leave Try. Select the dial, tap **Text** and call it **My dial**. Try a **Colour** if you like, then tap **Done**.",
+     "app": "Tap **Done** on the banner. Select the dial, tap **Text** and call it **My dial**. Pick a **Colour** if you like, then tap **Done** at the top.",
      "target": "editor.save"
     },
-    "check": "Your layout is in your library, with a dial titled My dial above a slider.",
+    "check": "Your layout is in your library, with a dial titled My dial and a slider.",
     "expect": {
      "signal": "editor.save"
     },
@@ -518,7 +727,7 @@
    "first-hub"
   ],
   "since": "2.2",
-  "kit": ">=0.19",
+  "kit": ">=0.20",
   "uses": {
    "controls": [
     "control.gauge",
@@ -661,6 +870,233 @@
      "code": "launch"
     },
     "check": "The needle and the trend line move every second, the readout says rising or falling, and Reset to 50 swings the needle back."
+   }
+  ]
+ },
+ "not-updating": {
+  "id": "not-updating",
+  "kind": "fix",
+  "level": "beginner",
+  "audience": "app",
+  "title": "Not updating",
+  "time": 1,
+  "builds": "Check the connection and the feeds behind a layout.",
+  "prerequisites": [],
+  "since": "2.2",
+  "uses": {
+   "controls": [],
+   "fields": [],
+   "docs": [],
+   "carterkit": [],
+   "profiles": []
+  },
+  "result": null,
+  "starterKit": null,
+  "next": [],
+  "steps": [
+   {
+    "id": "hub",
+    "goal": "Check your hub",
+    "where": [
+     "canvas"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank** to get past this page; the dot is then at the top of the screen",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "studio": {
+      "app": "Close Studio to get back to your page, where the dot is at the top."
+     },
+     "editor": {
+      "app": "Tap **Done** at the top to leave the editor; the dot is at the top of your page.",
+      "points": {
+       "Done": "editor.save"
+      }
+     }
+    },
+    "do": {
+     "app": "Tap the **connection** dot at the top of the screen and find your hub under **Hubs**.",
+     "target": "header.connection",
+     "points": {
+      "connection": "header.connection",
+      "Hubs": "hub.hubs"
+     }
+    },
+    "check": "Layout Connection reads Connected. Live beside your hub means its values are arriving.",
+    "expect": {
+     "fact": "connected"
+    }
+   },
+   {
+    "id": "pipes",
+    "goal": "Check its data pipes",
+    "do": {
+     "app": "Under Data Pipes, look for a line that reads Failed or Waiting.",
+     "target": "hub.pipes"
+    },
+    "check": "Every line under Data Pipes reads Live.",
+    "expect": {
+     "fact": "pipesHealthy"
+    }
+   }
+  ]
+ },
+ "style-any-control": {
+  "id": "style-any-control",
+  "kind": "recipe",
+  "level": "beginner",
+  "audience": "app",
+  "title": "Style any control",
+  "time": 2,
+  "builds": "A control with your own title, colour and background.",
+  "prerequisites": [
+   "first-dial"
+  ],
+  "since": "2.2",
+  "uses": {
+   "controls": [],
+   "fields": [],
+   "docs": [],
+   "carterkit": [],
+   "profiles": [
+    "first-look"
+   ]
+  },
+  "result": "first-dial.layout.json",
+  "starterKit": null,
+  "next": [],
+  "steps": [
+   {
+    "id": "title",
+    "goal": "Change its title",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     },
+     "studio": {
+      "app": "Close Studio, then tap **Menu** and **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     }
+    },
+    "do": {
+     "app": "Select a control, or on an empty page tap **Add** and choose **Dial**. Then tap **Text** and type a new title, such as **Reading**.",
+     "target": "editor.add",
+     "points": {
+      "Add": "editor.add",
+      "Dial": "editor.addChoice.gauge",
+      "Text": "editor.chip.text"
+     }
+    },
+    "check": "The control's title is open for editing, and the page shows each letter as you type.",
+    "expect": {
+     "signal": "editor.chip",
+     "target": "text"
+    },
+    "profile": "first-look"
+   },
+   {
+    "id": "colour",
+    "goal": "Change its colour and background",
+    "do": {
+     "app": "Tap **Colour** and pick one, then tap **Background** and pick one. Tap **Done** to keep it.",
+     "target": "editor.save"
+    },
+    "check": "The editor closes, and the control keeps its new title, colour and background.",
+    "expect": {
+     "signal": "editor.save"
+    }
+   }
+  ]
+ },
+ "touch-to-learn": {
+  "id": "touch-to-learn",
+  "kind": "recipe",
+  "level": "beginner",
+  "audience": "app",
+  "title": "Touch a control to learn it",
+  "time": 1,
+  "builds": "A look at what any control lets you change.",
+  "prerequisites": [],
+  "since": "2.2",
+  "uses": {
+   "controls": [
+    "control.slider"
+   ],
+   "fields": [],
+   "docs": [],
+   "carterkit": [],
+   "profiles": [
+    "first-look"
+   ]
+  },
+  "result": "quick-controls.layout.json",
+  "starterKit": null,
+  "next": [
+   "first-dial"
+  ],
+  "steps": [
+   {
+    "id": "pick",
+    "goal": "Select a control",
+    "where": [
+     "editor",
+     "pose"
+    ],
+    "getThere": {
+     "landing": {
+      "app": "Tap **Start blank**.",
+      "points": {
+       "Start blank": "landing.startBlank"
+      }
+     },
+     "canvas": {
+      "app": "Tap **Menu**, then **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     },
+     "studio": {
+      "app": "Close Studio, then tap **Menu** and **Edit Layout**.",
+      "points": {
+       "Menu": "header.settings",
+       "Edit Layout": "menu.row.editLayout"
+      }
+     }
+    },
+    "do": {
+     "app": "Touch a control on the page to select it. On an empty page, tap **Add** and choose **Dial**.",
+     "target": "editor.add",
+     "points": {
+      "Add": "editor.add",
+      "Dial": "editor.addChoice.gauge"
+     }
+    },
+    "check": "The control is selected, and the editor shows its fields below the page.",
+    "expect": {
+     "signal": "editor.select"
+    },
+    "profile": "first-look"
    }
   ]
  }

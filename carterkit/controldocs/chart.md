@@ -10,7 +10,7 @@ pickerCategory: Charts
 friendlyName: Chart
 oneLiner: Lines or bars over time
 aliases: [graph, plot, line chart, bar chart, trend, timeline]
-starterPreset: {"label": "Chart"}
+starterPreset: {"label": "Chart", "defaultValue": "{\"categories\":[\"Mon\",\"Tue\",\"Wed\",\"Thu\"],\"series\":[{\"name\":\"Series 1\",\"values\":[3,5,2,6]}]}"}
 io:
   - receives: series
     role: show
@@ -85,6 +85,21 @@ fields:
     summary: "How round the bar tops are"
     does: "Rounds the corners of every bar from square (0) to 30 points."
     group: chartConfig
+  - name: defaultType
+    edit: look
+    title: Chart type
+    tab: style
+    type: enum
+    values: [bar, line, area, scatter, histogram, waterfall]
+    default: bar
+    description: Drawing type for every series that sets no type of its own
+    summary: "Bars, line or area for the whole chart"
+    does: "Draws each series that has no type of its own as this kind; a series with its own type keeps it."
+    valueHelp: {"bar": "vertical bars", "line": "a line joining the points", "area": "a line with the space beneath it filled", "scatter": "loose dots at x and y positions", "histogram": "raw samples grouped into frequency bars", "waterfall": "bars that step up and down from a running level"}
+    valueTitles: {"bar": "Bar", "line": "Line", "area": "Area", "scatter": "Scatter", "histogram": "Histogram", "waterfall": "Waterfall"}
+    valueSymbols: {"bar": "chart.bar.fill", "line": "chart.xyaxis.line", "area": "chart.line.uptrend.xyaxis", "scatter": "circle.grid.2x2.fill", "histogram": "chart.bar.xaxis", "waterfall": "chart.bar.doc.horizontal"}
+    since: next
+    group: chartConfig
   - name: bins
     edit: scrub
     depth: ai
@@ -99,6 +114,8 @@ fields:
     group: chartConfig
   - name: colors
     edit: list
+    depth: hold
+    under: tint
     title: Series colors
     tab: style
     type: string[]
@@ -114,6 +131,10 @@ fields:
     does: "Runs this action on tap with the tapped datum as JSON in the value placeholder."
     group: chartConfig
   - name: horizontal
+    edit: switch
+    title: Horizontal bars
+    depth: hold
+    category: behaviour
     type: bool
     default: false
     description: Horizontal bars — categories run down the leading edge
@@ -161,7 +182,9 @@ fields:
     description: End shape of the lines. Cross-control, same on every control
     summary: "The shape of the line ends"
     does: "Rounds, flattens or squares the ends of line strokes."
-    valueHelp: {"round": "soft half-circle ends and the default", "butt": "flat ends cut exactly at the last point", "square": "flat ends that extend a little past the last point"}
+    valueHelp: {"round": "soft half-circle ends", "butt": "flat ends cut exactly at the last point", "square": "flat ends that extend a little past the last point"}
+    valueTitles: {"round": "Round", "butt": "Flat", "square": "Square"}
+    valueSymbols: {"round": "capsule.fill", "butt": "rectangle.fill", "square": "square.fill"}
   - name: maxPoints
     edit: scrub
     depth: ai
@@ -205,6 +228,10 @@ fields:
     does: "Paints waterfall bars with a positive change in this color instead of system green."
     group: chartConfig
   - name: scrub
+    effect: behavior
+    edit: switch
+    title: Touch to read values
+    depth: hold
     type: bool
     default: false
     description: Drag shows a dashed crosshair + live readout (with a selection tick)
@@ -272,6 +299,10 @@ fields:
     does: "Draws line and area series as smooth curves rather than straight segments."
     group: chartConfig
   - name: stacked
+    edit: switch
+    title: Stack the series
+    depth: hold
+    category: behaviour
     type: bool
     default: false
     description: Stack bar/area series instead of grouping/overlaying
@@ -297,7 +328,7 @@ fields:
     does: "Fixes the highest value on the vertical axis instead of fitting the data."
     group: chartConfig
   - name: yMin
-    chip: Range
+    chip: Chart
     edit: scrub
     depth: hold
     under: lineWidth
@@ -323,7 +354,9 @@ fields:
     description: Series drawing type, matched by a switch in CARChart (anything else draws as bar); mix bar, line, area and scatter freely
     summary: "What kind of marks a series draws"
     does: "Draws that series as bars, a line, a filled area, dots, binned bars or a waterfall; series of different kinds share one chart."
-    valueHelp: {"bar": "vertical bars and the default", "line": "a line joining the points", "area": "a line with the space beneath it filled", "scatter": "loose dots at x and y positions", "histogram": "raw samples grouped into frequency bars", "waterfall": "bars that step up and down from a running level"}
+    valueHelp: {"bar": "vertical bars", "line": "a line joining the points", "area": "a line with the space beneath it filled", "scatter": "loose dots at x and y positions", "histogram": "raw samples grouped into frequency bars", "waterfall": "bars that step up and down from a running level"}
+    valueTitles: {"bar": "Bar", "line": "Line", "area": "Area", "scatter": "Scatter", "histogram": "Histogram", "waterfall": "Waterfall"}
+    valueSymbols: {"bar": "chart.bar.fill", "line": "chart.xyaxis.line", "area": "chart.line.uptrend.xyaxis", "scatter": "circle.grid.2x2.fill", "histogram": "chart.bar.xaxis", "waterfall": "chart.bar.doc.horizontal"}
   - name: color
     group: data.series
     type: color
@@ -363,11 +396,11 @@ themeFields:
     summary: "The fill behind the plot"
     does: "Paints the chart card background in this color including transparency."
   - use: secondaryColor
-    summary: "The color of axis labels"
-    does: "Colors the axis and grid label text in this softer color."
+    summary: "The color of the heading and axis labels"
+    does: "Colors the heading, the selection readout and the axis labels in this softer color."
   - use: labelFontSize
     summary: "The size of the labels"
-    does: "Sets the heading and axis label text from 8 to 24 points."
+    does: "Sets the heading text from 8 to 24 points; the axis labels use a fixed small font and ignore it."
   - use: accentColor
     summary: "The theme highlight"
     does: "Colors the first series and selection highlights when no tint is set."
@@ -394,6 +427,24 @@ colorSlots:
     since: next
     summary: The colors the series take in turn
     does: Gives series one, two, three and so on these colors in order unless the series colors list is set, and a color on a series itself wins; secondary and tertiary join once a palette sets them.
+  - slot: positive
+    default: "#34C759"
+    alias: chartConfig.positiveColor
+    since: next
+    summary: The color of a waterfall rise
+    does: Colors the waterfall bars that go up; until set it is green, whatever the palette.
+  - slot: negative
+    default: "#FF6B6B"
+    alias: chartConfig.negativeColor
+    since: next
+    summary: The color of a waterfall fall
+    does: Colors the waterfall bars that go down; until set it is a soft red, whatever the palette.
+  - slot: total
+    default: primary
+    alias: chartConfig.totalColor
+    since: next
+    summary: The color of a waterfall total
+    does: Colors the waterfall's total bars; until set they take their series' color.
 ---
 
 # Chart

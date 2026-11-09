@@ -143,9 +143,9 @@ fields:
     does: Lists the device sensors and permissions the layout asks the user to turn on.
   - name: sampleValues
     type: object
-    description: Control id to sample value, shown by the designer and previews; never sent
+    description: "Control id to placeholder value: display only. Shown by Try and previews, and on the live page by a control with no value of its own until its first real one; never sent, saved or published. Applies without a tap unless a sample holds a link (see Sample values)"
     summary: Preview numbers
-    does: Gives controls stand-in values for the designer and previews; they are never sent.
+    does: Gives controls stand-in values that show until real data arrives; they are never sent.
   - name: hubSurfaces
     since: next
     tab: advanced
@@ -573,6 +573,35 @@ heartbeat caveat. A malformed block is ignored rather than failing the layout.
 control shows one with `"sync": [{"method": "derive", "from": "watts"}]`.
 Derived values never go on the wire; every device computes its own. Full
 reference: [[derive]].
+
+## Sample values
+
+`sampleValues` maps a control id to a placeholder in the shape the control
+shows: a number, a string, list rows, a chart's data. The AI connector fills
+each new control's ControlDoc `io:` sample here, so a layout it built does not
+open dead. A sample is **display only**:
+
+- It shows on a control that has nothing of its own when the layout opens: no
+  `defaultValue`, no value the app kept from the last visit. A control the
+  phone's own store feeds never shows one (its rows arrive at once).
+- The control's first value of any kind replaces it: a hub frame, a poll, a
+  derive, or the person's own touch.
+- It is never sent, saved or published: no action, form, hub request, widget,
+  alert or derive sees it. A button tapped while it shows sends what it would
+  with no sample, and a `visible` / `enabled` rule sees no value.
+- Try uses the same map for controls with no live data.
+- The editor previews the same way: a control with nothing of its own shows
+  this map's sample, else its ControlDoc `io:` sample, under a SAMPLE badge,
+  and the pose's **Try** plays the doc's `next` (and the control's action,
+  recorded and never sent). None of it is written to the layout.
+
+Because nothing leaves the phone, a change that sets `sampleValues` applies
+without a tap. One exception asks first: a sample holding a link (any string
+with `://`), since showing it could fetch or open that link.
+
+```json
+"sampleValues": { "lamp": 40, "rows": [{ "id": "row-1", "name": "Item 1" }] }
+```
 
 ## Glance surfaces
 

@@ -35,9 +35,13 @@ fields:
     description: Motion profile for value changes
     summary: How the dial moves when the number changes
     does: The needle or arc eases to each new value; instant jumps with no travel.
-    valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
+    valueHelp: {"smooth": "an even ease", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: min
     chip: Range
+    edit: range
+    depth: surface
     title: Lowest value
     default: 0
     bounds: none
@@ -46,6 +50,10 @@ fields:
     summary: Where the dial starts
     does: The value shown at the empty end of the arc, in the gauge's unit (e.g. 0).
   - name: max
+    edit: range
+    depth: hold
+    under: min
+    axis: max
     title: Highest value
     default: 100
     bounds: none
@@ -64,6 +72,8 @@ fields:
     summary: Half dial or full ring
     does: Switches between a wide 180° half dial and a 360° square ring.
     valueHelp: {"half": "a half-circle dial that is wide and short", "full": "a closed ring that is square"}
+    valueTitles: {"half": "Half dial", "full": "Full ring"}
+    valueSymbols: {"half": "circle.lefthalf.filled", "full": "circle"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -92,6 +102,8 @@ fields:
     summary: The shape of the arc's ends
     does: Rounds, flattens or squares the ends of the track and the filled arc.
     valueHelp: {"round": "soft rounded ends", "butt": "flat ends cut exactly at the value", "square": "flat ends that stick out half a stroke past the value"}
+    valueTitles: {"round": "Round", "butt": "Flat", "square": "Square"}
+    valueSymbols: {"round": "capsule.fill", "butt": "rectangle.fill", "square": "square.fill"}
   - name: segments
     edit: stops
     axis: value
@@ -138,6 +150,10 @@ fields:
     summary: A small picture in the middle
     does: Draws the chosen SF Symbol in the center of the dial next to the number.
   - name: step
+    edit: range
+    depth: hold
+    under: min
+    axis: step
     title: Decimal places
     bounds: none
     type: number
@@ -206,6 +222,8 @@ fields:
     summary: A guess drawn beside the real reading
     does: Counts the dial down to a time, or moves it toward a predicted value until a real reading arrives.
     valueHelp: {"countdown": "the value is a time; the dial counts down to it", "reach": "the value is expected to arrive at a target number or to keep changing at a set rate"}
+    valueTitles: {"countdown": "Countdown", "reach": "Reach"}
+    valueSymbols: {"countdown": "timer", "reach": "scope"}
   - use: forecastTarget
     does: Moves the dial toward this value, between -1,000,000 and 1,000,000, until the real reading replaces it.
   - use: forecastTimeFrom

@@ -10,7 +10,7 @@ depth: complete
 friendlyName: Pie
 oneLiner: Parts of a whole
 aliases: [pie, donut, doughnut, share, breakdown, proportion]
-starterPreset: {"label": "Pie"}
+starterPreset: {"label": "Pie", "defaultValue": "{\"slices\":[{\"label\":\"Rent\",\"value\":50},{\"label\":\"Food\",\"value\":30},{\"label\":\"Fun\",\"value\":20}]}"}
 io:
   - receives: slices
     role: show
@@ -62,6 +62,8 @@ fields:
     summary: "Which kind of round chart it is"
     does: "Switches the control between a solid pie, a ring with a hole, a spinning wheel and a radial button pad."
     valueHelp: {"pie": "a solid chart with no hole", "donut": "a ring with a hole and a center readout", "wheel": "a wheel you flick to spin and pick a winner", "menu": "equal slices that each act as a button"}
+    valueTitles: {"pie": "Pie", "donut": "Donut", "wheel": "Wheel", "menu": "Menu"}
+    valueSymbols: {"pie": "chart.pie.fill", "donut": "circle.dashed", "wheel": "arrow.triangle.2.circlepath", "menu": "circle.grid.2x2.fill"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -105,6 +107,8 @@ fields:
     group: pieConfig
   - name: colors
     edit: list
+    depth: hold
+    under: tint
     title: Slice colors
     tab: style
     type: string[]
@@ -242,6 +246,9 @@ fields:
     does: "Rotates the whole chart so the first slice starts at this many degrees clockwise from the top, 0 to 360."
     group: pieConfig
   - name: icon
+    edit: symbol
+    depth: surface
+    title: Hub symbol
     type: string
     description: SF Symbol in the wheel/menu hub before a result lands
     summary: "The symbol in the middle of the wheel"
@@ -281,6 +288,18 @@ themeFields:
   - use: foregroundColor
     does: "Colors the title and the center readout."
   - use: labelFontSize
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The pie's own primary color
+    does: Colors the first slice, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#FF6B6B", "#34C759", "#FF9500", "#4D96FF", "#BF5AF2", "#FFD93D", "#6BCB77"]
+    since: next
+    summary: The colors the slices take in turn
+    does: Gives slices one, two, three and so on these colors in order unless the pie colors list is set, and a color on a slice itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Pie Chart

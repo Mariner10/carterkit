@@ -62,6 +62,12 @@ def local_source(src: Path, pin: dict, tmp: str) -> Path:
     return src
 
 
+def vendored(d: Path) -> dict:
+    """The files carterkit carries: every *.md doc, the schema and the app's capabilities manifest."""
+    files = sorted(d.glob("*.md")) + sorted(d.glob("*.schema.json")) + sorted(d.glob("capabilities.json"))
+    return {p.name: p.read_bytes() for p in files}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     ap.add_argument("--check", action="store_true",
@@ -78,7 +84,7 @@ def main(argv=None) -> int:
             clone = os.path.join(tmp, "src")
             docs = (local_source(Path(args.source), pin, clone) if args.source
                     else fetch_pinned(pin, clone))
-            src = {p.name: p.read_bytes() for p in sorted(docs.glob("*.md"))}
+            src = vendored(docs)
     except SystemExit as e:
         print(e, file=sys.stderr)
         return 2
@@ -86,7 +92,7 @@ def main(argv=None) -> int:
         print("no *.md docs found in source", file=sys.stderr)
         return 2
 
-    have = {p.name: p.read_bytes() for p in sorted(dest.glob("*.md"))}
+    have = vendored(dest)
     if args.check:
         drift = 0
         for name, data in src.items():

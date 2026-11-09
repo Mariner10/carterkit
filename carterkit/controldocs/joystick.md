@@ -96,11 +96,18 @@ fields:
     description: Hide label and coordinate readout
     summary: Hide the name and readout
     does: When on, hides the label and the x/y readout under the stick.
+  - name: hideBackground
+    since: next
+    edit: part
+    depth: hold
+    title: No background card
+    type: bool
+    default: false
+    description: Remove glass background
+    summary: Whether the card behind it is drawn
+    does: Removes the frosted card behind the stick so it sits on the page.
 themeFields:
   - name: cornerRadius
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     min: 0
     max: 30
@@ -126,9 +133,6 @@ themeFields:
     summary: Card outline color
     does: Colors the outline around the card.
   - name: borderWidth
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     min: 0
     max: 5
@@ -141,6 +145,13 @@ themeFields:
   - use: labelFontSize
     summary: Label text size
     does: Sets the label text size from 8 to 24 pt (default 12).
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the stick
+    does: Colors the ring, the well and the stick; until set it follows the primary role.
 ---
 
 # Joystick
@@ -151,7 +162,7 @@ A virtual analog stick or directional pad for continuous 2D input. Fires throttl
 `"joystick"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -215,5 +226,5 @@ A slow-sending stick with no label for a clean card.
 ```
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[actions]] — Action definition

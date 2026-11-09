@@ -11,7 +11,7 @@ friendlyName: Sections
 oneLiner: Headings that open and close
 aliases: [collapse, expand, section, fold, disclosure, faq]
 addRank: 5
-starterPreset: {}
+starterPreset: {"accordionMode":"single","expandedIndex":0,"panels":[{"type":"group","id":"section-1","label":"Section 1","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"section-1-text","position":[0,0],"text":"Section 1 content"}]},{"type":"group","id":"section-2","label":"Section 2","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"section-2-text","position":[0,0],"text":"Section 2 content"}]}]}
 io:
   - emits: value
     when: tap
@@ -29,6 +29,7 @@ io:
     reacts: that section opens (in single mode, stepping through the sections in between); multi mode keeps its own open set
     example: 1
     since: next
+card: {"draws": "each", "says": "Each section is a card of its own: the Background chip's padding, corners, border and shadow shape every section, and a section's own Background off drops its card.", "since": "next"}
 fields:
   - name: accordionMode
     effect: behavior
@@ -42,6 +43,8 @@ fields:
     summary: Whether opening one section closes the others
     does: Single keeps one section open at a time; multi lets any number stay open together.
     valueHelp: {"single": "opening a section closes the one that was open", "multi": "every section opens and closes on its own"}
+    valueTitles: {"single": "One at a time", "multi": "Many open"}
+    valueSymbols: {"single": "rectangle.compress.vertical", "multi": "rectangle.expand.vertical"}
   - name: expandedIndex
     bounds: none
     type: number
@@ -107,10 +110,7 @@ themeFields:
     summary: How heavy the outline is
     does: Sets the outline thickness from 0 (none) to 5 points.
   - name: cardPadding
-    edit: scrub
     unit: pt
-    depth: hold
-    under: accordionMode
     title: Card spacing
     min: 0
     max: 32
@@ -121,10 +121,7 @@ themeFields:
     summary: Breathing room inside each section
     does: Adds 0 to 32 points between a section card edge and its content.
   - name: cornerRadius
-    edit: scrub
     unit: pt
-    depth: hold
-    under: accordionMode
     title: Corner roundness
     min: 0
     max: 30
@@ -137,6 +134,17 @@ themeFields:
   - use: foregroundColor
     summary: The color of the heading words
     does: Paints the section headings and default text in this color.
+colorSlots:
+  - slot: title
+    default: neutral
+    since: next
+    summary: The color of the section headings
+    does: Colors each section's heading; until the layout picks a color it follows the neutral role, the text color.
+  - slot: chevron
+    default: primary
+    since: next
+    summary: The color of the open and close arrows
+    does: Colors the arrow beside each heading; until set it follows the primary role, the accent.
 ---
 
 # Accordion
@@ -262,7 +270,7 @@ Shows the theme fields: frosted glass, a thick border and larger spacing. Intend
 > Note: `expandedIndex` and `defaultValue` do the same job; use only one.
 
 ## Theming
-Sections are glass cards from the active [[theming|theme]]; the chevron uses `accentColor`.
+Sections are glass cards from the active [[theming|theme]]. The headings draw the `title` colour slot and the chevron the `chevron` slot (neutral and primary [[theming|roles]], so the text colour and `accentColor` until a palette sets them).
 
 ## Related
 - [[group-def]] — each section is a group

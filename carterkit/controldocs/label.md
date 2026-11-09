@@ -12,6 +12,7 @@ oneLiner: A line of text, or a value with a caption
 aliases: [text, title, heading, caption, readout, words]
 addRank: 1
 starterPreset: {"label": "Text","text": "Hello"}
+card: {"draws": "when-set", "says": "Flat text until you set a Background field; then the text sits on the standard card.", "since": "next"}
 lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "number","name": "Number","symbol": "number","set": {"formatValue": "decimal"}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
 lookPresets: [{"id": "plain","name": "Plain","symbol": "text.alignleft","set": {"style": null,"align": null}},{"id": "headline","name": "Headline","symbol": "textformat.size.larger","set": {"style": "headline","align": null}},{"id": "bigNumber","name": "Big number","symbol": "textformat.123","set": {"style": "large-mono","align": "center"}},{"id": "quiet","name": "Quiet","symbol": "textformat.size.smaller","set": {"style": "caption","align": null}}]
 io:
@@ -41,10 +42,8 @@ fields:
     type: string
     description: Alternative to text
     summary: A second place to put the words
-    does: Shows this text when Text is empty; the label reads the same either way.
+    does: Shows this text when no Text is set at all; an empty Text shows blank, not this. Otherwise the label reads the same either way.
   - name: subtitle
-    edit: inline
-    depth: hold
     title: Second line
     type: string
     description: A quieter second line under the text (caption size, secondary color). In a list itemTemplate it takes {{item.<field>}}
@@ -83,6 +82,8 @@ fields:
     summary: How big and bold the text looks
     does: Switches the font between a small line, a headline, a title, a caption and monospaced or terminal looks.
     valueHelp: {"default": "small body text", "headline": "bold headline size", "title": "larger bold title", "caption": "small caption text", "mono": "body text in a monospaced font", "large-mono": "larger monospaced text, good for big numbers", "terminal": "a dark ANSI terminal view that keeps colors and columns"}
+    valueTitles: {"default": "Default", "headline": "Headline", "title": "Title", "caption": "Caption", "mono": "Mono", "large-mono": "Large mono", "terminal": "Terminal"}
+    valueSymbols: {"default": "textformat", "headline": "bold", "title": "textformat.size.larger", "caption": "textformat.size.smaller", "mono": "chevron.left.forwardslash.chevron.right", "large-mono": "textformat.123", "terminal": "terminal"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -120,6 +121,8 @@ fields:
     summary: Where the words sit across the label
     does: Moves the text to the left edge, the middle or the right edge of the label.
     valueHelp: {"leading": "text starts at the left edge", "center": "text is centered", "trailing": "text ends at the right edge"}
+    valueTitles: {"leading": "Leading", "center": "Center", "trailing": "Trailing"}
+    valueSymbols: {"leading": "text.alignleft", "center": "text.aligncenter", "trailing": "text.alignright"}
   - name: fontWeight
     edit: look
     depth: hold
@@ -133,7 +136,11 @@ fields:
     summary: How thick the letter strokes are
     does: Makes the letters lighter or heavier, from ultra thin to black, on top of the chosen style.
     valueHelp: {"ultraLight": "hairline strokes", "thin": "very slim strokes", "light": "slim strokes", "regular": "normal strokes", "medium": "slightly heavier than normal", "semibold": "firm, between medium and bold", "bold": "heavy strokes", "heavy": "very heavy strokes", "black": "the heaviest strokes"}
+    valueTitles: {"ultraLight": "Ultra light", "thin": "Thin", "light": "Light", "regular": "Regular", "medium": "Medium", "semibold": "Semibold", "bold": "Bold", "heavy": "Heavy", "black": "Black"}
+    valueSymbols: {"ultraLight": "textformat.size", "thin": "textformat.size", "light": "circle", "regular": "textformat", "medium": "circle", "semibold": "bold", "bold": "bold", "heavy": "circle", "black": "bold"}
   - name: forecast
+    edit: options
+    depth: surface
     title: Look ahead
     tab: data
     type: enum
@@ -142,6 +149,8 @@ fields:
     summary: Show as a countdown, or show where the value is expected to reach
     does: Lets the label keep ticking between real readings, marked as about, until a real value replaces it.
     valueHelp: {"countdown": "the value is a time and the label counts down to it", "reach": "the value is guessed to move toward a target number until the next real reading"}
+    valueTitles: {"countdown": "Countdown", "reach": "Reach"}
+    valueSymbols: {"countdown": "timer", "reach": "arrow.up.right"}
   - use: forecastTarget
     does: Gives the number the guessed value drifts toward, from -1000000 to 1000000.
   - use: forecastTimeFrom
@@ -158,6 +167,8 @@ fields:
     does: Converts a numeric value to the phone's own units, so celsius shows as degrees Fahrenheit in the US; text is shown as sent.
   - name: scrollable
     category: text
+    edit: part
+    depth: hold
     title: Scrolling log
     type: bool
     default: false
@@ -210,9 +221,6 @@ themeFields:
     summary: The breathing room inside the label
     does: Pushes the text in from the edges by 0 to 24 points.
   - name: cornerRadius
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     title: Corner roundness
     min: 0
@@ -229,9 +237,6 @@ themeFields:
   - use: borderColor
     does: Colors the line drawn around the label.
   - name: borderWidth
-    edit: scrub
-    depth: hold
-    under: style
     unit: pt
     title: Border thickness
     min: 0
@@ -245,6 +250,13 @@ themeFields:
   - use: foregroundColor
     summary: The main color of the words
     does: Sets the color the text is drawn in when no Color is chosen.
+colorSlots:
+  - slot: text
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the text
+    does: Colors the text when no color map matches; until set it follows the neutral role, the text color. A terminal label keeps its light text on its dark screen until the layout picks a color.
 ---
 
 # Label
@@ -255,7 +267,7 @@ A read-only text display. Shows static text or synced dynamic text. Stores a `.s
 `"label"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -389,7 +401,7 @@ shell/tmux pane to the phone:
 - **Pinch to zoom** — pinch to scale the text past the fitted size; **double-tap** snaps back
   to fit. Content wider/taller than the view scrolls both ways.
 - **Sizing** — set `controlHeight` for the on-screen height; `fontSize` caps the fitted font
-  before zoom. Keeps the latest line in view and auto-scrolls on update.
+  before zoom (it is read only by the terminal style; other styles size by the Value size and style petals). Keeps the latest line in view and auto-scrolls on update.
 
 Feed it like any synced label (a `.string` value); see the
 [tmux-bridge](https://carterbeaudoin.net/CAR-TER) server for a complete example.
@@ -602,7 +614,7 @@ Shows a device state code as plain words, with the default catching anything une
   see [[#Value maps]]
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[image]] — the same value maps, mapping to symbols and image URLs
 - [[style-properties#Label Styles]] — Style variants
 - [[sync]] — Live value updates

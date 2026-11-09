@@ -15,7 +15,7 @@ io:
   - emits: pucks
     when: hold
     title: When you aim at a puck
-    field: pucks
+    field: compassConfig.pucks
     type: id
     says: the id of the puck you are aiming at
     example: "Item 1"
@@ -24,7 +24,7 @@ io:
   - emits: place
     when: drop
     title: When you drop a puck
-    field: events.place
+    field: compassConfig.events.place
     type: json
     tokens: {"item": "the puck's id", "x": "its place across the ring", "y": "its place down the ring", "bearing": "its bearing in degrees"}
     says: the puck you dropped and its new bearing
@@ -78,7 +78,7 @@ fields:
     effect: behavior
     edit: scrub
     depth: hold
-    under: controlHeight
+    under: pucks
     title: Tolerance
     min: 1
     max: 90
@@ -92,7 +92,7 @@ fields:
   - name: dwell
     edit: scrub
     depth: hold
-    under: controlHeight
+    under: pucks
     title: Hold time
     min: 0
     max: 10
@@ -103,6 +103,16 @@ fields:
     summary: How long to hold aim
     does: Waits this many seconds of steady aim at a puck before its action fires; 0 fires at once.
     group: compassConfig
+  - name: tint
+    edit: color
+    depth: surface
+    since: next
+    title: Color
+    tab: style
+    type: color
+    description: "Needle and accent color (default the theme accent); pucks keep their own tint"
+    summary: The color of the needle
+    does: Colors the needle and the ring accents; unset follows the theme accent color, and a puck's own tint still wins for that puck.
   - name: showCardinals
     edit: part
     depth: hold
@@ -134,9 +144,9 @@ fields:
     title: Letter color
     tab: style
     type: color
-    description: "E/S/W cardinal color (default secondary grey; N always follows tint)"
+    description: "E/S/W cardinal color (default the theme's faint tertiary grey; all four letters share it, N included)"
     summary: Color of the compass letters
-    does: Colors the N, E, S and W letters; they use a neutral grey when not set.
+    does: Colors the N, E, S and W letters; all four letters (N included) use the theme's faint grey when not set; the Color chip does not recolor them.
     group: compassConfig
   - name: editable
     effect: behavior
@@ -158,11 +168,51 @@ fields:
     group: compassConfig
   - name: pucks
     chip: Pucks
+    depth: surface
     type: object
+    edit: rows
+    columns: [{"name": "id", "title": "Id", "type": "string", "edit": "inline", "required": true, "default": "puck{n}"}, {"name": "label", "title": "Label", "type": "string", "edit": "inline"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol"}, {"name": "tint", "title": "Tint", "type": "color", "edit": "color"}, {"name": "bearing", "title": "Bearing", "type": "number", "edit": "scrub", "required": true, "min": 0, "max": 359, "step": 5, "default": 0}, {"name": "locked", "title": "Locked", "type": "bool", "edit": "part"}]
     description: pucks
     summary: The actions around the ring
     does: Places one puck on the ring per entry at its bearing; aiming at it fires its action.
     group: compassConfig
+themeFields:
+  - use: accentColor
+    since: next
+    does: Colors the needle when no Color is set, default a soft indigo.
+  - use: tertiaryColor
+    since: next
+    does: Colors the N, E, S and W letters when no letter color is set, default a dim white.
+  - use: surfacePrimary
+    since: next
+  - use: cornerRadius
+    since: next
+  - use: borderColor
+    since: next
+  - use: borderWidth
+    since: next
+  - use: controlPadding
+    since: next
+  - use: foregroundColor
+    since: next
+colorSlots:
+  - slot: needle
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the needle
+    does: Fills the needle; until the layout picks a color it follows the primary role.
+  - slot: cardinal
+    default: tertiaryColor
+    alias: compassConfig.cardinalColor
+    since: next
+    summary: The color of N, E, S and W
+    does: Colors the four cardinal letters; until set it keeps the theme's tertiary text color.
+  - slot: puck
+    default: primary
+    since: next
+    summary: The color of the pucks
+    does: Colors each puck that has no tint of its own; until set it follows the primary role.
 ---
 
 # Compass

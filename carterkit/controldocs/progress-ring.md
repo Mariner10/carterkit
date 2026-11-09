@@ -35,9 +35,13 @@ fields:
     description: Motion profile for value changes
     summary: How the ring moves when the number changes
     does: The fill eases to each new value; instant jumps with no travel.
-    valueHelp: {"smooth": "an even ease and the default", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
+    valueHelp: {"smooth": "an even ease", "snappy": "a quick move that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft glide", "instant": "jumps straight to the new value with no travel"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: min
     chip: Range
+    edit: range
+    depth: surface
     title: Lowest value
     bounds: none
     type: number
@@ -46,6 +50,10 @@ fields:
     summary: The value that shows an empty ring
     does: Sets the value at 0% fill, in the control's unit (e.g. 0).
   - name: max
+    edit: range
+    depth: hold
+    under: min
+    axis: max
     title: Highest value
     bounds: none
     type: number
@@ -64,6 +72,8 @@ fields:
     summary: Round ring or flat bar
     does: Switches the display between a circular ring and a horizontal bar.
     valueHelp: {"ring": "a circular ring with the number in the middle", "bar": "a thin horizontal bar with the title and number above"}
+    valueTitles: {"ring": "Ring", "bar": "Bar"}
+    valueSymbols: {"ring": "circle.dotted", "bar": "minus"}
   - name: glowRadius
     edit: scrub
     depth: hold
@@ -92,6 +102,8 @@ fields:
     summary: The shape of the fill's ends
     does: Rounds, flattens or squares the ends of the ring or the bar corners.
     valueHelp: {"round": "soft rounded ends", "butt": "flat ends cut exactly at the value", "square": "flat ends that stick out half a stroke past the value"}
+    valueTitles: {"round": "Round", "butt": "Flat", "square": "Square"}
+    valueSymbols: {"round": "capsule.fill", "butt": "rectangle.fill", "square": "square.fill"}
   - name: tint
     edit: color
     title: Color
@@ -176,6 +188,8 @@ fields:
     summary: Show as a countdown, or show where the value is expected to reach
     does: Counts the fill down to a time, or moves it toward a predicted value until a real reading arrives.
     valueHelp: {"countdown": "the value is a time and the control counts down to it", "reach": "the value is expected to arrive at a target number or to keep changing at a set rate"}
+    valueTitles: {"countdown": "Countdown", "reach": "Reach"}
+    valueSymbols: {"countdown": "timer", "reach": "scope"}
   - use: forecastTarget
     does: Moves the fill toward this value, between -1,000,000 and 1,000,000, until a real reading replaces it.
   - use: forecastTimeFrom
@@ -211,6 +225,18 @@ themeFields:
     does: Sets the border thickness in points, 0 to 5; 0 hides it.
   - use: labelFontSize
     does: Sets the title text size in points, 8 to 24.
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the filled part
+    does: Fills the done part of the ring or bar when no color zone applies; until the layout picks a color it follows the primary role.
+  - slot: track
+    default: trackColor
+    since: next
+    summary: The color of the empty part
+    does: Paints the empty part of the ring or bar; until set it keeps the theme's track color.
 ---
 
 # Progress Ring

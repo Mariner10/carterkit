@@ -34,6 +34,7 @@ fields:
     does: "Shows this text as the tile's title in the title text size."
   - name: hideLabel
     edit: part
+    title: Label
     depth: hold
     under: label
     type: bool
@@ -140,6 +141,8 @@ fields:
     summary: "The shape of the trend line's ends"
     does: "Rounds, flattens or squares the two ends of the trend line."
     valueHelp: {"round": "soft rounded ends", "butt": "flat ends cut exactly at the data point", "square": "flat ends that stick out half a stroke past the data point"}
+    valueTitles: {"round": "Round", "butt": "Flat", "square": "Square"}
+    valueSymbols: {"round": "capsule.fill", "butt": "rectangle.fill", "square": "square.fill"}
   - name: hideBackground
     tab: style
     type: bool
@@ -155,7 +158,9 @@ fields:
     description: Motion profile for the number roll
     summary: "How the number moves when it changes"
     does: "The number rolls to each new value; instant swaps it with no roll."
-    valueHelp: {"smooth": "an even roll and the default", "snappy": "a quick roll that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft roll", "instant": "swaps straight to the new number with no roll"}
+    valueHelp: {"smooth": "an even roll", "snappy": "a quick roll that settles fast", "bouncy": "overshoots slightly then springs back", "gentle": "a slow and soft roll", "instant": "swaps straight to the new number with no roll"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: reference
     chip: Compare
     bounds: none
@@ -167,6 +172,8 @@ fields:
     does: "Sets the baseline in the tile's unit; the arrow and change show the value minus this."
     group: statTileConfig
   - name: referencePath
+    edit: key
+    depth: hold
     title: Live reference path
     tab: data
     type: string
@@ -183,6 +190,8 @@ fields:
     summary: "How the change is written"
     does: "Shows the change as a percent of the baseline or as the plain difference in the tile's unit."
     valueHelp: {"percent": "change as a percent of the baseline", "absolute": "change as the plain difference in the value's unit"}
+    valueTitles: {"percent": "Percent", "absolute": "Absolute"}
+    valueSymbols: {"percent": "percent", "absolute": "plusminus"}
     group: statTileConfig
   - name: invertDelta
     title: Up is bad
@@ -247,6 +256,13 @@ themeFields:
   - use: borderWidth
   - use: labelFontSize
     does: "Sets the title's text size from 8 to 24 points."
+colorSlots:
+  - slot: line
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the trend line
+    does: Draws the sparkline when no threshold band colors it; until the layout picks a color it follows the primary role.
 ---
 
 # Stat Tile

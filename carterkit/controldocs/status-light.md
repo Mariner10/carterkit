@@ -48,6 +48,8 @@ fields:
     title: Colors for each status
     tab: style
     type: object
+    edit: map
+    columns: [{"name": "status", "title": "Status", "type": "string", "edit": "inline", "required": true, "values": ["online", "degraded", "offline"], "default": "status{n}"}, {"name": "color", "title": "Color", "type": "color", "edit": "color", "required": true, "default": "#8E8E93"}]
     description: "Map state strings to hex colors: {\"online\": \"#34C759\", \"offline\": \"#FF3B30\"}"
     summary: Which color each status shows
     does: Recolors the light to the color matching the current state text; a state with no entry keeps the tint color.
@@ -63,6 +65,8 @@ fields:
     summary: How big the light is drawn
     does: Sets the dot diameter to 8, 12 or 18 points; the badge style scales with it.
     valueHelp: {"small": "a tiny 8 pt dot for dense rows", "default": "a standard 12 pt dot", "large": "a bold 18 pt dot you can read across the room"}
+    valueTitles: {"small": "Small", "default": "Default", "large": "Large"}
+    valueSymbols: {"small": "circle", "default": "textformat", "large": "circle.fill"}
   - name: style
     edit: look
     depth: surface
@@ -75,6 +79,8 @@ fields:
     summary: Plain dot or a pill with words
     does: Switches between a round dot beside the label and a capsule that spells out the current state in text.
     valueHelp: {"dot": "a round colored light with the label beside it", "badge": "a rounded pill that shows the state name in its tint"}
+    valueTitles: {"dot": "Dot", "badge": "Badge"}
+    valueSymbols: {"dot": "circle.fill", "badge": "capsule.fill"}
   - name: glow
     edit: scrub
     depth: hold
@@ -131,6 +137,13 @@ themeFields:
   - use: labelFontSize
     summary: How large the label text is
     does: Sets the label height from 8 to 24 pt.
+colorSlots:
+  - slot: light
+    default: statusOK
+    alias: tint
+    since: next
+    summary: The color of the light
+    does: Colors the dot, its glow and its icon when no status color matches the value; until set it keeps the theme's OK green.
 ---
 
 # Status Light

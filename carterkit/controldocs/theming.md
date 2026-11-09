@@ -9,7 +9,7 @@ fields:
     type: color
     description: Page background
     summary: The solid colour behind the whole page
-    does: Paints the page with one flat colour behind every control.
+    does: Paints the page with one flat colour behind every control. In the editor it is the Background row of the Palette tray, beside the four roles, with its own light and dark sides.
   - name: headerBackground
     type: color
     description: Header bar background
@@ -41,17 +41,24 @@ fields:
     summary: The colour of the deepest layer
     does: Fills the deepest nested surfaces, such as wells inside nested cards.
   - name: accentColor
-    edit: color
     depth: surface
     type: color
-    description: Primary accent
+    description: Alias of palette.primary
     summary: Your main highlight colour
-    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own.
+    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own. It is an alias of palette.primary: a theme with both uses the palette's, and saving writes palette.primary only.
+  - name: palette
+    edit: palette
+    depth: surface
+    type: object
+    description: Named colours written once, referenced as $name in any colour field
+    summary: Name your colours once
+    does: Defines named colours that any colour field can reuse as a dollar-name reference.
+    changes: [{in: next, note: "primary, secondary, tertiary and neutral are colour roles: a colour or a {light, dark} pair that controls' colour slots draw with"}]
   - name: foregroundColor
     type: color
     description: Primary text
     summary: The main text colour
-    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode.
+    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode. In the editor it is the Text row of the Palette tray, right under Background: Auto until a colour is picked.
   - name: onAccent
     type: color
     description: Text/icon colour drawn on an accent fill
@@ -276,9 +283,10 @@ fields:
     min: 0.7
     max: 1.5
     step: 0.05
+    title: Spacing
     description: Theme token. Padding scale
-    summary: How roomy or tight things are
-    does: Scales the control and card padding by this factor, so 0.7 is tighter and 1.5 is roomier.
+    summary: How tight or roomy the layout feels, from Tighter to Roomier
+    does: Scales the space inside every control and card by this factor, so 0.7 is tighter and 1.5 is roomier. The layout Look pane has only this one spacing control; card padding is a separate group and background setting, not on that pane.
   - name: fontFamily
     type: string
     description: Custom font family name (e.g. Times New Roman)
@@ -331,40 +339,34 @@ fields:
     description: Overrides applied last when the app is in dark mode; keys are the schemeOverride group fields
     summary: Colours used only in dark mode
     does: Applies these colour overrides last, only while the app is showing dark mode.
-  - name: palette
-    type: object
-    description: Named colours written once, referenced as $name in any colour field
-    summary: Name your colours once
-    does: Defines named colours that any colour field can reuse as a dollar-name reference.
-    changes: [{in: next, note: "primary, secondary, tertiary and neutral are colour roles: a colour or a {light, dark} pair that controls' colour slots draw with"}]
   - name: primary
     group: palette
     type: color
     since: next
     description: Primary role colour, or a {light, dark} pair
     summary: Your main colour role
-    does: Colours every slot that defaults to primary (a gauge arc, a button fill); unset, it is the accent colour.
+    does: Colours gauge arcs, button fills, chart lines and other highlights, and is the accent the app tints with. An older accentColor still reads as this colour.
   - name: secondary
     group: palette
     type: color
     since: next
     description: Secondary role colour, or a {light, dark} pair
     summary: A second colour for two-tone controls
-    does: Colours slots and series entries that name secondary; unset, it is the primary colour.
+    does: "Colours a chart's second series and anything set to secondary; until you pick one, it is the primary."
   - name: tertiary
     group: palette
     type: color
     since: next
     description: Tertiary role colour, or a {light, dark} pair
     summary: A third colour for series and accents
-    does: Colours slots and series entries that name tertiary; unset, it is the secondary colour.
+    does: "Colours a chart's third series and anything set to tertiary; until you pick one, it is the secondary."
   - name: neutral
     group: palette
     type: color
     since: next
     description: Neutral role colour, or a {light, dark} pair
     summary: The quiet colour for tracks and ticks
-    does: Colours slots that default to neutral, such as tracks and grid lines at their own opacity; unset, it is the foreground colour.
+    does: Colours labels, list text, tracks and grid lines; until you pick one, it is the text colour.
   - name: pageBackground
     group: schemeOverride
     type: color
@@ -930,14 +932,20 @@ Four names in `palette` are **roles**: `primary`, `secondary`, `tertiary` and `n
 ```
 
 - **A role's value** is a colour, or `{ "light": colour, "dark": colour }` for the two schemes (one side alone covers both). Role values are literal colours, like every palette value.
-- **Where palettes go**: the layout's `theme.palette`, a tab's `palette` (same object, for that page), a [[group-def|group]]'s or a control's `theme.palette`. The nearest level that names a role wins, role by role. A group or control that sets its own `accentColor` but no `palette.primary` gets primary back from that accent.
+- **Where palettes go**: the layout's `theme.palette`, a tab's `palette` (same object, for that page), a [[group-def|group]]'s or a control's `theme.palette`. The nearest level that names a role wins, role by role. `accentColor` is an alias of `palette.primary`: a theme with only an accentColor loads with that as its primary (a `light`/`dark` accent as the matching side), a theme with both keeps its `palette.primary`, and saving writes `palette.primary` only. A group or control that sets its own `accentColor` but no `palette.primary` gets primary back from that accent.
+- **Background and Text in the editor**: the Palette tray also holds Background (`pageBackground`) and Text (`foregroundColor`) with the same light and dark sides, so one place edits every layout colour. Text reads Auto (an ink worked out from Background, 4.5:1 on the page) until a colour is picked; a System layout is rebalanced by the same parity rule after either change. They write the existing keys, so layouts and tools are unchanged.
 - **Unset roles** keep today's look: `primary` is the accent colour, `secondary` is `primary`, `tertiary` is `secondary`, and `neutral` is the foreground colour. A layout without roles draws exactly what it drew before roles existed.
 - **A slot value** in `colors` (and a slot's default in its doc) is a role, a role at an opacity (`neutral@0.12`), a theme colour key (`accentColor`, `foregroundColor`, `secondaryColor`, `tertiaryColor`, `surfacePrimary`, `surfaceSecondary`, `surfaceTertiary`, `borderColor`, `trackColor`, `statusOK`, `statusWarn`, `statusError`, `statusInfo`, `scrimColor`, opacity allowed too), a `$name` token or a colour. A value that does not resolve falls back to the slot's default.
 - **Series**: a series slot takes an ordered list, `"colors": { "series": ["primary", "secondary", "#FF9F0A"] }`, or the bare list `"colors": ["primary", "secondary"]`. Series colours go to series in order. In a doc's series default, `secondary` and `tertiary` stand aside until a palette sets them (unset, they would repeat primary), so a chart with no palette keeps its hue walk.
 - **Old keys still work**: each slot names the existing key that also sets it (its `alias`, such as `tint`). A slot draws its `colors` entry first, then the old key, then its default.
 - **`$name` is not a role**: `"$primary"` reads a plain `primary` colour at load, once for both schemes. A role written as `{light, dark}` is not a token, so write `primary` (no `$`) in `colors` to follow the scheme.
 
-Control docs declare their slots in frontmatter (`colorSlots:`, see [[control-def]] "Colour slots"). `ResolvedTheme.resolve(slot:of:)` is the one resolver; the controls move onto their slots in stages. [[gauge]] (`arc`, `track`), [[chart]] (`main`, `series`) and [[button]] (`fill`) draw through theirs.
+Control docs declare their slots in frontmatter (`colorSlots:`, see [[control-def]] "Colour slots"). `ResolvedTheme.resolve(slot:of:)` is the one resolver; the controls move onto their slots in stages. [[gauge]] (`arc`, `track`), [[chart]] (`main`, `series`) and [[button]] (`fill`) draw through theirs, and so do the inputs: [[slider]], [[stepper]], [[toggle]], [[segmented]], [[picker]], [[text-input]], [[date-picker]], [[color-picker]] and [[joystick]], and the readouts: [[progress-ring]], [[stat-tile]], [[status-light]], [[label]], [[key-value]], [[symbol]], [[compass]], [[sparkline]], [[qr-code]], [[image]] and [[divider]] ([[spacer]] draws no colour), and the charts: [[pie-chart]], [[box-plot]], [[chord]], [[gantt]], [[graph]], [[heatmap]], [[radar]], [[sankey]], [[treemap]] and [[map]].
+
+- **Parts a control theme colours**: a slider's track and thumb, a toggle's track and knob, a stepper's buttons and the segmented bar keep the colour their control theme (`slider`, `toggle`, `stepper`, `segmented`, light or dark) gives them until `colors` or their own key sets one; their doc default is that theme's built-in value. A slot whose default is a role follows the role once a palette sets it (a toggle's `trackOn`, a stepper's `button`), unless the layout gave the control theme its own colour for that part.
+- **Readouts keep their meaning**: a status light stays the theme's OK green and a stat tile or progress ring's threshold colours stay their own; text parts (a label, key-value text, a QR code, a symbol) follow `neutral`, accent parts (a progress fill, a sparkline, a compass needle) follow `primary`.
+- **Charts share one shape**: `main` (alias `tint`) is the chart's own primary, and `series` gives the slices, boxes, groups, task bars, nodes or tiles their colours in turn (`[primary, secondary, tertiary, ...]`, then the chart's hue walk; secondary and tertiary join once a palette sets them). A colour in the data (a series', slice's or task's own) and the chart's `colors` list still win. Meaningful colours stay put: a waterfall's rise and fall, a gantt's now line, a map's routes. [[graph]] names each part (`node`, `edge`, `label`, `glow`...) after its graphConfig key.
+- **Lists** ([[list]], [[cardList]], [[log-console]], [[chat]]): their words follow `neutral` (`text`, and a list's heading `title`); a card list's symbols and a chat's `bubble` (your bubbles, names, reply marks, the send arrow) follow `primary`. A chat's bubbles keep the theme's accent gradient until a palette, `colors.bubble` or `config.tint` picks a colour; log level colours stay their own.
 
 ## Cascade
 

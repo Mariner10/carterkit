@@ -42,8 +42,12 @@ fields:
     summary: How the handle glides when the value changes
     does: "Sets how the handle and fill travel when the value changes, from instant jump to a soft glide."
     valueHelp: {"smooth": "an even, natural glide", "snappy": "a quick, firm move", "bouncy": "overshoots slightly, then settles", "gentle": "a slow, soft drift", "instant": "jumps with no travel"}
+    valueTitles: {"smooth": "Smooth", "snappy": "Snappy", "bouncy": "Bouncy", "gentle": "Gentle", "instant": "Instant"}
+    valueSymbols: {"smooth": "water.waves", "snappy": "bolt.fill", "bouncy": "arrow.up.and.down.circle", "gentle": "wind", "instant": "forward.end.fill"}
   - name: min
     chip: Range
+    edit: range
+    depth: surface
     title: Lowest value
     bounds: none
     type: number
@@ -52,6 +56,10 @@ fields:
     summary: Where the slider starts
     does: "Sets the value at the left end (or arc start) of the slider, in the slider's own units."
   - name: max
+    edit: range
+    depth: hold
+    under: min
+    axis: max
     title: Highest value
     bounds: none
     type: number
@@ -60,9 +68,10 @@ fields:
     summary: Where the slider ends
     does: "Sets the value at the right end (or arc end) of the slider, in the slider's own units."
   - name: step
-    edit: scrub
+    edit: range
     depth: hold
-    under: style
+    under: min
+    axis: step
     title: Step size
     bounds: none
     type: number
@@ -71,6 +80,9 @@ fields:
     summary: How coarsely the slider snaps
     does: "Makes the handle snap to values spaced this far apart from the lowest value; 0 or less slides smoothly."
   - name: continuous
+    effect: behavior
+    edit: switch
+    depth: hold
     title: Send while dragging
     type: bool
     default: true
@@ -123,6 +135,8 @@ fields:
     summary: Which kind of slider it is
     does: "Switches between a bar with a big handle, a thin seek bar, or a circular arc."
     valueHelp: {"default": "a bar with a round handle and optional end symbols", "scrubber": "a thin progress line with a small draggable dot", "radial": "a circular arc you drag around"}
+    valueTitles: {"default": "Bar", "scrubber": "Scrubber", "radial": "Radial"}
+    valueSymbols: {"default": "slider.horizontal.3", "scrubber": "line.diagonal", "radial": "dial.medium"}
   - name: formatValue
     title: Number format
     simple: hide
@@ -134,6 +148,8 @@ fields:
     summary: How the number is written
     does: "Changes how the readout is written, such as 72, 3:45 or 80%, or hides it."
     valueHelp: {"decimal": "a plain number like 72 or 3.5", "time": "minutes and seconds like 3:45, from a total in seconds", "percent": "a whole percentage like 80%", "none": "no number shown"}
+    valueTitles: {"decimal": "Number", "time": "Time", "percent": "Percent", "none": "Hidden"}
+    valueSymbols: {"decimal": "number", "time": "clock", "percent": "percent", "none": "eye.slash"}
   - name: minIcon
     title: Symbol at low end
     styles: [default]
@@ -310,6 +326,25 @@ themeFields:
     description: Track corner radius
     summary: How round the bar ends are
     does: "Rounds the track corners from 0 to 20 points."
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the filled part
+    does: Fills the done part of the bar, the radial arc and the mini scrubber; until the layout picks a color it follows the primary role.
+  - slot: track
+    default: "#39393D"
+    alias: theme.trackColor
+    since: next
+    summary: The color of the empty part
+    does: Paints the empty part of the bar; until set it keeps the slider theme's track color, the theme track color on the radial dial and a faint ink on the mini scrubber.
+  - slot: thumb
+    default: "#FFFFFF"
+    alias: theme.thumbColor
+    since: next
+    summary: The color of the grab handle
+    does: Fills the grab handle on every style; until set it keeps the slider theme's handle color, white.
 ---
 
 # Slider
@@ -337,7 +372,7 @@ Inherits all [[shared-properties]]. Key fields:
 | `hideBackground` | bool | `false` | Remove glass background |
 | `arcAngle` | number | `270` | Arc sweep in degrees (radial style only) |
 | `arcRotation` | number | `0` | Arc start rotation (radial style only) |
-| `arcThickness` | number | `6` | Track stroke width (radial style only) |
+| `arcThickness` | number | `8` | Track stroke width (radial style only) |
 
 ## What it sends and shows
 

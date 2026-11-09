@@ -10,12 +10,12 @@ friendlyName: Free canvas
 oneLiner: Place things anywhere on a surface
 aliases: [draw, drawing, sketch, paint, shapes, freeform]
 depth: complete
-starterPreset: {"label": "Canvas"}
+starterPreset: {"label": "Canvas", "canvasConfig": {"items": [{"id": "item-1", "x": 0.05, "y": 0.1, "w": 0.4, "h": 0.3, "control": {"type": "label", "id": "item-1-label", "text": "Item 1"}}, {"id": "item-2", "x": 0.5, "y": 0.5, "w": 0.4, "h": 0.3, "control": {"type": "label", "id": "item-2-label", "text": "Item 2"}}]}}
 io:
   - emits: place
     when: drop
     title: When you drop a card
-    field: events.place
+    field: canvasConfig.events.place
     type: json
     tokens: {"item": "the card's id", "x": "its left edge, 0 to 1", "y": "its top edge, 0 to 1", "w": "its width, 0 to 1", "h": "its height, 0 to 1"}
     says: the card you dropped and its new position and size
@@ -35,9 +35,7 @@ io:
     next: {"frames": {"Item 1": {"x": 0.5, "y": 0.1, "w": 0.4, "h": 0.3}, "Item 2": {"x": 0.1, "y": 0.5, "w": 0.4, "h": 0.3}}}
 fields:
   - name: haptic
-    edit: look
-    depth: hold
-    under: label
+    title: Feel
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
@@ -143,6 +141,17 @@ fields:
     summary: What happens when you move a card
     does: Runs the pickup, place and layout actions as a card is lifted and dropped.
     group: canvasConfig
+colorSlots:
+  - slot: selection
+    default: primary
+    since: next
+    summary: The color of a picked-up card
+    does: Outlines the card being moved; until the layout picks a color it follows the primary role.
+  - slot: grid
+    default: neutral@0.12
+    since: next
+    summary: The color of the grid and edge
+    does: Colors the dot grid and the canvas edge; until set it follows the neutral role, faintly.
 ---
 
 # Canvas

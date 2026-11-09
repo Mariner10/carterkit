@@ -43,3 +43,11 @@ def test_sync_shape_mismatch_warns():
     assert [x["kind"] for x in f] == ["io_sync_shape"]
     ok = dict(sync, aggregate="count")
     assert _io(_lay({"type": "slider", "id": "s", "sync": [ok]})) == []
+
+
+def test_sync_value_path_picks_one_value():
+    # CAR-TER's counter sample: a label reads one field of the latest row, not the rows
+    picked = {"method": "local", "collection": "tally", "valuePath": "amount"}
+    assert _io(_lay({"type": "label", "id": "l", "sync": [picked]})) == []
+    grouped = dict(picked, groupBy="day")
+    assert [x["kind"] for x in _io(_lay({"type": "label", "id": "l", "sync": [grouped]}))] == ["io_sync_shape"]

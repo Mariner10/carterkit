@@ -88,7 +88,7 @@ fields:
     description: End shape of the line. Cross-control, same on every control
     summary: Shape of the line's ends
     does: Shapes the two ends of the line as rounded, flat or squared off.
-    valueHelp: {"round": "rounded ends and the default", "butt": "flat ends that stop exactly at the last point", "square": "flat ends that extend a little past the last point"}
+    valueHelp: {"round": "rounded ends", "butt": "flat ends that stop exactly at the last point", "square": "flat ends that extend a little past the last point"}
   - name: colorByValue
     edit: stops
     axis: value
@@ -150,6 +150,13 @@ themeFields:
   - use: labelFontSize
     summary: Size of the label text
     does: Sets the label's text size from 8 to 24 points.
+colorSlots:
+  - slot: line
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the line
+    does: Draws the line and the fill under it when no color zones apply; until the layout picks a color it follows the primary role.
 ---
 
 # Sparkline

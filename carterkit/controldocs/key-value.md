@@ -46,6 +46,8 @@ fields:
     category: content
     title: Rows
     type: array
+    edit: rows
+    columns: [{"name": "key", "title": "Key", "type": "string", "edit": "inline", "required": true, "default": "key{n}"}, {"name": "label", "title": "Name", "type": "string", "edit": "inline"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol"}, {"name": "unit", "title": "Unit", "type": "string", "edit": "inline"}, {"name": "format", "title": "Format", "type": "string", "edit": "inline"}]
     description: "Row whitelist and order: [{ key, label, format, icon, unit }]"
     summary: Which readings to show, in what order, and how each is labeled
     does: Limits the table to the listed keys in that order with their own names, icons and units; leave it out to show every key.
@@ -120,7 +122,7 @@ fields:
     type: color
     description: Value color when no colorMap entry matches
     summary: The accent for the readings
-    does: Colors the values that have no status color; the key names follow it unless they have their own.
+    does: Colors the values that have no status color and tints the row symbols; the key names do not follow it (they use the softer text color unless Key color is set). Unset it follows the theme text color.
   - name: keyTint
     edit: color
     depth: hold
@@ -171,7 +173,7 @@ themeFields:
     default: #FFFFFF
     description: Value text color
     summary: The main text shade
-    does: Colors the values and header when no tint is set.
+    does: Colors the values and header when no tint is set; unset values use this white.
   - name: secondaryColor
     title: Soft text color
     type: color
@@ -185,6 +187,25 @@ themeFields:
   - use: borderWidth
     summary: How heavy the outline is
     does: Draws the card's edge line 0 to 5 points thick; 0 removes it.
+colorSlots:
+  - slot: text
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the title and values
+    does: Colors the title and the values (unless value is set); until set it follows the neutral role, the text color.
+  - slot: key
+    default: secondaryColor
+    alias: keyTint
+    since: next
+    summary: The color of the key names
+    does: Colors the key names; until set it keeps the theme's secondary text color.
+  - slot: value
+    default: neutral
+    alias: valueTint
+    since: next
+    summary: The color of the values
+    does: Colors the values when no color map matches; until set it follows the text color.
 ---
 
 # Key–Value

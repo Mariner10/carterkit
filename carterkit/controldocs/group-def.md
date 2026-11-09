@@ -151,7 +151,7 @@ fields:
     type: number
     description: "Size the group's controls draw at (grid.scale): a number from 0.3 to 1.5, or \"auto\" (from the group's shape: the smaller of span rows / grid rows and span columns / grid columns, at most 1; rowHeight / 56 when the grid sets a rowHeight); default 1. See Scale"
     summary: How big the group's controls are drawn
-    does: "Draws every control in the group smaller or bigger, text, padding, corners and icons together, so a fine grid holds whole controls; taps still get a full-size target. Auto shrinks them by the group's shape: a group 1 row by 5 columns holding a 3 by 15 grid draws them at a third. Default goes back to 1."
+    does: "Draws every control in the group smaller or bigger, text, padding, corners and icons together, so a fine grid holds whole controls; taps still get a full-size target. Auto shrinks them by the group's shape: a group 1 row by 5 columns holding a 3 by 15 grid draws them at a third. Auto has no control in the editor: the Scale petal writes numbers only, so type \"scale\": \"auto\" in Edit JSON. Default goes back to 1."
   - name: children
     title: Contents
     type: object[]
@@ -297,7 +297,9 @@ Tapping a group in the editor opens its Group pane. It edits the group's scalar 
 
 A container's page (a carousel page, an accordion section, a flip-card face) is a group too: inside it, tapping its open page chip opens the **Page** pane with the same chips (header, Columns with Spacing, Rows, Background and the card's theme, Padding among them), written into that page of the container's `panels`. A page does not expand, so it has no Expanded pose.
 
-**Collapsed | Expanded** (the `expand` field's `edit: pose`) flips the pane to the group's expanded layout: the grown card's grid (`expand.grid`), with each child the expand does not place yet as a ghost at its collapsed cell. Dragging a child into cells writes its `{ref, position, span}` entry in `expand.children` (the first one creates `expand`: `trigger: "tap"`, `style: "fullScreen"`, the group's columns on a taller grid); the corner handle resizes it (its `span`); dragging it off the card removes the ref, and once the expand places any child the unplaced ones fade while expanded (the pose then shows them on a faded shelf below the card, to drag in from there). Columns and Rows on the bar size `expand.grid`; **Don't expand** removes `expand`. Each drag is one undo step. Controls that exist only while expanded show with an Only here mark.
+Opens by, Style and Title are the Expanded pose's settings: they live on the pose bar, not in the Collapsed pane, and the first one you set creates `expand`. Clearing the Title writes nothing (the key is removed), so the expanded page shows the group's own title.
+
+**Collapsed** and **Expanded** (the `expand` field's `edit: pose`) sit side by side on the pane, each a thumbnail of its grid, joined by how the group opens and closes ("Tap to open", "✕ to close"); the path bar above them says where you are (the page › the group › Expanded › a control) and each step on it goes back there. Expanded flips the pane to the group's expanded layout: the grown card's grid (`expand.grid`), with each child the expand does not place yet as a ghost at its collapsed cell. Dragging a child into cells writes its `{ref, position, span}` entry in `expand.children` (the first one creates `expand`: `trigger: "tap"`, `style: "fullScreen"`, the group's columns on a taller grid); the corner handle resizes it (its `span`); dragging it off the card removes the ref, and once the expand places any child the unplaced ones fade while expanded (the pose then shows them on a faded shelf below the card, to drag in from there). Columns and Rows on the bar size `expand.grid`; **Don't expand** removes `expand`. Each drag is one undo step. Controls that exist only while expanded show with an Only here mark.
 
 ## Examples
 

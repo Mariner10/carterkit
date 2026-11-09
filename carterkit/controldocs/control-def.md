@@ -114,7 +114,7 @@ fields:
     description: Carousel panel chrome (default glass; translucent and liquidGlass use the material-glass look)
     summary: The look of a carousel's panel
     does: Chooses the chrome drawn around a carousel's pages.
-    valueHelp: {"glass": "the standard glass panel and the default", "translucent": "a see-through material glass look", "liquidGlass": "the same material glass look as translucent"}
+    valueHelp: {"glass": "the standard glass panel", "translucent": "a see-through material glass look", "liquidGlass": "the same material glass look as translucent"}
   - name: carouselPeek
     min: 0
     max: 0.3
@@ -344,6 +344,18 @@ Every control — regardless of type — shares the same base fields. A control 
 
 **Hold petals under the Background chip.** Press and hold the chip: padding, corner radius, border width and shadow fan out as `scrub` petals (`depth: hold`, `under: backgroundColor`, `unit: pt`). Their dials snap to 0, the theme default (padding 8, corner 12, border 1) and 4, 8, 12, 16, 20, 24 pt. `backgroundBorderColor` stays at AI depth. The card chrome (`controlSurface`) draws all five once for every control; absent fields reproduce the theme look exactly.
 
+**One card surface (aif-8whty.5).** Every control's card is drawn by the same chrome from the same geometry (`CardTokens`: the control's `background*` fields, then its doc's `card:` default, then the theme), so the Background chip's padding, corners, border and shadow work on all of them and show the same five petals everywhere. A control's theme `cornerRadius`, `borderWidth`, `borderColor`, `controlPadding`, `cardPadding` and `surfacePrimary` are other names for those homes (shared-fields.md's Background `aliases:`), never petals of their own. A control whose card differs says so in its doc, in one line of JSON:
+
+```
+card: {"draws": "each", "padding": 10, "says": "There is no outer card: the search box and every row are cards.", "since": "next"}
+```
+
+- `draws`: `card` (one card behind the control, the default), `face` (the control's face is its card; its fill stays the style's: button), `each` (every panel or item is a card and there is no outer one: accordion, carousel, flip-card, cardList) or `when-set` (flat until a Background field is set, then the standard card: label, divider, spacer).
+- `padding`: the card's inner spacing, in points, when the control sets none (chat 0, cardList 10); absent, the theme's.
+- `says`: one sentence on how this control's card differs (a toggle's button styles light the card while on). Required.
+
+No other control may draw a card of its own: `ControlSurfaceTests` renders each one and fails when a Background field changes nothing.
+
 ## Value Types
 
 Controls store their value as one of three types:
@@ -423,6 +435,24 @@ defined once, in `ControlDocs/shared-fields.md`. A doc's `fields:` or `themeFiel
 parser expands it to the full field when it loads. A `summary` override replaces the shared summary for that
 control only; one equal to the shared value is a lint error. `scripts/migrate-shared-fields.py` lists the copies that
 still differ from their shared entry.
+
+## Number fields: the scrub feel (doc frontmatter)
+
+Every `type: number` field the editor offers is a live haptic scrub (petal dial, scrub capsule, rows cell,
+on-control ruler): a selection tick per step, a firmer bump at the span's hard ends, at the default and at 0, the
+control updating while the finger drags. Typing stays available (tap the value). The doc sets the feel:
+
+- `step: 0.5`: the coarseness, the value per tick.
+- `min:` / `max:`: the real bounds. A hard end clamps.
+- `soft: [low, high]`: for a field without hard bounds, the span the ruler starts out covering. It is not a clamp:
+  the ruler extends as the finger pushes past a soft end. (`bounds: none` still says the field has no honest range;
+  it now means "soft", not "typed box".)
+- `editorNone: <reason>`: the only escape, for a number that genuinely cannot scrub.
+
+A field that writes none of these gets sane ones derived in code (`FieldDef.scrubSpec`): `type: int` steps by 1; a
+default `d` gives a span from 0 (or `-4|d|` for a negative default) to `max(10, 4d)` (`max(60, 4d)` for a `unit: s`
+duration); the step is a hundredth of the span snapped to 1, 2, 5 x 10^n, or 1 for a whole default on a span of 20 or
+more. `AttrEditorTests` fails any number field that resolves to no step and span.
 
 ## Colour slots (doc frontmatter)
 

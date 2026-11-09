@@ -15,6 +15,7 @@ starterPreset: {"label": "Section"}
 io:
   - emits: none
   - receives: none
+card: {"draws": "when-set", "says": "A bare line until you set a Background field; then the line sits on the standard card.", "since": "next"}
 fields:
   - name: label
     edit: inline
@@ -30,8 +31,7 @@ fields:
     title: Color
     tab: style
     type: color
-    default: "#FFFFFF"
-    description: Line color
+    description: Line color (unset = the text color at 20%)
     summary: The line color
     does: Colors the line and the label text; if unset it is the text color at a faint 20% strength.
   - name: style
@@ -62,11 +62,28 @@ fields:
     summary: How thick the line is
     does: Sets the line's height from 0.5 to 8 pt (default 1).
 themeFields:
+  - use: controlPadding
+    since: next
+  - use: cornerRadius
+    since: next
+  - use: surfacePrimary
+    since: next
+  - use: borderColor
+    since: next
+  - use: borderWidth
+    since: next
   - use: labelFontSize
     summary: How big the label is
     does: Sets the section label's text size from 8 to 24 pt (default 12).
   - use: foregroundColor
     does: Sets the base text color; the line and label fall back to a faint version of it when no color is set.
+colorSlots:
+  - slot: line
+    default: neutral@0.2
+    alias: tint
+    since: next
+    summary: The color of the line
+    does: Colors the line; until set it is the neutral role at 20%.
 ---
 
 # Divider
@@ -82,7 +99,7 @@ Inherits all [[shared-properties]]. Key fields:
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `label` | string | — | Optional section label centered on the divider |
-| `tint` | color | `"#FFFFFF"` | Line color |
+| `tint` | color | — (text color at 20%) | Line color |
 | `style` | string | `"line"` | `"line"` or `"dashed"` |
 | `lineThickness` | number | `1` | Line thickness in points (0.5–8) |
 

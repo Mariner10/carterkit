@@ -42,6 +42,8 @@ fields:
   - name: iconMap
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["default"], "default": "value{n}"}, {"name": "symbol", "title": "Symbol", "type": "string", "edit": "symbol", "required": true, "default": "circle"}]
     description: Incoming value → SF Symbol name ("default" catches the rest)
     does: Swaps the glyph to the symbol listed for the incoming value, with default catching any other value.
     summary: Show different symbols for different values
@@ -169,6 +171,7 @@ chips:
     categories: [card]
     tap: [backgroundColor]
     petals: [backgroundPadding, backgroundCornerRadius, backgroundBorderWidth, backgroundShadow, backgroundShadowOpacity]
+    aliases: {"theme.cornerRadius": "backgroundCornerRadius", "theme.borderWidth": "backgroundBorderWidth", "theme.borderColor": "backgroundBorderColor", "theme.controlPadding": "backgroundPadding", "theme.cardPadding": "backgroundPadding", "theme.surfacePrimary": "backgroundColor"}
     always: true
     since: next
 categories:
@@ -233,7 +236,7 @@ categories:
   - name: internal
     title: Internal
     home: none
-    fields: [type, id, theme, config, extensions, unsupportedType, field, role, carouselStyle, carouselPeek]
+    fields: [type, id, theme, config, extensions, unsupportedType, field, role]
     since: next
 internal: [type, id, theme, extensions, config, grid, paging, "*Config"]
 canvas: [span, position, landscape, regular, children]
@@ -295,7 +298,9 @@ same lists, so there is one copy.
   `tap:` names the field the chip opens on (a `*` matches any prefix or suffix); the rest are rows in the chip's
   tray, drawn from each field's type. `petals:` are the hold petals, five at most: a name (or `a|b`, the first one
   the control has) is a shared petal, `own` the control's own petal fields (its `depth: hold` hints first) in the
-  slots the shared ones leave. `petalTitles:` names a shared petal the same on every control.
+  slots the shared ones leave. `petalTitles:` names a shared petal the same on every control. `aliases:` maps a
+  doc field to the chip's field it is another name for: a control's `theme.cornerRadius` is the Background chip's
+  Corners petal, so it lives there and never takes a row (aif-8whty.5).
 - **The control chip** holds the `content` and `behaviour` fields (`home: control`). The doc names it on its first
   field, `chip: Range`; that field is the chip's tap.
 - **Other homes.** `home: binding` fields are edited in the Binding view, `canvas:` fields on the canvas (place and

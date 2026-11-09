@@ -10,7 +10,7 @@ pickerCategory: Inputs
 friendlyName: Pin board
 oneLiner: Pin things onto a picture
 aliases: [board, notes, sticky, pins, corkboard, cards]
-starterPreset: {"label": "Pin board"}
+starterPreset: {"label": "Pin board", "pinboardConfig": {"items": [{"id": "item-1", "label": "Item 1", "x": 0.3, "y": 0.4}, {"id": "item-2", "label": "Item 2"}, {"id": "item-3", "label": "Item 3"}]}}
 io:
   - emits: pickup
     when: lift
@@ -64,9 +64,7 @@ io:
     into: pinboardConfig
 fields:
   - name: haptic
-    edit: look
-    depth: hold
-    under: label
+    title: Feel
     tab: action
     type: enum
     values: [none, light, medium, heavy, soft, rigid, selection, success, warning, error]
@@ -96,6 +94,9 @@ fields:
     summary: How tall the board is
     does: Sets the board height in points in a flow grid; in a 2-D grid the span sets it instead.
   - name: background
+    edit: symbol
+    depth: surface
+    title: Backdrop
     type: string
     description: SF Symbol drawn faint behind the surface (floor-plan / map backdrop)
     summary: A faint picture behind the surface
@@ -157,7 +158,9 @@ fields:
     group: pinboardConfig
   - name: items
     chip: Pins
-    type: object
+    type: array
+    edit: rows
+    columns: [{"name": "id", "title": "Id", "type": "string", "edit": "inline", "required": true, "default": "pin{n}"}, {"name": "label", "title": "Label", "type": "string", "edit": "inline"}, {"name": "icon", "title": "Symbol", "type": "string", "edit": "symbol"}, {"name": "tint", "title": "Tint", "type": "color", "edit": "color"}, {"name": "x", "title": "Across", "type": "number", "edit": "scrub", "min": 0, "max": 1, "step": 0.05}, {"name": "y", "title": "Down", "type": "number", "edit": "scrub", "min": 0, "max": 1, "step": 0.05}, {"name": "locked", "title": "Locked", "type": "bool", "edit": "part"}]
     description: items
     summary: The things you can pin
     does: Lists the items, each with an id, label, icon, tint, optional starting x and y, a tap action and a locked flag.
@@ -167,6 +170,22 @@ fields:
     description: Grouped config object (see grouped fields)
     summary: The board settings in one bundle
     does: Groups the backdrop, shape, search, palette, events and items settings; any entry left out uses its default.
+colorSlots:
+  - slot: pin
+    default: primary
+    since: next
+    summary: The color of the pins
+    does: Fills each pin, and its card in the option area, when it has no tint of its own; until the layout picks a color it follows the primary role.
+  - slot: outline
+    default: primary
+    since: next
+    summary: The color of the drop outline
+    does: Draws the dashed edge of the picture and the wash of the option area, brighter while something is dragged over them; until set it follows the primary role.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the pin words
+    does: Colors the card labels and the captions under the pins; until set it follows the neutral role, the text color.
 ---
 
 # Pinboard

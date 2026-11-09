@@ -60,6 +60,10 @@ fields:
     summary: Which barcode types to read
     does: Limits scanning to the listed barcode types; leave empty to read every supported type.
   - name: sendMode
+    effect: behavior
+    edit: look
+    depth: surface
+    title: Send when
     tab: action
     type: enum
     values: [auto, tap]
@@ -96,6 +100,40 @@ fields:
     description: Show a shutter button (implied when snapshotAction is set)
     summary: Show a photo button
     does: Shows a shutter button that takes a photo while the camera is running.
+  - name: snapshotAction
+    since: next
+    edit: action
+    depth: hold
+    under: snapshot
+    title: Photo action
+    type: object
+    description: "Action fired on the shutter with {{image}}, {{width}}, {{height}}; falls back to action when omitted"
+    summary: What happens when you take a photo
+    does: Runs this command with the photo each time the shutter is pressed.
+  - name: haptic
+    since: next
+    edit: look
+    depth: hold
+    under: sendMode
+    title: Vibration on scan
+    tab: action
+    type: enum
+    values: [light, medium, heavy, rigid, soft, success, warning, error, selection]
+    default: light
+    description: Haptic played when a code or text is sent
+    summary: The buzz you feel on a scan
+    does: Plays this haptic on the phone each time a detection is sent.
+    valueHelp: {"light": "a faint tick", "medium": "a normal tap", "heavy": "a firm thump", "rigid": "a firm sharp click", "soft": "a gentle cushioned tap", "success": "a short double-tap for done", "warning": "a sharper alert buzz", "error": "a harsh triple buzz", "selection": "a tiny click like scrolling a picker"}
+  - name: icon
+    since: next
+    edit: symbol
+    depth: hold
+    under: label
+    title: Symbol
+    type: string
+    description: SF Symbol on the Tap to Start card
+    summary: The picture on the start card
+    does: Draws this SF Symbol on the Tap to Start card instead of the camera glyph.
   - name: snapshotQuality
     min: 0
     max: 1
@@ -161,6 +199,22 @@ themeFields:
     description: Value text size
     summary: Size of the value text
     does: Sets the value text size from 8 to 48 pt.
+colorSlots:
+  - slot: icon
+    default: primary
+    since: next
+    summary: The color of the camera icon
+    does: Colors the icon shown before scanning starts; until the layout picks a color it follows the primary role, the accent.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the start prompt
+    does: Colors the Tap to Start words; until set it follows the neutral role, the text color.
+  - slot: label
+    default: secondaryColor
+    since: next
+    summary: The color of the label and hints
+    does: Colors the label above the camera and the hint lines under the prompt; until set it keeps the theme's secondary text color. The buttons over the live picture stay white on dark so they read over any scene.
 ---
 
 # Camera

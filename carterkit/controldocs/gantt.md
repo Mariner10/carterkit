@@ -15,7 +15,7 @@ io:
   - emits: task
     when: tap
     title: When you tap a task
-    field: taskAction
+    field: ganttConfig.taskAction
     fallback: action
     type: json
     says: the task as its name, its place in the list and its progress from 0 to 1
@@ -92,7 +92,10 @@ fields:
     does: "Cycles through these colors down the rows; a task's own color overrides it."
     group: ganttConfig
   - name: editable
-    chip: Touch
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Drag progress
     type: bool
     default: false
     description: Drag along a bar to set its progress
@@ -114,6 +117,10 @@ fields:
     does: "Sets the height of every task row, so the whole chart grows or shrinks with the task count."
     group: ganttConfig
   - name: scrub
+    effect: behavior
+    edit: switch
+    depth: hold
+    title: Scrub
     type: bool
     default: false
     description: "When not editable: drag sweeps the row selection with haptic ticks (the action still fires on tap)"
@@ -171,6 +178,10 @@ fields:
     does: "Rounds dragged progress to multiples of this size (0.05 is 5 percent steps), with a tick at each notch."
     group: ganttConfig
   - name: taskAction
+    edit: action
+    depth: hold
+    under: editable
+    title: Task action
     tab: action
     type: object
     description: taskAction
@@ -209,6 +220,23 @@ themeFields:
   - use: tertiaryColor
     summary: Dimmed text color
     does: Colors the faintest text and ink on the chart.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The gantt's own primary color
+    does: Colors the first task bar, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the task bars take in turn
+    does: Gives task bars one, two, three and so on these colors in order unless the gantt colors list is set, and a color on a task itself wins; secondary and tertiary join once a palette sets them.
+  - slot: today
+    default: "#FF6B6B"
+    since: next
+    summary: The color of the now line
+    does: Colors the dashed line that marks the current time; until set it is a soft red.
 ---
 
 # Gantt

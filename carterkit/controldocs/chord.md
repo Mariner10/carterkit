@@ -24,7 +24,7 @@ io:
   - emits: arc
     when: tap
     title: When you tap an arc
-    field: arcAction
+    field: chordConfig.arcAction
     fallback: action
     type: json
     says: the tapped group's label and total flow, as JSON
@@ -72,6 +72,10 @@ fields:
     summary: How totals are written
     does: Formats the group total shown in the selection readout, for example as a number or percent.
   - name: arcAction
+    edit: action
+    depth: hold
+    under: scrub
+    title: Arc action
     tab: action
     type: object
     description: arcAction
@@ -91,7 +95,7 @@ fields:
   - name: pad
     edit: scrub
     depth: hold
-    under: ribbonOpacity
+    under: colors
     title: Arc gap
     unit: deg
     min: 0
@@ -118,7 +122,10 @@ fields:
     does: Sets how opaque the ribbons are from 0 to 1 (default 0.4); ribbons of the selected group brighten.
     group: chordConfig
   - name: scrub
-    chip: Touch
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Scrub
     type: bool
     default: false
     description: Drag around the ring sweeps the spotlight arc-to-arc like a dial, with haptic ticks (the action still fires on tap)
@@ -169,6 +176,18 @@ themeFields:
   - use: tertiaryColor
     summary: Dimmed text color
     does: Colors the group names that are dimmed while another group is spotlighted.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The chord diagram's own primary color
+    does: Colors the first group, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the groups take in turn
+    does: Gives groups one, two, three and so on these colors in order unless the chord colors list is set, and a color on a group in the data itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Chord

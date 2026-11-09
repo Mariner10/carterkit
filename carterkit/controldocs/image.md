@@ -33,10 +33,13 @@ fields:
     does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
   - name: url
     chip: Picture
+    edit: inline
+    depth: surface
+    title: Picture address
     type: string
-    description: Static remote image URL
+    description: Static remote image URL (an asset:// address is reserved, not loaded yet)
     summary: The picture to load from the web
-    does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol.
+    does: Loads and shows the image at this absolute web address; a failed or missing address falls back to the symbol. Addresses starting asset:// are reserved for pictures bundled with a layout and are not loaded yet.
   - name: style
     edit: look
     depth: surface
@@ -101,6 +104,8 @@ fields:
   - name: valueMap
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["default"], "default": "value{n}"}, {"name": "url", "title": "Image URL", "type": "string", "edit": "inline", "required": true, "default": ""}]
     description: Incoming value → image URL
     summary: Show different pictures for different values
     does: Loads the image at the web address listed for the incoming value; it wins over every other source.
@@ -108,6 +113,8 @@ fields:
   - name: colorMap
     tab: data
     type: object
+    edit: map
+    columns: [{"name": "value", "title": "Value", "type": "string", "edit": "inline", "required": true, "values": ["default"], "default": "value{n}"}, {"name": "color", "title": "Color", "type": "color", "edit": "color", "required": true, "default": "#8E8E93"}]
     description: Incoming value → hex tint for the mapped symbol
     summary: Show different colors for different values
     does: Tints the symbol with the hex color listed for the incoming value; photos are not tinted.
@@ -129,6 +136,13 @@ themeFields:
     does: Draws the card's outline in this color, default a faint white.
   - use: borderWidth
     does: Sets the outline thickness from 0 to 5 pt (default 1).
+colorSlots:
+  - slot: symbol
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the symbol
+    does: Colors the fallback or mapped symbol when no color map matches; until set it follows the neutral role, the text color. Photos are not tinted.
 ---
 
 # Image
@@ -139,12 +153,12 @@ A static or synced image display. Can show SF Symbols, remote URLs, or synced im
 `"image"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `systemName` | string | — | SF Symbol name (fallback/placeholder) |
-| `url` | string | — | Static remote image URL |
+| `url` | string | — | Static remote image URL; `asset://` is reserved and not loaded yet |
 | `style` | string | — | `"rounded"` for rounded corners, `"circle"` for circular clipping |
 | `imageCornerRadius` | number | — | Custom corner radius |
 | `imageShadow` | number | `0` | Soft shadow blur under the image (0–30) |
@@ -270,6 +284,6 @@ Changes symbol and color as a printer's state changes.
 - Supports long-press groups for detail views
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[sync]] — Receiving image URLs
 - [[label]] — the same value maps, mapping to text

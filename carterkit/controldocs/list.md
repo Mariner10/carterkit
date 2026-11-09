@@ -10,7 +10,7 @@ pickerCategory: Readouts
 friendlyName: Table
 oneLiner: Rows of information
 aliases: [rows, table, items, entries, feed, menu]
-starterPreset: {"label": "Table"}
+starterPreset: {"label": "Table", "listColumns": [{"key": "name", "label": "Name"}, {"key": "detail", "label": "Detail"}]}
 lookFormats: [{"id": "plain","name": "Plain","symbol": "textformat","set": {"formatValue": null}},{"id": "lastTime","name": "Last time","symbol": "clock.arrow.circlepath","set": {"formatValue": "relative:day"}},{"id": "date","name": "Date","symbol": "calendar","set": {"formatValue": "date"}}]
 io:
   - emits: row
@@ -52,10 +52,14 @@ fields:
   - name: listColumns
     title: Columns
     type: array
+    edit: rows
+    columns: [{"name": "key", "title": "Data key", "type": "string", "edit": "inline", "required": true, "default": "field{n}"}, {"name": "label", "title": "Header", "type": "string", "edit": "inline", "required": true, "default": "Column {n}"}, {"name": "format", "title": "Format", "type": "string", "edit": "inline"}]
     description: "Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
     summary: Which columns to show and how to display them
     does: "Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data."
   - name: emptyText
+    edit: inline
+    depth: surface
     title: Empty message
     type: string
     description: "Line shown when the list has no rows. Default: \"No <label> yet\"."
@@ -138,6 +142,8 @@ fields:
     summary: Which hub messages carry the rows
     does: "Takes rows only from hub messages of this type and leaves every other message alone."
   - name: replyPath
+    edit: key
+    depth: hold
     group: paging
     title: Page inside the reply
     tab: advanced
@@ -174,13 +180,16 @@ fields:
     depth: surface
     title: Row design
     tab: advanced
-    simple: hide
     type: object
     description: "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
     summary: Draw each row from controls instead of columns
     does: "Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data."
   - name: itemSpacing
+    edit: scrub
+    depth: hold
+    under: itemStyle
     title: Row gap
+    unit: pt
     tab: style
     min: 0
     max: 64
@@ -191,6 +200,8 @@ fields:
     summary: How far apart the rows sit
     does: "Opens up space between rows, so card-style rows stand apart from each other."
   - name: itemStyle
+    edit: options
+    depth: surface
     title: Row look
     tab: style
     values: [plain, card]
@@ -200,6 +211,8 @@ fields:
     summary: Plain rows or a card per row
     does: "Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card."
     valueHelp: {"plain": "rows sit inside the list's own card, as before", "card": "each templated row is its own card, styled by the template group"}
+    valueTitles: {"plain": "Plain", "card": "Cards"}
+    valueSymbols: {"plain": "list.bullet", "card": "rectangle.stack.fill"}
   - name: itemLayout
     edit: look
     depth: hold
@@ -214,6 +227,8 @@ fields:
     summary: One row per line, or cards side by side
     does: "Lays the templated rows out as a grid of cards, 2 or 3 to a line by the list's width, scrolling and loading as the rows do."
     valueHelp: {"rows": "one templated row per line, as before", "grid": "templated rows as cards side by side, 2 or 3 columns by the list's width"}
+    valueTitles: {"rows": "Rows", "grid": "Grid"}
+    valueSymbols: {"rows": "list.bullet", "grid": "square.grid.2x2.fill"}
 themeFields:
   - name: cardPadding
     title: Card padding
@@ -241,6 +256,18 @@ themeFields:
     does: "Draws the card outline in this color."
   - use: borderWidth
     does: "Sets the outline thickness from 0 (none) to 5 points."
+colorSlots:
+  - slot: title
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the heading
+    does: Colors the list's heading, softened to 70%; until set it follows the neutral role, the text color.
+  - slot: text
+    default: neutral
+    since: next
+    summary: The color of the row text
+    does: Colors the cells, and the column names above them at 75%; until set it follows the neutral role, the text color.
 ---
 
 # List
@@ -314,7 +341,7 @@ or removes it with `op: "delete"`. To edit a row elsewhere on the screen, select
 `{"method": "local", "op": "select", "collection": "books", "id": "{{value}}"}` moves the
 selection cursor, and every control bound with `"where": {"id": "{{selected}}"}` refills
 with the tapped row. Rows without an `id` aren't tappable. Without an `action` the list
-stays read-only.
+stays read-only, unless the list is bound to a My Data collection: then a tap opens that row's entry sheet.
 
 ## Paging
 

@@ -1,0 +1,17 @@
+{
+  "name": "Quick Controls",
+  "id": "quick-controls-sample",
+  "version": 1,
+  "tabs": [
+    {
+      "title": "Quick Controls",
+      "icon": "slider.horizontal.3",
+      "grid": { "columns": 2, "rows": 4 },
+      "children": [
+        { "type": "toggle", "id": "switch", "position": [0, 0], "span": [1, 1], "label": "Switch", "icon": "power" },
+        { "type": "gauge", "id": "dial", "position": [1, 0], "span": [1, 2], "label": "Dial", "min": 0, "max": 100 },
+        { "type": "slider", "id": "slider", "position": [0, 1], "span": [1, 3], "label": "Slider", "min": 0, "max": 100, "step": 1 }
+      ]
+    }
+  ]
+}

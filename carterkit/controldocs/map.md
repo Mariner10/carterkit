@@ -38,9 +38,11 @@ fields:
     summary: Which kind of map to draw
     does: Draws the map as a street map, satellite photos, photos with labels, or a whole-Earth globe.
     valueHelp: {"standard": "a normal street map", "satellite": "satellite photos with no labels", "hybrid": "satellite photos with street and place labels", "globe": "the whole Earth seen from space, ignoring Zoom"}
+    valueTitles: {"standard": "Standard", "satellite": "Satellite", "hybrid": "Hybrid", "globe": "Globe"}
+    valueSymbols: {"standard": "map.fill", "satellite": "globe.americas.fill", "hybrid": "map", "globe": "globe"}
   - name: mapInteractive
     effect: behavior
-    edit: part
+    edit: switch
     depth: hold
     title: Pan and zoom
     type: bool
@@ -83,6 +85,232 @@ fields:
     description: Property→style mapping for GeoJSON feeds (marker size/color/label/ripple)
     summary: Teach the map a feed
     does: Tells the map which properties of your data set pin size, color, label and ripple.
+  - name: markerStyle
+    since: next
+    group: mapConfig
+    edit: look
+    depth: hold
+    under: mapStyle
+    title: Pin style
+    type: enum
+    values: [dot, symbol, puck]
+    default: dot
+    description: How each pin is drawn (mapConfig.markerStyle)
+    summary: Dots, bare symbols or symbols in a circle
+    does: Draws each pin as a plain dot, a bare SF Symbol (named by mapConfig.markerSymbol), or a symbol inside a filled circle.
+    valueHelp: {"dot": "a plain round dot", "symbol": "a bare symbol such as an airplane", "puck": "a symbol inside a filled circle"}
+    valueTitles: {"dot": "Dot", "symbol": "Symbol", "puck": "Puck"}
+    valueSymbols: {"dot": "circle.fill", "symbol": "airplane", "puck": "mappin.circle.fill"}
+  - name: recenter
+    since: next
+    group: mapConfig
+    edit: look
+    depth: hold
+    under: mapStyle
+    title: Camera follows
+    type: enum
+    values: [auto, always, initial, "off"]
+    default: auto
+    description: How the camera reacts to new data (mapConfig.recenter)
+    summary: Whether the map keeps re-framing the pins
+    does: Chooses when the camera refits to the pins as new data arrives.
+    valueHelp: {"auto": "frames and follows the pins, but stops once you pan or zoom yourself", "always": "refits to the pins on every update", "initial": "frames the pins once and then stays put", "off": "never moves the camera"}
+    valueTitles: {"auto": "Auto", "always": "Always", "initial": "Once", "off": "Off"}
+    valueSymbols: {"auto": "location.fill", "always": "arrow.triangle.2.circlepath", "initial": "scope", "off": "location.slash.fill"}
+  - name: markerSizeProperty
+    edit: key
+    depth: hold
+    title: Pin size
+    since: next
+    group: mapConfig
+    type: string
+    description: Numeric feed property that drives pin size (mapConfig.markerSizeProperty), scaled from markerSizeDomain into markerSizeRange
+    summary: Which number in your feed sets each pin's size
+    does: Sizes each pin from this number in your data, so bigger readings draw bigger pins.
+  - name: markerSizeDomain
+    since: next
+    group: mapConfig
+    type: number[]
+    default: [0, 10]
+    description: Input range [low, high] of markerSizeProperty (mapConfig.markerSizeDomain)
+    summary: The lowest and highest reading to expect
+    does: Treats readings at the low end as the smallest pin and at the high end as the largest.
+  - name: markerSizeRange
+    since: next
+    group: mapConfig
+    type: number[]
+    default: [8, 30]
+    description: Output pin diameter range [smallest, largest] in points (mapConfig.markerSizeRange)
+    summary: How small and how large pins can get
+    does: Sets the smallest and largest pin size in points.
+  - name: markerColorProperty
+    edit: key
+    depth: hold
+    title: Pin colour
+    since: next
+    group: mapConfig
+    type: string
+    description: Feed property holding a hex color for each pin (mapConfig.markerColorProperty)
+    summary: Which value in your feed colors each pin
+    does: Colors each pin with the hex color found under this name in your data.
+  - name: markerLabelProperty
+    edit: key
+    depth: hold
+    title: Pin label
+    since: next
+    group: mapConfig
+    type: string
+    description: Feed property used as each pin's label (mapConfig.markerLabelProperty)
+    summary: Which value in your feed names each pin
+    does: Writes this value from your data beside each pin.
+  - name: rippleProperty
+    edit: key
+    depth: hold
+    title: Ripple on
+    since: next
+    group: mapConfig
+    type: string
+    description: Numeric feed property that decides which pins ripple (mapConfig.rippleProperty)
+    summary: Which number in your feed makes a pin pulse
+    does: Pulses a ring around every pin whose reading here reaches the ripple threshold.
+  - name: rippleThreshold
+    since: next
+    group: mapConfig
+    type: number
+    bounds: none
+    default: 0
+    description: rippleProperty >= rippleThreshold makes that pin ripple (mapConfig.rippleThreshold)
+    summary: How high a reading must be to pulse
+    does: Pulses only the pins whose reading is at least this number.
+  - name: ripple
+    since: next
+    group: mapConfig
+    type: object
+    description: "Ring styling for rippling pins: color, period (s, default 1.6), radius (pt, default 44) (mapConfig.ripple)"
+    summary: How the pulsing ring looks
+    does: Sets the ring's color, how long one pulse takes, and how wide it grows.
+  - name: maxMarkers
+    since: next
+    group: mapConfig
+    type: number
+    min: 1
+    max: 5000
+    default: 400
+    description: Cap on drawn pins; a public feed can be unbounded (mapConfig.maxMarkers)
+    summary: The most pins the map draws
+    does: Draws at most this many pins, so a huge feed stays smooth.
+  - name: center
+    since: next
+    group: mapConfig
+    type: number[]
+    description: Fixed camera centre [lat, lng] instead of fitting the data; combines with recenter (mapConfig.center)
+    summary: A fixed spot the map always looks at
+    does: Points the map at this latitude and longitude instead of framing the pins.
+  - name: markersPath
+    edit: key
+    depth: hold
+    title: Places list
+    since: next
+    group: mapConfig
+    type: string
+    description: Dot-path to the array of point objects in a non-GeoJSON payload, e.g. "ac" (mapConfig.markersPath)
+    summary: Where the list of places sits in your feed
+    does: Reads the pins from the list found under this name in your data.
+  - name: markerLatProperty
+    edit: key
+    depth: hold
+    title: Latitude
+    since: next
+    group: mapConfig
+    type: string
+    description: Property holding latitude on each point object, e.g. "lat"; switches to object-array mode (mapConfig.markerLatProperty)
+    summary: Which value in your feed is the latitude
+    does: Places each pin at the latitude found under this name.
+  - name: markerLngProperty
+    edit: key
+    depth: hold
+    title: Longitude
+    since: next
+    group: mapConfig
+    type: string
+    description: Property holding longitude on each point object, e.g. "lon" (mapConfig.markerLngProperty)
+    summary: Which value in your feed is the longitude
+    does: Places each pin at the longitude found under this name.
+  - name: markerIdProperty
+    edit: key
+    depth: hold
+    title: Pin identity
+    since: next
+    group: mapConfig
+    type: string
+    description: Property giving each pin a stable identity across updates; needed for smooth motion (mapConfig.markerIdProperty)
+    summary: Which value tells pins apart between updates
+    does: Keeps each pin the same pin across updates, so it glides instead of jumping.
+  - name: coordinateOrder
+    since: next
+    group: mapConfig
+    type: enum
+    values: [lnglat, latlng]
+    default: lnglat
+    description: Order of raw [a, b, weight] number triples, GeoJSON-style lnglat or latlng (mapConfig.coordinateOrder)
+    summary: Whether your numbers list longitude or latitude first
+    does: Reads each number pair as longitude then latitude, or latitude then longitude.
+    valueHelp: {"lnglat": "each pair is longitude then latitude, the GeoJSON order", "latlng": "each pair is latitude then longitude"}
+    valueTitles: {"lnglat": "Lng, Lat", "latlng": "Lat, Lng"}
+    valueSymbols: {"lnglat": "arrow.right", "latlng": "arrow.down"}
+  - name: minWeight
+    since: next
+    group: mapConfig
+    type: number
+    bounds: none
+    description: In number-triple mode, drop points whose weight is below this before capping (mapConfig.minWeight)
+    summary: The weakest reading still worth a pin
+    does: Leaves out points whose weight is below this number, keeping the strongest ones.
+  - name: markerSymbol
+    since: next
+    group: mapConfig
+    type: string
+    description: Default SF Symbol name for the symbol and puck pin styles, e.g. "airplane" (mapConfig.markerSymbol)
+    summary: The symbol every pin uses
+    does: Draws this symbol for each pin when the pin style is symbol or puck.
+  - name: markerSymbolProperty
+    edit: key
+    depth: hold
+    title: Pin symbol
+    since: next
+    group: mapConfig
+    type: string
+    description: Per-object property naming an SF Symbol, overriding markerSymbol (mapConfig.markerSymbolProperty)
+    summary: Which value in your feed picks each pin's symbol
+    does: Gives each pin the symbol named under this value in your data.
+  - name: motion
+    since: next
+    group: mapConfig
+    type: bool
+    default: false
+    description: Glide pins between updates instead of snapping; needs markerIdProperty with more than one pin (mapConfig.motion)
+    summary: Pins glide to their new spot
+    does: Moves each pin smoothly to its new position when fresh data arrives.
+  - name: motionDuration
+    since: next
+    group: mapConfig
+    type: number
+    min: 0
+    max: 60
+    default: 1.2
+    description: Seconds one position glide takes; set near the poll interval (mapConfig.motionDuration)
+    summary: How long each glide takes
+    does: Takes this many seconds to move a pin to its new spot.
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Hide title
+    type: bool
+    default: false
+    description: Hide the header label above the map
+    summary: Show the map without its title row
+    does: On hides the title row above the map even when a label is set; off shows it.
   - name: controlHeight
     effect: behavior
     edit: scrub
@@ -123,6 +351,18 @@ themeFields:
   - use: surfaceSecondary
     summary: Backdrop color
     does: Fills the secondary surface behind map details with this color.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The color of the pins
+    does: Colors the markers and the center dot, unless a marker has its own color; until a palette sets primary it keeps the map's own blue (667EEA).
+  - slot: route
+    default: "#FF0000"
+    since: next
+    summary: The color of the routes
+    does: Draws every path that has no color of its own; until set it is red.
 ---
 
 # Map
@@ -135,7 +375,7 @@ interactive.
 `"map"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -146,6 +386,9 @@ Inherits all [[shared-properties]]. Key fields:
 | `label` | string | — | Header label above the map |
 | `tint` | string | `"#667eea"` | Default marker color (a marker's own `color` wins) |
 | `mapConfig` | object | — | Property→style mapping for GeoJSON feeds — see [[#GeoJSON payloads]] |
+| `mapConfig.markerStyle` | enum | `"dot"` | `dot`, `symbol` or `puck` — see [[#Marker style & SF Symbols]] |
+| `mapConfig.recenter` | enum | `"auto"` | `auto`, `always`, `initial` or `off` — see [[#Motion & camera]] |
+| `hideLabel` | bool | `false` | Hide the header label |
 
 ## Sync Payload Structure
 
@@ -415,5 +658,5 @@ both poles in frame at any spread.
 - Legacy `{ "center": …, "paths": … }` payloads are unchanged — `markers` is additive
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[sync]] — How map data is received

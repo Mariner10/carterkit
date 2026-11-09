@@ -11,7 +11,7 @@ friendlyName: Pages
 oneLiner: Swipe between pages
 aliases: [swipe, slider, slideshow, gallery, pager, pages]
 addRank: 3
-starterPreset: {}
+starterPreset: {"carouselMode":"paged","indicator":"dots","panels":[{"type":"group","id":"page-1","label":"Page 1","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"page-1-text","position":[0,0],"text":"Page 1"}]},{"type":"group","id":"page-2","label":"Page 2","position":[0,0],"grid":{"columns":1,"rows":1},"children":[{"type":"label","id":"page-2-text","position":[0,0],"text":"Page 2"}]}]}
 io:
   - emits: value
     when: change
@@ -28,6 +28,7 @@ io:
     reacts: the carousel pages to it with animation, riffling through any pages in between
     example: 1
     since: next
+card: {"draws": "each", "says": "Each page is a card of its own: the Background chip's padding, corners, border and shadow shape every page, and a page's own Background off drops its card.", "since": "next"}
 fields:
   - name: carouselMode
     effect: behavior
@@ -41,17 +42,49 @@ fields:
     summary: How the pages are laid out as you swipe
     does: "Switches between one full page at a time, a tilted row of neighbors, or a stack of cards."
     valueHelp: {"paged": "one full-width page at a time that snaps into place", "coverflow": "the active page centered with smaller tilted neighbors at the sides", "deck": "pages stacked like cards; the front card swipes away to show the next"}
+    valueTitles: {"paged": "Paged", "coverflow": "Cover flow", "deck": "Deck"}
+    valueSymbols: {"paged": "rectangle.fill", "coverflow": "rectangle.3.group.fill", "deck": "rectangle.stack.fill"}
   - name: indicator
     edit: look
     depth: surface
     title: Indicator
     type: enum
-    values: [dots, bars, none]
+    values: [dots, bars, { value: numeric, since: next }, none]
     default: dots
     description: Page indicator style
     summary: The little marks that show which page you are on
-    does: "Draws a row of dots or bars below the pages with the current one in the accent color, or hides it."
-    valueHelp: {"dots": "a row of small round dots", "bars": "a row of short flat bars", "none": "no page marks shown"}
+    does: "Draws a row of dots or bars (or a page count) below the pages with the current one in the accent color, or hides it."
+    valueHelp: {"dots": "a row of small round dots", "bars": "a row of short flat bars", "numeric": "the page number as text, such as 2 / 5", "none": "no page marks shown"}
+    valueTitles: {"dots": "Dots", "bars": "Bars", "numeric": "Number", "none": "None"}
+    valueSymbols: {"dots": "ellipsis", "bars": "minus", "numeric": "number", "none": "eye.slash"}
+  - name: carouselPeek
+    since: next
+    edit: scrub
+    depth: hold
+    under: carouselMode
+    title: Peek
+    type: number
+    min: 0
+    max: 0.3
+    step: 0.05
+    default: 0
+    description: Paged mode neighbour peek, as a fraction of the width
+    summary: How much of the next page peeks in at the edge
+    does: "In paged style, shows a sliver of the neighbouring pages at the sides (0 none, 0.3 a wide peek)."
+  - name: carouselStyle
+    since: next
+    edit: look
+    depth: surface
+    title: Page look
+    type: enum
+    values: [glass, translucent, liquidGlass]
+    default: glass
+    description: Panel chrome style
+    summary: The material of each page card
+    does: "Chooses the page card material: standard glass, a see-through tint, or liquid glass."
+    valueHelp: {"glass": "the standard frosted glass card", "translucent": "a lighter see-through card", "liquidGlass": "the liquid glass material"}
+    valueTitles: {"glass": "Glass", "translucent": "Translucent", "liquidGlass": "Liquid glass"}
+    valueSymbols: {"glass": "square.fill", "translucent": "square.dashed", "liquidGlass": "drop.fill"}
   - name: autoAdvance
     min: 0
     max: 60
@@ -107,10 +140,7 @@ themeFields:
     summary: The color of the current page mark
     does: "Colors the dot or bar for the page you are on in the indicator."
   - name: cornerRadius
-    edit: scrub
     unit: pt
-    depth: hold
-    under: carouselMode
     min: 0
     max: 30
     step: 1
@@ -133,10 +163,7 @@ themeFields:
     summary: How thick the page outline is
     does: "Sets the outline width around each page card in points (0 hides it, 5 is heavy)."
   - name: cardPadding
-    edit: scrub
     unit: pt
-    depth: hold
-    under: carouselMode
     title: Card spacing
     min: 0
     max: 32
@@ -152,6 +179,22 @@ themeFields:
   - use: secondaryColor
     summary: The softer color of supporting writing
     does: "Colors the secondary text inside the pages, such as captions and hints."
+colorSlots:
+  - slot: title
+    default: neutral
+    since: next
+    summary: The color of the page titles
+    does: Colors the title at the top of each page; until the layout picks a color it follows the neutral role, the text color.
+  - slot: current
+    default: primary
+    since: next
+    summary: The color of the current page mark
+    does: Colors the dot or bar for the page you are on; until set it follows the primary role, the accent.
+  - slot: indicator
+    default: secondaryColor
+    since: next
+    summary: The color of the other page marks
+    does: Colors the dots or bars for the other pages, faintly, and the page count; until set it keeps the theme's secondary text color.
 ---
 
 # Carousel
@@ -170,7 +213,7 @@ fires **actions**, and a jump of several pages riffles through the intermediate 
 |-------|------|---------|-------------|
 | `panels` | [[group-def]][] | — | The pages, each a group definition |
 | `carouselMode` | string | `"paged"` | `"paged"`, `"coverflow"`, or `"deck"` |
-| `indicator` | string | `"dots"` | `"dots"`, `"bars"`, or `"none"` |
+| `indicator` | string | `"dots"` | `"dots"`, `"bars"`, `"numeric"`, or `"none"` |
 | `autoAdvance` | number | `0` | Seconds between auto-advances; `0` = off |
 | `loop` | bool | `false` | Wrap past the ends |
 | `defaultValue` | number | `0` | Initial page index |
@@ -308,7 +351,8 @@ Every hinted field here (Style, Indicator, Loop) changes something on screen; `p
 
 ## Theming
 Panels render as glass cards from the active [[theming|theme]] (`surfacePrimary`,
-`cornerRadius`, `borderColor`, `cardPadding`). The active indicator uses `accentColor`. Set
+`cornerRadius`, `borderColor`, `cardPadding`). Page titles draw the `title` colour slot, the current page mark
+`current` (the primary role, `accentColor` until a palette sets it) and the other marks and the count `indicator`. Set
 `hideBackground` on a panel for a transparent page, or per-child `theme` overrides inside a
 panel.
 

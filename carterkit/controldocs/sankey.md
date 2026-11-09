@@ -96,6 +96,10 @@ fields:
     does: Sets how see-through the ribbons are, from 0 invisible to 1 solid; selected ones brighten.
     group: sankeyConfig
   - name: nodeAction
+    edit: action
+    depth: hold
+    under: scrub
+    title: Node action
     tab: action
     type: object
     description: nodeAction
@@ -105,7 +109,7 @@ fields:
   - name: nodeSpacing
     edit: scrub
     depth: hold
-    under: linkOpacity
+    under: colors
     title: Node spacing
     unit: pt
     tab: style
@@ -121,7 +125,7 @@ fields:
   - name: cellCornerRadius
     edit: scrub
     depth: hold
-    under: linkOpacity
+    under: colors
     title: Cell roundness
     unit: pt
     tab: style
@@ -136,7 +140,7 @@ fields:
   - name: nodeWidth
     edit: scrub
     depth: hold
-    under: linkOpacity
+    under: colors
     title: Node width
     unit: pt
     tab: style
@@ -150,7 +154,10 @@ fields:
     does: Sets the width of each node bar, 1 to 40 points.
     group: sankeyConfig
   - name: scrub
-    chip: Touch
+    effect: behavior
+    edit: part
+    depth: hold
+    title: Scrub
     type: bool
     default: false
     description: Drag sweeps the spotlight from node to node with haptic ticks (the action still fires on tap)
@@ -209,6 +216,18 @@ themeFields:
   - use: tertiaryColor
     summary: Faint text colour
     does: Colours the faintest text and ink.
+colorSlots:
+  - slot: main
+    default: primary
+    alias: tint
+    since: next
+    summary: The sankey's own primary color
+    does: Colors the first node, and every primary entry of the series colors; until the layout picks a color it follows the primary role.
+  - slot: series
+    default: [primary, secondary, tertiary, "#34C759", "#FF9500", "#FF6B6B", "#4D96FF", "#BF5AF2", "#FFD93D"]
+    since: next
+    summary: The colors the nodes take in turn
+    does: Gives nodes one, two, three and so on these colors in order unless the sankey colors list is set, and a color on a node itself wins; secondary and tertiary join once a palette sets them.
 ---
 
 # Sankey

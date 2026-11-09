@@ -104,7 +104,7 @@ fields:
     description: Touch feedback on tap (default light)
     summary: Buzz when tapped
     does: Plays this haptic feedback each time the symbol is tapped; light when not set.
-    valueHelp: {"none": "no haptic", "light": "a small light tap and the default", "medium": "a medium tap", "heavy": "a strong tap", "soft": "a rounded cushioned tap", "rigid": "a sharp firm tap", "selection": "a tiny tick like scrolling a picker", "success": "a success pattern", "warning": "a warning pattern", "error": "an error pattern"}
+    valueHelp: {"none": "no haptic", "light": "a small light tap", "medium": "a medium tap", "heavy": "a strong tap", "soft": "a rounded cushioned tap", "rigid": "a sharp firm tap", "selection": "a tiny tick like scrolling a picker", "success": "a success pattern", "warning": "a warning pattern", "error": "an error pattern"}
   - name: renderingMode
     edit: look
     depth: hold
@@ -117,7 +117,7 @@ fields:
     description: SF rendering mode — multicolor uses the symbol's own colours
     summary: How the icon is colored
     does: Chooses how the symbol's layers take color.
-    valueHelp: {"monochrome": "one color for the whole glyph and the default", "hierarchical": "layers shaded from one color, strongest first", "palette": "each layer gets its own color from the palette list", "multicolor": "the symbol's own built-in colors and ignores the tint"}
+    valueHelp: {"monochrome": "one color for the whole glyph", "hierarchical": "layers shaded from one color, strongest first", "palette": "each layer gets its own color from the palette list", "multicolor": "the symbol's own built-in colors and ignores the tint"}
     group: symbolConfig
   - name: palette
     tab: style
@@ -130,7 +130,7 @@ fields:
     category: look
     edit: look
     depth: hold
-    under: systemName
+    under: effect
     title: Weight
     type: enum
     values: [ultraLight, thin, light, regular, medium, semibold, bold, heavy, black]
@@ -138,12 +138,12 @@ fields:
     description: Glyph weight
     summary: How thick the icon lines are
     does: Sets the stroke thickness of the glyph.
-    valueHelp: {"ultraLight": "the thinnest lines", "thin": "very fine lines", "light": "fine lines", "regular": "normal lines and the default", "medium": "slightly heavier lines", "semibold": "fairly heavy lines", "bold": "heavy lines", "heavy": "very heavy lines", "black": "the heaviest lines"}
+    valueHelp: {"ultraLight": "the thinnest lines", "thin": "very fine lines", "light": "fine lines", "regular": "normal lines", "medium": "slightly heavier lines", "semibold": "fairly heavy lines", "bold": "heavy lines", "heavy": "very heavy lines", "black": "the heaviest lines"}
     group: symbolConfig
   - name: variant
     edit: look
     depth: hold
-    under: systemName
+    under: effect
     title: Variant
     tab: style
     type: enum
@@ -152,11 +152,12 @@ fields:
     description: Symbol variant applied on top of the name
     summary: An outline or badge style
     does: Applies a variant to the symbol name, such as a circle around it or a slash through it.
-    valueHelp: {"none": "the symbol exactly as named and the default", "fill": "the filled version", "circle": "the glyph inside a circle", "square": "the glyph inside a square", "rectangle": "the glyph inside a rectangle", "slash": "a diagonal slash through the glyph"}
+    valueHelp: {"none": "the symbol exactly as named", "fill": "the filled version", "circle": "the glyph inside a circle", "square": "the glyph inside a square", "rectangle": "the glyph inside a rectangle", "slash": "a diagonal slash through the glyph"}
     group: symbolConfig
   - name: size
     edit: scrub
-    depth: surface
+    depth: hold
+    under: effect
     title: Size
     min: 12
     max: 300
@@ -168,8 +169,7 @@ fields:
     group: symbolConfig
   - name: effect
     edit: look
-    depth: hold
-    under: systemName
+    depth: surface
     title: Effect
     type: enum
     values: [none, rain, snow, sparkle, pulse, breathe, variableColor, rotate, wiggle, bounce, scale]
@@ -177,7 +177,7 @@ fields:
     description: Native symbol effect or custom rain, snow, sparkle animation
     summary: An animation that keeps playing
     does: Loops an animation on the glyph, either one of Apple's symbol effects or CAR-TER's own particles.
-    valueHelp: {"none": "no animation and the default", "rain": "slanted drops falling below the symbol", "snow": "flakes falling and drifting below the symbol", "sparkle": "four-point stars twinkling around the symbol", "pulse": "the icon fades in and out", "breathe": "the icon gently grows and shrinks", "variableColor": "the icon's layers light up in sequence", "rotate": "the icon spins", "wiggle": "the icon shakes to get attention", "bounce": "the icon hops", "scale": "the icon is held larger or smaller"}
+    valueHelp: {"none": "no animation", "rain": "slanted drops falling below the symbol", "snow": "flakes falling and drifting below the symbol", "sparkle": "four-point stars twinkling around the symbol", "pulse": "the icon fades in and out", "breathe": "the icon gently grows and shrinks", "variableColor": "the icon's layers light up in sequence", "rotate": "the icon spins", "wiggle": "the icon shakes to get attention", "bounce": "the icon hops", "scale": "the icon is held larger or smaller"}
     group: symbolConfig
   - name: particleColor
     tab: style
@@ -219,7 +219,7 @@ fields:
     description: How the effect repeats
     summary: How often the animation repeats
     does: Chooses whether the effect repeats forever, repeats with pauses, or plays a single time.
-    valueHelp: {"continuous": "repeats without stopping and the default", "periodic": "plays, waits the loop delay, then plays again", "once": "plays one time and stops"}
+    valueHelp: {"continuous": "repeats without stopping", "periodic": "plays, waits the loop delay, then plays again", "once": "plays one time and stops"}
     group: symbolConfig
   - name: loopCount
     min: 1
@@ -280,7 +280,7 @@ fields:
     description: How a glyph change animates (default replace; none when the value is numeric)
     summary: How the icon changes to a new one
     does: Animates the swap when the glyph changes to a different symbol.
-    valueHelp: {"replace": "the old glyph morphs into the new one and the default", "replace.downUp": "the old glyph slides down and the new one comes up", "replace.upUp": "both glyphs move up", "replace.offUp": "the old glyph fades while the new one moves up", "replace.magic": "matching parts of the two glyphs morph into each other", "none": "swaps instantly with no animation"}
+    valueHelp: {"replace": "the old glyph morphs into the new one", "replace.downUp": "the old glyph slides down and the new one comes up", "replace.upUp": "both glyphs move up", "replace.offUp": "the old glyph fades while the new one moves up", "replace.magic": "matching parts of the two glyphs morph into each other", "none": "swaps instantly with no animation"}
     group: symbolConfig
   - name: tapEffect
     tab: style
@@ -290,7 +290,7 @@ fields:
     description: One-shot effect played on tap
     summary: A little animation on tap
     does: Plays this effect once each time the symbol is tapped.
-    valueHelp: {"none": "no animation and the default", "bounce": "the icon hops once", "pulse": "the icon fades once", "variableColor": "the layers light up once in sequence", "wiggle": "the icon shakes once", "rotate": "the icon spins once", "breathe": "the icon grows and shrinks once"}
+    valueHelp: {"none": "no animation", "bounce": "the icon hops once", "pulse": "the icon fades once", "variableColor": "the layers light up once in sequence", "wiggle": "the icon shakes once", "rotate": "the icon spins once", "breathe": "the icon grows and shrinks once"}
     group: symbolConfig
   - name: triggers
     type: array
@@ -324,6 +324,19 @@ themeFields:
   - use: secondaryColor
     summary: The caption color
     does: Colors the caption text under the glyph.
+colorSlots:
+  - slot: glyph
+    default: neutral
+    alias: tint
+    since: next
+    summary: The color of the symbol
+    does: Colors the symbol when no color map or layer palette applies; until set it follows the neutral role, the text color.
+  - slot: particles
+    default: neutral
+    alias: symbolConfig.particleColor
+    since: next
+    summary: The color of the rain, snow or sparkles
+    does: Colors the particle effect; until set it follows the second layer color, the multicolor weather colors or the symbol's color.
 ---
 
 # Symbol

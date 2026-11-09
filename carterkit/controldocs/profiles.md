@@ -31,7 +31,7 @@ profiles:
 An editor profile is a filter over a control's editable fields. It says which part of the control editor to draw
 right now: the bar's chips, each chip's petals and tray rows, and the Binding view's cards all come from the
 control's doc, and a profile cuts that doc down before any view reads it. A tutorial step sets one so the editor
-shows only what the step teaches; the Simple setting uses `simple`. The design is
+shows only what the step teaches; with no step, the editor uses `all`. The design is
 `docs/superpowers/specs/2026-11-06-editor-profiles.md`.
 
 A profile only hides. It never adds a field, never changes a value and never edits a layout: everything it hides
@@ -55,14 +55,17 @@ Every key is optional except a named profile's `name`, `title` and `since`.
 | `binding` | The Binding view cards it shows: `emits`, `receives`, `ask`, `feel`, `wiring`. Omitted with a visible `data` field: every card. |
 | `add` | The control types the new-control picker offers. Omitted: every control. |
 | `canvas` | The canvas verbs it allows: `place`, `move`, `resize`, `delete`, `pages`. Omitted: every verb. |
-| `json` | Edit JSON and Show the wiring. Off unless the profile says `json: true`. |
+| `json` | Layout JSON in the header menu, what Show the wiring holds (Edit wiring, a server by hand, slice details) and the inspector's raw Advanced and Data rows. The editor views ask the active profile for these, so a tutorial step or a `carter://edit` profile governs them. Off unless the profile says `json: true`. |
 
 Internal fields (shared-fields.md `internal:` and the `internal` category) never show, whatever a profile names.
 
 ## The named profiles
 
 - **Everything** (`all`): every category, Edit JSON included. Today's editor, and the default.
-- **Simple** (`simple`): everything but Edit JSON and the fields a doc marks `simple: hide`. The Simple setting.
+- **Simple** (`simple`): everything but Edit JSON, the inspector's raw Advanced and Data rows and the fields a doc
+  marks `simple: hide`; every chip keeps its petals and tray rows. For tutorials and links; a field's `simple: hide`
+  is an implicit `hide` of `simple`. There is no Simple/Full switch any more: each place has its own option, like
+  Show the wiring at the foot of the Binding view.
 - **First look** (`first-look`): the Text, Colour and Background fields, two petals a chip, no tray rows. For
   tutorials that style a control.
 - **Wiring** (`binding-only`): the data fields and the Binding view's send and receive cards, no chips. For

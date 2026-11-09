@@ -3,11 +3,10 @@
   "id": "first-layout-tutorial",
   "version": 1,
   "sources": {
-    "db": {
+    "myData": {
       "type": "local",
-      "namespace": "first-layout",
       "collections": {
-        "level": { "singleton": true, "fields": { "level": "number" }, "defaults": { "level": 0 } }
+        "myData": { "singleton": true, "fields": { "level": "number" }, "defaults": { "level": 0 } }
       }
     }
   },
@@ -20,12 +19,12 @@
         {
           "type": "gauge", "id": "dial", "position": [0, 0], "span": [2, 2],
           "label": "My dial", "min": 0, "max": 10,
-          "sync": [{ "method": "local", "collection": "level", "valuePath": "level" }]
+          "sync": [{ "method": "local", "collection": "myData", "valuePath": "level" }]
         },
         {
           "type": "slider", "id": "knob", "position": [2, 0], "span": [1, 2],
           "label": "Level", "min": 0, "max": 10,
-          "action": { "method": "local", "op": "set", "collection": "level", "set": { "level": "{{value}}" } }
+          "action": { "method": "local", "op": "set", "collection": "myData", "set": { "level": "{{value}}" } }
         }
       ]
     }

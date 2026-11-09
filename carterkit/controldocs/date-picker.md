@@ -91,24 +91,38 @@ fields:
     does: "Starts the picker on this ISO 8601 moment when the layout first appears."
   - name: haptic
     title: Vibration on change
-    edit: look
-    depth: hold
-    under: datePickerStyle
     tab: action
     type: enum
-    values: [light, medium, heavy, success, warning, error, selection]
+    values: [light, medium, heavy, { value: rigid, since: next }, { value: soft, since: next }, success, warning, error, selection]
     default: selection
     description: Default haptic on change
     summary: The buzz you feel when the value changes
     does: "Plays this haptic on the phone each time a new date or time is chosen."
-    valueHelp: {"light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error", "selection": "the faint tick of picking an item"}
+    valueHelp: {"rigid": "a firm sharp click", "soft": "a gentle cushioned tap", "light": "a small soft tap", "medium": "a medium tap", "heavy": "a strong thud", "success": "the double tap of a success", "warning": "a two-pulse warning", "error": "a sharp triple buzz of an error", "selection": "the faint tick of picking an item"}
+  - name: hideLabel
+    since: next
+    edit: part
+    depth: hold
+    title: Title shown
+    type: bool
+    default: false
+    description: Hide the label
+    summary: Hide the title
+    does: Hides the label text above the control.
+  - name: animation
+    since: next
+    title: Motion
+    tab: style
+    type: enum
+    values: [smooth, snappy, bouncy, gentle, instant]
+    description: Motion profile for value changes
+    summary: How the change animates
+    does: "Sets how the control transitions when the value changes, from instant swap to a soft glide."
+    valueHelp: {"smooth": "an even natural transition", "snappy": "a quick firm change", "bouncy": "overshoots slightly then settles", "gentle": "a slow soft change", "instant": "swaps with no transition"}
   - use: confirm
 themeFields:
   - name: cornerRadius
     title: Corner roundness
-    edit: scrub
-    depth: hold
-    under: datePickerStyle
     unit: pt
     min: 0
     max: 30
@@ -134,9 +148,6 @@ themeFields:
     does: "Colors the line around the card with this color."
   - name: borderWidth
     title: Border width
-    edit: scrub
-    depth: hold
-    under: datePickerStyle
     unit: pt
     min: 0
     max: 5
@@ -149,6 +160,13 @@ themeFields:
   - use: labelFontSize
     summary: How big the label text is
     does: "Sets the label text size from 8 to 24 points."
+colorSlots:
+  - slot: fill
+    default: primary
+    alias: tint
+    since: next
+    summary: The highlight color
+    does: Tints the calendar and the wheels; until set it follows the primary role.
 ---
 
 # Date Picker
@@ -159,7 +177,7 @@ A date and/or time selection control. Stores a `.string` value (ISO 8601 format)
 `"datePicker"`
 
 ## Relevant Fields
-Inherits all [[shared-properties]]. Key fields:
+Inherits all [[shared-fields]]. Key fields:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -272,5 +290,5 @@ Shows `haptic` and `confirm`. Intended effect: each new time gives a success buz
 - The `{{value}}` substitution in actions outputs the ISO string
 
 ## Related
-- [[shared-properties]] — Base fields
+- [[shared-fields]] — Base fields
 - [[actions]] — `{{value}}` substitution
