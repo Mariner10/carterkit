@@ -17,3 +17,13 @@ def test_filter_frames_and_fields(monkeypatch):
     assert filter_frame({"msg_type": "soon"}, "9.9") is None
     assert filter_frame({"msg_type": "new"}, None) == {"msg_type": "new"}
     assert _supported("unknown.cap", "2.0")
+
+
+def test_hello_dispatches_sync_request_and_defaults_to_baseline(monkeypatch):
+    import asyncio
+    from carterkit.testing import FakeHub
+    import inspect
+    assert "control_sync_request" in inspect.getsource(FakeHub.hello)
+    caps = validate.capabilities_manifest()["capabilities"]
+    assert caps["hub-surfaces.toast"]["since"] == "next"  # real key, unreleased
+    assert filter_frame({"msg_type": "toast"}, "2.0") is None

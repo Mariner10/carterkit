@@ -38,7 +38,7 @@ def _supported(cap_id: str, version: Optional[str]) -> bool:
 def filter_frame(frame: dict, version: Optional[str]) -> Optional[dict]:
     """What a phone on ``version`` would be sent: None when the frame's capability
     (``hub-surfaces.<msg_type>``) is newer than it, else the frame minus fields whose
-    ``hub-surfaces.<msg_type>.<field>`` pin is newer. ``version`` None = no filtering."""
+    ``hub-surfaces.<msg_type>.<field>`` pin is newer. ``version`` None = no hello yet, no filtering."""
     if version is None or not isinstance(frame, dict):
         return frame
     mt = frame.get("msg_type")
@@ -118,10 +118,12 @@ class FakeHub:
                     **extra) -> None:
         """Deliver the phone's hello: ``appVersion`` (and ``manifestHash``) are remembered
         so ``frames()`` only shows what that phone supports (capability ``since`` <= it)."""
+        from .validate import capabilities_manifest
+        # The hello IS the app's control_sync_request; no appVersion = the baseline.
+        if appVersion is None:
+            appVersion = str(capabilities_manifest().get("baseline") or "2.0")
         self.app_version, self.manifest_hash = appVersion, manifestHash
-        frame = {"msg_type": "hello", **extra}
-        if appVersion is not None:
-            frame["appVersion"] = appVersion
+        frame = {"msg_type": "control_sync_request", "appVersion": appVersion, **extra}
         if manifestHash is not None:
             frame["manifestHash"] = manifestHash
         await self.hub._dispatch(frame)
