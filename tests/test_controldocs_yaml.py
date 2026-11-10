@@ -29,3 +29,8 @@ def test_frontmatter_is_yaml(path):
 def test_list_local_examples_declare_their_source(example):
     from carterkit import start
     start.demo_layout("list", example)  # raises ValueError if the local source is missing
+
+
+def test_key_value_open_meteo_example_declares_its_source():
+    from carterkit import start
+    start.demo_layout("key-value", 'Open-Meteo "current" — a zero-server dashboard')

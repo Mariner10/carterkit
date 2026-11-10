@@ -320,7 +320,8 @@ Shows current weather as a two-column grid of cards, each with a unit, read stra
       "interval": 900,
       "valuePath": "current"
     }
-  ]
+  ],
+  "sources": { "open-meteo": { "type": "http", "baseURL": "https://api.open-meteo.com" } }
 }
 ```
 See [[sources]] for the polled-HTTP source block this reads from.
