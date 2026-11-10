@@ -45,7 +45,7 @@ fields:
     type: color
     description: Alias of palette.primary
     summary: Your main highlight colour
-    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own. It is an alias of palette.primary: a theme with both uses the palette's, and saving writes palette.primary only.
+    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own. It is an alias of palette.primary, so a theme with both uses the palette's, and saving writes palette.primary only.
   - name: palette
     edit: palette
     depth: surface
