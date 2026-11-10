@@ -118,6 +118,9 @@ def _walk_children(layout: dict):
         yield from walk(tab.get("children"))
 
 
+from .peer_caps import filter_layout  # noqa: E402
+
+
 class Hub(HubExtras, HubSurfaces):
     """The driving side of a layout: push values into syncs, handle actions.
 
@@ -186,6 +189,9 @@ class Hub(HubExtras, HubSurfaces):
                     self._index[ch["id"]] = ch
 
         self._demux: dict[str, list] = {}      # broadcast msg_type -> [handlers]
+        #: From the phone's studio.event hello (CAR-TER aif-xd1w8.4); None until seen.
+        self.peer_app_version: str | None = None
+        self.peer_manifest_hash: str | None = None
         self._user_broadcast = None
         self._relay = None                     # embedded LocalRelay (kind "local")
         #: Bind address for the embedded relay: loopback by default; "0.0.0.0" lets a
@@ -298,6 +304,11 @@ class Hub(HubExtras, HubSurfaces):
                              for f in findings))
         req = dict(self.layout)
         req.pop("msg_type", None)
+        # Only fields the phone's app version knows (its hello's appVersion/manifestHash).
+        req, dropped = filter_layout(req, self.peer_app_version, self.peer_manifest_hash)
+        if dropped:
+            log.info("layout push: dropped %d field(s) newer than app %s: %s", len(dropped),
+                     self.peer_app_version, ", ".join(sorted(set(dropped))[:8]))
         if install:
             # Read by the app inside the apply-layout payload (CAR-TER aif-qu39o): keep it.
             req["install"] = True
@@ -528,6 +539,10 @@ class Hub(HubExtras, HubSurfaces):
         # layer gates command_ack on that, so a hub that matched nothing stays
         # silent (the raw on_broadcast hook is an observer, not a handler).
         handlers = None
+        if isinstance(data, dict) and data.get("msg_type") == "studio.event" \
+                and data.get("event") == "hello":
+            self.peer_app_version = data.get("appVersion") or self.peer_app_version
+            self.peer_manifest_hash = data.get("manifestHash") or self.peer_manifest_hash
         if isinstance(data, dict):
             handlers = self._demux.get(data.get("msg_type") or "")
         if handlers:
