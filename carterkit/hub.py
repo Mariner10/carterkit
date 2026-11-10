@@ -118,7 +118,8 @@ def _walk_children(layout: dict):
         yield from walk(tab.get("children"))
 
 
-from .peer_caps import filter_layout  # noqa: E402
+from .peer_caps import BASELINE_APP, filter_layout  # noqa: E402
+from .validate import _is_app_version, _version_newer  # noqa: E402
 
 
 class Hub(HubExtras, HubSurfaces):
@@ -189,9 +190,10 @@ class Hub(HubExtras, HubSurfaces):
                     self._index[ch["id"]] = ch
 
         self._demux: dict[str, list] = {}      # broadcast msg_type -> [handlers]
-        #: From the phone's studio.event hello (CAR-TER aif-xd1w8.4); None until seen.
-        self.peer_app_version: str | None = None
-        self.peer_manifest_hash: str | None = None
+        #: Per-peer hello state from the phone's control_sync_request (CAR-TER
+        #: aif-xd1w8.4): peer id -> {"appVersion", "manifestHash"}. Empty until a phone joins.
+        self.peers: dict[str, dict] = {}
+        self.client._join_hooks.append(self._note_peer_hello)
         self._user_broadcast = None
         self._relay = None                     # embedded LocalRelay (kind "local")
         #: Bind address for the embedded relay: loopback by default; "0.0.0.0" lets a
@@ -534,15 +536,39 @@ class Hub(HubExtras, HubSurfaces):
         self.client.on_sync_request(fn)
         return fn
 
+    def _note_peer_hello(self, frame):
+        """Join hook: the phone's control_sync_request is its hello. No appVersion means an
+        older app: baseline 2.0 (filter), never "no filtering"."""
+        if not isinstance(frame, dict):
+            return
+        ver = frame.get("appVersion")
+        ver = ver if isinstance(ver, str) and _is_app_version(ver) else BASELINE_APP
+        peer = str(frame.get("_from") or frame.get("from") or "phone")
+        self.peers[peer] = {"appVersion": ver,
+                            "manifestHash": frame.get("manifestHash") or None}
+
+    @property
+    def peer_app_version(self) -> str | None:
+        """The oldest paired phone's app version (a push must suit every peer); None if
+        no phone has said hello."""
+        vers = [p["appVersion"] for p in self.peers.values()]
+        oldest = None
+        for v in vers:
+            if oldest is None or _version_newer(oldest, v):
+                oldest = v
+        return oldest
+
+    @property
+    def peer_manifest_hash(self) -> str | None:
+        """The manifest hash when every peer reports the same one, else None."""
+        hs = {p["manifestHash"] for p in self.peers.values()}
+        return hs.pop() if len(hs) == 1 else None
+
     async def _dispatch(self, data):
         # Returns True iff a demux handler actually ran — the client's ack'd-command
         # layer gates command_ack on that, so a hub that matched nothing stays
         # silent (the raw on_broadcast hook is an observer, not a handler).
         handlers = None
-        if isinstance(data, dict) and data.get("msg_type") == "studio.event" \
-                and data.get("event") == "hello":
-            self.peer_app_version = data.get("appVersion") or self.peer_app_version
-            self.peer_manifest_hash = data.get("manifestHash") or self.peer_manifest_hash
         if isinstance(data, dict):
             handlers = self._demux.get(data.get("msg_type") or "")
         if handlers:

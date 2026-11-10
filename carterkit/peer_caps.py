@@ -1,13 +1,16 @@
 """Filter a layout to what the paired phone's app version supports.
 
-The phone's ``studio.event`` hello carries ``appVersion`` and ``manifestHash`` (CAR-TER
+The phone's hello (its ``control_sync_request``) carries ``appVersion`` and ``manifestHash`` (CAR-TER
 aif-xd1w8.4). The vendored ``capabilities.json`` pins every field with ``since``: a
 version, or ``next`` (unreleased: no shipped app has it). A hub keeps only fields with
-``since <= appVersion``. Without a known version nothing is filtered."""
+``since <= appVersion``. With no phone seen yet nothing is filtered; a hello without appVersion is baseline 2.0."""
 from __future__ import annotations
 
 import copy
 from typing import Optional
+
+#: An older app sends no appVersion in its hello: treat it as the 2.0 baseline.
+BASELINE_APP = "2.0"
 
 from .validate import capabilities_manifest, _is_app_version, _version_newer
 

@@ -27,3 +27,18 @@ def test_filter_layout_drops_newer_fields():
     assert same is layout and none == []
     same, none = peer_caps.filter_layout(layout, "2.0", capabilities_manifest()["hash"])
     assert none == []
+
+
+def test_hub_reads_hello_per_peer_and_baselines_old_app():
+    from carterkit.hub import Hub
+    h = Hub.__new__(Hub)
+    h.peers = {}
+    assert h.peer_app_version is None
+    h._note_peer_hello({"msg_type": "control_sync_request", "_from": "a",
+                        "appVersion": "2.3", "manifestHash": "x"})
+    h._note_peer_hello({"msg_type": "control_sync_request", "_from": "b"})
+    assert h.peers["b"]["appVersion"] == "2.0"
+    assert h.peer_app_version == "2.0"
+    assert h.peer_manifest_hash is None
+    h.peers.pop("b")
+    assert h.peer_app_version == "2.3" and h.peer_manifest_hash == "x"
