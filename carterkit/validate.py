@@ -30,7 +30,7 @@ from . import local as localmod
 from . import palette as palettemod
 from . import sections as sectionsmod
 from .bind import WIRE_VERBS, RELAY_SERVICE_VERBS
-from .conditions import check_condition, condition_refs
+from .conditions import check_condition, condition_refs, has_stale_leaf
 from .secrets_lint import is_placeholder_only, lint_secrets
 
 # Base/shared properties every control may carry (from the layout schema /
@@ -250,6 +250,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
                 extra = fallback_findings(layout, catalog)
                 extra += target_app_findings(layout, catalog, target_app)
                 extra += derive_ref_findings(layout, target_app)
+                extra += stale_leaf_findings(layout, target_app)
                 extra += requires_feature_findings(layout, catalog)
                 extra += soft_tier_findings(layout)
                 extra += io_findings(layout, catalog)
@@ -2241,4 +2242,34 @@ def derive_ref_findings(layout: dict, target_app: Optional[str] = None) -> list[
                     findings.append(_f("warn", "bad_condition", where,
                                        f"derive ref '{key}' names no entry in the layout's "
                                        f"'derive' block; it never resolves"))
+    return findings
+
+
+#: First app version that decodes the {"when", "stale"} visibility leaf (aif-2dy6q.10).
+STALE_LEAF_APP = "1.3.0"
+
+
+def stale_leaf_findings(layout: dict, target_app: Optional[str] = None) -> list[dict]:
+    """Warnings for `{"when": id, "stale": bool}` leaves in visible/enabled conditions: an
+    app older than STALE_LEAF_APP requires a 'value' on a when leaf, so it fails to decode
+    the condition and the layout does not load."""
+    if not isinstance(layout, dict):
+        return []
+    target, source = effective_target_app(layout, target_app)
+    if not _version_newer(STALE_LEAF_APP, target):
+        return []
+    found: list = []
+    _tabs = layout.get("tabs")
+    for t, tab in enumerate(_tabs if isinstance(_tabs, list) else []):
+        if isinstance(tab, dict):
+            _walk_controls(tab.get("children"), f"tabs[{t}]", found, groups=True)
+    findings = []
+    for ch, spot in found:
+        for ckey in ("visible", "enabled"):
+            if has_stale_leaf(ch.get(ckey)):
+                findings.append(_f("warn", "needs_newer_app", f"{spot}.{ckey}",
+                                   f"a {{when, stale}} condition needs CAR-TER {STALE_LEAF_APP}, "
+                                   f"newer than the target {target} ({source}): that app cannot "
+                                   f"decode it and the layout will not load. Set requires.app to "
+                                   f"\"{STALE_LEAF_APP}\" if older apps don't matter"))
     return findings

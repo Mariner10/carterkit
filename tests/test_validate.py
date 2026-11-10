@@ -663,3 +663,16 @@ def test_derive_ref_on_group_enabled_warns():
                     "enabled": {"ref": {"derive": "w"}, "value": True},
                     "children": [{"type": "toggle", "id": "t", "position": [0, 0]}]}])
     assert _dkinds(lay) == ["reserved_ref"]
+
+
+def _stale_leaf_kinds(lay, **kw):
+    return [f["kind"] for f in validate.validate_layout(lay, CAT, **kw)
+            if f["kind"] in ("needs_newer_app", "bad_condition")]
+
+
+def test_stale_leaf_target_app_gate():
+    cond = {"all": [{"when": "t", "stale": True}]}
+    assert _stale_leaf_kinds(_derive_layout(cond)) == ["needs_newer_app"]        # default target < 1.3
+    assert _stale_leaf_kinds(_derive_layout(cond), target_app="1.3.0") == []
+    assert _stale_leaf_kinds(_derive_layout(cond, requires="1.3.0")) == []
+    assert _stale_leaf_kinds(_derive_layout({"when": "t", "value": True})) == []

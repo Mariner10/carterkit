@@ -67,7 +67,30 @@ def check_condition(cond, where: str, findings: list, depth: int = 1) -> None:
     _check_leaf(cond, shape, where, findings)
 
 
+def has_stale_leaf(cond) -> bool:
+    """True if any node of the condition tree is a {when, stale} leaf."""
+    if not isinstance(cond, dict):
+        return False
+    if "stale" in cond and "when" in cond:
+        return True
+    for k in ("all", "any"):
+        if isinstance(cond.get(k), list):
+            return any(has_stale_leaf(c) for c in cond[k])
+    return has_stale_leaf(cond["not"]) if "not" in cond else False
+
+
 def _check_leaf(cond: dict, shape: str, where: str, findings: list) -> None:
+    if shape == "when" and "stale" in cond:
+        # stale-only leaf (app 1.3): holds while the control's feed is stale
+        if not isinstance(cond["when"], str):
+            findings.append(_f("error", "bad_condition", where, "'when' must be a control id string"))
+        if not isinstance(cond["stale"], bool):
+            findings.append(_f("error", "bad_condition", where, "'stale' must be true or false"))
+        extras = [k for k in ("value", "operator") if k in cond]
+        if extras:
+            findings.append(_f("error", "bad_condition", where,
+                               f"a {{when, stale}} leaf takes no {'/'.join(extras)}"))
+        return
     if "value" not in cond:
         findings.append(_f("error", "bad_condition", where, "condition leaf needs a 'value'"))
         return

@@ -151,3 +151,16 @@ def test_exists_and_plain_values_raise_no_null_compare():
     for v in (True, False):
         assert not _null_compare({"ref": REF, "operator": "exists", "value": v})
     assert not _null_compare({"ref": REF, "operator": "eq", "value": "x"})
+
+
+def test_stale_leaf_valid():
+    assert _errors({"when": "a", "stale": True}) == []
+    assert _errors({"when": "a", "stale": False}) == []
+    assert condition_refs({"when": "a", "stale": True}) == [("control", "a")]
+
+
+def test_stale_leaf_rejects_value_operator_and_non_bool():
+    for bad in ({"when": "a", "stale": True, "value": 1},
+                {"when": "a", "stale": True, "operator": "eq"},
+                {"when": "a", "stale": "yes"}):
+        assert {f["kind"] for f in _errors(bad)} == {"bad_condition"}, bad
