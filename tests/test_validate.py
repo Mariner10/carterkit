@@ -604,7 +604,7 @@ def test_known_features_come_from_the_vendored_app_list():
     import carterkit
     from carterkit.validate import app_features, known_features
     data = app_features()
-    assert data["features"] and data["app"], "carterkit/app_features.json missing or empty"
+    assert data["features"] and data["app"], "capabilities.json missing or empty"
     have = known_features()
     # every catalog control is a feature the app reports, and nothing else is a control
     assert {n[len("control."):] for n in have if n.startswith("control.")} == \
@@ -676,3 +676,11 @@ def test_stale_leaf_target_app_gate():
     assert _stale_leaf_kinds(_derive_layout(cond), target_app="1.3.0") == []
     assert _stale_leaf_kinds(_derive_layout(cond, requires="1.3.0")) == []
     assert _stale_leaf_kinds(_derive_layout({"when": "t", "value": True})) == []
+
+
+def test_capability_since_reads_the_vendored_manifest():
+    from carterkit.validate import capability_since, capabilities_manifest
+    assert capabilities_manifest()["capabilities"]
+    assert capability_since("control.gauge") == "2.0"
+    assert capability_since("accordion.colors.chevron") is None   # `next`: unreleased
+    assert capability_since("no.such.id") is None

@@ -1775,18 +1775,49 @@ def parse_feature(feature: str) -> tuple:
     return t, 1
 
 
-#: The app's feature set as get-device-info reports it (DeviceCapabilities.features),
-#: vendored as data by scripts/sync-app-features.py — never hand-edited here.
-_APP_FEATURES_FILE = Path(__file__).with_name("app_features.json")
+#: Non-control features the app reports (DeviceCapabilities syncMethods / actionMethods /
+#: layoutFeatures). capabilities.json lists fields, not these method names, so they live
+#: here; control.* features come from the vendored manifest.
+_METHOD_FEATURES = (
+    "action.http", "action.meshsocket", "action.mqtt",
+    "layout.derive", "layout.fallback", "layout.requires",
+    "sync.derive", "sync.http", "sync.meshsocket", "sync.mqtt", "sync.sensor",
+)
+
+#: The ControlDocs capabilities manifest (generated in CAR-TER, vendored by
+#: scripts/sync_controldocs.py; never hand-edited): capability id -> {"since": ...}.
+_CAPABILITIES_FILE = Path(__file__).with_name("controldocs") / "capabilities.json"
 
 
 @functools.lru_cache(maxsize=1)
-def app_features() -> dict:
-    """{"app": <which app build it came from>, "source": ..., "features": [...]}."""
+def capabilities_manifest() -> dict:
+    """The vendored capabilities.json ({} when missing or unparseable)."""
     try:
-        return json.loads(_APP_FEATURES_FILE.read_text(encoding="utf-8"))
+        data = json.loads(_CAPABILITIES_FILE.read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def capability_since(cap_id: str) -> Optional[str]:
+    """The app version that introduced capability `cap_id` ("2.0"), or None when the
+    manifest does not know it or the pin is still `next` (unreleased)."""
+    caps = capabilities_manifest().get("capabilities")
+    entry = caps.get(cap_id) if isinstance(caps, dict) else None
+    since = entry.get("since") if isinstance(entry, dict) else None
+    return since if _is_app_version(since) else None
+
+
+def app_features() -> dict:
+    """{"app": <release the manifest is for>, "source": ..., "features": [...]}: every
+    `control.<type>` the manifest lists, plus the method features."""
+    man = capabilities_manifest()
+    caps = man.get("capabilities")
+    if not isinstance(caps, dict):
         return {"app": None, "source": None, "features": []}
+    controls = sorted(k for k in caps if k.startswith("control.") and k.count(".") == 1)
+    return {"app": man.get("release"), "source": "controldocs/capabilities.json",
+            "features": controls + list(_METHOD_FEATURES)}
 
 
 def known_features(catalog: Optional[dict] = None) -> dict:
@@ -1964,7 +1995,14 @@ def effective_target_app(layout, target_app: Optional[str] = None) -> tuple[str,
 def _since(catalog: dict, ctype) -> Optional[str]:
     spec = catalog.get(ctype) if isinstance(ctype, str) else None
     since = spec.get("since") if isinstance(spec, dict) else None
-    return since if _is_app_version(since) else None
+    if _is_app_version(since):
+        return since
+    if not isinstance(ctype, str):
+        return None
+    pin = capability_since(f"control.{ctype}")
+    base = capabilities_manifest().get("baseline")
+    # a pin at the baseline means "every supported app", not newer than the default target
+    return pin if pin and not (_is_app_version(base) and not _version_newer(pin, base)) else None
 
 
 def _placed_controls(layout: dict) -> list:

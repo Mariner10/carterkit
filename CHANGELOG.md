@@ -18,6 +18,7 @@ App tutorials in the kit, editor profiles, hub send times, and ControlDocs at CA
   unknown category, chip, field id, Binding card, canvas verb or control type, and `catalog.profile_manifest` gives
   the `categories`, `chips` and `profiles` lists CAR-TER's `scripts/gen-capabilities.py` writes into
   `capabilities.json`. The vendored ControlDocs gain `profiles.md` with the next sync.
+- `requires.features` and the target-app `since` lint now read the vendored `controldocs/capabilities.json` (`validate.capabilities_manifest`, `capability_since`); `app_features.json` and `scripts/sync-app-features.py` are gone (control.* names come from the manifest, method features live in `validate._METHOD_FEATURES`).
 - ControlDocs re-pinned to CAR-TER master 79f76966 (with `capabilities.json` and `controldocs.schema.json`), tutorials to the same commit (adds `touch-to-learn`, `style-any-control`, `not-updating` and the `quick-controls` starter layout); `typed.py` and `app_features.json` are regenerated.
 - Hub frames carry `_sentAt` (CAR-TER aif-xye17): every broadcast a hub sends (`push`, `broadcast`, `fill`, `push_tab`, command acks) is stamped with the send time in epoch ms, so the app's HubHealth can show each hub's delay; a caller-supplied `_sentAt` is kept.
 
