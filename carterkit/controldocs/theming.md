@@ -58,7 +58,7 @@ fields:
     type: color
     description: Primary text
     summary: The main text colour
-    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode. In the editor it is the Text row of the Palette tray, right under Background: Auto until a colour is picked.
+    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode. In the editor it is the Text row of the Palette tray, right under Background, Auto until a colour is picked.
   - name: onAccent
     type: color
     description: Text/icon colour drawn on an accent fill
