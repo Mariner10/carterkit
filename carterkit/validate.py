@@ -1264,9 +1264,14 @@ def _validate_sync_entry(s, ctype, spot, i, findings, sources):
                                f"{ctype}.sync[{i}] method 'derive' needs 'from' (a derive id)"))
         return
     # MeshSocket (default): a listen needs a valuePath to extract from the frame.
-    if not s.get("valuePath"):
+    # logConsole reads the whole frame (text/line/message and level) when valuePath is absent.
+    if not s.get("valuePath") and ctype not in _WHOLE_FRAME_SYNC_TYPES:
         findings.append(_f("warn", "bad_sync", spot,
                            f"{ctype}.sync[{i}] is missing a 'valuePath'"))
+
+
+# Control types whose ControlDocs say a valuePath-less listen reads the whole frame.
+_WHOLE_FRAME_SYNC_TYPES = frozenset({"logConsole"})
 
 
 def _validate_local_sync(s, ctype, spot, i, findings, sources):

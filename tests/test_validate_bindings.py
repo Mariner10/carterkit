@@ -88,3 +88,9 @@ def test_route_msg_noreply_needs_target_name():
                                "payload": {"type": "go"}}}])
     fs = [f for f in validate.validate_layout(lay, CAT) if f["kind"] == "bad_action"]
     assert fs and fs[0]["severity"] == "error" and "target_name" in fs[0]["detail"]
+
+
+def test_logconsole_whole_frame_sync_is_clean():
+    lay = _layout([{"type": "logConsole", "id": "l", "position": [0, 0],
+                    "sync": [{"method": "meshsocket", "type": "listen", "event": "log"}]}])
+    assert not [f for f in validate.validate_layout(lay, CAT) if f["kind"] == "bad_sync"]
