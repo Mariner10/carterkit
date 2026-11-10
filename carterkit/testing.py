@@ -21,6 +21,34 @@ import importlib.util
 from typing import Any, Awaitable, Callable, Optional
 
 
+def _supported(cap_id: str, version: Optional[str]) -> bool:
+    """Does a phone on ``version`` support capability ``cap_id``? Unknown ids are
+    supported (no pin); ``since: next`` is unreleased, so no version has it."""
+    from .validate import _is_app_version, _version_newer, capabilities_manifest
+    caps = capabilities_manifest().get("capabilities")
+    entry = caps.get(cap_id) if isinstance(caps, dict) else None
+    since = entry.get("since") if isinstance(entry, dict) else None
+    if since is None:
+        return True
+    if not _is_app_version(since):
+        return False
+    return not _version_newer(since, version)
+
+
+def filter_frame(frame: dict, version: Optional[str]) -> Optional[dict]:
+    """What a phone on ``version`` would be sent: None when the frame's capability
+    (``hub-surfaces.<msg_type>``) is newer than it, else the frame minus fields whose
+    ``hub-surfaces.<msg_type>.<field>`` pin is newer. ``version`` None = no filtering."""
+    if version is None or not isinstance(frame, dict):
+        return frame
+    mt = frame.get("msg_type")
+    if not mt:
+        return frame
+    if not _supported(f"hub-surfaces.{mt}", version):
+        return None
+    return {k: v for k, v in frame.items() if _supported(f"hub-surfaces.{mt}.{k}", version)}
+
+
 class FakeSock:
     """The relay socket: records everything the hub sends; ``reply`` answers requests."""
 
@@ -79,14 +107,31 @@ class FakeHub:
         self.hub = ui.serve(**serve_kw)
         self.sock = PhoneSock(self, answer)
         self.hub.client._sock = self.sock
+        self.app_version: Optional[str] = None
+        self.manifest_hash: Optional[str] = None
 
     @property
     def sent(self) -> list:
         return self.sock.sent
 
+    async def hello(self, appVersion: Optional[str] = None, manifestHash: Optional[str] = None,
+                    **extra) -> None:
+        """Deliver the phone's hello: ``appVersion`` (and ``manifestHash``) are remembered
+        so ``frames()`` only shows what that phone supports (capability ``since`` <= it)."""
+        self.app_version, self.manifest_hash = appVersion, manifestHash
+        frame = {"msg_type": "hello", **extra}
+        if appVersion is not None:
+            frame["appVersion"] = appVersion
+        if manifestHash is not None:
+            frame["manifestHash"] = manifestHash
+        await self.hub._dispatch(frame)
+
     def frames(self, msg_type: Optional[str] = None) -> list:
-        """Broadcast payloads the hub sent, optionally only one ``msg_type``."""
-        out = [p for t, p in self.sock.sent if t == "broadcast_request"]
+        """Broadcast payloads the hub sent, optionally only one ``msg_type``. After a
+        ``hello(appVersion=...)``, frames and fields newer than that app are dropped."""
+        out = [f for f in (filter_frame(p, self.app_version)
+                           for t, p in self.sock.sent if t == "broadcast_request")
+               if f is not None]
         return [p for p in out if msg_type is None or p.get("msg_type") == msg_type]
 
     def routed(self, kind: str) -> list:
