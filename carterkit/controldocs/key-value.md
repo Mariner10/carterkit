@@ -316,6 +316,8 @@ Shows current weather as a two-column grid of cards, each with a unit, read stra
     {
       "method": "http",
       "source": "open-meteo",
+      "path": "/v1/forecast?latitude=42.36&longitude=-71.06&current=temperature_2m,relative_humidity_2m,wind_speed_10m,is_day",
+      "interval": 900,
       "valuePath": "current"
     }
   ]
