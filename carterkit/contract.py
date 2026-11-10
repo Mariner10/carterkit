@@ -90,7 +90,7 @@ VALUE_SPECS: dict[str, Callable[[dict], dict]] = {
     "canvas":           lambda c: {"type": "string", "note": "the moved item's id ({{item}}/{{x}}/{{y}} carry placement)"},
     "pinboard":         lambda c: {"type": "string", "note": "the placed marker's id ({{x}}/{{y}} carry position)"},
     "sortboard":        lambda c: {"type": "string", "note": "the dragged item's id ({{from}}/{{to}}/{{index}} carry the move)"},
-    "pieChart":         lambda c: {"type": "number", "note": "tapped segment value ({{total}} = sum)"},
+    "pieChart":         lambda c: {"type": "string", "note": "tapped slice label ({{total}} = sum)"},
 }
 
 _DATUM_TAP = {"type": "number", "note": "tapped datum value"}
