@@ -214,6 +214,15 @@ def _fallback_spec(fb, label=None, _hops: int = 0) -> dict:
     return out
 
 
+def _check_scale(scale):
+    """grid.scale: "auto" or a number in 0.3-1.5."""
+    if scale == "auto":
+        return scale
+    if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not 0.3 <= scale <= 1.5:
+        raise ValueError(f'scale must be "auto" or a number 0.3-1.5, got {scale!r}')
+    return scale
+
+
 class _GridScope(ScopeControls):
     """A placeable grid (a tab's children, a group's children, or a Fragment).
 
@@ -288,14 +297,15 @@ class _GridScope(ScopeControls):
     def group(self, label=None, *, id=None, span=None, position=None, cols: int = 4,
               rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
               hide_background=None, mode: str | None = None, row_height: int | None = None,
-              name: str | None = None, form: dict | None = None,
+              scale: float | str | None = None, name: str | None = None, form: dict | None = None,
               expand: dict | None = None, action: dict | None = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
         broadcast with matching `msg_type` — build that payload with :class:`Fragment`).
         `mode="flow"` opts this group out of the default 2-D grid; `row_height` sets the
-        2-D row unit in points (default 56). `name` is the readable name the app's
+        2-D row unit in points (default 56). `scale` sets grid.scale (a number 0.3-1.5
+        or "auto"). `name` is the readable name the app's
         editor shows (never identity; controls take `name=` the same way). `form` is a
         block from :func:`carterkit.form` making the group a form (draft + submit).
         `expand` lets the group grow into a foreground container: build it with
@@ -308,6 +318,8 @@ class _GridScope(ScopeControls):
             grid["mode"] = mode
         if row_height is not None:
             grid["rowHeight"] = row_height
+        if scale is not None:
+            grid["scale"] = _check_scale(scale)
         g: dict = {"type": "group", "id": gid, "grid": grid, "children": []}
         if name is not None:
             g["name"] = name
@@ -795,7 +807,8 @@ class Layout(ScopeControls):
 
     def tab(self, title: str, *, icon: str = "square.grid.2x2",
             cols: int | None = None, rows: int | None = None, columns: int | None = None,
-            mode: str | None = None, row_height: int | None = None) -> TabHandle:
+            mode: str | None = None, row_height: int | None = None,
+            scale: float | str | None = None) -> TabHandle:
         """Start a tab and make it current. First call configures the default tab;
         later calls append. `with ui.tab(...)` scopes controls to it; the flat form
         ``ui.tab("Main"); ui.gauge(...)`` works too. `mode="flow"` opts the tab out of
@@ -810,6 +823,8 @@ class Layout(ScopeControls):
             grid["mode"] = mode
         if row_height is not None:
             grid["rowHeight"] = row_height
+        if scale is not None:
+            grid["scale"] = _check_scale(scale)
         if not self._first_tab_used:
             t = self._buf.tabs[0]
             t["title"], t["icon"] = title, icon
@@ -819,7 +834,7 @@ class Layout(ScopeControls):
             self._first_tab_used = True
         else:
             self._tab_index = self._buf.add_tab(title, icon=icon, columns=cols, rows=rows,
-                                                mode=mode, row_height=row_height)
+                                                mode=mode, row_height=row_height, scale=scale)
         self._scope = self._scope_for_tab(self._tab_index)
         return TabHandle(self, self._scope, self._tab_index)
 

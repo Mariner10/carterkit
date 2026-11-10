@@ -63,3 +63,23 @@ def test_render_grid_shows_ids_and_free_count():
     assert "batter" in out  # truncated id token
     assert "·" in out       # empty cells
     assert "6 free" in out  # 8 cells - 2 occupied
+
+
+def test_group_and_tab_scale_kwarg():
+    import pytest
+    from carterkit import Layout
+    ui = Layout("t")
+    with ui.group("A", scale=0.8) as g:
+        pass
+    with ui.group("B", scale="auto"):
+        pass
+    ui.group("C")
+    ui.tab("One")
+    ui.tab("Two", scale=1.2)
+    groups = {c.get("label"): c for c in ui._buf.tabs[0]["children"] if c.get("type") == "group"}
+    assert groups["A"]["grid"]["scale"] == 0.8
+    assert groups["B"]["grid"]["scale"] == "auto"
+    assert "scale" not in groups["C"]["grid"]
+    assert ui._buf.tabs[1]["grid"]["scale"] == 1.2
+    with pytest.raises(ValueError):
+        ui.group("D", scale=2.0)

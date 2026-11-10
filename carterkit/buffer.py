@@ -191,12 +191,15 @@ class LayoutBuffer:
 
     def add_tab(self, title: str, icon: str = "square.grid.2x2",
                 columns: int = DEFAULT_COLUMNS, rows: int = DEFAULT_ROWS,
-                mode: str | None = None, row_height: int | None = None) -> int:
+                mode: str | None = None, row_height: int | None = None,
+                scale: float | str | None = None) -> int:
         grid: dict = {"columns": columns, "rows": rows}
         if mode is not None:
             grid["mode"] = mode
         if row_height is not None:
             grid["rowHeight"] = row_height
+        if scale is not None:
+            grid["scale"] = scale
         self.tabs.append({
             "id": self.tab_id_for(title),
             "title": title, "icon": icon,
