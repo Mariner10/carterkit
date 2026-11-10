@@ -23,3 +23,9 @@ def test_frontmatter_is_yaml(path):
         value = line.split("description:", 1)[1].strip() if "description:" in line else ""
         assert not (value.startswith("'") and value.endswith("'")), \
             f"{path.name}: single-quoted description shows its quotes in every loader: {value[:60]}"
+
+
+@pytest.mark.parametrize("example", ["Tap a row to tick it (local store)", "Tap a row to select it"])
+def test_list_local_examples_declare_their_source(example):
+    from carterkit import start
+    start.demo_layout("list", example)  # raises ValueError if the local source is missing

@@ -611,7 +611,8 @@ Shows a row tap bound to a local collection, with the confirmation pill. Intende
   "confirm": true,
   "hideBackground": true,
   "action": { "method": "local", "op": "update", "collection": "items", "id": "{{value}}", "set": { "done": true } },
-  "sync": [{ "method": "local", "collection": "items" }]
+  "sync": [{ "method": "local", "collection": "items" }],
+  "sources": { "db": { "type": "local", "collections": { "items": { "fields": { "name": "string", "done": "bool" } } } } }
 }
 ```
 
@@ -625,7 +626,8 @@ Shows the select binding that moves the selection cursor. Intended effect: tappi
   "span": [3, 4],
   "label": "Books",
   "action": { "method": "local", "op": "select", "collection": "books", "id": "{{value}}" },
-  "sync": [{ "method": "local", "collection": "books" }]
+  "sync": [{ "method": "local", "collection": "books" }],
+  "sources": { "db": { "type": "local", "collections": { "books": { "fields": { "title": "string", "pages": "integer" } } } } }
 }
 ```
 

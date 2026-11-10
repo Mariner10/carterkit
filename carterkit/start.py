@@ -226,8 +226,11 @@ def demo_layout(control: str, example: str | None = None):
     obj = dict(obj)
     obj.setdefault("id", "demo")
     obj.pop("position", None)
+    sources = obj.pop("sources", None)  # an example declares its local store beside the control
     ui = Layout(f"Demo: {doc['label']}", cols=4, rows=4)
     ui.add(obj, span=obj.get("span") or doc.get("defaultSpan") or (2, 2))
+    if isinstance(sources, dict):
+        ui.layout.setdefault("sources", {}).update(sources)
     errs = [f for f in ui.validate() if f.get("severity") == "error"]
     if errs:
         raise ValueError("example does not validate: " + "; ".join(
