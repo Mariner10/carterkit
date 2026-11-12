@@ -114,7 +114,7 @@ class LiveFile:
         hub._layout_obj = ui
         ui._active_hub = hub
         if "connection" not in ui.layout:
-            ui._buf.layout["connection"] = hub.connection.layout_block()
+            ui._buf.layout["connection"] = hub.connection.layout_block(for_layout=ui.layout)
         hub.adopt_layout(ui.layout)
         self.ui = ui
 

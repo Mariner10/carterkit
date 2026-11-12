@@ -108,3 +108,39 @@ def test_short_or_malformed_e2ee_key_is_rejected():
 def test_local_connection_key_is_fresh_per_parse():
     assert Connection.parse(None).key != Connection.parse(None).key
     assert Connection.parse(None, key="").key == ""       # explicit opt-out still possible
+
+
+# ── aif-iw7ff: a layout that routes gets identity can_route ─────────────────
+
+AUDIO_LAYOUT = {"name": "Music", "version": 1, "audio": {"hub": "music-hub"}, "tabs": []}
+ROUTE_LAYOUT = {"name": "Lab", "version": 1, "tabs": [{"children": [
+    {"type": "button", "id": "go", "action": {"method": "meshsocket", "event": "route_msg_noreply",
+                                              "payload": {"target_name": "rig"}}}]}]}
+PLAIN_LAYOUT = {"name": "Lab", "version": 1, "tabs": [{"children": [
+    {"type": "button", "id": "go", "action": {"method": "meshsocket", "event": "broadcast_request"}}]}]}
+
+
+@pytest.mark.parametrize("layout,want", [
+    (AUDIO_LAYOUT, True), (ROUTE_LAYOUT, True), (PLAIN_LAYOUT, False), (None, False),
+    ({"tabs": [{"children": [{"type": "button", "action": {"method": "player", "verb": "toggle"}}]}]}, True),
+    ({"connection": {"event": "route_msg"}, "tabs": []}, False),
+])
+def test_layout_routes(layout, want):
+    from carterkit.connection import layout_routes
+    assert layout_routes(layout) is want
+
+
+def test_layout_block_grants_can_route_only_to_a_routing_layout():
+    c = Connection.parse("ws://h:1", channel="lab", token="k")
+    assert c.layout_block(for_layout=AUDIO_LAYOUT)["identity"]["can_route"] is True
+    assert "can_route" not in c.layout_block(for_layout=PLAIN_LAYOUT)["identity"]
+    assert "can_route" not in c.layout_block()["identity"]
+
+
+def test_hub_adopt_layout_stamps_can_route_for_a_routing_layout():
+    from carterkit.hub import Hub
+    hub = Hub(None, connection="ws://h:1", channel="lab", token="k")
+    hub.adopt_layout(ROUTE_LAYOUT)
+    assert hub.layout["connection"]["identity"]["can_route"] is True
+    hub.adopt_layout(PLAIN_LAYOUT)
+    assert "can_route" not in hub.layout["connection"]["identity"]

@@ -315,13 +315,14 @@ Shows current weather as a two-column grid of cards, each with a unit, read stra
   "sync": [
     {
       "method": "http",
-      "source": "open-meteo",
+      "url": "https://api.open-meteo.com/v1/forecast?latitude=42.36&longitude=-71.06&current=temperature_2m,relative_humidity_2m,wind_speed_10m,is_day",
+      "interval": 900,
       "valuePath": "current"
     }
   ]
 }
 ```
-See [[sources]] for the polled-HTTP source block this reads from.
+See [[sources]] to name the host once as a polled-HTTP source and read it with `source` and `path`.
 
 ### Drill-down chips
 Shows every key as an A to Z wrapping pill (at most 12); tapping a pill sends that key and its value to an agent.

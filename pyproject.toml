@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carterkit"
-version = "0.21.0"
+version = "0.22.0"
 description = "Build and drive CAR-TER layouts from Python — the control docs are the library."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,8 +16,9 @@ dependencies = [
     # Upper bounds: both are security-relevant and their majors have broken us before.
     # meshsocket 0.2.0 = identify-after-auth closes, identity validation, fail-closed; 0.3.0 = over-deep frame cap (carter-e4q)
     # server defaults; carterkit 0.12 relies on those. 0.4.0 = the relay stamps `_from` on routed
-    # payloads (aif-qs8b0.24), so LocalRelay does too.
-    "meshsocket>=0.2.0,<0.5",
+    # payloads (aif-qs8b0.24), so LocalRelay does too. 0.4.3 = route_msg by target_name (the
+    # hub-audio player reaches its hub by name).
+    "meshsocket>=0.4.3,<0.5",
     "cryptography>=42,<50",
 ]
 classifiers = [

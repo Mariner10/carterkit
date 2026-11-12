@@ -207,6 +207,37 @@ async def run(*, host: str | None = None, port: int | None = None, session_path:
         await hub.close()
 
 
+_SET_TYPES = ((bool, "bool"), (int, "integer"), (float, "number"), (str, "string"))
+
+
+def example_sources(obj: dict) -> dict:
+    """A local source for every collection the example's `method: local` bindings name.
+    Doc examples carry only control fields (CAR-TER's catalog tests), so the store they
+    read is supplied here: each collection gets a `name` field plus the `set` fields,
+    typed from their values."""
+    colls: dict = {}
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("method") == "local" and isinstance(node.get("collection"), str):
+                fields = colls.setdefault((node.get("source") or "db", node["collection"]),
+                                          {"name": "string"})
+                sets = node.get("set")
+                for k, v in (sets.items() if isinstance(sets, dict) else ()):
+                    fields.setdefault(k, next((t for py, t in _SET_TYPES if isinstance(v, py)), "json"))
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk(obj)
+    out: dict = {}
+    for (src, coll), fields in colls.items():
+        out.setdefault(src, {"type": "local", "collections": {}})["collections"][coll] = {"fields": fields}
+    return out
+
+
 def demo_layout(control: str, example: str | None = None):
     """A one-control Layout built from the control's named (default first) example JSON.
     Raises ValueError with a plain message when the control/example is unusable."""
@@ -226,7 +257,7 @@ def demo_layout(control: str, example: str | None = None):
     obj = dict(obj)
     obj.setdefault("id", "demo")
     obj.pop("position", None)
-    sources = obj.pop("sources", None)  # an example declares its local store beside the control
+    sources = obj.pop("sources", None) or example_sources(obj)
     span = obj.get("span") or doc.get("defaultSpan") or (2, 2)
     try:
         sr, sc = int(span[0]), int(span[1])
@@ -235,7 +266,7 @@ def demo_layout(control: str, example: str | None = None):
     # grow the grid to fit big examples; capped at a sane 24 each way
     ui = Layout(f"Demo: {doc['label']}", cols=min(24, max(4, sc)), rows=min(24, max(4, sr)))
     ui.add(obj, span=span)
-    if isinstance(sources, dict):
+    if sources and isinstance(sources, dict):
         ui.layout.setdefault("sources", {}).update(sources)
     errs = [f for f in ui.validate() if f.get("severity") == "error"]
     if errs:

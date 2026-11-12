@@ -88,7 +88,8 @@ def get_layout_json_schema(docs_dir=None) -> dict[str, Any]:
 
 
 def render(docs_dir=None) -> str:
-    return json.dumps(get_layout_json_schema(docs_dir), indent=2, sort_keys=True) + "\n"
+    # Built in a fixed order (types sorted, fields in doc order), so no key sort is needed.
+    return json.dumps(get_layout_json_schema(docs_dir), indent=2) + "\n"
 
 
 def main(argv=None) -> int:

@@ -780,7 +780,7 @@ class Layout(ScopeControls):
         from .hub import Hub
         hub = Hub(self, connection=connection, name=name, **overrides)
         if "connection" not in self.layout:
-            self._buf.layout["connection"] = hub.connection.layout_block()
+            self._buf.layout["connection"] = hub.connection.layout_block(for_layout=self.layout)
         return hub
 
     async def notify(self, title, body, **kw):

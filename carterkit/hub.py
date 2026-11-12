@@ -247,9 +247,10 @@ class Hub(HubExtras, HubSurfaces):
         """Adopt a layout after construction — e.g. one pulled off a paired
         device via `get-layout` — reindexing controls so push()/on()/frame_for()
         resolve against it. A layout without a ``connection`` block gets this hub's,
-        so a push of it dials back here (actions reach the hub)."""
+        so a push of it dials back here (actions reach the hub; a layout that routes
+        gets ``can_route``)."""
         if layout and "connection" not in layout and self.connection is not None:
-            layout = dict(layout, connection=self.connection.layout_block())
+            layout = dict(layout, connection=self.connection.layout_block(for_layout=layout))
         self.layout = layout
         self._last_layout_push = None
         self._index = {ch["id"]: ch for ch in _walk_children(layout or {})

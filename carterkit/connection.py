@@ -43,6 +43,29 @@ DEFAULT_VALIDATOR = "https://zzko0nn851.execute-api.us-east-1.amazonaws.com"
 
 _LOCAL_DEFAULT_PORT = 8765
 
+_ROUTED_EVENTS = ("route_msg", "route_msg_noreply")
+
+
+def layout_routes(layout) -> bool:
+    """Does the app side of ``layout`` send targeted frames? An `audio` block (the player
+    asks its hub by name), a `player` binding, or a meshsocket action whose event is
+    route_msg / route_msg_noreply. A self-hosted relay grants route_msg from the
+    identity's `can_route` flag, not from the controller role."""
+    if not isinstance(layout, dict):
+        return False
+    if layout.get("audio"):
+        return True
+    stack = [v for k, v in layout.items() if k != "connection"]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            if node.get("method") == "player" or node.get("event") in _ROUTED_EVENTS:
+                return True
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return False
+
 
 def _checked_key(e2ee_key):
     """A layout/QR/credential E2EE key: strict base64 of exactly 32 bytes, or None."""
@@ -202,18 +225,22 @@ class Connection:
         from .relay import lan_ip
         return f"ws://{lan_ip()}:{self.port}"
 
-    def layout_block(self, *, name: str = "CAR-TER", role: str | None = None) -> dict:
+    def layout_block(self, *, name: str = "CAR-TER", role: str | None = None,
+                     for_layout: dict | None = None) -> dict:
         """The layout `connection` block for the APP side.
 
         Policy: a Connect+ device token is the HUB's per-device identity, never the
         phone's — so for kind 'device' the block carries url/channel only and the
         phone joins with its own account session. Self-hosted shared-key tokens DO
-        embed (both sides present the same key)."""
+        embed (both sides present the same key). With ``for_layout``, a layout that
+        routes (:func:`layout_routes`) gets ``identity.can_route``."""
         block: dict = {
             "url": self.app_url(),
             "identity": {"name": name, "channel": self.channel,
                          "role": role or "controller"},
         }
+        if layout_routes(for_layout):
+            block["identity"]["can_route"] = True
         if self.kind in ("selfhosted", "local"):
             token = self.token if self.kind == "selfhosted" else (self.key or None)
             if token:

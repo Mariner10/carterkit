@@ -5,6 +5,46 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.22.0] — 2026-11-12
+
+Hub audio: layouts with a player, AirPlay and an `audio` block validate, and a carterkit hub's routing layout dials a LAN or self-hosted relay with routing granted. ControlDocs at CAR-TER master 0dc00d99.
+
+### Added
+
+- Hub audio (CAR-TER aif-6e55l): `validate` accepts `{method: "player", verb}` actions (app-local; the verb comes from actions.md "Audio player") and player syncs (a `key` from audio.md `playerKeys`); `audio` and `background` are known top-level keys. The vendored docs gain `audio.md`, `airplay.md`, `background.md` and `navigation.md`.
+- A layout that routes (an `audio` block, a `player` binding, or a `route_msg` / `route_msg_noreply` action) gets `identity.can_route` in the connection block a hub stamps into it (`Hub.adopt_layout`, `Layout.serve`, live files; `Connection.layout_block(for_layout=)`, `connection.layout_routes`). A self-hosted or LAN relay grants routing from that flag, not from the controller role, so the phone's player can reach its hub by name.
+- The hub reads `appVersion` and `manifestHash` from the phone's hello (and from each peer's `control_sync_request` hello); `push_layout` drops fields newer than the phone's app, and a missing `appVersion` counts as baseline 2.0. `FakeHub.hello(appVersion=)` dispatches `control_sync_request`, and `frames()` keeps only the frames and fields that version has.
+- `carterkit/schema.json`: the layout document as a JSON Schema (draft 2020-12) generated from the catalog (`python3 -m carterkit.layout_schema`, `--check` for CI).
+- `ui.group` / `ui.tab` take `scale=` for `grid.scale`.
+- The `{when, stale}` visibility leaf validates, gated to app 1.3.
+- **Derive** (CAR-TER 1.3, ships with the app release): a layout's top-level
+  `derive` block computes values on the phone from other values with a closed JSON
+  op tree (`add` `sub` `mul` `div` `min` `max` `avg` `sum` `coalesce` `abs` `round`
+  `clamp` `scale` `band` `since` `until`, `{"clock": true}`). New `controldocs/derive.md`;
+  `sync.md` gains `method: "derive"` + `from`; `layout-config.md` lists `derive`.
+- `carterkit.derive`: the reference evaluator, matching the app's `LayoutDerive.swift`
+  rule for rule, proven by shared fixtures (`tests/fixtures/derive/`, byte-identical
+  to the app's `CAR-TERTests/Fixtures/derive/`).
+- Authoring: `Layout.derive(id, node)` returns a ref (`.sync` binds a control),
+  `carterkit.derive.ops.*` builds nodes from handles, and `bind.derive(id)` is the
+  sync entry.
+- Validate: a `derive` sync no longer warns about a missing `valuePath`; it needs a
+  `from` naming a declared derive id. The block is checked like the app's decoder
+  (unknown refs, id collisions, cycles including through a binding, caps), and an
+  unknown op or malformed node is an error.
+- The contract and `gen` stubs treat derive syncs as app-direct: no server event.
+
+### Changed
+
+- Requires `meshsocket>=0.4.3,<0.5` (relays route `route_msg` by `target_name`).
+- ControlDocs re-pinned to CAR-TER master 0dc00d99 (`capabilities.json`, `typed.py` and `schema.json` regenerated). Doc examples carry only control fields, so `carterkit demo` now supplies a local source for the collections an example's local bindings name (`start.example_sources`).
+
+### Fixed
+
+- `validate`: a `logConsole` whole-frame listen needs no `valuePath`.
+- Contract: a `pieChart` tap value is the slice label (a string).
+- `demo_layout` sizes the grid to fit the example's span (capped at 24).
+
 ## [0.21.0] — 2026-11-09
 
 App tutorials in the kit, editor profiles, hub send times, and ControlDocs at CAR-TER master 79f76966: every editable field now says what it does in plain words (`does`, `summary`, value titles, symbols and help) and carries the editor's `edit:` / `depth:` hints and colour slots.
@@ -267,22 +307,6 @@ Includes the ControlDocs resync, pinned to CAR-TER `master` c7c37539 (`controldo
   `simpleHidden: true` (`simple: hide`), so catalog.json and the MCP can show the
   app's friendly names. Vendored docs gain plain Simple-mode `summary:` help for
   min/max, value maps, and track/border fields (carter-aect).
-- **Derive** (CAR-TER 1.3, ships with the app release): a layout's top-level
-  `derive` block computes values on the phone from other values with a closed JSON
-  op tree (`add` `sub` `mul` `div` `min` `max` `avg` `sum` `coalesce` `abs` `round`
-  `clamp` `scale` `band` `since` `until`, `{"clock": true}`). New `controldocs/derive.md`;
-  `sync.md` gains `method: "derive"` + `from`; `layout-config.md` lists `derive`.
-- `carterkit.derive`: the reference evaluator, matching the app's `LayoutDerive.swift`
-  rule for rule, proven by shared fixtures (`tests/fixtures/derive/`, byte-identical
-  to the app's `CAR-TERTests/Fixtures/derive/`).
-- Authoring: `Layout.derive(id, node)` returns a ref (`.sync` binds a control),
-  `carterkit.derive.ops.*` builds nodes from handles, and `bind.derive(id)` is the
-  sync entry.
-- Validate: a `derive` sync no longer warns about a missing `valuePath`; it needs a
-  `from` naming a declared derive id. The block is checked like the app's decoder
-  (unknown refs, id collisions, cycles including through a binding, caps), and an
-  unknown op or malformed node is an error.
-- The contract and `gen` stubs treat derive syncs as app-direct: no server event.
 
 ### Changed
 
