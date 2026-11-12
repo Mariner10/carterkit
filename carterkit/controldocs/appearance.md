@@ -34,6 +34,12 @@ fields:
     description: "Page background image: {asset, blur, opacity}"
     summary: A picture behind everything
     does: Draws an image behind all controls on every tab, with optional blur, opacity and overlay.
+  - name: backgroundAnimation
+    type: object
+    description: "Animated page background: {style, colors, speed, intensity}"
+    summary: A moving colour backdrop
+    does: Animates the page background behind all controls with a hue shift, drifting gradient, aurora or pulse; an unknown style shows the plain page background.
+    since: next
 ---
 
 The `appearance` block on a [[layout-config|layout]] controls the app shell — color scheme, header bar, status bar, and background image. Colors and control styling live in [[theming|theme]]; appearance is about the chrome around your grid.
@@ -57,6 +63,7 @@ The `appearance` block on a [[layout-config|layout]] controls the app shell — 
 | `statusBarStyle` | `auto` / `light` / `dark` | `auto` | Status bar content color |
 | `header` | object | transparent | Header bar style (see below) |
 | `backgroundImage` | object | — | Page background image (see below) |
+| `backgroundAnimation` | object | — | Animated page background (see below) |
 
 ## Header
 
@@ -92,6 +99,25 @@ Omit `header` for a **transparent** bar — the page background shows through th
 | `overlay` | color | — | Hex overlay for readability (e.g. `"#00000080"`) |
 
 The image sits above the page background/gradient and below all controls, on every tab.
+
+## Background Animation
+
+An animated page background drawn behind all controls on every tab. An unknown or missing `style` renders the static page background.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `style` | `hueShift` / `gradientDrift` / `aurora` / `pulse` | — | Which animation to run |
+| `colors` | color[] (2–6) | theme page background and accent | Hex colours the animation moves between; extras beyond 6 are ignored, fewer than 2 falls back to the theme |
+| `light` | color[] (2–6) | `colors` | Colours used in light mode |
+| `dark` | color[] (2–6) | `colors` | Colours used in dark mode |
+| `speed` | number, 0.1–4 | `1` | Speed multiplier; out-of-range values are clamped |
+| `intensity` | number, 0–1 | `0.6` | How strong the colour movement is; clamped |
+| `angle` | number, degrees | `0` | Direction of the drift (`gradientDrift` only) |
+
+- **hueShift** — the colours slowly cycle in hue.
+- **gradientDrift** — a linear gradient that drifts at `angle`.
+- **aurora** — soft blobs of colour that float and blend.
+- **pulse** — the colours breathe in and out.
 
 ## Examples
 
@@ -131,6 +157,26 @@ A bundled image behind the grid, softened and darkened for readability, with no 
   "backgroundImage": { "asset": "bg", "blur": 20, "opacity": 0.5, "overlay": "#00000080" }
 }
 }
+```
+
+### Hue shift background
+```json
+{ "appearance": { "backgroundAnimation": { "style": "hueShift", "colors": ["#0A0F1E", "#1B2A5C"], "speed": 0.5 } } }
+```
+
+### Drifting gradient background
+```json
+{ "appearance": { "backgroundAnimation": { "style": "gradientDrift", "colors": ["#0A0F1E", "#3A1C71", "#D76D77"], "angle": 45, "intensity": 0.7 } } }
+```
+
+### Aurora background
+```json
+{ "appearance": { "backgroundAnimation": { "style": "aurora", "dark": ["#0B132B", "#1C7C7D", "#6FFFE9"], "light": ["#EAF0FB", "#B5E2FA", "#F9F7F3"], "speed": 1.5 } } }
+```
+
+### Pulse background
+```json
+{ "appearance": { "backgroundAnimation": { "style": "pulse", "colors": ["#111111", "#2D1B69"], "intensity": 0.4, "speed": 0.8 } } }
 ```
 
 ## Related

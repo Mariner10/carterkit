@@ -9,9 +9,9 @@ fields:
     edit: data
     tab: advanced
     type: string
-    description: Transport method (meshsocket, mqtt, http, sensor, local, derive)
+    description: Transport method (meshsocket, mqtt, http, sensor, local, derive, player)
     summary: Which way the value arrives
-    does: "Picks the transport that feeds this control: a CAR-TER server, an MQTT topic, a polled web address, the phone's own sensor, the local store or a derived value."
+    does: "Picks the transport that feeds this control: a CAR-TER server, an MQTT topic, a polled web address, the phone's own sensor, the local store, a derived value or the layout's audio player."
   - name: type
     type: string
     description: Sync direction (listen)
@@ -140,6 +140,12 @@ fields:
     description: "On-device stream to bind when method is sensor, e.g. heading (see [[sensors]])"
     summary: Which phone sensor to read
     does: Feeds the control live readings from the chosen on-device sensor, such as heading.
+  - name: key
+    since: next
+    type: string
+    description: "Player reading to bind when method is player, e.g. title, position, next.title (see [[audio]])"
+    summary: Which player reading to show
+    does: Feeds the control one reading of the layout's audio player, such as the song title or the play position.
   - name: having
     type: object
     description: "Filter on aggregated groups: {key|value: {op: v}} (local, with groupBy)"
@@ -278,6 +284,10 @@ With `method: "sensor"` a sync entry binds this device's own hardware instead of
 the mesh — `{ "method": "sensor", "sensor": "heading" }` feeds the control the
 compass with no server at all. See [[sensors]] for the catalog and
 [[publishers]] to stream readings to other devices.
+
+With `method: "player"` it binds a reading of the layout's [[audio]] player:
+`{ "method": "player", "key": "title" }`. `key` names the reading (`state`, `title`,
+`position`, `next.title`, ...; the list is in [[audio]] "Readings").
 
 ## Derived values (derive / from)
 

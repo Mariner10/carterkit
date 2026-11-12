@@ -144,7 +144,10 @@ display can ask for it itself with the top-level `keepAwake: true` field — see
 
 ## Notes
 
-- Streams run while the layout is open and connected; backgrounding pauses them.
+- Streams run while the layout is open and connected. Backgrounding pauses them,
+  unless the layout registers the sensor in a [[background]] block with a `send`
+  destination: the user allows each registration, and it then runs in the
+  background under the rules there (passengers only while a keeper is active).
 - Frames ride the layout's E2EE cipher when a key is set, like all traffic.
 - The identity should keep `can_broadcast: true` (role defaults usually do).
 - `interval` is clamped to a per-sensor floor so a typo can't flood the relay.

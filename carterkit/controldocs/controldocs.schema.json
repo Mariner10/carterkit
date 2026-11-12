@@ -217,6 +217,21 @@
         "removed": { "$ref": "#/$defs/version" }
       }
     },
+    "idEntry": {
+      "description": "One entry of a plain id list (aif-6e55l.18): audio.md `playerKeys:` (`key`, the `player.<key>` readings), `commandSlots:` (`slot`, `audio.commands.<slot>`) and background.md `eventTypes:` (`type`, `background.event.<type>`), each with its version pins.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/name" },
+        "slot": { "$ref": "#/$defs/name" },
+        "type": { "$ref": "#/$defs/name" },
+        "since": { "$ref": "#/$defs/version" },
+        "changes": { "$ref": "#/$defs/changes" },
+        "deprecated": { "$ref": "#/$defs/version" },
+        "removed": { "$ref": "#/$defs/version" },
+        "alias": { "$ref": "#/$defs/name" }
+      }
+    },
     "colorValue": {
       "description": "A role (`primary`, `secondary`, `tertiary`, `neutral`), a theme colour key (`accentColor`, `trackColor`, ...), a `$name` or a hex colour, optionally `@<opacity 0-1>`.",
       "type": "string",
@@ -266,6 +281,9 @@
         "themeFields": { "$ref": "#/$defs/fieldList" },
         "io": { "$ref": "#/$defs/io" },
         "colorSlots": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/colorSlot" } },
+        "playerKeys": { "type": "array", "items": { "$ref": "#/$defs/idEntry", "required": ["key"] } },
+        "commandSlots": { "type": "array", "items": { "$ref": "#/$defs/idEntry", "required": ["slot"] } },
+        "eventTypes": { "type": "array", "items": { "$ref": "#/$defs/idEntry", "required": ["type"] } },
         "baseline": { "$ref": "#/$defs/version" },
         "since": { "$ref": "#/$defs/version" },
         "changes": { "$ref": "#/$defs/changes" },

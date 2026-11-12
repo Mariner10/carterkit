@@ -103,6 +103,7 @@ fields:
   - use: confirm
     does: "After a tap writes locally, a pill naming the change appears for 3 seconds with an Undo button."
   - name: paging
+    edit: paging
     title: Load as you scroll
     tab: advanced
     simple: hide
@@ -200,8 +201,9 @@ fields:
     summary: How far apart the rows sit
     does: "Opens up space between rows, so card-style rows stand apart from each other."
   - name: itemStyle
-    edit: options
-    depth: surface
+    edit: look
+    depth: hold
+    under: itemTemplate
     title: Row look
     tab: style
     values: [plain, card]
@@ -231,6 +233,7 @@ fields:
     valueSymbols: {"rows": "list.bullet", "grid": "square.grid.2x2.fill"}
 themeFields:
   - name: cardPadding
+    unit: pt
     title: Card padding
     type: number
     min: 0
@@ -240,7 +243,15 @@ themeFields:
     description: Card item padding
     summary: The room inside each card item
     does: Pads the inside of every item when itemStyle is card, from 0 to 32 points.
-  - use: cornerRadius
+  - name: cornerRadius
+    unit: pt
+    title: Corner roundness
+    type: number
+    min: 0
+    max: 30
+    step: 1
+    default: 12
+    description: Control corner radius
     summary: How round the card corners are
     does: "Rounds the card corners from 0 (square) to 30 points."
   - use: controlPadding
@@ -611,8 +622,7 @@ Shows a row tap bound to a local collection, with the confirmation pill. Intende
   "confirm": true,
   "hideBackground": true,
   "action": { "method": "local", "op": "update", "collection": "items", "id": "{{value}}", "set": { "done": true } },
-  "sync": [{ "method": "local", "collection": "items" }],
-  "sources": { "db": { "type": "local", "collections": { "items": { "fields": { "name": "string", "done": "bool" } } } } }
+  "sync": [{ "method": "local", "collection": "items" }]
 }
 ```
 
@@ -626,8 +636,7 @@ Shows the select binding that moves the selection cursor. Intended effect: tappi
   "span": [3, 4],
   "label": "Books",
   "action": { "method": "local", "op": "select", "collection": "books", "id": "{{value}}" },
-  "sync": [{ "method": "local", "collection": "books" }],
-  "sources": { "db": { "type": "local", "collections": { "books": { "fields": { "title": "string", "pages": "integer" } } } } }
+  "sync": [{ "method": "local", "collection": "books" }]
 }
 ```
 

@@ -70,6 +70,39 @@ class ScopeControls:
         """
         return self._ctl("accordion", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, accordionMode=accordionMode, expandedIndex=expandedIndex, showChevron=showChevron, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
+    def airplay(
+        self, id: str | None = None, *,
+        position: Sequence[int] | None = None,
+        span: Sequence[int] | None = None,
+        listen: str | Sequence[str] | None = None,
+        when: Any = None,
+        event: str = "broadcast",
+        send: str | None = None,
+        request: bool = False,
+        payload: Any = None,
+        sensor: str | Sequence[str] | None = None,
+        sync: Sequence[dict[str, Any]] | None = None,
+        action: Any = None,
+        visible: Any = None,
+        enabled: Any = None,
+        pulse: Any = None,
+        fallback: Any = None,
+        tint: _Str | None = None,
+        activeTint: _Str | None = None,
+        **props: Any,
+    ) -> "Control":
+        """AirPlay: Pick where the sound plays
+        (catalog type `airplay`)
+
+        Fields:
+            tint (color): Icon color (unset = the theme's text color). Does: Colors the AirPlay icon while the sound plays on this phone; if unset it is the theme's text color.
+            activeTint (color): Icon color while playing to an AirPlay device (unset = the theme's accent color). Does: Colors the AirPlay icon while the sound is going to an AirPlay device; if unset it is the theme's accent color.
+
+        Example:
+            ui.airplay('route', position=[5, 3])
+        """
+        return self._ctl("airplay", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, tint=tint, activeTint=activeTint), props)
+
     def box_plot(
         self, id: str | None = None, *,
         position: Sequence[int] | None = None,
@@ -2702,6 +2735,27 @@ class BuildControls:
             ui.accordion('settings', position=[0, 0], span=[4, 2], accordionMode='single', expandedIndex=0, containerAnimation={'profile': 'smooth', 'chevronRotation': 90}, panels=[{'type': 'group', 'id': 'display', 'label': 'Display', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'slider', 'id': 'bright', 'position': [0, 0], 'label': 'Brightness', 'min': 0, 'max': 100}]}, {'type': 'group', 'id': 'network', 'label': 'Network', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'toggle', 'id': 'wifi', 'position': [0, 0], 'label': 'Wi-Fi'}]}])
         """
         return self._ctl("accordion", dict(id=id, position=position, span=span, accordionMode=accordionMode, expandedIndex=expandedIndex, showChevron=showChevron, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
+
+    def airplay(
+        self, *,
+        id: str,
+        position: Sequence[int] | None = None,
+        span: Sequence[int] | None = None,
+        tint: _Str | None = None,
+        activeTint: _Str | None = None,
+        **props: Any,
+    ) -> dict[str, Any]:
+        """AirPlay: Pick where the sound plays
+        (catalog type `airplay`)
+
+        Fields:
+            tint (color): Icon color (unset = the theme's text color). Does: Colors the AirPlay icon while the sound plays on this phone; if unset it is the theme's text color.
+            activeTint (color): Icon color while playing to an AirPlay device (unset = the theme's accent color). Does: Colors the AirPlay icon while the sound is going to an AirPlay device; if unset it is the theme's accent color.
+
+        Example:
+            ui.airplay('route', position=[5, 3])
+        """
+        return self._ctl("airplay", dict(id=id, position=position, span=span, tint=tint, activeTint=activeTint), props)
 
     def box_plot(
         self, *,

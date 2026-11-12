@@ -1235,6 +1235,13 @@ def _validate_sync_entry(s, ctype, spot, i, findings, sources):
         return
     _check_stale_after(s.get("staleAfter"), spot, f"{ctype}.sync[{i}].staleAfter", findings)
     method = s.get("method", "meshsocket")
+    if method == "player":            # the layout's audio player: `key` names a reading (audio.md)
+        keys = _player_keys()
+        if s.get("key") not in keys:
+            findings.append(_f("warn", "bad_sync", spot,
+                               f"{ctype}.sync[{i}] method 'player' needs a 'key' "
+                               f"({', '.join(keys)}), got {s.get('key')!r}"))
+        return
     if method == "sensor":
         if not s.get("sensor"):
             findings.append(_f("warn", "bad_sync", spot,
@@ -1302,6 +1309,17 @@ def _validate_local_sync(s, ctype, spot, i, findings, sources):
 _EXPAND_ACTIONS = ("expand", "collapse", "toggleExpand")
 
 
+@functools.lru_cache(maxsize=1)
+def _player_keys() -> tuple:
+    """The audio player's reading keys, from audio.md's `playerKeys` frontmatter."""
+    from . import controldocs_dir
+    text = (Path(controldocs_dir()) / "audio.md").read_text(encoding="utf-8")
+    return tuple(re.findall(r"^\s*- \{ key: ([\w.]+)", text.split("commandSlots:")[0], re.M))
+# actions.md "Audio player": `{"method": "player", "verb": ...}` drives the layout's audio block.
+_PLAYER_VERBS = ("play", "pause", "toggle", "stop", "next", "previous", "seek", "skip",
+                 "like", "dislike", "shuffle", "repeat")
+
+
 def _validate_action_entry(a, ctype, akey, spot, findings, sources):
     method = a.get("method", "meshsocket")
     if method == "local":
@@ -1320,6 +1338,13 @@ def _validate_action_entry(a, ctype, akey, spot, findings, sources):
             findings.append(_f("error", "bad_action", spot,
                                f"{ctype}.{akey} http action needs a 'path' or 'url'"))
         _source_ref_findings(a, "http", spot, ctype, akey, findings, sources)
+        return
+    if method == "player":            # app-local: the layout's audio player, no transport
+        verb = a.get("verb")
+        if verb not in _PLAYER_VERBS:
+            findings.append(_f("error", "bad_action", spot,
+                               f"{ctype}.{akey} player action needs a 'verb' "
+                               f"({', '.join(_PLAYER_VERBS)}), got {verb!r}"))
         return
     for ek in _EXPAND_ACTIONS:        # app-local: acts on the expanded view, no transport
         if ek in a:
@@ -1479,6 +1504,8 @@ TOP_LEVEL_KEYS = {
     # document contract
     "schemaVersion", "format", "extensions", "provenance", "requires", "fallback",
     "placements", "styles", "connectivity",
+    # hub audio player and background registrations (layout-config.md)
+    "audio", "background",
     # a wire frame's discriminator, when a pushed payload is linted as-is
     "msg_type",
 }

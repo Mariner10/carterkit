@@ -71,6 +71,12 @@ fields:
     description: Open the layout filled with its last-known values and sparkline trends from the glance snapshot (under 24 h old), shown as stale until a live frame arrives; a seeded toggle does not send until then. false opens on defaults (default true)
     summary: Open with the last known values
     does: When true, the layout opens showing its last glance snapshot (under 24 hours old) marked stale until live data arrives; false opens on defaults.
+  - name: endSummary
+    type: bool
+    since: next
+    description: Keep an ended card. After the session ends the Live Activity lingers for a few minutes showing the last values and when it ended, then dismisses. false ends it at once (default true)
+    summary: Keep the ended card
+    does: When true, the Live Activity stays on the Lock Screen after the session ends, showing the last values and the end time; false dismisses it immediately.
 ---
 
 A layout already says what matters: its controls. The `glance` block projects them
@@ -316,7 +322,8 @@ Run a Live Activity with a fresh tier while the layout is connected.
     "slots": ["nozzle", "bed"],
     "liveActivity": true,
     "live": { "tier": "fresh" },
-    "warmOpen": true
+    "warmOpen": true,
+    "endSummary": true
   }
 }
 ```

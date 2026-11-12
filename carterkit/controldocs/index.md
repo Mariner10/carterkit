@@ -29,12 +29,16 @@ A layout defines **tabs**, each containing a **grid** of controls. Controls rang
 
 ## The Control System
 
-Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **46 control types** across three categories:
+Every control in CAR-TER is declared as a JSON object with a `type`, `id`, and grid `position`. The system supports **47 control types** across three categories:
 
 ### Input Controls
 Buttons, toggles, sliders, steppers, pickers, date pickers, text inputs, color pickers, and segmented controls. These send user actions to your server. The **camera** control scans QR codes, barcodes, and text live — detections are on the mesh the moment they're seen. Container controls — **carousels**, **flip cards**, and **accordions** — arrange sets of groups into swipeable pages, flippable faces, and collapsible sections.
 
 The **drag pack** makes arrangement itself the input: [[sortboard|sortboards]] drag items between bound zones (kanban, seating, triage), [[pinboard|pinboards]] place markers anywhere on a freeform surface (floor plans, maps, photos), and the [[compass|compass ring]] mixes drag with the device's heading sensor — point the needle at a puck to fire its action. The [[canvas]] goes structural: a pan/zoom freeform surface hosting whole *working* controls at any position and size, rearrangeable in place. Every drop emits `pickup`/`place`/`layout` events, and the whole arrangement round-trips as synced state a server can seed or rearrange.
+
+### Audio and background
+
+Any hub can stream music to the phone: the [[audio]] block, the `player` readings and actions, and the [[airplay]] control turn a layout into a music system that plays on the lock screen, in Control Center and over AirPlay. A [[background]] block says what may keep running when the layout is not on screen; nothing runs until the user allows it.
 
 ### Display Controls
 Gauges, progress rings, sparklines, labels, images, maps, and graphs. These visualize incoming telemetry data in real time. The [[stat-tile|stat tile]] is a whole KPI in one card — the number, its change against a reference, a threshold tint, and a faint trend. The [[symbol]] control is the glyph itself — SF Symbols with native rendering modes, variable layers, and looping effects, plus custom rain, snow, and sparkles, animated on the phone with no server frames.

@@ -141,6 +141,18 @@ fields:
     description: Which device sensors and permissions the layout asks the user to set up (see sensors)
     summary: Sensors to set up
     does: Lists the device sensors and permissions the layout asks the user to turn on.
+  - name: background
+    since: next
+    type: object[]
+    description: "Background event registrations the layout asks for (see background); replaces sensorSetup, which still works and is read as the same thing"
+    summary: Background work to allow
+    does: Asks to run location, music and sensor work in the background, with where each reading goes; the user allows each one.
+  - name: audio
+    since: next
+    type: object
+    description: "Hub audio: at most one per layout, only hub required (see audio); the hub streams its music to this phone and iOS shows it in Now Playing"
+    summary: Music from your hub
+    does: Makes the layout a music player for the hub's library, controlled from the layout, the lock screen, Control Center and AirPods.
   - name: sampleValues
     type: object
     description: "Control id to placeholder value: display only. Shown by Try and previews, and on the live page by a control with no value of its own until its first real one; never sent, saved or published. Applies without a tap unless a sample holds a link (see Sample values)"
@@ -226,10 +238,20 @@ Top-level JSON structure for a CAR-TER remote.
 both optional and freely mixed; a layout can run entirely on sources with no
 server at all.
 
-Each tab is `{ "id", "title", "icon", "grid", "children" }`. `icon` is an SF Symbol
-name and may be left out: a missing, empty or non-string `icon` shows `square.grid.2x2`.
+## Tabs
+
+Each entry in `tabs` is a page:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `id` | string | the `title` | Stable tab id. Selection, deep links, `AUTO_TAB` and a control's `navigate: "tab:<id>"` key on it, so renaming the tab breaks nothing. Without one (or empty) the `title` is the id |
+| `title` | string | — | Tab bar title (required) |
+| `icon` | string | — | SF Symbol for the tab bar (required) |
+| `grid` | [[grid-dimensions\|GridDimensions]] | — | The tab's grid (required) |
+| `children` | array | — | Controls and groups (required) |
+
 A tab may also carry an optional `palette`: the [[theming]] palette object (colour roles such as `primary`) for
-that page only, merged over the layout's `theme.palette` (see theming "Colour roles").
+that page only, merged over the layout's `theme.palette` (see theming "Colour roles"). A missing, empty or non-string `icon` shows `square.grid.2x2`.
 
 ## Appearance
 
@@ -618,6 +640,7 @@ auto-derived glance. Full reference: [[glance]].
 - [[document-contract]] — versions, extensions, identity, limits, assets
 - [[control-def]] `fallback` — what an older app shows for a control it doesn't know
 - [[glance]] — widgets, Dynamic Island, lock screen, Control Center
+- [[audio]] — hub audio: Now Playing, lock-screen commands, player readings
 - [[sources]] — MQTT/HTTP data sources
 - [[derive]] — values computed on the phone
 - [[theming]] — Full theme system, light/dark variants, live builder

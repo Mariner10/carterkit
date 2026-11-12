@@ -548,8 +548,9 @@ def test_bad_requires_shapes_are_reported_not_raised():
 
 
 def test_bundled_catalog_has_no_newer_controls_yet():
-    # Every control in the vendored docs shipped in 1.2.4 (carter-0gj.27): no `since`.
-    assert not [t for t, spec in CAT.items() if spec.get("since")]
+    # Every control in the vendored docs shipped in 1.2.4 (carter-0gj.27): no `since`,
+    # except the hub-audio AirPlay control (CAR-TER aif-6e55l.21, since: next).
+    assert [t for t, spec in CAT.items() if spec.get("since")] == ["airplay"]
 
 
 # carter-5q1y — contract reservations: asset://, data:image soft budget, name@N features.
@@ -684,3 +685,34 @@ def test_capability_since_reads_the_vendored_manifest():
     assert capability_since("control.gauge") == "2.0"
     assert capability_since("accordion.colors.chevron") is None   # `next`: unreleased
     assert capability_since("no.such.id") is None
+
+
+def test_hub_audio_player_layout_is_clean():
+    """An `audio` block, player actions (verb, no event), player syncs (key) and the
+    `airplay` control lint clean (CAR-TER aif-6e55l; SampleLayouts/music-hub.json)."""
+    layout = _layout([
+        {"type": "label", "id": "song", "position": [0, 0], "span": [1, 4], "text": "-",
+         "sync": [{"method": "player", "key": "title"}]},
+        {"type": "slider", "id": "seek", "position": [1, 0], "span": [1, 4], "min": 0, "max": 300,
+         "action": {"method": "player", "verb": "seek", "value": "{{value}}"},
+         "sync": [{"method": "player", "key": "position"}]},
+        {"type": "button", "id": "pp", "position": [2, 0], "label": "Play",
+         "action": {"method": "player", "verb": "toggle"}},
+        {"type": "airplay", "id": "route", "position": [2, 1]},
+    ])
+    layout["audio"] = {"hub": "music-hub", "mode": "listen", "commands": "hub"}
+    findings = validate.validate_layout(layout, CAT)
+    assert [f for f in findings if f["severity"] == "error"] == []
+    assert not {"unknown_field", "bad_sync", "bad_action", "unknown_type"} & _kinds(findings), findings
+
+
+def test_player_action_and_sync_need_known_names():
+    layout = _layout([
+        {"type": "button", "id": "pp", "position": [0, 0], "label": "Play",
+         "action": {"method": "player", "verb": "dance"}},
+        {"type": "label", "id": "song", "position": [1, 0], "text": "-",
+         "sync": [{"method": "player", "key": "nope"}]},
+    ])
+    findings = validate.validate_layout(layout, CAT)
+    assert any(f["kind"] == "bad_action" and f["severity"] == "error" for f in findings)
+    assert any(f["kind"] == "bad_sync" for f in findings)

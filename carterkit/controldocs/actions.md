@@ -9,9 +9,9 @@ fields:
     edit: data
     tab: advanced
     type: string
-    description: Transport method (meshsocket, mqtt, http, local)
+    description: Transport method (meshsocket, mqtt, http, local, player)
     summary: "How the action travels"
-    does: "Picks the wire the action goes out on: meshsocket, mqtt, http or local (the on-device store)."
+    does: "Picks the wire the action goes out on: meshsocket, mqtt, http, local (the on-device store) or player (the layout's audio player)."
   - name: mode
     type: string
     description: Send mode (broadcast = fire and forget, request = await a reply; only route_msg replies) — meshsocket only
@@ -73,11 +73,11 @@ fields:
     does: "Adds these headers to this action's http request only."
   - name: op
     type: enum
-    values: [insert, update, upsert, delete, select, set, increment, decrement, toggle]
+    values: [insert, update, upsert, delete, select, set, increment, decrement, toggle, { value: form, since: next }]
     description: Local-store operation; set/increment/decrement/toggle write a singleton collection (local)
     summary: "What to do to the data"
     does: "Chooses the on-device store operation the action runs: write, change, remove or read rows, or adjust a single saved value."
-    valueHelp: {"insert": "adds a new entry to the collection", "update": "changes the fields you name on the entry with this id", "upsert": "updates the entry if it exists, otherwise adds it", "delete": "removes the entry with this id", "select": "moves the collection's selection to the entry with this id", "set": "patches the named fields of a singleton collection's one row", "increment": "adds the step to a number field of a singleton collection", "decrement": "subtracts the step from a number field of a singleton collection", "toggle": "flips a true or false field of a singleton collection"}
+    valueHelp: {"insert": "adds a new entry to the collection", "update": "changes the fields you name on the entry with this id", "upsert": "updates the entry if it exists, otherwise adds it", "delete": "removes the entry with this id", "select": "moves the collection's selection to the entry with this id", "set": "patches the named fields of a singleton collection's one row", "increment": "adds the step to a number field of a singleton collection", "decrement": "subtracts the step from a number field of a singleton collection", "toggle": "flips a true or false field of a singleton collection", "form": "opens the entry sheet for the collection instead of writing"}
   - name: collection
     edit: data
     type: string
@@ -106,6 +106,18 @@ fields:
     description: Step for increment/decrement; any non-zero number or an exact token such as {{value}}; decrement subtracts it; integer fields take whole steps only (local)
     summary: "How much to add or take"
     does: "The step an increment or decrement applies, 1 when unset; a decrement subtracts it, and whole-number fields only take whole steps."
+  - name: verb
+    since: next
+    type: string
+    description: "Player command when method is player: play, pause, toggle, stop, next, previous, seek, skip, like, dislike, shuffle, repeat (see [[audio]])"
+    summary: "Which player command"
+    does: "The command sent to the layout's audio player, such as toggle, next or seek."
+  - name: value
+    since: next
+    type: string
+    description: "The player command's amount: seconds for seek, plus or minus seconds for skip; a number or a token such as {{value}} (player)"
+    summary: "How far to seek or skip"
+    does: "Gives seek its position and skip its jump, in seconds; {{value}} takes a slider's value."
   - name: confirm
     edit: ask
     summary: "Ask before sending"
@@ -290,6 +302,13 @@ These four are what the editor's Action tab writes: its verbs Record time, Add 1
 Subtract 1 and Set to… compile to `set` with `{"field": "{{now}}"}`, `increment`,
 `decrement` (no `by`) and `set` with one literal field.
 
+### Open the entry sheet (`op: "form"`)
+
+`{ "method": "local", "op": "form", "collection": "walks" }` writes nothing: the
+tap opens the store's entry sheet (the same one the entries menu opens), and the
+entry is saved from there. The button keeps its type, size and place. Wire ›
+Use it here offers it as Form beside Quick-add (SPEC 7.5).
+
 ### Confirmation and Undo
 
 A control with `"confirm": true` (the editor's **Show confirmation**, on the Action
@@ -350,6 +369,13 @@ one: a "More" button with `"action": {"expand": "pkg"}` opens group `pkg` from a
 layout. A control inside a list row names the list's id (`{"expand": "packages"}`) and opens its
 own row. They are the same path as the group's own tap, an `expand.trigger` control and the hub's
 `sheet` frame ([[group-def#Expand]]). An id that matches nothing on screen does nothing.
+
+## Audio player
+
+`{"method": "player", "verb": "toggle"}` sends a command to the layout's [[audio]] player
+instead of a transport. `verb` is `play`, `pause`, `toggle`, `stop`, `next`, `previous`, `seek`,
+`skip`, `like`, `dislike`, `shuffle` or `repeat`; `value` carries seek's position and skip's jump in
+seconds, usually `"{{value}}"` from a slider. See [[audio]] "Actions".
 
 ## Hub prompts
 

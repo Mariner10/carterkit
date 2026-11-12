@@ -151,7 +151,7 @@
                 "x-carter-type": "string"
               },
               "method": {
-                "description": "Transport method (meshsocket, mqtt, http, local)",
+                "description": "Transport method (meshsocket, mqtt, http, local, player)",
                 "x-carter-type": "string"
               },
               "mode": {
@@ -169,7 +169,8 @@
                   "set",
                   "increment",
                   "decrement",
-                  "toggle"
+                  "toggle",
+                  "form"
                 ],
                 "x-carter-type": "enum"
               },
@@ -204,6 +205,38 @@
               "url": {
                 "description": "Absolute request URL (http)",
                 "x-carter-type": "string"
+              },
+              "value": {
+                "description": "The player command's amount: seconds for seek, plus or minus seconds for skip; a number or a token such as {{value}} (player)",
+                "x-carter-type": "string"
+              },
+              "verb": {
+                "description": "Player command when method is player: play, pause, toggle, stop, next, previous, seek, skip, like, dislike, shuffle, repeat (see [[audio]])",
+                "x-carter-type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "airplay"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "activeTint": {
+                "description": "Icon color while playing to an AirPlay device (unset = the theme's accent color)",
+                "x-carter-type": "color"
+              },
+              "tint": {
+                "description": "Icon color (unset = the theme's text color)",
+                "x-carter-type": "color"
               }
             }
           }
@@ -245,6 +278,10 @@
           },
           "then": {
             "properties": {
+              "backgroundAnimation": {
+                "description": "Animated page background: {style, colors, speed, intensity}",
+                "x-carter-type": "object"
+              },
               "backgroundImage": {
                 "description": "Page background image: {asset, blur, opacity}",
                 "x-carter-type": "object"
@@ -274,6 +311,90 @@
                   "dark"
                 ],
                 "x-carter-type": "enum"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "audio"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "commands": {
+                "description": "hub (every command the hub lists in capabilities) or an object of slots: play, pause, toggle, next, previous, seek, skipForward, skipBackward, like, dislike, shuffle, repeat",
+                "x-carter-type": "object"
+              },
+              "hub": {
+                "description": "Required. The hub's target_name: it serves the audio and receives commands",
+                "x-carter-type": "string"
+              },
+              "mode": {
+                "description": "listen: this phone plays the audio. remote: the hub plays on its own speakers and this phone only controls it",
+                "examples": [
+                  "listen",
+                  "remote"
+                ],
+                "x-carter-type": "enum"
+              },
+              "normalize": {
+                "description": "Apply each item's gain (dB) so tracks play at the same loudness",
+                "x-carter-type": "bool"
+              },
+              "nowPlaying": {
+                "description": "{ title, subtitle } templates over the current item's fields, e.g. {{title}}, {{artist}}",
+                "x-carter-type": "object"
+              },
+              "quality": {
+                "description": "Rule per network: { local, wifi, cellular }, each best | lossless | lossy or an ordered list of rendition ids. Low Data Mode counts as cellular",
+                "x-carter-type": "object"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "background"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "interval": {
+                "description": "Seconds between readings, for sensor types (low power and heat can slow it)",
+                "x-carter-type": "number"
+              },
+              "keepAlive": {
+                "description": "Connect+: keep audio.playback or a sensor registration running after the layout is closed",
+                "x-carter-type": "bool"
+              },
+              "places": {
+                "description": "For location.places: [{ name, latitude, longitude, radius }]; 20 regions app-wide",
+                "x-carter-type": "object[]"
+              },
+              "send": {
+                "description": "Where readings go: { hub: the hub's target_name, event: the msg_type }",
+                "x-carter-type": "object"
+              },
+              "store": {
+                "description": "Local-store collection to write each reading into (alone or with send)",
+                "x-carter-type": "string"
+              },
+              "type": {
+                "description": "Catalog type to register for, e.g. location.visits, sensors.motion, audio.playback (see the catalog below)",
+                "x-carter-type": "string"
               }
             }
           }
@@ -1711,7 +1832,8 @@
                   "canvas",
                   "symbol",
                   "statTile",
-                  "keyValue"
+                  "keyValue",
+                  "airplay"
                 ],
                 "x-carter-type": "enum"
               },
@@ -2496,6 +2618,10 @@
               },
               "enabled": {
                 "description": "false suppresses every surface, including the auto-derived glance (default true)",
+                "x-carter-type": "bool"
+              },
+              "endSummary": {
+                "description": "Keep an ended card. After the session ends the Live Activity lingers for a few minutes showing the last values and when it ended, then dismisses. false ends it at once (default true)",
                 "x-carter-type": "bool"
               },
               "hero": {
@@ -3896,6 +4022,14 @@
                 "description": "App shell appearance (color scheme, header, background image)",
                 "x-carter-type": "object"
               },
+              "audio": {
+                "description": "Hub audio: at most one per layout, only hub required (see audio); the hub streams its music to this phone and iOS shows it in Now Playing",
+                "x-carter-type": "object"
+              },
+              "background": {
+                "description": "Background event registrations the layout asks for (see background); replaces sensorSetup, which still works and is read as the same thing",
+                "x-carter-type": "object[]"
+              },
               "batchPublishers": {
                 "description": "Send the publishers as one sensor_batch frame per tick of the fastest interval instead of one frame per reading (see publishers)",
                 "x-carter-type": "bool"
@@ -4566,6 +4700,26 @@
               "tint": {
                 "description": "Default marker color (used when a marker carries none)",
                 "x-carter-type": "color"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "navigation"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "navigate": {
+                "description": "Where a button tap goes after its action fires: tab:<id|title|#index>",
+                "x-carter-type": "string"
               }
             }
           }
@@ -6759,12 +6913,16 @@
                 "description": "Poll interval in seconds (http)",
                 "x-carter-type": "number"
               },
+              "key": {
+                "description": "Player reading to bind when method is player, e.g. title, position, next.title (see [[audio]])",
+                "x-carter-type": "string"
+              },
               "limit": {
                 "description": "Maximum rows or groups delivered, 1\u20131000 (local)",
                 "x-carter-type": "number"
               },
               "method": {
-                "description": "Transport method (meshsocket, mqtt, http, sensor, local, derive)",
+                "description": "Transport method (meshsocket, mqtt, http, sensor, local, derive, player)",
                 "x-carter-type": "string"
               },
               "orderBy": {
@@ -7773,8 +7931,11 @@
           "examples": [
             "accordion",
             "actions",
+            "airplay",
             "animations",
             "appearance",
+            "audio",
+            "background",
             "boxPlot",
             "button",
             "camera",
@@ -7818,6 +7979,7 @@
             "logConsole",
             "long-press",
             "map",
+            "navigation",
             "picker",
             "pieChart",
             "pinboard",

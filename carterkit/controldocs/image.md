@@ -33,7 +33,7 @@ fields:
     does: Draws this SF Symbol when no image loads or none is given, scaled to fill the cell (never below about 28 pt) and tinted.
   - name: url
     chip: Picture
-    edit: inline
+    edit: binding
     depth: surface
     title: Picture address
     type: string

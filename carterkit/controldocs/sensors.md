@@ -113,8 +113,12 @@ against it, so a key added in code without a row here fails the tests.
 - `heading`, `motion`, and `device` need no permission.
 - `barometer` asks for Motion & Fitness; `audio` for the microphone; `location`
   for While-Using access. iOS prompts once, on first use.
-- Hardware runs only while a bound layout is on screen — switching layouts or
-  backgrounding the app stops every pipeline immediately.
+- Hardware runs while a bound layout is on screen. When the app goes to the
+  background, a sensor keeps running only if the layout registered it in a
+  [[background]] block (`sensors.motion`, `.barometer`, `.heading`, `.device`)
+  and the user allowed it, and then only while a keeper (such as
+  `audio.playback` or `location.continuous`) is active. Otherwise every
+  pipeline stops when the app is backgrounded.
 - `audio` measures loudness only. Samples never leave the audio tap.
 
 ## Notes

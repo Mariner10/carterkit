@@ -45,7 +45,7 @@ fields:
     type: color
     description: Alias of palette.primary
     summary: Your main highlight colour
-    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own. It is an alias of palette.primary, so a theme with both uses the palette's, and saving writes palette.primary only.
+    does: Colours gauges, toggles, sliders and other highlights, and the toggle, slider, stepper and progress tracks follow it unless they set their own. It is an alias of palette.primary: a theme with both uses the palette's, and saving writes palette.primary only.
   - name: palette
     edit: palette
     depth: surface
@@ -58,7 +58,7 @@ fields:
     type: color
     description: Primary text
     summary: The main text colour
-    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode. In the editor it is the Text row of the Palette tray, right under Background, Auto until a colour is picked.
+    does: Draws primary text and icons in this colour; by default white in dark mode and black in light mode. In the editor it is the Text row of the Palette tray, right under Background: Auto until a colour is picked.
   - name: onAccent
     type: color
     description: Text/icon colour drawn on an accent fill
