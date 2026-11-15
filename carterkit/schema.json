@@ -136,6 +136,7 @@
             "toggle",
             "treemap",
             "values",
+            "video",
             "visibility",
             "webView"
           ]
@@ -476,6 +477,18 @@
               "backgroundAnimation": {
                 "x-carter-type": "object",
                 "description": "Animated page background: {style, colors, speed, intensity}"
+              },
+              "edge": {
+                "x-carter-type": "enum",
+                "description": "'soft' fades page-scroll content as it meets the screen edge; 'none' (default) leaves the page as it was",
+                "examples": [
+                  "none",
+                  "soft"
+                ]
+              },
+              "edgeSize": {
+                "x-carter-type": "number",
+                "description": "With edge soft: the fade distance from the screen edge inward in points (default 28)"
               }
             }
           }
@@ -1036,6 +1049,30 @@
           },
           "then": {
             "properties": {
+              "itemTemplate": {
+                "x-carter-type": "object",
+                "description": "A group definition ({grid, children}) drawn once per card; {{item.<field>}} in its children is replaced from that row. With grid.scale auto a card whose group is 1x5 holding a 3x15 inner grid draws its children at 1/3. Absent: the docs-browser card."
+              },
+              "cardColumns": {
+                "x-carter-type": "int",
+                "description": "Cards side by side, 1-3 (default: 1 for the docs browser, else as many as the width fits)."
+              },
+              "cardStyle": {
+                "x-carter-type": "string",
+                "description": "The card look: tile (flat rounded tiles), glass (frosted cards) or hero (large preview above the name)."
+              },
+              "categoryField": {
+                "x-carter-type": "string",
+                "description": "The row field cards are grouped under, with a header per value (docs browser: group)."
+              },
+              "itemSpacing": {
+                "x-carter-type": "number",
+                "description": "Points between cards (0-64)."
+              },
+              "search": {
+                "x-carter-type": "string",
+                "description": "builtin: the list's own search box (default for old layouts); none: no filtering; or the id of a search box control that filters this list."
+              },
               "placeholder": {
                 "x-carter-type": "string",
                 "description": "Placeholder text shown in the search field while it is empty (default: Search)."
@@ -1099,6 +1136,14 @@
               "panels": {
                 "x-carter-type": "object",
                 "description": "The panel groups this container pages through (group defs with children)"
+              },
+              "itemsFrom": {
+                "x-carter-type": "string",
+                "description": "Id of the list control the hub fills with the items to page through"
+              },
+              "itemTemplate": {
+                "x-carter-type": "object",
+                "description": "The page drawn for every hub item (a group whose controls use {{item.field}})"
               },
               "containerAnimation": {
                 "x-carter-type": "object",
@@ -4384,7 +4429,7 @@
               },
               "listColumns": {
                 "x-carter-type": "array",
-                "description": "Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
+                "description": "Column definitions: [{key, label, format, align}] (align: leading, trailing or numeric). Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
               },
               "emptyText": {
                 "x-carter-type": "string",
@@ -4438,13 +4483,49 @@
                 "x-carter-type": "string",
                 "description": "Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing."
               },
+              "search": {
+                "x-carter-type": "string",
+                "description": "Where the rows' search text comes from: builtin (the list draws its own small box above the rows), none (no box, no filtering), or the id of a text input with role: search. One box can drive several lists. Static and store rows are filtered on the phone (case and diacritic blind, 150 ms after typing stops); paged rows send the text as {{query}} and the hub matches. Absent: paging.queryFrom if set, else none. See [[#Search]]."
+              },
+              "searchFields": {
+                "x-carter-type": "array",
+                "description": "The row fields the phone-side search reads (default: every text and number field of the row). Ignored by paged lists, where the hub matches."
+              },
               "itemTemplate": {
                 "x-carter-type": "object",
                 "description": "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
               },
-              "customize": {
-                "x-carter-type": "object",
-                "description": "On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring."
+              "axis": {
+                "x-carter-type": "enum",
+                "description": "vertical: rows run down the list. horizontal: with an itemTemplate the list is a side strip, items scroll sideways, one template group each. See [[#Side strips]].",
+                "examples": [
+                  "vertical",
+                  "horizontal"
+                ]
+              },
+              "snap": {
+                "x-carter-type": "enum",
+                "description": "Strip: where a scroll comes to rest. none: anywhere. item: an item's edge lines up with the strip's start.",
+                "examples": [
+                  "none",
+                  "item"
+                ]
+              },
+              "edge": {
+                "x-carter-type": "enum",
+                "description": "Strip: items soften toward the strip's ends (the scroller engine's helper). none: a hard edge.",
+                "examples": [
+                  "soft",
+                  "none"
+                ]
+              },
+              "itemColumns": {
+                "x-carter-type": "number",
+                "description": "Strip: an item's width in grid columns of the list's own width (default 1)."
+              },
+              "valueFrom": {
+                "x-carter-type": "any",
+                "description": "On a control inside a strip's itemTemplate: the item's value it starts at and follows when the hub patches that item, usually \\\"{{item.value}}\\\". A drag by the user wins for 600 ms."
               },
               "itemSpacing": {
                 "x-carter-type": "number",
@@ -4465,6 +4546,57 @@
                   "rows",
                   "grid"
                 ]
+              },
+              "rowStyle": {
+                "x-carter-type": "enum",
+                "description": "inset: rounded section cards on the page like Settings. plain: an edge-to-edge list, hairlines inset 16 pt. dense: a data table with 36 pt rows. Default: dense for a column table (listColumns set), else plain. See [[#Table rows]].",
+                "examples": [
+                  "inset",
+                  "plain",
+                  "dense"
+                ]
+              },
+              "leadingIcon": {
+                "x-carter-type": "string",
+                "description": "Row field holding an SF Symbol name, drawn at the leading edge of each row."
+              },
+              "leadingImage": {
+                "x-carter-type": "string",
+                "description": "Row field holding an image URL, drawn at the leading edge of each row (wins over leadingIcon)."
+              },
+              "titleField": {
+                "x-carter-type": "string",
+                "description": "Row field for the first line of each row. Default: the first column."
+              },
+              "subtitleField": {
+                "x-carter-type": "string",
+                "description": "Row field for the second, secondary line of each row."
+              },
+              "trailingField": {
+                "x-carter-type": "string",
+                "description": "Row field shown at the trailing edge of each row, in monospaced digits."
+              },
+              "sectionField": {
+                "x-carter-type": "string",
+                "description": "Row field whose values group the rows under sticky section headers, in order of first appearance. Not used with paging or an itemTemplate."
+              },
+              "accessory": {
+                "x-carter-type": "enum",
+                "description": "The mark at each row's trailing edge: none, chevron, checkmark or detail (an info mark). Default: chevron when the list has an action, else none.",
+                "examples": [
+                  "none",
+                  "chevron",
+                  "checkmark",
+                  "detail"
+                ]
+              },
+              "showSubtitle": {
+                "x-carter-type": "bool",
+                "description": "Column rows: the second column is the subtitle under the title instead of a second value at the end."
+              },
+              "header": {
+                "x-carter-type": "bool",
+                "description": "Column tables (listColumns set): the sticky header row of column names. Default on."
               },
               "cardPadding": {
                 "x-carter-type": "number",
@@ -7232,6 +7364,17 @@
                   "multiline"
                 ]
               },
+              "role": {
+                "x-carter-type": "enum",
+                "description": "role: search makes the box a search box: a magnifier, a clear button and (with cancel) a Cancel button; its text goes out live as you type, after a 250 ms pause, instead of only on Return, and the lists that name this box (their search field) filter as you type. Works inside a form too.",
+                "examples": [
+                  "search"
+                ]
+              },
+              "cancel": {
+                "x-carter-type": "bool",
+                "description": "With role: search, adds a Cancel button that clears the box and closes the keyboard."
+              },
               "sendButton": {
                 "x-carter-type": "bool",
                 "description": "Growing composer with a Send button (Return inserts a newline)"
@@ -7998,6 +8141,54 @@
               "unit": {
                 "x-carter-type": "string",
                 "description": "Measurement unit name or symbol for a measurement ([[values#Units]]); controls with a unit field convert to the device locale"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "video"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "label": {
+                "x-carter-type": "string",
+                "description": "Header label"
+              },
+              "source": {
+                "x-carter-type": "string",
+                "description": "The hub's camera id to show (its direct_hello video id)"
+              },
+              "fit": {
+                "x-carter-type": "string",
+                "description": "How the picture fills its cell: fill or fit"
+              },
+              "hideLabel": {
+                "x-carter-type": "bool",
+                "description": "Hide the header label"
+              },
+              "cornerRadius": {
+                "x-carter-type": "number",
+                "description": "Control corner radius"
+              },
+              "surfacePrimary": {
+                "x-carter-type": "color",
+                "description": "Background fill"
+              },
+              "borderColor": {
+                "x-carter-type": "color",
+                "description": "Border color"
+              },
+              "borderWidth": {
+                "x-carter-type": "number",
+                "description": "Border width"
               }
             }
           }

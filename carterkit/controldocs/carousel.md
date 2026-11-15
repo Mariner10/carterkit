@@ -109,6 +109,20 @@ fields:
     description: The panel groups this container pages through (group defs with children)
     summary: The pages themselves
     does: "Supplies the list of pages; each group definition becomes one swipeable page holding its own controls."
+  - name: itemsFrom
+    since: next
+    chip: Panels
+    type: string
+    description: Id of the list control the hub fills with the items to page through
+    summary: Makes one page for every item the hub sends
+    does: "Draws one page per row the named list control holds, each from the carousel's itemTemplate with its {{item.field}} filled in; with no items yet the static pages stay."
+  - name: itemTemplate
+    since: next
+    chip: Panels
+    type: object
+    description: The page drawn for every hub item (a group whose controls use {{item.field}})
+    summary: The shape every hub-fed page takes
+    does: "Sets the page layout repeated for each item named by itemsFrom; its controls read {{item.field}} from that item."
   - name: containerAnimation
     tab: style
     type: object
@@ -217,6 +231,9 @@ fires **actions**, and a jump of several pages riffles through the intermediate 
 | `autoAdvance` | number | `0` | Seconds between auto-advances; `0` = off |
 | `loop` | bool | `false` | Wrap past the ends |
 | `defaultValue` | number | `0` | Initial page index |
+| `carouselPeek` | number | `0` | Paged: how much of each neighbour shows, 0 to 0.3 of the width |
+| `itemsFrom` | string | — | Hub pages: id of the list control holding the items (since: next) |
+| `itemTemplate` | object | — | Hub pages: the page drawn for each item, with `{{item.field}}` (since: next) |
 | `containerAnimation` | object | — | Motion customization (see [[animations]] and below) |
 
 The active page is a `.number` value. An incoming [[sync]] sets the page (animated);
@@ -225,8 +242,9 @@ swiping fires the [[actions|action]] with the new index as `{{value}}`.
 ## Modes
 
 ### `paged` (default)
-One full-width panel at a time, with a spring snap and rubber-band at the ends (unless
-`loop`).
+One panel at a time on the native paging scroller (since: next): pages settle without bounce
+or jitter, and with `carouselPeek` the neighbours show at the sides. `loop` goes round the
+ends.
 
 ### `coverflow`
 The active panel is centered; neighbors are scaled down, pushed to the sides, rotated in 3D,
@@ -237,6 +255,27 @@ and faded. Tune with `containerAnimation.sideScale`, `sideRotation`, `sideSpacin
 Panels stack in front of/behind each other with depth; the front card swipes away to reveal
 the next. Tune with `containerAnimation.deckVisibleCount`, `deckScaleStep`, `deckOffsetStep`,
 `deckRotation`.
+
+## Hub pages (since: next)
+
+Pages can come from the hub instead of `panels`:
+
+- **Items x template.** Set `itemsFrom` to the id of a `list` control (it may be hidden) the hub fills with rows, and `itemTemplate` to a page whose controls use `{{item.field}}`. Each item is one
+  page; until items arrive the static `panels` show.
+- **Dynamic group.** A panel with `"dynamic": "<event>"` stands for the groups the hub pushes
+  on that event: each pushed group is a page.
+
+```json
+{"type":"carousel","id":"shows","position":[0,0],"span":[3,2],"carouselPeek":0.1,"loop":true,
+ "itemsFrom":"showList",
+ "itemTemplate":{"children":[{"type":"label","position":[0,0],"text":"{{item.title}}"}]}}
+```
+
+## Swipe feel
+
+The carousel uses native paging, with no custom drag. Three tunings sit behind the debug
+setting `AUTO_CAROUSEL_FEEL` (`step`, `flick`, `calm`) until one is picked; builds use `step`
+(one page per swipe). `autoAdvance` and `loop` work as before.
 
 ## Animation Customization
 

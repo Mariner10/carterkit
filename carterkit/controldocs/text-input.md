@@ -70,6 +70,26 @@ fields:
     summary: Which kind of box it is
     does: "Switches between a plain field, a search field, or a tall multi-line field."
     valueHelp: {"default": "a plain single-line field with a rounded background", "search": "a field with a magnifying glass and a clear button", "multiline": "a tall field that grows for several lines of text"}
+  - name: role
+    depth: hold
+    tab: action
+    type: enum
+    values: [search]
+    description: "role: search makes the box a search box: a magnifier, a clear button and (with cancel) a Cancel button; its text goes out live as you type, after a 250 ms pause, instead of only on Return, and the lists that name this box (their search field) filter as you type. Works inside a form too."
+    summary: Make this a search box that filters lists as you type
+    does: "Draws a magnifier and a clear button, sends the text while you type, and lets Table and Cards lists follow it."
+    valueHelp: {"search": "a live search box that other lists can follow"}
+    since: next
+  - name: cancel
+    depth: hold
+    under: role
+    tab: action
+    type: bool
+    default: false
+    description: "With role: search, adds a Cancel button that clears the box and closes the keyboard."
+    summary: Add a Cancel button to a search box
+    does: "Shows Cancel beside the box while it is in use; tapping it empties the box and puts the keyboard away."
+    since: next
   - name: sendButton
     edit: switch
     title: Send button
@@ -218,6 +238,8 @@ Inherits all [[shared-fields]]. Key fields:
 | `label` | string | — | Display label |
 | `icon` | string | — | SF Symbol shown in the field |
 | `defaultValue` | string | — | Initial text |
+| `role` | string | — | `"search"`: a live search box (magnifier, clear button, sends as you type after 250 ms). Lists name it in their `search` field |
+| `cancel` | bool | `false` | With `role: search`, show a Cancel button that clears the box |
 | `style` | string | `"default"` | `"default"`, `"search"`, `"multiline"` |
 | `tint` | string | `"#667eea"` | Accent color |
 | `sendButton` | bool | `false` | Turn the field into a growing composer with a Send button (Return = newline) |
@@ -314,6 +336,13 @@ The `search` look adds a magnifying glass. Pressing return sends the typed text 
   "action": { "method": "meshsocket", "mode": "broadcast", "event": "broadcast_request", "payload": { "msg_type": "search", "q": "{{value}}" } }
 }
 ```
+
+### Search box that filters two lists
+Shows a `role: search` box above two lists. Intended effect: typing "pi" narrows both the Devices table and the Rooms cards at once, 150 ms after you stop; the clear button and Cancel empty the box.
+```json
+{ "type": "textInput", "id": "find", "position": [0, 0], "span": [1, 4], "role": "search", "placeholder": "Search", "cancel": true }
+```
+Then give each list `"search": "find"` (see list.md, search). The box also works inside a `form`: the lists read the box's text, never the form's draft or its submit.
 
 ### Notes area
 

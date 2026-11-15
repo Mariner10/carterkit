@@ -346,6 +346,12 @@ class ScopeControls:
         enabled: Any = None,
         pulse: Any = None,
         fallback: Any = None,
+        itemTemplate: _Obj | None = None,
+        cardColumns: Any | None = None,
+        cardStyle: _Str | None = None,
+        categoryField: _Str | None = None,
+        itemSpacing: _Num | None = None,
+        search: _Str | None = None,
         placeholder: _Str | None = None,
         **props: Any,
     ) -> "Control":
@@ -353,12 +359,18 @@ class ScopeControls:
         (catalog type `cardList`)
 
         Fields:
+            itemTemplate (object): A group definition ({grid, children}) drawn once per card; {{item.<field>}} in its children is replaced from that row. With grid.scale auto a card whose group is 1x5 holding a 3x15 inner grid draws its children at 1/3. Absent: the docs-browser card. Does: Lays out each card as its own small grid of controls filled in from that row; the inner grid shrinks to fit the card.
+            cardColumns (int): Cards side by side, 1-3 (default: 1 for the docs browser, else as many as the width fits). Does: Sets one to three columns of cards.
+            cardStyle (string, default tile): The card look: tile (flat rounded tiles), glass (frosted cards) or hero (large preview above the name). Does: Switches every card between the tile, glass and hero looks. Values: tile, glass, hero.
+            categoryField (string): The row field cards are grouped under, with a header per value (docs browser: group). Does: Puts a header above each run of cards that share this field.
+            itemSpacing (number, default 8): Points between cards (0-64). Does: Widens or tightens the space between cards.
+            search (string, default builtin): builtin: the list's own search box (default for old layouts); none: no filtering; or the id of a search box control that filters this list. Does: Points the cards at their own box, at none, or at a separate search box control. Values: builtin, none.
             placeholder (string, default Search): Placeholder text shown in the search field while it is empty (default: Search). Does: Replaces the grey word shown in the search box until you type, e.g. Search models.
 
         Example:
             ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
-        return self._ctl("cardList", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, placeholder=placeholder), props)
+        return self._ctl("cardList", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, itemTemplate=itemTemplate, cardColumns=cardColumns, cardStyle=cardStyle, categoryField=categoryField, itemSpacing=itemSpacing, search=search, placeholder=placeholder), props)
 
     def carousel(
         self, id: str | None = None, *,
@@ -384,6 +396,8 @@ class ScopeControls:
         autoAdvance: _Num | None = None,
         loop: _Bool | None = None,
         panels: _Obj | None = None,
+        itemsFrom: _Str | None = None,
+        itemTemplate: _Obj | None = None,
         containerAnimation: _Obj | None = None,
         defaultValue: _Num | None = None,
         **props: Any,
@@ -399,13 +413,15 @@ class ScopeControls:
             autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
             loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
             panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
+            itemsFrom (string): Id of the list control the hub fills with the items to page through. Does: Draws one page per row the named list control holds, each from the carousel's itemTemplate with its {{item.field}} filled in; with no items yet the static pages stay.
+            itemTemplate (object): The page drawn for every hub item (a group whose controls use {{item.field}}). Does: Sets the page layout repeated for each item named by itemsFrom; its controls read {{item.field}} from that item.
             containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the page transition: motion profile, duration, bounce and the side or stack shape in coverflow and deck.
             defaultValue (number, default 0): Initial page index. Does: Opens on this page number when the layout appears, counting from 0 for the first page.
 
         Example:
             ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
-        return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
+        return self._ctl("carousel", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, itemsFrom=itemsFrom, itemTemplate=itemTemplate, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
     def chart(
         self, id: str | None = None, *,
@@ -1395,11 +1411,27 @@ class ScopeControls:
         replyPath: _Str | None = None,
         window: _Num | None = None,
         queryFrom: _Str | None = None,
+        search: _Str | None = None,
+        searchFields: _Arr | None = None,
         itemTemplate: _Obj | None = None,
-        customize: _Obj | None = None,
+        axis: Literal['vertical', 'horizontal'] | None = None,
+        snap: Literal['none', 'item'] | None = None,
+        edge: Literal['soft', 'none'] | None = None,
+        itemColumns: _Num | None = None,
+        valueFrom: Any | None = None,
         itemSpacing: _Num | None = None,
         itemStyle: Literal['plain', 'card'] | None = None,
         itemLayout: Literal['rows', 'grid'] | None = None,
+        rowStyle: Literal['inset', 'plain', 'dense'] | None = None,
+        leadingIcon: _Str | None = None,
+        leadingImage: _Str | None = None,
+        titleField: _Str | None = None,
+        subtitleField: _Str | None = None,
+        trailingField: _Str | None = None,
+        sectionField: _Str | None = None,
+        accessory: Literal['none', 'chevron', 'checkmark', 'detail'] | None = None,
+        showSubtitle: _Bool | None = None,
+        header: _Bool | None = None,
         **props: Any,
     ) -> "Control":
         """Table: Rows of information
@@ -1408,7 +1440,7 @@ class ScopeControls:
         Fields:
             formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is. Does: Dates in columns without their own format show as e.g. 4 days ago (relative:day) or a calendar date; other text is unchanged.
             label (string): Header label. Does: Shows this text as the header line above the rows in the header text size.
-            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
+            listColumns (array): Column definitions: [{key, label, format, align}] (align: leading, trailing or numeric). Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
             emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\". Does: Replaces the line shown when there are no rows, e.g. No books yet.
             tint (color, default #FFFFFF): Header text color. Does: Paints the header label in this color.
             hideLabel (bool, default false): Hide header label. Does: Removes the header label so the rows start at the top of the card.
@@ -1421,16 +1453,32 @@ class ScopeControls:
             replyPath (string): Dot path from the reply frame to the page object, e.g. result for {msg_type, req, result: {rows, total}}. Absent: the frame is the page. Does: Reads the page from this part of each reply, e.g. result, instead of from the top of the message.
             window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
             queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
+            search (string, default none): Where the rows' search text comes from: builtin (the list draws its own small box above the rows), none (no box, no filtering), or the id of a text input with role: search. One box can drive several lists. Static and store rows are filtered on the phone (case and diacritic blind, 150 ms after typing stops); paged rows send the text as {{query}} and the hub matches. Absent: paging.queryFrom if set, else none. See [[#Search]]. Does: Filters the rows as you type in the named search box, or draws its own box when set to builtin. Values: builtin, none.
+            searchFields (array): The row fields the phone-side search reads (default: every text and number field of the row). Ignored by paged lists, where the hub matches. Does: Limits the search to these row fields, e.g. [\\"name\\", \\"room\\"].
             itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
-            customize (object): On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring. Does: Lets the person restyle or rearrange the template once so all generated rows change together.
+            axis (enum, default vertical): vertical: rows run down the list. horizontal: with an itemTemplate the list is a side strip, items scroll sideways, one template group each. See [[#Side strips]]. Does: Turns a templated list into a strip: every item is drawn from the itemTemplate side by side and you scroll them left and right. Values: vertical = rows run down the page, horizontal = items scroll sideways as a strip.
+            snap (enum, default none): Strip: where a scroll comes to rest. none: anywhere. item: an item's edge lines up with the strip's start. Does: Makes a sideways strip settle with an item at its start, instead of stopping wherever it slows. Values: none = stops anywhere, item = settles on an item.
+            edge (enum, default soft): Strip: items soften toward the strip's ends (the scroller engine's helper). none: a hard edge. Does: Softens the items that run off either end of the strip, or leaves them cut square. Values: soft = items soften at the ends, none = items are cut at the ends.
+            itemColumns (number, default 1): Strip: an item's width in grid columns of the list's own width (default 1). Does: Sets how many of the list's columns one item takes; at least a finger wide.
+            valueFrom (any): On a control inside a strip's itemTemplate: the item's value it starts at and follows when the hub patches that item, usually \\"{{item.value}}\\". A drag by the user wins for 600 ms. Does: Keeps this control (a slider) at its item's value, so the hub moving one item moves only that item's control.
             itemSpacing (number, default 2): Points between rows (0-64, default 2), and between the cards of a card grid (itemLayout: grid). Does: Opens up space between rows, so card-style rows stand apart from each other.
             itemStyle (enum, default plain): plain: rows sit inside the list's card. card: each itemTemplate row draws its template group's own card (fill, corners, theme), so rows read as separate cards; pair it with hideBackground: true and an itemSpacing. See [[#Card rows]]. Does: Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card. Values: plain = rows sit inside the list's own card, as before, card = each templated row is its own card, styled by the template group.
             itemLayout (enum, default rows): rows: one templated row per line. grid: the itemTemplate rows as cards side by side, as many columns as keep each card 150 pt wide or more, at most 3 (2 on a phone-wide list, 3 on an iPad or in landscape, 1 on a list too narrow for two), itemSpacing apart; paging, search, row taps and itemStyle work as in rows. Needs an itemTemplate: column rows stay one per line. Any other value is rows. See [[#Card grid]]. Does: Lays the templated rows out as a grid of cards, 2 or 3 to a line by the list's width, scrolling and loading as the rows do. Values: rows = one templated row per line, as before, grid = templated rows as cards side by side, 2 or 3 columns by the list's width.
+            rowStyle (enum, default plain): inset: rounded section cards on the page like Settings. plain: an edge-to-edge list, hairlines inset 16 pt. dense: a data table with 36 pt rows. Default: dense for a column table (listColumns set), else plain. See [[#Table rows]]. Does: Draws the rows as inset cards, a plain edge-to-edge list or a dense data table. Values: inset = rounded section cards with hairlines inside, like Settings, plain = an edge-to-edge list with inset hairlines, dense = a data table: 36 pt rows, smaller type, full-width hairlines.
+            leadingIcon (string): Row field holding an SF Symbol name, drawn at the leading edge of each row. Does: Shows the SF Symbol named in that field at the start of every row.
+            leadingImage (string): Row field holding an image URL, drawn at the leading edge of each row (wins over leadingIcon). Does: Shows the picture at that URL at the start of every row.
+            titleField (string): Row field for the first line of each row. Default: the first column. Does: Prints that field as each row's title line.
+            subtitleField (string): Row field for the second, secondary line of each row. Does: Prints that field under each row's title in a smaller, quieter style.
+            trailingField (string): Row field shown at the trailing edge of each row, in monospaced digits. Does: Prints that field at the end of each row, numbers lined up.
+            sectionField (string): Row field whose values group the rows under sticky section headers, in order of first appearance. Not used with paging or an itemTemplate. Does: Splits the rows into sections headed by that field's value.
+            accessory (enum): The mark at each row's trailing edge: none, chevron, checkmark or detail (an info mark). Default: chevron when the list has an action, else none. Does: Adds a chevron, checkmark or info mark at the end of every row. Values: none = no mark, chevron = a chevron, the row opens something, checkmark = a checkmark, detail = an info mark.
+            showSubtitle (bool, default false): Column rows: the second column is the subtitle under the title instead of a second value at the end. Does: Moves the second column to a quieter line under the first, instead of the end of the row.
+            header (bool, default true): Column tables (listColumns set): the sticky header row of column names. Default on. Does: Shows or hides the row of column names above a column table.
 
         Example:
-            ui.list('packages', position=[0, 0], span=[6, 4], hideBackground=True, itemStyle='card', itemSpacing=10, itemTemplate={'grid': {'columns': 4, 'rows': 1}, 'children': [{'type': 'image', 'id': 'icon', 'position': [0, 0], 'systemName': 'shippingbox'}, {'type': 'label', 'id': 'name', 'position': [0, 1], 'span': [1, 2], 'text': '{{item.name}} {{item.version}}'}, {'type': 'button', 'id': 'install', 'position': [0, 3], 'label': 'Install', 'action': {'method': 'meshsocket', 'event': 'install', 'payload': {'id': '{{item.id}}'}}}], 'expand': {'title': '{{item.name}}', 'grid': {'columns': 4, 'rows': 5}, 'children': [{'ref': 'icon', 'position': [0, 0], 'span': [2, 2]}, {'ref': 'name', 'position': [0, 2], 'span': [1, 2]}, {'ref': 'install', 'position': [1, 2], 'span': [1, 2]}, {'type': 'label', 'position': [2, 0], 'span': [3, 4], 'text': '{{item.notes}}'}]}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'packages'}, 'valuePath': 'items'}])
+            ui.list('devices', label='Devices', rowStyle='inset', sectionField='room', leadingIcon='icon', titleField='name', subtitleField='state', trailingField='level', defaultValue=[{'id': 'a', 'room': 'Living room', 'icon': 'lamp.floor.fill', 'name': 'Floor lamp', 'state': 'On', 'level': 80}, {'id': 'b', 'room': 'Living room', 'icon': 'tv.fill', 'name': 'TV', 'state': 'Standby', 'level': 0}, {'id': 'c', 'room': 'Bedroom', 'icon': 'fan.fill', 'name': 'Fan', 'state': 'Off', 'level': 0}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate, customize=customize, itemSpacing=itemSpacing, itemStyle=itemStyle, itemLayout=itemLayout), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, search=search, searchFields=searchFields, itemTemplate=itemTemplate, axis=axis, snap=snap, edge=edge, itemColumns=itemColumns, valueFrom=valueFrom, itemSpacing=itemSpacing, itemStyle=itemStyle, itemLayout=itemLayout, rowStyle=rowStyle, leadingIcon=leadingIcon, leadingImage=leadingImage, titleField=titleField, subtitleField=subtitleField, trailingField=trailingField, sectionField=sectionField, accessory=accessory, showSubtitle=showSubtitle, header=header), props)
 
     def log_console(
         self, id: str | None = None, *,
@@ -2512,6 +2560,8 @@ class ScopeControls:
         icon: _Str | None = None,
         defaultValue: _Str | None = None,
         style: Literal['default', 'search', 'multiline'] | None = None,
+        role: Literal['search'] | None = None,
+        cancel: _Bool | None = None,
         sendButton: _Bool | None = None,
         minLines: _Num | None = None,
         maxLines: _Num | None = None,
@@ -2534,6 +2584,8 @@ class ScopeControls:
             icon (string): SF Symbol shown in the field. Does: Shows this SF Symbol at the left inside the field.
             defaultValue (string): Initial text. Does: Pre-fills the field with this text when the layout first appears.
             style (enum, default default): Display style variant. Does: Switches between a plain field, a search field, or a tall multi-line field. Values: default = a plain single-line field with a rounded background, search = a field with a magnifying glass and a clear button, multiline = a tall field that grows for several lines of text.
+            role (enum): role: search makes the box a search box: a magnifier, a clear button and (with cancel) a Cancel button; its text goes out live as you type, after a 250 ms pause, instead of only on Return, and the lists that name this box (their search field) filter as you type. Works inside a form too. Does: Draws a magnifier and a clear button, sends the text while you type, and lets Table and Cards lists follow it. Values: search = a live search box that other lists can follow.
+            cancel (bool, default false): With role: search, adds a Cancel button that clears the box and closes the keyboard. Does: Shows Cancel beside the box while it is in use; tapping it empties the box and puts the keyboard away.
             sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline). Does: On, adds a Send button and makes Return start a new line; off, Return submits.
             minLines (number, default 1): Composer starting line count. Does: Sets how many text lines tall the composer is when empty, from 1 to 20.
             maxLines (number, default 6): Composer max lines before it scrolls internally. Does: Lets the composer grow up to this many lines (1 to 50) before it scrolls inside.
@@ -2549,7 +2601,7 @@ class ScopeControls:
         Example:
             ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
         """
-        return self._ctl("textInput", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
+        return self._ctl("textInput", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, role=role, cancel=cancel, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
 
     def toggle(
         self, id: str | None = None, *,
@@ -2664,6 +2716,43 @@ class ScopeControls:
             ui.treemap('storage', position=[0, 0], span=[3, 4], label='Storage', formatValue='suffix: GB', treemapConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'disk_usage'}, 'valuePath': 'tree'}])
         """
         return self._ctl("treemap", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, haptic=haptic, label=label, treemapConfig=treemapConfig, tint=tint, formatValue=formatValue, cellCornerRadius=cellCornerRadius, cellGap=cellGap, colors=colors, drillDown=drillDown, itemAction=itemAction, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
+
+    def video(
+        self, id: str | None = None, *,
+        position: Sequence[int] | None = None,
+        span: Sequence[int] | None = None,
+        listen: str | Sequence[str] | None = None,
+        when: Any = None,
+        event: str = "broadcast",
+        send: str | None = None,
+        request: bool = False,
+        payload: Any = None,
+        sensor: str | Sequence[str] | None = None,
+        sync: Sequence[dict[str, Any]] | None = None,
+        action: Any = None,
+        visible: Any = None,
+        enabled: Any = None,
+        pulse: Any = None,
+        fallback: Any = None,
+        label: _Str | None = None,
+        source: _Str | None = None,
+        fit: _Str | None = None,
+        hideLabel: _Bool | None = None,
+        **props: Any,
+    ) -> "Control":
+        """Live video: A live camera from your hub
+        (catalog type `video`)
+
+        Fields:
+            label (string): Header label. Does: Shows this text above the video in the label font size (8-24 pt, default 12); with no label no header row appears.
+            source (string): The hub's camera id to show (its direct_hello video id). Does: Names the hub camera to play, by the id the hub advertises. Left empty it shows the hub's first camera. While the phone connects it says Connecting; a camera that is off or unknown shows Camera unavailable.
+            fit (string, default fill): How the picture fills its cell: fill or fit. Does: Fill scales the picture to cover the cell and crops what overflows; fit keeps the whole picture visible with empty bars. Values: fill = the picture covers the whole cell, cropping the edges, fit = the whole picture shows, with bars where the shapes differ.
+            hideLabel (bool, default false): Hide the header label. Does: On hides the title row above the video even when a label is set; off shows it.
+
+        Example:
+            ui.video('door', position=[0, 0], span=[4, 3], label='Front door', source='door')
+        """
+        return self._ctl("video", dict(id=id, position=position, span=span, listen=listen, when=when, event=event, send=send, request=request, payload=payload, sensor=sensor, sync=sync, action=action, visible=visible, enabled=enabled, pulse=pulse, fallback=fallback, label=label, source=source, fit=fit, hideLabel=hideLabel), props)
 
     def web_view(
         self, id: str | None = None, *,
@@ -2948,6 +3037,12 @@ class BuildControls:
         id: str,
         position: Sequence[int] | None = None,
         span: Sequence[int] | None = None,
+        itemTemplate: _Obj | None = None,
+        cardColumns: Any | None = None,
+        cardStyle: _Str | None = None,
+        categoryField: _Str | None = None,
+        itemSpacing: _Num | None = None,
+        search: _Str | None = None,
         placeholder: _Str | None = None,
         **props: Any,
     ) -> dict[str, Any]:
@@ -2955,12 +3050,18 @@ class BuildControls:
         (catalog type `cardList`)
 
         Fields:
+            itemTemplate (object): A group definition ({grid, children}) drawn once per card; {{item.<field>}} in its children is replaced from that row. With grid.scale auto a card whose group is 1x5 holding a 3x15 inner grid draws its children at 1/3. Absent: the docs-browser card. Does: Lays out each card as its own small grid of controls filled in from that row; the inner grid shrinks to fit the card.
+            cardColumns (int): Cards side by side, 1-3 (default: 1 for the docs browser, else as many as the width fits). Does: Sets one to three columns of cards.
+            cardStyle (string, default tile): The card look: tile (flat rounded tiles), glass (frosted cards) or hero (large preview above the name). Does: Switches every card between the tile, glass and hero looks. Values: tile, glass, hero.
+            categoryField (string): The row field cards are grouped under, with a header per value (docs browser: group). Does: Puts a header above each run of cards that share this field.
+            itemSpacing (number, default 8): Points between cards (0-64). Does: Widens or tightens the space between cards.
+            search (string, default builtin): builtin: the list's own search box (default for old layouts); none: no filtering; or the id of a search box control that filters this list. Does: Points the cards at their own box, at none, or at a separate search box control. Values: builtin, none.
             placeholder (string, default Search): Placeholder text shown in the search field while it is empty (default: Search). Does: Replaces the grey word shown in the search box until you type, e.g. Search models.
 
         Example:
             ui.card_list('control-browser', position=[0, 0], span=[6, 4], sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'catalog'}, 'valuePath': 'graph'}])
         """
-        return self._ctl("cardList", dict(id=id, position=position, span=span, placeholder=placeholder), props)
+        return self._ctl("cardList", dict(id=id, position=position, span=span, itemTemplate=itemTemplate, cardColumns=cardColumns, cardStyle=cardStyle, categoryField=categoryField, itemSpacing=itemSpacing, search=search, placeholder=placeholder), props)
 
     def carousel(
         self, *,
@@ -2974,6 +3075,8 @@ class BuildControls:
         autoAdvance: _Num | None = None,
         loop: _Bool | None = None,
         panels: _Obj | None = None,
+        itemsFrom: _Str | None = None,
+        itemTemplate: _Obj | None = None,
         containerAnimation: _Obj | None = None,
         defaultValue: _Num | None = None,
         **props: Any,
@@ -2989,13 +3092,15 @@ class BuildControls:
             autoAdvance (number, default 0): Seconds between auto-advances (0 = off). Does: Moves to the next page every this many seconds (0 to 60); 0 keeps it manual.
             loop (bool, default false): Wrap past the first/last page. Does: On, swiping past the last page returns to the first and the reverse; off, the ends resist with a rubber-band.
             panels (object): The panel groups this container pages through (group defs with children). Does: Supplies the list of pages; each group definition becomes one swipeable page holding its own controls.
+            itemsFrom (string): Id of the list control the hub fills with the items to page through. Does: Draws one page per row the named list control holds, each from the carousel's itemTemplate with its {{item.field}} filled in; with no items yet the static pages stay.
+            itemTemplate (object): The page drawn for every hub item (a group whose controls use {{item.field}}). Does: Sets the page layout repeated for each item named by itemsFrom; its controls read {{item.field}} from that item.
             containerAnimation (object): Transition tuning, e.g. { profile, duration }. Does: Tunes the page transition: motion profile, duration, bounce and the side or stack shape in coverflow and deck.
             defaultValue (number, default 0): Initial page index. Does: Opens on this page number when the layout appears, counting from 0 for the first page.
 
         Example:
             ui.carousel('pages', position=[0, 0], span=[3, 3], carouselMode='paged', indicator='dots', defaultValue=1, panels=[{'type': 'group', 'id': 'p1', 'label': 'One', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p1-l', 'position': [0, 0], 'text': 'First page'}]}, {'type': 'group', 'id': 'p2', 'label': 'Two', 'position': [0, 0], 'grid': {'columns': 1, 'rows': 1}, 'children': [{'type': 'label', 'id': 'p2-l', 'position': [0, 0], 'text': 'Second page'}]}])
         """
-        return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
+        return self._ctl("carousel", dict(id=id, position=position, span=span, carouselMode=carouselMode, indicator=indicator, carouselPeek=carouselPeek, carouselStyle=carouselStyle, autoAdvance=autoAdvance, loop=loop, panels=panels, itemsFrom=itemsFrom, itemTemplate=itemTemplate, containerAnimation=containerAnimation, defaultValue=defaultValue), props)
 
     def chart(
         self, *,
@@ -3782,11 +3887,27 @@ class BuildControls:
         replyPath: _Str | None = None,
         window: _Num | None = None,
         queryFrom: _Str | None = None,
+        search: _Str | None = None,
+        searchFields: _Arr | None = None,
         itemTemplate: _Obj | None = None,
-        customize: _Obj | None = None,
+        axis: Literal['vertical', 'horizontal'] | None = None,
+        snap: Literal['none', 'item'] | None = None,
+        edge: Literal['soft', 'none'] | None = None,
+        itemColumns: _Num | None = None,
+        valueFrom: Any | None = None,
         itemSpacing: _Num | None = None,
         itemStyle: Literal['plain', 'card'] | None = None,
         itemLayout: Literal['rows', 'grid'] | None = None,
+        rowStyle: Literal['inset', 'plain', 'dense'] | None = None,
+        leadingIcon: _Str | None = None,
+        leadingImage: _Str | None = None,
+        titleField: _Str | None = None,
+        subtitleField: _Str | None = None,
+        trailingField: _Str | None = None,
+        sectionField: _Str | None = None,
+        accessory: Literal['none', 'chevron', 'checkmark', 'detail'] | None = None,
+        showSubtitle: _Bool | None = None,
+        header: _Bool | None = None,
         **props: Any,
     ) -> dict[str, Any]:
         """Table: Rows of information
@@ -3795,7 +3916,7 @@ class BuildControls:
         Fields:
             formatValue (string): Default date format for columns with no `format` of their own: relative:day (4 days ago), relative, date, date:time. Applies to date text and epoch numbers; other text shows as is. Does: Dates in columns without their own format show as e.g. 4 days ago (relative:day) or a calendar date; other text is unchanged.
             label (string): Header label. Does: Shows this text as the header line above the rows in the header text size.
-            listColumns (array): Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
+            listColumns (array): Column definitions: [{key, label, format, align}] (align: leading, trailing or numeric). Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys. Does: Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data.
             emptyText (string): Line shown when the list has no rows. Default: \\"No <label> yet\\". Does: Replaces the line shown when there are no rows, e.g. No books yet.
             tint (color, default #FFFFFF): Header text color. Does: Paints the header label in this color.
             hideLabel (bool, default false): Hide header label. Does: Removes the header label so the rows start at the top of the card.
@@ -3809,16 +3930,32 @@ class BuildControls:
             replyPath (string): Dot path from the reply frame to the page object, e.g. result for {msg_type, req, result: {rows, total}}. Absent: the frame is the page. Does: Reads the page from this part of each reply, e.g. result, instead of from the top of the message.
             window (number, default 600): Most rows kept on the phone at once (at least 4 pages, at most 5000). Rows far from the screen are let go and asked for again when you scroll back. Does: Keeps at most this many rows around the ones on screen, e.g. 600, and asks the hub again for rows you scroll back to.
             queryFrom (string): Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing. Does: Sends that field's text as the search with every request, and starts the list over from the top when the text changes.
+            search (string, default none): Where the rows' search text comes from: builtin (the list draws its own small box above the rows), none (no box, no filtering), or the id of a text input with role: search. One box can drive several lists. Static and store rows are filtered on the phone (case and diacritic blind, 150 ms after typing stops); paged rows send the text as {{query}} and the hub matches. Absent: paging.queryFrom if set, else none. See [[#Search]]. Does: Filters the rows as you type in the named search box, or draws its own box when set to builtin. Values: builtin, none.
+            searchFields (array): The row fields the phone-side search reads (default: every text and number field of the row). Ignored by paged lists, where the hub matches. Does: Limits the search to these row fields, e.g. [\\"name\\", \\"room\\"].
             itemTemplate (object): A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]. Does: Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data.
-            customize (object): On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring. Does: Lets the person restyle or rearrange the template once so all generated rows change together.
+            axis (enum, default vertical): vertical: rows run down the list. horizontal: with an itemTemplate the list is a side strip, items scroll sideways, one template group each. See [[#Side strips]]. Does: Turns a templated list into a strip: every item is drawn from the itemTemplate side by side and you scroll them left and right. Values: vertical = rows run down the page, horizontal = items scroll sideways as a strip.
+            snap (enum, default none): Strip: where a scroll comes to rest. none: anywhere. item: an item's edge lines up with the strip's start. Does: Makes a sideways strip settle with an item at its start, instead of stopping wherever it slows. Values: none = stops anywhere, item = settles on an item.
+            edge (enum, default soft): Strip: items soften toward the strip's ends (the scroller engine's helper). none: a hard edge. Does: Softens the items that run off either end of the strip, or leaves them cut square. Values: soft = items soften at the ends, none = items are cut at the ends.
+            itemColumns (number, default 1): Strip: an item's width in grid columns of the list's own width (default 1). Does: Sets how many of the list's columns one item takes; at least a finger wide.
+            valueFrom (any): On a control inside a strip's itemTemplate: the item's value it starts at and follows when the hub patches that item, usually \\"{{item.value}}\\". A drag by the user wins for 600 ms. Does: Keeps this control (a slider) at its item's value, so the hub moving one item moves only that item's control.
             itemSpacing (number, default 2): Points between rows (0-64, default 2), and between the cards of a card grid (itemLayout: grid). Does: Opens up space between rows, so card-style rows stand apart from each other.
             itemStyle (enum, default plain): plain: rows sit inside the list's card. card: each itemTemplate row draws its template group's own card (fill, corners, theme), so rows read as separate cards; pair it with hideBackground: true and an itemSpacing. See [[#Card rows]]. Does: Gives every templated row a card of its own, styled by the template's theme, instead of lines inside one list card. Values: plain = rows sit inside the list's own card, as before, card = each templated row is its own card, styled by the template group.
             itemLayout (enum, default rows): rows: one templated row per line. grid: the itemTemplate rows as cards side by side, as many columns as keep each card 150 pt wide or more, at most 3 (2 on a phone-wide list, 3 on an iPad or in landscape, 1 on a list too narrow for two), itemSpacing apart; paging, search, row taps and itemStyle work as in rows. Needs an itemTemplate: column rows stay one per line. Any other value is rows. See [[#Card grid]]. Does: Lays the templated rows out as a grid of cards, 2 or 3 to a line by the list's width, scrolling and loading as the rows do. Values: rows = one templated row per line, as before, grid = templated rows as cards side by side, 2 or 3 columns by the list's width.
+            rowStyle (enum, default plain): inset: rounded section cards on the page like Settings. plain: an edge-to-edge list, hairlines inset 16 pt. dense: a data table with 36 pt rows. Default: dense for a column table (listColumns set), else plain. See [[#Table rows]]. Does: Draws the rows as inset cards, a plain edge-to-edge list or a dense data table. Values: inset = rounded section cards with hairlines inside, like Settings, plain = an edge-to-edge list with inset hairlines, dense = a data table: 36 pt rows, smaller type, full-width hairlines.
+            leadingIcon (string): Row field holding an SF Symbol name, drawn at the leading edge of each row. Does: Shows the SF Symbol named in that field at the start of every row.
+            leadingImage (string): Row field holding an image URL, drawn at the leading edge of each row (wins over leadingIcon). Does: Shows the picture at that URL at the start of every row.
+            titleField (string): Row field for the first line of each row. Default: the first column. Does: Prints that field as each row's title line.
+            subtitleField (string): Row field for the second, secondary line of each row. Does: Prints that field under each row's title in a smaller, quieter style.
+            trailingField (string): Row field shown at the trailing edge of each row, in monospaced digits. Does: Prints that field at the end of each row, numbers lined up.
+            sectionField (string): Row field whose values group the rows under sticky section headers, in order of first appearance. Not used with paging or an itemTemplate. Does: Splits the rows into sections headed by that field's value.
+            accessory (enum): The mark at each row's trailing edge: none, chevron, checkmark or detail (an info mark). Default: chevron when the list has an action, else none. Does: Adds a chevron, checkmark or info mark at the end of every row. Values: none = no mark, chevron = a chevron, the row opens something, checkmark = a checkmark, detail = an info mark.
+            showSubtitle (bool, default false): Column rows: the second column is the subtitle under the title instead of a second value at the end. Does: Moves the second column to a quieter line under the first, instead of the end of the row.
+            header (bool, default true): Column tables (listColumns set): the sticky header row of column names. Default on. Does: Shows or hides the row of column names above a column table.
 
         Example:
-            ui.list('packages', position=[0, 0], span=[6, 4], hideBackground=True, itemStyle='card', itemSpacing=10, itemTemplate={'grid': {'columns': 4, 'rows': 1}, 'children': [{'type': 'image', 'id': 'icon', 'position': [0, 0], 'systemName': 'shippingbox'}, {'type': 'label', 'id': 'name', 'position': [0, 1], 'span': [1, 2], 'text': '{{item.name}} {{item.version}}'}, {'type': 'button', 'id': 'install', 'position': [0, 3], 'label': 'Install', 'action': {'method': 'meshsocket', 'event': 'install', 'payload': {'id': '{{item.id}}'}}}], 'expand': {'title': '{{item.name}}', 'grid': {'columns': 4, 'rows': 5}, 'children': [{'ref': 'icon', 'position': [0, 0], 'span': [2, 2]}, {'ref': 'name', 'position': [0, 2], 'span': [1, 2]}, {'ref': 'install', 'position': [1, 2], 'span': [1, 2]}, {'type': 'label', 'position': [2, 0], 'span': [3, 4], 'text': '{{item.notes}}'}]}}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'packages'}, 'valuePath': 'items'}])
+            ui.list('devices', label='Devices', rowStyle='inset', sectionField='room', leadingIcon='icon', titleField='name', subtitleField='state', trailingField='level', defaultValue=[{'id': 'a', 'room': 'Living room', 'icon': 'lamp.floor.fill', 'name': 'Floor lamp', 'state': 'On', 'level': 80}, {'id': 'b', 'room': 'Living room', 'icon': 'tv.fill', 'name': 'TV', 'state': 'Standby', 'level': 0}, {'id': 'c', 'room': 'Bedroom', 'icon': 'fan.fill', 'name': 'Fan', 'state': 'Off', 'level': 0}])
         """
-        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, request=request, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, itemTemplate=itemTemplate, customize=customize, itemSpacing=itemSpacing, itemStyle=itemStyle, itemLayout=itemLayout), props)
+        return self._ctl("list", dict(id=id, position=position, span=span, formatValue=formatValue, label=label, listColumns=listColumns, emptyText=emptyText, tint=tint, hideLabel=hideLabel, hideBackground=hideBackground, defaultValue=defaultValue, confirm=confirm, paging=paging, pageSize=pageSize, request=request, replyType=replyType, replyPath=replyPath, window=window, queryFrom=queryFrom, search=search, searchFields=searchFields, itemTemplate=itemTemplate, axis=axis, snap=snap, edge=edge, itemColumns=itemColumns, valueFrom=valueFrom, itemSpacing=itemSpacing, itemStyle=itemStyle, itemLayout=itemLayout, rowStyle=rowStyle, leadingIcon=leadingIcon, leadingImage=leadingImage, titleField=titleField, subtitleField=subtitleField, trailingField=trailingField, sectionField=sectionField, accessory=accessory, showSubtitle=showSubtitle, header=header), props)
 
     def log_console(
         self, *,
@@ -4674,6 +4811,8 @@ class BuildControls:
         icon: _Str | None = None,
         defaultValue: _Str | None = None,
         style: Literal['default', 'search', 'multiline'] | None = None,
+        role: Literal['search'] | None = None,
+        cancel: _Bool | None = None,
         sendButton: _Bool | None = None,
         minLines: _Num | None = None,
         maxLines: _Num | None = None,
@@ -4696,6 +4835,8 @@ class BuildControls:
             icon (string): SF Symbol shown in the field. Does: Shows this SF Symbol at the left inside the field.
             defaultValue (string): Initial text. Does: Pre-fills the field with this text when the layout first appears.
             style (enum, default default): Display style variant. Does: Switches between a plain field, a search field, or a tall multi-line field. Values: default = a plain single-line field with a rounded background, search = a field with a magnifying glass and a clear button, multiline = a tall field that grows for several lines of text.
+            role (enum): role: search makes the box a search box: a magnifier, a clear button and (with cancel) a Cancel button; its text goes out live as you type, after a 250 ms pause, instead of only on Return, and the lists that name this box (their search field) filter as you type. Works inside a form too. Does: Draws a magnifier and a clear button, sends the text while you type, and lets Table and Cards lists follow it. Values: search = a live search box that other lists can follow.
+            cancel (bool, default false): With role: search, adds a Cancel button that clears the box and closes the keyboard. Does: Shows Cancel beside the box while it is in use; tapping it empties the box and puts the keyboard away.
             sendButton (bool, default false): Growing composer with a Send button (Return inserts a newline). Does: On, adds a Send button and makes Return start a new line; off, Return submits.
             minLines (number, default 1): Composer starting line count. Does: Sets how many text lines tall the composer is when empty, from 1 to 20.
             maxLines (number, default 6): Composer max lines before it scrolls internally. Does: Lets the composer grow up to this many lines (1 to 50) before it scrolls inside.
@@ -4711,7 +4852,7 @@ class BuildControls:
         Example:
             ui.text_input('device-name', position=[1, 0], span=[1, 2], placeholder='Device name', defaultValue='my-device', icon='tag', action={'method': 'meshsocket', 'mode': 'broadcast', 'event': 'broadcast_request', 'payload': {'msg_type': 'device_name', 'name': '{{value}}'}})
         """
-        return self._ctl("textInput", dict(id=id, position=position, span=span, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
+        return self._ctl("textInput", dict(id=id, position=position, span=span, placeholder=placeholder, label=label, icon=icon, defaultValue=defaultValue, style=style, role=role, cancel=cancel, sendButton=sendButton, minLines=minLines, maxLines=maxLines, autocorrect=autocorrect, autocorrectToggle=autocorrectToggle, keyboard=keyboard, clearOnSubmit=clearOnSubmit, tint=tint, hideBackground=hideBackground, hideLabel=hideLabel, confirm=confirm), props)
 
     def toggle(
         self, *,
@@ -4802,6 +4943,31 @@ class BuildControls:
             ui.treemap('storage', position=[0, 0], span=[3, 4], label='Storage', formatValue='suffix: GB', treemapConfig={'showValues': True}, sync=[{'method': 'meshsocket', 'type': 'listen', 'event': 'broadcast', 'filter': {'msg_type': 'disk_usage'}, 'valuePath': 'tree'}])
         """
         return self._ctl("treemap", dict(id=id, position=position, span=span, haptic=haptic, label=label, treemapConfig=treemapConfig, tint=tint, formatValue=formatValue, cellCornerRadius=cellCornerRadius, cellGap=cellGap, colors=colors, drillDown=drillDown, itemAction=itemAction, scrub=scrub, showLabels=showLabels, showValues=showValues), props)
+
+    def video(
+        self, *,
+        id: str,
+        position: Sequence[int] | None = None,
+        span: Sequence[int] | None = None,
+        label: _Str | None = None,
+        source: _Str | None = None,
+        fit: _Str | None = None,
+        hideLabel: _Bool | None = None,
+        **props: Any,
+    ) -> dict[str, Any]:
+        """Live video: A live camera from your hub
+        (catalog type `video`)
+
+        Fields:
+            label (string): Header label. Does: Shows this text above the video in the label font size (8-24 pt, default 12); with no label no header row appears.
+            source (string): The hub's camera id to show (its direct_hello video id). Does: Names the hub camera to play, by the id the hub advertises. Left empty it shows the hub's first camera. While the phone connects it says Connecting; a camera that is off or unknown shows Camera unavailable.
+            fit (string, default fill): How the picture fills its cell: fill or fit. Does: Fill scales the picture to cover the cell and crops what overflows; fit keeps the whole picture visible with empty bars. Values: fill = the picture covers the whole cell, cropping the edges, fit = the whole picture shows, with bars where the shapes differ.
+            hideLabel (bool, default false): Hide the header label. Does: On hides the title row above the video even when a label is set; off shows it.
+
+        Example:
+            ui.video('door', position=[0, 0], span=[4, 3], label='Front door', source='door')
+        """
+        return self._ctl("video", dict(id=id, position=position, span=span, label=label, source=source, fit=fit, hideLabel=hideLabel), props)
 
     def web_view(
         self, *,

@@ -25,6 +25,7 @@ Direct link, dynamic lists and Studio agents. A hub can offer cameras and a peer
 
 ### Changed
 
+- ControlDocs re-pinned to CAR-TER master 7ef3dc68 (`capabilities.json`, `typed.py` and `schema.json` regenerated): the `video` control (Pro, `since: next`) and the dynamic-list doc updates.
 - Share and tutorial QR codes encode the https form (`https://links.carterbeaudoin.net/...`, Beta `go-beta.`), so the iPhone Camera opens them; share links carry `exp` so the app can say the link expired.
 - Studio results are truthful: an error reply raises, and a save returns only once the phone confirms it.
 - Studio peer selection probes for the Studio Session socket instead of reading roster fields.

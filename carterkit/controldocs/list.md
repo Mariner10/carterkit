@@ -53,8 +53,8 @@ fields:
     title: Columns
     type: array
     edit: rows
-    columns: [{"name": "key", "title": "Data key", "type": "string", "edit": "inline", "required": true, "default": "field{n}"}, {"name": "label", "title": "Header", "type": "string", "edit": "inline", "required": true, "default": "Column {n}"}, {"name": "format", "title": "Format", "type": "string", "edit": "inline"}]
-    description: "Column definitions: [{key, label, format}]. Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
+    columns: [{"name": "key", "title": "Data key", "type": "string", "edit": "inline", "required": true, "default": "field{n}"}, {"name": "label", "title": "Header", "type": "string", "edit": "inline", "required": true, "default": "Column {n}"}, {"name": "format", "title": "Format", "type": "string", "edit": "inline"}, {"name": "align", "title": "Align", "type": "string", "edit": "inline"}]
+    description: "Column definitions: [{key, label, format, align}] (align: leading, trailing or numeric). Absent or empty: a store-bound list shows its collection's first fields, any other list its rows' own keys."
     summary: Which columns to show and how to display them
     does: "Sets the columns across each row: their order, header text and number or date format; with none, up to 3 columns are picked from the data."
   - name: emptyText
@@ -175,6 +175,26 @@ fields:
     description: "Id of a text input whose text is the search, sent as {{query}}. A change starts the list over after 250 ms without typing."
     summary: The field whose text filters the rows
     does: "Sends that field's text as the search with every request, and starts the list over from the top when the text changes."
+  - name: search
+    edit: pick-control
+    tab: advanced
+    simple: hide
+    type: string
+    values: [builtin, none]
+    default: none
+    description: "Where the rows' search text comes from: builtin (the list draws its own small box above the rows), none (no box, no filtering), or the id of a text input with role: search. One box can drive several lists. Static and store rows are filtered on the phone (case and diacritic blind, 150 ms after typing stops); paged rows send the text as {{query}} and the hub matches. Absent: paging.queryFrom if set, else none. See [[#Search]]."
+    summary: The search box this list follows
+    does: "Filters the rows as you type in the named search box, or draws its own box when set to builtin."
+    since: next
+  - name: searchFields
+    tab: advanced
+    simple: hide
+    under: search
+    type: array
+    description: "The row fields the phone-side search reads (default: every text and number field of the row). Ignored by paged lists, where the hub matches."
+    summary: Which row fields the search looks in
+    does: "Limits the search to these row fields, e.g. [\"name\", \"room\"]."
+    since: next
   - name: itemTemplate
     chip: Rows
     edit: template
@@ -185,15 +205,78 @@ fields:
     description: "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
     summary: Draw each row from controls instead of columns
     does: "Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data."
-  - name: customize
-    under: itemTemplate
+  - name: axis
     since: next
-    title: Phone edits
-    tab: advanced
-    type: object
-    description: "On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring."
-    summary: Let the phone restyle every row
-    does: Lets the person restyle or rearrange the template once so all generated rows change together.
+    edit: look
+    depth: hold
+    under: itemTemplate
+    title: Direction
+    tab: style
+    type: enum
+    values: [vertical, horizontal]
+    default: vertical
+    description: "vertical: rows run down the list. horizontal: with an itemTemplate the list is a side strip, items scroll sideways, one template group each. See [[#Side strips]]."
+    summary: Rows down, or a strip that scrolls sideways
+    does: "Turns a templated list into a strip: every item is drawn from the itemTemplate side by side and you scroll them left and right."
+    valueHelp: {"vertical": "rows run down the page", "horizontal": "items scroll sideways as a strip"}
+    valueTitles: {"vertical": "Down", "horizontal": "Sideways"}
+    valueSymbols: {"vertical": "list.bullet", "horizontal": "rectangle.split.3x1"}
+  - name: snap
+    since: next
+    edit: look
+    depth: hold
+    under: axis
+    title: Snap
+    tab: style
+    type: enum
+    values: [none, item]
+    default: none
+    description: "Strip: where a scroll comes to rest. none: anywhere. item: an item's edge lines up with the strip's start."
+    summary: Whether a scroll settles on an item
+    does: "Makes a sideways strip settle with an item at its start, instead of stopping wherever it slows."
+    valueHelp: {"none": "stops anywhere", "item": "settles on an item"}
+    valueTitles: {"none": "Free", "item": "Item"}
+    valueSymbols: {"none": "arrow.left.and.right", "item": "arrow.left.to.line"}
+  - name: edge
+    since: next
+    edit: part
+    depth: hold
+    under: axis
+    title: Soft edges
+    tab: style
+    type: enum
+    values: [soft, none]
+    default: soft
+    description: "Strip: items soften toward the strip's ends (the scroller engine's helper). none: a hard edge."
+    summary: Whether items fade at the ends of the strip
+    does: "Softens the items that run off either end of the strip, or leaves them cut square."
+    valueHelp: {"soft": "items soften at the ends", "none": "items are cut at the ends"}
+    valueTitles: {"soft": "Soft", "none": "Hard"}
+    valueSymbols: {"soft": "circle.lefthalf.filled", "none": "square"}
+  - name: itemColumns
+    since: next
+    edit: scrub
+    depth: hold
+    under: axis
+    title: Item width
+    unit: columns
+    tab: style
+    min: 1
+    max: 12
+    step: 1
+    type: number
+    default: 1
+    description: "Strip: an item's width in grid columns of the list's own width (default 1)."
+    summary: How wide each strip item is
+    does: "Sets how many of the list's columns one item takes; at least a finger wide."
+  - name: valueFrom
+    since: next
+    simple: hide
+    tab: data
+    type: any
+    description: "On a control inside a strip's itemTemplate: the item's value it starts at and follows when the hub patches that item, usually \"{{item.value}}\". A drag by the user wins for 600 ms."
+    summary: The item value this control shows
+    does: "Keeps this control (a slider) at its item's value, so the hub moving one item moves only that item's control."
   - name: itemSpacing
     edit: scrub
     depth: hold
@@ -240,6 +323,117 @@ fields:
     valueHelp: {"rows": "one templated row per line, as before", "grid": "templated rows as cards side by side, 2 or 3 columns by the list's width"}
     valueTitles: {"rows": "Rows", "grid": "Grid"}
     valueSymbols: {"rows": "list.bullet", "grid": "square.grid.2x2.fill"}
+  - name: rowStyle
+    since: next
+    title: Table look
+    tab: style
+    simple: hide
+    type: enum
+    edit: look
+    depth: hold
+    values: [inset, plain, dense]
+    default: plain
+    valueHelp: {"inset": "rounded section cards with hairlines inside, like Settings", "plain": "an edge-to-edge list with inset hairlines", "dense": "a data table: 36 pt rows, smaller type, full-width hairlines"}
+    valueTitles: {"inset": "Inset", "plain": "Plain", "dense": "Dense"}
+    valueSymbols: {"inset": "rectangle.grid.1x2", "plain": "list.bullet", "dense": "tablecells"}
+    description: "inset: rounded section cards on the page like Settings. plain: an edge-to-edge list, hairlines inset 16 pt. dense: a data table with 36 pt rows. Default: dense for a column table (listColumns set), else plain. See [[#Table rows]]."
+    summary: The look of the rows
+    does: "Draws the rows as inset cards, a plain edge-to-edge list or a dense data table."
+  - name: leadingIcon
+    since: next
+    title: Row icon
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field holding an SF Symbol name, drawn at the leading edge of each row."
+    summary: Which field is the row icon
+    does: "Shows the SF Symbol named in that field at the start of every row."
+  - name: leadingImage
+    since: next
+    title: Row image
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field holding an image URL, drawn at the leading edge of each row (wins over leadingIcon)."
+    summary: Which field is the row picture
+    does: "Shows the picture at that URL at the start of every row."
+  - name: titleField
+    since: next
+    title: Row title
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field for the first line of each row. Default: the first column."
+    summary: Which field is the row title
+    does: "Prints that field as each row's title line."
+  - name: subtitleField
+    since: next
+    title: Row subtitle
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field for the second, secondary line of each row."
+    summary: Which field is the row subtitle
+    does: "Prints that field under each row's title in a smaller, quieter style."
+  - name: trailingField
+    since: next
+    title: Row value
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field shown at the trailing edge of each row, in monospaced digits."
+    summary: Which field sits at the row's end
+    does: "Prints that field at the end of each row, numbers lined up."
+  - name: sectionField
+    since: next
+    title: Group by
+    tab: style
+    simple: hide
+    type: string
+    description: "Row field whose values group the rows under sticky section headers, in order of first appearance. Not used with paging or an itemTemplate."
+    summary: Which field groups the rows
+    does: "Splits the rows into sections headed by that field's value."
+  - name: accessory
+    since: next
+    title: Row mark
+    tab: style
+    simple: hide
+    edit: look
+    depth: hold
+    values: [none, chevron, checkmark, detail]
+    type: enum
+    description: "The mark at each row's trailing edge: none, chevron, checkmark or detail (an info mark). Default: chevron when the list has an action, else none."
+    summary: What sits at each row's end
+    does: "Adds a chevron, checkmark or info mark at the end of every row."
+    valueHelp: {"none": "no mark", "chevron": "a chevron, the row opens something", "checkmark": "a checkmark", "detail": "an info mark"}
+    valueTitles: {"none": "None", "chevron": "Chevron", "checkmark": "Check", "detail": "Info"}
+    valueSymbols: {"none": "minus", "chevron": "chevron.right", "checkmark": "checkmark", "detail": "info.circle"}
+  - name: showSubtitle
+    since: next
+    edit: switch
+    depth: hold
+    under: rowStyle
+    title: Second column as subtitle
+    tab: style
+    simple: hide
+    type: bool
+    default: false
+    description: "Column rows: the second column is the subtitle under the title instead of a second value at the end."
+    summary: Put the second column under the title
+    does: "Moves the second column to a quieter line under the first, instead of the end of the row."
+  - name: header
+    since: next
+    edit: switch
+    depth: hold
+    under: rowStyle
+    title: Column header row
+    tab: style
+    simple: hide
+    type: bool
+    default: true
+    description: "Column tables (listColumns set): the sticky header row of column names. Default on."
+    summary: Show the column names above the rows
+    does: "Shows or hides the row of column names above a column table."
 themeFields:
   - name: cardPadding
     unit: pt
@@ -314,10 +508,39 @@ Inherits all [[shared-properties]]. Key fields:
 | `hideBackground` | bool | `false` | Remove glass card background |
 | `defaultValue` | object[] | — | Seed rows shown before the first sync, the same row objects a sync delivers. See [[control-def#defaultValue per type]] |
 | `paging` | object | — | Rows fed by the hub a page at a time as the list scrolls — see [[#Paging]] |
-| `itemTemplate` | [[group-def\|GroupDefinition]] | — | Each row drawn from controls bound to `{{item.<field>}}` — see [[#Item templates]] |
+| `itemTemplate` | [[group-def\|GroupDefinition]] | — | Each row drawn from controls bound to `{{item.<field>}}` — see [[#Item templates]]. Being a group definition it takes `customize` (see [[group-def]]): none, look or arrange for the generated rows, one patch keyed `<list id>#item`; it only narrows `connection.customize` |
 | `itemSpacing` | number | `2` | Points between rows (0-64) |
 | `itemStyle` | `"plain"` or `"card"` | `"plain"` | `card`: each templated row draws its template group's own card — see [[#Card rows]] |
 | `itemLayout` | `"rows"` or `"grid"` | `"rows"` | `grid`: templated rows as cards side by side, 2-3 columns by the list's width — see [[#Card grid]] |
+| `rowStyle` | `"inset"`, `"plain"` or `"dense"` | dense with `listColumns`, else plain | The Table look — see [[#Table rows]] |
+| `leadingIcon` / `leadingImage` | string | — | Row field holding an SF Symbol name / an image URL |
+| `titleField` / `subtitleField` / `trailingField` | string | first column / — / — | Row fields for the title, subtitle and trailing value |
+| `accessory` | `"none"`, `"chevron"`, `"checkmark"`, `"detail"` | chevron when tappable | Mark at the row's trailing edge |
+| `sectionField` | string | — | Rows grouped under sticky headers by this row field |
+| `showSubtitle` | bool | `false` | Column rows: the second column becomes the subtitle |
+| `header` | bool | `true` with `listColumns` | Column tables: the sticky header row |
+| `listColumns[].align` | `"leading"`, `"trailing"`, `"numeric"` | numeric for all-number columns, else leading | Column alignment; `numeric` aligns trailing in monospaced digits |
+
+## Table rows
+
+A row without an `itemTemplate` is drawn as: **leading** (icon or image) — **title** with a smaller
+**subtitle** under it — **trailing** value(s) and an optional mark (chevron, checkmark, info).
+Type is the app's proportional scale with monospaced digits, so figures line up; rows are at least
+44 pt (36 pt dense) and a 0.5 pt hairline starts at the title's leading edge, none after the last row.
+The rows soften where they leave the list ([[grid-dimensions]] `edge`).
+
+- **Named fields.** `titleField`, `subtitleField`, `trailingField`, `leadingIcon`, `leadingImage` name the row
+  fields to use. With none named, columns map on: the first column is the title, the second the
+  subtitle when `showSubtitle` is on (else a trailing value), every further column a trailing value.
+  Nothing is dropped.
+- **Sections.** `sectionField` groups rows under headers (sticky) by that field's value, in order of
+  first appearance; rows without a value sit under no header.
+- **Column tables.** With `listColumns` and none of the fields above, the rows are an aligned table:
+  a sticky header row (`header: false` hides it), each column `leading`, `trailing` or `numeric`
+  (`align`; absent: numeric when every cell is a number). It uses the `dense` look unless `rowStyle` says otherwise.
+- **Looks.** `rowStyle` `inset` draws section cards on the page like Settings, `plain` an edge-to-edge
+  list, `dense` a data table. `inset` needs synced rows: a paged list draws it plain.
+- Paging, search, row taps and `itemTemplate` rows (and cards) work as before.
 
 ## Column keys
 
@@ -442,6 +665,21 @@ fields: `{{item.meta.author}}`), and an exact token keeps its type, so
 
 Without `itemTemplate`, rows are columns (`listColumns`), paged or not.
 
+## Side strips
+
+`axis: "horizontal"` with an `itemTemplate` makes the list a side strip on the scroller engine: the items
+scroll sideways, one template group each, about `itemColumns` of the list's columns wide. It sits on the page
+with no card unless `hideBackground` is `false`. `snap` is `none` or `item`; `edge` is `soft` (default) or `none`.
+
+- **Per-item values.** Put the control in the template with `"valueFrom": "{{item.value}}"` (and the same token
+  as its `defaultValue`). Its action carries the item: `"id": "{{item.id}}"` in the payload, and `{{value}}`
+  for the control's own value, so moving one slider sends that item's id and value.
+- **The hub sets one item.** Rows come from `rows`, a synced value, or `paging`. A frame with `"patch": true`
+  and `items: [{"id": "band-3", "value": 0.4}]` merges by `id` into the rows held and moves only that item;
+  an id not held is added (at `index`, else the end), and `"remove": ["band-3"]` takes items out. Added and
+  removed items fade in and out; there is no bounce. A slider the user dragged keeps their value for 600 ms.
+- Items without an `id` can be drawn but not patched.
+
 ## Card rows
 
 With `"itemStyle": "card"` every templated row is a container of its own: the template group's
@@ -484,7 +722,28 @@ keeps one per line. The columns follow the list's width as it changes (rotation,
 Without an `itemTemplate` the setting does nothing: column rows stay one per line. Any value other
 than `"grid"` lays the rows out one per line.
 
+### Search
+
+`search` ties a list to a search box: `builtin` (its own box), `none`, or the id of a text input with
+`role: search`. The same box can be named by any number of lists. Static and store rows are filtered
+on the phone, ignoring case and accents, over `searchFields` (default: every text and number field);
+the filter waits 150 ms after typing stops and keeps row order. A paged list never filters locally:
+the text goes into the page request as `{{query}}` and the hub does the matching, exactly like
+`paging.queryFrom`, which keeps working and is read as `search: <id>` when `search` is absent. A box
+inside a `form` still drives its lists.
+
 ## Examples
+
+### Settings-style rows
+Shows a titled list with icons, subtitles and values. Intended effect: rounded cards per group, each row an icon, a name with a quieter line under it and a value at the end.
+```json
+{"type": "list", "id": "devices", "label": "Devices", "rowStyle": "inset", "sectionField": "room",
+ "leadingIcon": "icon", "titleField": "name", "subtitleField": "state", "trailingField": "level",
+ "defaultValue": [
+  {"id": "a", "room": "Living room", "icon": "lamp.floor.fill", "name": "Floor lamp", "state": "On", "level": 80},
+  {"id": "b", "room": "Living room", "icon": "tv.fill", "name": "TV", "state": "Standby", "level": 0},
+  {"id": "c", "room": "Bedroom", "icon": "fan.fill", "name": "Fan", "state": "Off", "level": 0}]}
+```
 
 ### Package cards that expand
 Shows templated rows drawn as separate cards that each grow into a full-screen page. Intended effect: a scrolling column of package cards (icon, name, version, Install); tapping a card (anywhere but the Install button) or holding it grows that card to full screen with a bigger icon, the name beside it and the notes below.
@@ -553,6 +812,16 @@ Shows `itemLayout: "grid"` on a paged, searchable list with card rows. Intended 
 ```
 
 The hub answers `gallery_pages` exactly as for rows (see [[#Paging]]); the grid changes only how the cards are laid out.
+
+### Two lists, one search box
+Shows one `role: search` text input driving a table. Intended effect: typing in the box narrows the rows to those whose name or room contains the text; clearing it brings every row back.
+```json
+{ "type": "textInput", "id": "find", "position": [0, 0], "span": [1, 4], "role": "search" }
+```
+```json
+{ "type": "list", "id": "devices", "position": [1, 0], "span": [4, 4], "search": "find", "searchFields": ["name", "room"],
+  "listColumns": [ { "key": "name", "label": "Name" }, { "key": "room", "label": "Room" } ] }
+```
 
 ### Device status list
 Shows a list fed live from a hub, with a number column. Intended effect: three columns of device name, status and ping that refresh whenever the hub broadcasts.
@@ -681,6 +950,34 @@ Shows `paging` with a search field and an `itemTemplate`. Intended effect: a cat
 The hub answers `catalogue_pages` with `{"msg_type": "catalogue_page", "req": "<the req>", "items": [...], "total": 48211, "more": true}`. A hub that wraps its replies, like `{"msg_type": "daemon-reply", "req": "…", "result": {"rows": [...], "offset": 0, "more": true}}`, sets `"replyType": "daemon-reply"` and `"replyPath": "result"`.
 
 The list has no look that switches it to another control type, and no long-press or detail view.
+
+### EQ side strip fed by a hub
+Shows a side strip with a vertical slider and a label per band. Intended effect: ten bands scroll sideways with no card; dragging band 3 sends `{"msg_type": "eq_band", "id": "band-3", "value": …}`, and the hub moves one band by sending `{"msg_type": "eq_bands", "patch": true, "items": [{"id": "band-3", "value": 0.4}]}`.
+```json
+{
+  "type": "list",
+  "id": "eq",
+  "position": [0, 0],
+  "span": [4, 4],
+  "axis": "horizontal",
+  "snap": "none",
+  "itemColumns": 1,
+  "hideBackground": true,
+  "paging": { "pageSize": 20, "replyType": "eq_bands",
+              "request": { "method": "meshsocket", "event": "broadcast_request",
+                           "payload": { "msg_type": "eq_bands_get", "req": "{{req}}" } } },
+  "itemTemplate": {
+    "grid": { "columns": 1, "rows": 4 },
+    "children": [
+      { "type": "slider", "id": "band", "position": [0, 0], "span": [3, 1], "orientation": "vertical",
+        "min": 0, "max": 1, "defaultValue": "{{item.value}}", "valueFrom": "{{item.value}}",
+        "action": { "method": "meshsocket", "event": "broadcast_request",
+                    "payload": { "msg_type": "eq_band", "id": "{{item.id}}", "value": "{{value}}" } } },
+      { "type": "label", "id": "name", "position": [3, 0], "span": [1, 1], "text": "{{item.name}}" }
+    ]
+  }
+}
+```
 
 ## Editor notes
 Edit row (on the list's pose) edits `itemTemplate` as one row: its first row is the template, a group you move,

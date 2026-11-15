@@ -549,8 +549,9 @@ def test_bad_requires_shapes_are_reported_not_raised():
 
 def test_bundled_catalog_has_no_newer_controls_yet():
     # Every control in the vendored docs shipped in 1.2.4 (carter-0gj.27): no `since`,
-    # except the hub-audio AirPlay control (CAR-TER aif-6e55l.21, since: next).
-    assert [t for t, spec in CAT.items() if spec.get("since")] == ["airplay"]
+    # except the hub-audio AirPlay control (CAR-TER aif-6e55l.21) and the direct-link
+    # video control (CAR-TER aif-iaght.8), both since: next.
+    assert sorted(t for t, spec in CAT.items() if spec.get("since")) == ["airplay", "video"]
 
 
 # carter-5q1y — contract reservations: asset://, data:image soft budget, name@N features.

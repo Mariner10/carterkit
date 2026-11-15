@@ -40,6 +40,24 @@ fields:
     summary: A moving colour backdrop
     does: Animates the page background behind all controls with a hue shift, drifting gradient, aurora or pulse; an unknown style shows the plain page background.
     since: next
+  - name: edge
+    type: enum
+    values: [none, soft]
+    since: next
+    description: "'soft' fades page-scroll content as it meets the screen edge; 'none' (default) leaves the page as it was"
+    summary: Soft edges on page scroll
+    does: Fades content at the top and bottom of a scrolling page instead of cutting it off; Reduce Motion fades only.
+    valueHelp: {"none": "content is cut off at the screen edge", "soft": "content fades out at the screen edge"}
+  - name: edgeSize
+    min: 0
+    max: 80
+    step: 1
+    unit: pt
+    type: number
+    since: next
+    description: "With edge soft: the fade distance from the screen edge inward in points (default 28)"
+    summary: How wide the soft edge is
+    does: Sets how far in from the screen edge content starts to fade, 0 to 80 points.
 ---
 
 The `appearance` block on a [[layout-config|layout]] controls the app shell — color scheme, header bar, status bar, and background image. Colors and control styling live in [[theming|theme]]; appearance is about the chrome around your grid.
@@ -64,6 +82,8 @@ The `appearance` block on a [[layout-config|layout]] controls the app shell — 
 | `header` | object | transparent | Header bar style (see below) |
 | `backgroundImage` | object | — | Page background image (see below) |
 | `backgroundAnimation` | object | — | Animated page background (see below) |
+| `edge` | `none` / `soft` | `none` | `soft` fades page-scroll content at the screen edge (since: next) |
+| `edgeSize` | number | `28` | With `edge: soft`, fade distance in points (0-80) (since: next) |
 
 ## Header
 
