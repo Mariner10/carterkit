@@ -81,6 +81,9 @@ def share(path: str, *, https_url: Optional[str] = None, seconds: float = SERVE_
     out(link)
     if srv is None:
         return 0
+    from .client import IMPORT_QR_MIN_APP
+    out(f"(the import QR needs CAR-TER >= {IMPORT_QR_MIN_APP}; an older App Store build "
+        "cannot open it. Check the phone: Settings, About.)")
     out(f"serving for {int(seconds // 60)} min; Ctrl-C to stop")
     try:
         threading.Event().wait(seconds)

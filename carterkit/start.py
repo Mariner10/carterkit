@@ -162,6 +162,16 @@ async def start_hub(hub, out, *, name: str = "carterkit start", timeout: float =
     return True
 
 
+async def paired_line(hub, peer, tail="") -> str:
+    """"Paired with <phone> (CAR-TER <version>)." — the app version when it is known."""
+    try:
+        ver = await hub.phone_app_version()
+    except Exception:  # noqa: BLE001 — the line is informational
+        ver = None
+    return (f"Paired with {peer.get('name') or 'your phone'}"
+            + (f" (CAR-TER {ver})" if ver else "") + "." + (f" {tail}" if tail else ""))
+
+
 async def run(*, host: str | None = None, port: int | None = None, session_path: str = SESSION,
               fresh: bool = False, timeout: float | None = None, repl: bool = True,
               install: bool = False, demo_seconds: float | None = None, out=None) -> int:
@@ -187,7 +197,7 @@ async def run(*, host: str | None = None, port: int | None = None, session_path:
             out(f"No phone joined in {timeout:.0f} s. Keep the app on the scanner and run "
                 "`carterkit start` again (same QR while this folder keeps .carterkit/session.json).")
             return 1
-        out(f"Paired with {peer.get('name') or 'your phone'}. Sending the Playground...")
+        out(await paired_line(hub, peer, "Sending the Playground..."))
         try:
             res = await hub.push_layout(install=install)
         except Exception as e:  # noqa: BLE001
@@ -301,7 +311,7 @@ async def demo(control: str, *, example: str | None = None, host: str | None = N
         except HubError:
             out(f"No phone joined in {timeout:.0f} s.")
             return 1
-        out(f"Paired with {peer.get('name') or 'your phone'}. Sending the {control} demo...")
+        out(await paired_line(hub, peer, f"Sending the {control} demo..."))
         try:
             res = await hub.push_layout()
         except Exception as e:  # noqa: BLE001

@@ -1,6 +1,6 @@
 """Command-line interface: ``carterkit <command>`` (also ``python -m carterkit``).
 
-Commands: catalog · doc · demo · examples · validate · gen · explore · repl · new · share · local · relay · pager · version.
+Commands: catalog · doc · demo · examples · validate · gen · explore · repl · new · share · studio · local · relay · pager · version.
 """
 from __future__ import annotations
 
@@ -373,6 +373,19 @@ def _cmd_share(args) -> int:
     return share.share(args.file, https_url=args.https_url)
 
 
+def studio_guide_text() -> str:
+    """The vendored Studio guide (CAR-TER docs/STUDIO.md)."""
+    from pathlib import Path
+    return (Path(__file__).with_name("docs") / "STUDIO.md").read_text(encoding="utf-8")
+
+
+def _cmd_studio(args) -> int:
+    if args.what == "guide":
+        sys.stdout.write(studio_guide_text())
+        return 0
+    return 2
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -555,6 +568,11 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("file", help="layout JSON file")
     c.add_argument("--https-url", help="use this hosted URL instead of serving locally")
     c.set_defaults(fn=_cmd_share)
+
+    c = sub.add_parser("studio", help="Studio agent guide: `carterkit studio guide` prints "
+                       "the verbs, push vs save and failure table")
+    c.add_argument("what", choices=["guide"])
+    c.set_defaults(fn=_cmd_studio)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)

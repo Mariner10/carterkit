@@ -63,6 +63,41 @@ class CarterNotifyError(Exception):
 
 DOCS_URL = "https://carterbeaudoin.net/CAR-TER"
 
+#: Studio guide (vendored: ``carterkit studio guide``): verbs, push vs save, failures.
+STUDIO_GUIDE = "carterkit/docs/STUDIO.md"
+
+#: First CAR-TER release that answers the routed ``layout-save``/``save-layout`` with a
+#: ``version`` and honours ``base`` (aif-y8nou.8). Older builds: install via apply-layout.
+STUDIO_SAVE_MIN_APP = "2.1"
+#: First release whose ``carter://import`` link reads the hosted-link ``exp`` (share/import QR).
+IMPORT_QR_MIN_APP = "2.1"
+
+
+class StudioError(Exception):
+    """A Studio verb failed or could not be confirmed. See the Studio guide
+    (``carterkit studio guide``). `reply` is the phone's reply, if any."""
+    def __init__(self, message, reply=None):
+        super().__init__(message)
+        self.reply = reply
+
+
+class StudioConflict(StudioError):
+    """save with `base` while the file on the phone moved on. `version` is the
+    phone's current version: read the layout, merge, retry with base=version."""
+    def __init__(self, version, reply=None):
+        super().__init__(f"save conflict: the phone's layout is now at version {version!r}; "
+                         "get-layout, merge, retry with base=<that version>", reply)
+        self.version = version
+
+
+def needs_app_version(feature, minimum, app_version):
+    """None when the phone's app (``app_version``, or None if unknown) can do
+    ``feature``; else the one-line "needs CAR-TER >= X" message."""
+    from .validate import _is_app_version, _version_newer
+    if _is_app_version(app_version) and _version_newer(minimum, app_version):
+        return f"{feature} needs CAR-TER >= {minimum} (this phone runs {app_version}); update the app"
+    return None
+
 
 class MissingCredentialError(CarterNotifyError, ValueError):
     """A hub credential is missing. One class for every such path (also a
@@ -1389,6 +1424,61 @@ class CarterClient:
             if "total" in reply:
                 merged["total"] = reply["total"]
         return merged
+
+    # ── Studio verbs (see docs/STUDIO.md, `carterkit studio guide`) ──
+
+    async def studio_request(self, verb, payload=None, *, device_id=None, timeout=5.0) -> dict:
+        """Routed Studio verb → the phone's reply dict. An ``ok: false`` reply raises
+        StudioError (StudioConflict for ``error: conflict``); never returns a failure.
+        No reply raises StudioError("no reply") — callers that can read back use
+        :meth:`studio_save`. See docs/STUDIO.md."""
+        device_id = await self._local_device(device_id)
+        reply = await self._sock.request(
+            "route_msg", {"target_id": device_id, "type": verb, "payload": payload or {}},
+            timeout=timeout)
+        if reply is not None and self._session is not None:
+            reply = self._open(reply)
+        if not isinstance(reply, dict):
+            raise StudioError(f"{verb}: no reply from the phone (unconfirmed)")
+        if reply.get("ok") is False or reply.get("error"):
+            if reply.get("error") == "conflict":
+                raise StudioConflict(reply.get("version"), reply)
+            raise StudioError(f"{verb} failed: {reply.get('error') or 'rejected'}"
+                              + (f" ({reply['detail']})" if reply.get("detail") else ""), reply)
+        return reply
+
+    async def studio_broadcast(self, msg_type, payload) -> dict:
+        """Fire-and-forget broadcast (the phone sends no reply). Returns
+        ``{"ok": None, "confirmed": False}`` — it was sent, NOT known to have landed;
+        prefer :meth:`studio_request`. See docs/STUDIO.md."""
+        await self.broadcast(msg_type, dict(payload))
+        return {"ok": None, "confirmed": False,
+                "note": f"{msg_type} broadcast sent; the phone does not confirm it"}
+
+    async def studio_save(self, layout, *, file=None, base=None, route="save-layout",
+                          device_id=None) -> dict:
+        """Save `layout` on the phone (routed ``save-layout`` or ``layout-save``).
+        Sends `base` when given; a moved file raises :class:`StudioConflict`. On a
+        timeout, reads back ONCE (``get-current-layout``): the reply then has
+        ``confirmed: "readback"`` and the version, or StudioError("unconfirmed")."""
+        payload = dict(layout)
+        if file:
+            payload["file"] = file
+        if base is not None:
+            payload["base"] = base
+        device_id = await self._local_device(device_id)
+        try:
+            return await self.studio_request(route, payload, device_id=device_id)
+        except StudioError as exc:
+            if exc.reply is not None or "no reply" not in str(exc):
+                raise
+        try:
+            cur = await self.studio_request("get-current-layout", {}, device_id=device_id)
+        except StudioError:
+            raise StudioError(f"{route}: no reply and the read-back failed (unconfirmed); "
+                              "check the phone before retrying") from None
+        return dict(cur, ok=True, confirmed="readback",
+                    note=f"{route} timed out; read back the phone's current layout once")
 
     async def connect(self):
         # A hub that sat stopped past its short-lived token's expiry can never

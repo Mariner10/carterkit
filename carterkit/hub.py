@@ -340,6 +340,43 @@ class Hub(HubExtras, HubSurfaces):
         """Keep this hub's layout on the phone: ``push_layout(install=True)``."""
         return await self.push_layout(install=True)
 
+    async def phone_app_version(self) -> str | None:
+        """The paired phone's app version: its hello's, else a ``get-device-info`` ask
+        (None when the phone says neither)."""
+        ver = self.peer_app_version
+        if ver:
+            return ver
+        try:
+            info = await self.client.studio_request("get-device-info")
+        except Exception:  # noqa: BLE001 — an older build may not answer; unknown
+            return None
+        ver = info.get("appVersion")
+        return ver if isinstance(ver, str) and _is_app_version(ver) else None
+
+    async def save_layout(self, *, base: str | None = None, file: str | None = None) -> dict:
+        """Keep this hub's layout on the phone, by the route its app version supports
+        (see docs/STUDIO.md, ``carterkit studio guide``): routed ``layout-save`` (reply
+        with ``version``; ``base`` turns a moved file into a StudioConflict) on CAR-TER
+        >= :data:`STUDIO_SAVE_MIN_APP`, else :meth:`install` through apply-layout.
+        Raises (HubError, StudioError, StudioConflict) on any error reply; the return
+        value always describes a confirmed save, with ``route`` naming the path taken."""
+        from .client import STUDIO_SAVE_MIN_APP, StudioError
+        if not self.layout:
+            raise HubError("this hub has no layout to save")
+        errs = [f for f in self.validate() if f.get("severity") == "error"]
+        if errs:
+            raise HubError(f"layout has {len(errs)} error(s); nothing was sent")
+        ver = await self.phone_app_version()
+        if ver is None or not _version_newer(STUDIO_SAVE_MIN_APP, ver):
+            req = {k: v for k, v in self.layout.items() if k != "msg_type"}
+            res = await self.client.studio_save(req, file=file, base=base,
+                                                route="layout-save")
+            return dict(res, route="layout-save")
+        if base is not None:
+            raise StudioError(f"save with base needs CAR-TER >= {STUDIO_SAVE_MIN_APP} "
+                              f"(this phone runs {ver}); update the app")
+        return dict(await self.install(), route="install")
+
     def validate(self) -> list:
         """Lint this hub's layout against the bundled catalog."""
         import carterkit

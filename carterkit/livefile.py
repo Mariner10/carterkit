@@ -28,7 +28,7 @@ import asyncio
 import os
 import sys
 
-from .start import (SESSION, default_host, default_timeout, load_session, pairing_lines,
+from .start import (SESSION, paired_line, default_host, default_timeout, load_session, pairing_lines,
                     quiet_logs, save_session, session_gitignore_warning, start_hub)
 
 #: Keys the REPL namespace keeps for itself (not controls).
@@ -223,7 +223,7 @@ async def serve(path: str, *, repl: bool = False, timeout: float | None = None,
             except HubError:
                 out(f"No phone joined in {timeout:.0f} s. Keep the app on the scanner and run it again.")
                 return 1
-            out(f"Paired with {peer.get('name') or 'your phone'}.")
+            out(await paired_line(hub, peer))
         try:
             res = await hub.push_layout(install=install)
             out(f"{describe_push_reply(res, live.name)} ({len(hub._index)} control(s)); "
