@@ -710,6 +710,7 @@ class CarterClient:
         # Notification action-button plumbing: per-send callbacks keyed by
         # (notifId, actionId), plus an optional catch-all. Fed by the app's flat
         # `notif_action` broadcast when a user taps a button on a push.
+        self._handlers = {}
         self._notif_callbacks = {}
         self._notif_action_handler = None
 
@@ -786,16 +787,41 @@ class CarterClient:
     def on(self, msg_type, handler):
         """Register a command handler. handler(data: dict) gets DECRYPTED data and may return a
         dict reply (auto-encrypted). Sync or async handlers are supported."""
+        self._handlers[msg_type] = handler
+
         async def wrapper(payload):
             data = self._open(payload)
             if data is None or not self._admit(data):
                 return None
-            async with self._inflight:
-                result = handler(data)
-                if asyncio.iscoroutine(result):
-                    result = await result
-            return self._seal(result) if result is not None else None
+            return await self._run_handler(handler, data, True)
         self._sock.on(msg_type, wrapper)
+
+    async def _run_handler(self, handler, data, sealed):
+        async with self._inflight:
+            result = handler(data)
+            if asyncio.iscoroutine(result):
+                result = await result
+        if result is None:
+            return None
+        if sealed:
+            if isinstance(result, dict) and isinstance(result.get("data"), (bytes, bytearray)):
+                result = dict(result, data=base64.b64encode(bytes(result["data"])).decode())
+            return self._seal(result)
+        return result
+
+    async def dispatch_request(self, msg_type, payload, ctx, *, sealed=True):
+        """Run the handler registered with `on(msg_type)` for a request that did not arrive
+        over MeshSocket (the direct link). `ctx` (e.g. `_relayFrom`, `_from`) is merged into the
+        payload. `sealed=False` skips open/seal and the per-type bucket but keeps the in-flight
+        cap. Returns the handler's reply, or None when there is no handler/reply."""
+        handler = self._handlers.get(msg_type)
+        if handler is None:
+            return None
+        data = dict(payload) if isinstance(payload, dict) else {}
+        data.update(ctx or {})
+        if sealed and not self._admit(data):
+            return None
+        return await self._run_handler(handler, data, sealed)
 
     def on_broadcast(self, handler):
         """Register a handler for relayed broadcasts. handler(data: dict) gets DECRYPTED data."""

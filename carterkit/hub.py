@@ -45,6 +45,7 @@ from .connection import Connection
 from .contract import is_group
 from .hub_extras import HubExtras
 from .hub_surfaces import HubSurfaces
+from .direct import HubDirect
 
 log = logging.getLogger(__name__)
 
@@ -122,7 +123,7 @@ from .peer_caps import BASELINE_APP, filter_layout  # noqa: E402
 from .validate import _is_app_version, _version_newer  # noqa: E402
 
 
-class Hub(HubExtras, HubSurfaces):
+class Hub(HubExtras, HubSurfaces, HubDirect):
     """The driving side of a layout: push values into syncs, handle actions.
 
     ``layout`` may be a :class:`carterkit.Layout`, a layout dict, or a path to a
@@ -226,11 +227,13 @@ class Hub(HubExtras, HubSurfaces):
                                                insecure=self.relay_insecure).start()
                 if self.connection.is_loopback_relay():
                     log.info(LAN_HINT)
+        await self._direct_start()
         await self.client.connect()
         return self
 
     async def close(self) -> None:
         await self.surfaces.stop_live()
+        await self._direct_stop()
         await self.client.close()
         if self._relay is not None:
             await self._relay.stop()

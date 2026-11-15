@@ -32,6 +32,7 @@ from .validate import validate_layout as _validate_layout, format_findings, devi
 from .client import (CarterClient, notify_http, CarterNotifyError,
                      device_refresh_http, CarterDeviceRevoked, CommandDedupe)
 from . import ambient
+from .direct import HubDirect
 from .ambient import (CarterAmbientError, apple_date, slot, content_state,
                       activity_attributes, canonical_layout_id,
                       live_activity_register, live_activity_deregister,
@@ -131,7 +132,7 @@ __all__ = [
     "controls", "doc", "doc_markdown", "examples", "validate_layout",
     "lint_dynamic_traffic", "format_findings", "device_support_findings", "controldocs_dir",
     "build", "control", "bind", "derive", "Layout", "Fragment", "Control", "Condition", "CompoundCondition",
-    "Connection", "Hub", "HubError",
+    "Connection", "Hub", "HubError", "HubDirect",
     "catalog", "grid", "codegen", "infer", "theming", "tune", "dynamic",
     "contract", "extract_contract", "to_inline", "to_sectioned", "is_sectioned",
     "localdata", "LocalDataError", "LocalChangeEvent", "parse_local_event",
