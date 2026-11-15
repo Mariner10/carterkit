@@ -30,8 +30,6 @@ def _relay_stamps_sender():
 
 
 pytestmark = [
-    pytest.mark.skipif(not _relay_stamps_sender(),
-                       reason="needs meshsocket>=0.4.3 (relay-stamped _relayFrom)"),
     pytest.mark.skipif(GO is None, reason="needs Go to build the test peer"),
     pytest.mark.skipif(not SIDECAR or not Path(SIDECAR).exists(),
                        reason="CARTERKIT_DIRECT_BIN must point at a built carter-direct"),
@@ -56,6 +54,21 @@ async def _until(pred, t=15.0):
     while not pred():
         assert asyncio.get_running_loop().time() < end, "timeout"
         await asyncio.sleep(0.05)
+
+
+def _stamp_like_relay(hub):
+    """Older relays (meshsocket < 0.4.3) never stamp `_relayFrom`. Stand in for the relay on
+    the hub's receive side so the loopback runs; the denied path is covered in test_direct."""
+    if _relay_stamps_sender():
+        return
+    orig = hub.client._open
+
+    def _open(payload):
+        data = orig(payload)
+        if isinstance(data, dict) and str(data.get("msg_type", "")).startswith("direct_"):
+            data["_relayFrom"] = "phone"
+        return data
+    hub.client._open = _open
 
 
 async def _phone(hub):
@@ -97,6 +110,7 @@ def test_e2e_rpc_audio_read(testpeer, tmp_path):
     async def go():
         hub = Hub(None, None, name="hub", port=_port())
         hub.client.on("audio_read", lambda p: {"data": b"\x01" * 131072})
+        _stamp_like_relay(hub)
         await hub.start()
         phone = None
         try:
@@ -122,6 +136,7 @@ def test_e2e_camera_frames(testpeer, tmp_path):
     async def go():
         hub = Hub(None, None, name="hub", port=_port())
         hub.camera("t", f"file://{clip}")
+        _stamp_like_relay(hub)
         await hub.start()
         phone = None
         try:

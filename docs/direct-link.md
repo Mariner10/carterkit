@@ -85,7 +85,7 @@ measurement and are recorded here when it lands:
 
 `tests/test_direct_e2e.py` runs a real hub on an embedded `LocalRelay`, the real
 sidecar and a Pion test peer. It skips without Go (video also without ffmpeg), and
-needs `meshsocket>=0.4.3` so the relay stamps `_relayFrom`:
+uses the relay-stamped `_relayFrom` (meshsocket>=0.4.3; on older relays the test stamps it on the hub side):
 
 ```bash
 bash direct/scripts/check.sh
