@@ -18,6 +18,7 @@ func main() {
 	answerIn := flag.String("answer-in", "", "file to read the answer SDP from (waits for it)")
 	typ := flag.String("type", "echo", "request msg_type")
 	timeout := flag.Duration("timeout", 20*time.Second, "overall timeout")
+	video := flag.Int("video", 0, "receive video instead of sending a request: exit after this many RTP packets")
 	flag.Parse()
 
 	pc, err := webrtc.NewPeerConnection(webrtc.Configuration{})
@@ -25,7 +26,28 @@ func main() {
 	dc, err := pc.CreateDataChannel("rpc", nil)
 	must(err)
 	done := make(chan struct{})
+	if *video > 0 {
+		_, err := pc.AddTransceiverFromKind(webrtc.RTPCodecTypeVideo,
+			webrtc.RTPTransceiverInit{Direction: webrtc.RTPTransceiverDirectionRecvonly})
+		must(err)
+		pc.OnTrack(func(t *webrtc.TrackRemote, _ *webrtc.RTPReceiver) {
+			n := 0
+			for {
+				if _, _, err := t.ReadRTP(); err != nil {
+					return
+				}
+				if n++; n == *video {
+					fmt.Printf("rtp=%d codec=%s\n", n, t.Codec().MimeType)
+					close(done)
+					return
+				}
+			}
+		})
+	}
 	dc.OnOpen(func() {
+		if *video > 0 {
+			return
+		}
 		h, _ := json.Marshal(map[string]any{"id": "t1", "type": *typ, "payload": map[string]any{}})
 		msg := binary.BigEndian.AppendUint32(nil, uint32(len(h)))
 		must(dc.Send(append(msg, h...)))

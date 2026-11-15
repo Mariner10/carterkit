@@ -547,6 +547,12 @@ carterkit --version               # same, as "carterkit <version>"
 binds `127.0.0.1` unless you pass `--lan`. Running it open (no key) requires
 `--insecure` and means anyone who can reach the port joins every channel.
 
+## Direct link
+
+A peer-to-peer WebRTC link between the phone and your hub: cameras (`hub.camera()`)
+and request/reply data that bypass the relay. Setup, the ffmpeg note and networks that
+block direct paths: [docs/direct-link.md](docs/direct-link.md).
+
 ## Agent pager
 
 `carterkit pager` pages your phone to approve Claude Code tool calls (fails closed).
