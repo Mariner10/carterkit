@@ -45,9 +45,10 @@ Cameras need the `ffmpeg` program on `PATH`. carterkit runs it as a separate pro
 `needs_ffmpeg` and the app shows "Camera unavailable"; the data channel still works.
 Install it with your package manager (`apt install ffmpeg`, `brew install ffmpeg`).
 
-The video is H.264 constrained baseline or main profile, no B-frames. A camera that
-already sends H.264 is repackaged without re-encoding where ffmpeg can; anything else
-is encoded, with a hardware encoder if the machine has one and `libx264` otherwise.
+The video is H.264 constrained baseline (main only if the encoder refuses baseline), no
+B-frames. A camera that already sends H.264 is repackaged without re-encoding where
+ffmpeg can; anything else is encoded, with a hardware encoder if the machine has one and
+`libx264` otherwise. Hardware encoders run at 2 Mbit/s; `libx264` is capped at 2 Mbit/s.
 
 ## Networks that block direct paths
 
@@ -73,13 +74,17 @@ are gathered before the offer is sent (no trickle ICE): up to 2.0 s on the phone
 
 ## CPU on a small machine
 
-The cost is the encoder. Figures for a Raspberry Pi come from the task 11 on-device
-measurement and are recorded here when it lands:
+The cost is the encoder, and it runs only while someone watches. Measured on a
+Raspberry Pi 4 (Raspberry Pi OS, ffmpeg 7.1) re-encoding a 720p MJPEG camera
+(ustreamer), printer idle, 2026-11-15:
 
-| Machine | Stream | Mode | CPU |
-|---|---|---|---|
-| Raspberry Pi | 720p15 H.264 | repackage | _pending task 11_ |
-| Raspberry Pi | 720p15 H.264 | re-encode | _pending task 11_ |
+| Encoder | CPU | Bitrate |
+|---|---|---|
+| `h264_v4l2m2m` (hardware, picked first) | about 0.4 of one core (~10% of the Pi) | about 1 Mbit/s |
+| `libx264` (fallback) | about 0.95 of one core (~24% of the Pi) | about 2.6 Mbit/s uncapped |
+
+Most of the hardware path's cost is decoding the MJPEG frames. An RTSP camera that
+already sends H.264 is forwarded without ffmpeg.
 
 ## Testing
 

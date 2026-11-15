@@ -34,7 +34,7 @@ func probeEncoder(ffmpeg string) (string, error) {
 			continue
 		}
 		args := append([]string{"-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", "color=c=black:s=320x240:r=1", "-frames:v", "1"},
-			encArgs(enc, "main")...)
+			encArgs(enc, "baseline")...)
 		args = append(args, "-f", "null", "-")
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		err := exec.CommandContext(ctx, ffmpeg, args...).Run()
@@ -55,11 +55,26 @@ func encArgs(enc, profile string) []string {
 	} else {
 		a = append(a, "-pix_fmt", "yuv420p")
 	}
-	a = append(a, "-c:v", enc, "-g", fmt.Sprint(fps), "-bf", "0", "-profile:v", profile)
+	a = append(a, "-c:v", enc, "-g", fmt.Sprint(fps), "-bf", "0", "-profile:v", profileArg(enc, profile))
 	if enc == "libx264" {
-		a = append(a, "-preset", "veryfast", "-tune", "zerolatency")
+		a = append(a, "-preset", "veryfast", "-tune", "zerolatency", "-maxrate", "2M", "-bufsize", "4M")
+	} else {
+		a = append(a, "-b:v", "2M") // the hardware wrappers otherwise default to 200 kbit/s
 	}
 	return a
+}
+
+// profileArg is the -profile:v value enc accepts: libx264 takes names, the hardware
+// wrappers take the AV_PROFILE_H264_* number (h264_v4l2m2m refuses "main" by name).
+// "baseline" means constrained baseline, the track's profile-level-id 42e01f.
+func profileArg(enc, profile string) string {
+	if enc == "libx264" {
+		return profile
+	}
+	if profile == "main" {
+		return "77"
+	}
+	return "578"
 }
 
 func inputArgs(url string) []string {
@@ -120,7 +135,7 @@ func (r *Registry) runFFmpeg(run *running, url string, write func([]byte)) error
 		}
 	}()
 
-	for _, profile := range []string{"main", "baseline"} {
+	for _, profile := range []string{"baseline", "main"} {
 		args := append([]string{"-hide_banner", "-loglevel", "error"}, inputArgs(url)...)
 		args = append(args, "-an", "-r", fmt.Sprint(fps))
 		args = append(args, encArgs(enc, profile)...)
@@ -141,8 +156,8 @@ func (r *Registry) runFFmpeg(run *running, url string, write func([]byte)) error
 		if run.ctx.Err() != nil {
 			return nil
 		}
-		// An early exit may mean the profile was refused: retry once with baseline.
-		if profile == "main" && time.Since(started) < 3*time.Second {
+		// An early exit may mean the profile was refused: retry once with main.
+		if profile == "baseline" && time.Since(started) < 3*time.Second {
 			continue
 		}
 		if err == nil {

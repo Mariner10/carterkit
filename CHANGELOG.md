@@ -5,6 +5,14 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.23.2] — 2026-11-15
+
+### Fixed
+
+- Cameras use the hardware H.264 encoder on a Raspberry Pi: `h264_v4l2m2m` refused the profile by name (`-profile:v main`), so the sidecar fell back to `libx264` at more than twice the CPU. Each encoder now gets a profile value it accepts, and constrained baseline comes first, matching the track's `profile-level-id` 42e01f.
+- Hardware encoders run at 2 Mbit/s instead of ffmpeg's 200 kbit/s default; `libx264` is capped at 2 Mbit/s.
+- `docs/direct-link.md` records the Pi 4 CPU figures.
+
 ## [0.23.1] — 2026-11-15
 
 The 0.23.0 tag never reached PyPI (its CI test leg could not build the pure wheel without setuptools on Python 3.12+); 0.23.1 is that release with the wheel build fixed.
