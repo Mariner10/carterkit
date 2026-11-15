@@ -19,6 +19,22 @@ import (
 // MaxMessage is the largest rpc data channel message accepted.
 const MaxMessage = 262144
 
+// ErrUnknownCamera is returned when an offer wants a camera that is not registered.
+var ErrUnknownCamera = errors.New("unknown_camera")
+
+// Cameras supplies video tracks; release must be called when the viewer is gone.
+type Cameras interface {
+	Track(id string) (*webrtc.TrackLocalStaticRTP, func(), error)
+}
+
+// ErrorCode maps an Answer error to the IPC error code.
+func ErrorCode(err error) string {
+	if errors.Is(err, ErrUnknownCamera) {
+		return "unknown_camera"
+	}
+	return "unsupported"
+}
+
 // Want says what the offerer asked for.
 type Want struct {
 	Video []string `json:"video"`
@@ -40,6 +56,7 @@ type session struct {
 	dc       *webrtc.DataChannel
 	inflight map[string]bool
 	closed   bool
+	releases []func()
 }
 
 // Manager owns all peer sessions.
@@ -49,6 +66,7 @@ type Manager struct {
 	sessions map[string]*session
 	onRPC    func(session string, header map[string]any, body []byte)
 	onState  func(session, state, path string)
+	cameras  Cameras
 }
 
 // New returns a Manager with defaults applied.
@@ -67,6 +85,13 @@ func (m *Manager) SetConfig(cfg Config) {
 	n := New(cfg)
 	m.mu.Lock()
 	m.cfg = n.cfg
+	m.mu.Unlock()
+}
+
+// SetCameras sets the video source used for `want.video`.
+func (m *Manager) SetCameras(c Cameras) {
+	m.mu.Lock()
+	m.cameras = c
 	m.mu.Unlock()
 }
 
@@ -97,6 +122,7 @@ func (m *Manager) emit(id, state, path string) {
 func (m *Manager) Answer(ctx context.Context, sid, peerID, offerSDP string, want Want) (string, error) {
 	m.mu.Lock()
 	cfg := m.cfg
+	cams := m.cameras
 	m.mu.Unlock()
 
 	se := webrtc.SettingEngine{}
@@ -147,6 +173,30 @@ func (m *Manager) Answer(ctx context.Context, sid, peerID, offerSDP string, want
 
 	if err := pc.SetRemoteDescription(webrtc.SessionDescription{Type: webrtc.SDPTypeOffer, SDP: offerSDP}); err != nil {
 		return fail(err)
+	}
+	for _, id := range want.Video {
+		if cams == nil {
+			return fail(ErrUnknownCamera)
+		}
+		track, release, err := cams.Track(id)
+		if err != nil {
+			return fail(err)
+		}
+		s.mu.Lock()
+		s.releases = append(s.releases, release)
+		s.mu.Unlock()
+		sender, err := pc.AddTrack(track)
+		if err != nil {
+			return fail(err)
+		}
+		go func() { // drain RTCP so interceptors keep running
+			buf := make([]byte, 1500)
+			for {
+				if _, _, err := sender.Read(buf); err != nil {
+					return
+				}
+			}
+		}()
 	}
 	ans, err := pc.CreateAnswer(nil)
 	if err != nil {
@@ -206,7 +256,12 @@ func pathOf(pc *webrtc.PeerConnection) string {
 func (s *session) shutdown() {
 	s.mu.Lock()
 	s.closed = true
+	rel := s.releases
+	s.releases = nil
 	s.mu.Unlock()
+	for _, f := range rel {
+		f()
+	}
 	_ = s.pc.Close()
 }
 

@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Mariner10/carterkit/direct/internal/camera"
 	"github.com/Mariner10/carterkit/direct/internal/ipc"
 	"github.com/Mariner10/carterkit/direct/internal/peer"
 )
@@ -33,6 +34,11 @@ func str(h map[string]any, k string) string { s, _ := h[k].(string); return s }
 
 func main() {
 	mgr := peer.New(peer.Config{})
+	cams := camera.NewRegistry()
+	mgr.SetCameras(cams)
+	cams.OnStatus(func(id, st string) {
+		send(map[string]any{"op": "camera_status", "id": id, "status": st}, nil)
+	})
 	mgr.OnRPC(func(s string, h map[string]any, b []byte) {
 		send(map[string]any{"op": "rpc_request", "session": s, "header": h}, b)
 	})
@@ -73,6 +79,13 @@ func main() {
 				cfg.MaxInflight = int(v)
 			}
 			mgr.SetConfig(cfg)
+			if arr, ok := h["cameras"].([]any); ok {
+				for _, e := range arr {
+					if m, ok := e.(map[string]any); ok {
+						cams.Add(str(m, "id"), str(m, "url"), str(m, "name"))
+					}
+				}
+			}
 		case "offer":
 			go func(h map[string]any) {
 				sid := str(h, "session")
@@ -85,7 +98,7 @@ func main() {
 				sdp, err := mgr.Answer(ctx, sid, str(h, "peer"), str(h, "sdp"), want)
 				if err != nil {
 					logf("warn", "answer failed: "+err.Error())
-					send(map[string]any{"op": "error", "session": sid, "code": "unsupported"}, nil)
+					send(map[string]any{"op": "error", "session": sid, "code": peer.ErrorCode(err)}, nil)
 					return
 				}
 				send(map[string]any{"op": "answer", "session": sid, "sdp": sdp}, nil)
@@ -98,7 +111,11 @@ func main() {
 				logf("debug", "reply dropped: "+err.Error())
 			}
 		case "camera_add", "camera_remove":
-			// cameras are handled by a later bead
+			if str(h, "op") == "camera_add" {
+				cams.Add(str(h, "id"), str(h, "url"), str(h, "name"))
+			} else {
+				cams.Remove(str(h, "id"))
+			}
 		}
 	}
 }
