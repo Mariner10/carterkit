@@ -169,3 +169,14 @@ def test_sidecar_crash_restarts_and_fails_sessions(fake_bin):
         finally:
             await hub._direct_stop()
     asyncio.run(go())
+
+
+def test_sidecar_stop_closes_stdin_before_killing(fake_bin):
+    """The sidecar stops its encoders on stdin EOF; a hub that stops must let it."""
+    async def go():
+        hub = _hub()
+        await hub._direct_start()
+        await _until(lambda: any(e["h"]["op"] == "config" for e in _logs(fake_bin)))
+        await hub._direct_stop()
+        assert [e["h"]["op"] for e in _logs(fake_bin)][-1] == "eof"
+    asyncio.run(go())

@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 RELAY_SENDER_KEY = "_relayFrom"
 DEFAULT_ICE = [{"urls": ["stun:stun.cloudflare.com:3478"]},
                {"urls": ["stun:stun.l.google.com:19302"]}]
+STOP_GRACE_S = 2.0          # sidecar exit on stdin EOF before it is killed
 GATHER_TIMEOUT_MS = 1500
 MAX_INFLIGHT = 32
 MAX_MESSAGE = 262144
@@ -111,8 +112,17 @@ class Sidecar:
         await self._kill()
 
     async def _kill(self):
+        """Close stdin and give the sidecar STOP_GRACE_S to stop its encoders (it exits on EOF);
+        kill it only if it is still there."""
         p, self.proc = self.proc, None
         if p and p.returncode is None:
+            try:
+                if p.stdin is not None:
+                    p.stdin.close()
+                await asyncio.wait_for(p.wait(), STOP_GRACE_S)
+                return
+            except (asyncio.TimeoutError, ConnectionError, BrokenPipeError):
+                pass
             try:
                 p.kill()
             except ProcessLookupError:

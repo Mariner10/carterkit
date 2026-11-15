@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/Mariner10/carterkit/direct/internal/camera"
@@ -45,12 +47,23 @@ func main() {
 	mgr.OnState(func(s, st, path string) {
 		send(map[string]any{"op": "session", "session": s, "state": st, "path": path}, nil)
 	})
+	shutdown := func() { // sessions first, then encoders, so no ffmpeg outlives the sidecar
+		mgr.CloseAll()
+		cams.StopAll()
+	}
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGTERM, os.Interrupt)
+	go func() {
+		<-sig
+		shutdown()
+		os.Exit(0)
+	}()
 	send(map[string]any{"op": "ready", "version": version}, nil)
 
 	for {
 		h, body, err := ipc.ReadFrame(os.Stdin)
 		if err != nil {
-			mgr.CloseAll()
+			shutdown()
 			return
 		}
 		switch str(h, "op") {

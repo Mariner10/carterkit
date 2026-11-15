@@ -204,3 +204,38 @@ func TestVideoTrackBindsToRecvonlyOffer(t *testing.T) {
 	}()
 	waitCount(t, v, 10)
 }
+
+// TestStopAllKillsEncoder needs no real ffmpeg: the fake one lists encoders, then
+// sleeps in place of encoding. The sidecar calls StopAll before it exits.
+func TestStopAllKillsEncoder(t *testing.T) {
+	dir := t.TempDir()
+	script := "#!/bin/sh\ncase \"$*\" in *-encoders*) printf ' V....D libx264 x\\n';; *rtp://*) exec /bin/sleep 60;; esac\nexit 0\n"
+	if err := os.WriteFile(filepath.Join(dir, "ffmpeg"), []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir)
+	r := NewRegistry()
+	r.Add("c", "http://127.0.0.1:1/stream", "C")
+	if _, _, err := r.Track("c"); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(10 * time.Second)
+	for r.pid("c") == 0 && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	pid := r.pid("c")
+	if pid == 0 {
+		t.Fatal("encoder did not start")
+	}
+	r.StopAll()
+	deadline = time.Now().Add(3 * time.Second)
+	for syscall.Kill(pid, 0) == nil {
+		if time.Now().After(deadline) {
+			t.Fatalf("encoder %d still running after StopAll", pid)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if r.pid("c") != 0 {
+		t.Fatal("registry still lists a source")
+	}
+}

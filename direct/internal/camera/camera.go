@@ -91,6 +91,27 @@ func (r *Registry) Remove(id string) {
 	}
 }
 
+// StopAll stops every running source now (no StopDelay) and waits for each encoder to
+// exit. The sidecar calls it before it exits, so no ffmpeg outlives it.
+func (r *Registry) StopAll() {
+	r.mu.Lock()
+	var srcs []*running
+	for _, c := range r.cams {
+		if c.stop != nil {
+			c.stop.Stop()
+			c.stop = nil
+		}
+		if c.src != nil {
+			srcs = append(srcs, c.src)
+			c.src, c.state = nil, ""
+		}
+	}
+	r.mu.Unlock()
+	for _, src := range srcs {
+		src.stop()
+	}
+}
+
 // Info is one camera as advertised.
 type Info struct{ ID, Name, Status string }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -106,6 +107,10 @@ func (r *Registry) encoder(ffmpeg string) (string, error) {
 
 // runFFmpeg encodes url to H.264 RTP on a loopback UDP port and feeds write.
 func (r *Registry) runFFmpeg(run *running, url string, write func([]byte)) error {
+	// ffmpeg is started and waited on from this thread: with dieWithParent (Linux) it gets
+	// SIGKILL when this thread ends, so a sidecar that crashes or is killed takes it along.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 	ffmpeg := findFFmpeg()
 	if ffmpeg == "" {
 		return ErrNeedsFFmpeg
@@ -146,6 +151,7 @@ func (r *Registry) runFFmpeg(run *running, url string, write func([]byte)) error
 			name = nice
 		}
 		cmd := exec.CommandContext(run.ctx, name, args...)
+		dieWithParent(cmd)
 		started := time.Now()
 		if err := cmd.Start(); err != nil {
 			return err

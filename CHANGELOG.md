@@ -5,6 +5,12 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+## [0.23.3] — 2026-11-15
+
+### Fixed
+
+- No ffmpeg outlives the sidecar. `carter-direct` stops every encoder when its stdin closes or it gets SIGTERM; on Linux ffmpeg also dies with it (`Pdeathsig`) if it crashes or is killed. A hub that stops closes the sidecar's stdin and waits 2 s before killing it. Before, stopping a hub while someone watched left the encoder running.
+
 ## [0.23.2] — 2026-11-15
 
 ### Fixed

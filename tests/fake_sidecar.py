@@ -37,3 +37,6 @@ while True:
         send(h["frame"], base64.b64decode(h.get("body_b64", "")))
     elif op == "die":
         sys.exit(1)
+if os.environ.get("FAKE_LOG"):                     # stdin closed: the stop path a real sidecar takes
+    with open(os.environ["FAKE_LOG"], "a") as f:
+        f.write(json.dumps({"h": {"op": "eof"}, "n": 0, "pid": os.getpid()}) + "\n")
