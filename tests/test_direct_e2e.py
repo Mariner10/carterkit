@@ -7,6 +7,7 @@ import shutil
 import socket
 import subprocess
 import sys
+from importlib import metadata
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,18 @@ GO_CACHE = Path.home() / ".cache" / "carterkit-go" / "go" / "bin"
 GO = shutil.which("go") or (str(GO_CACHE / "go") if (GO_CACHE / "go").exists() else None)
 SIDECAR = os.environ.get("CARTERKIT_DIRECT_BIN")
 
+def _relay_stamps_sender():
+    """The relay only stamps `_relayFrom` from meshsocket 0.4.3; the hub denies offers without it."""
+    try:
+        v = metadata.version("meshsocket")
+        return tuple(int(x) for x in v.split(".")[:3]) >= (0, 4, 3)
+    except Exception:
+        return False
+
+
 pytestmark = [
+    pytest.mark.skipif(not _relay_stamps_sender(),
+                       reason="needs meshsocket>=0.4.3 (relay-stamped _relayFrom)"),
     pytest.mark.skipif(GO is None, reason="needs Go to build the test peer"),
     pytest.mark.skipif(not SIDECAR or not Path(SIDECAR).exists(),
                        reason="CARTERKIT_DIRECT_BIN must point at a built carter-direct"),
