@@ -5,6 +5,23 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
+Studio agents (CAR-TER aif-y8nou): the guide ships in the package, Studio results report what the phone actually confirmed, and links use the https form from CAR-TER's `contract/links.json`.
+
+### Added
+
+- `carterkit studio guide` prints the vendored Studio guide (CAR-TER `docs/STUDIO.md`): pairing, verbs, push vs save, failure table.
+- `carterkit push layout.json [--install] [--via studio|room]` pushes any layout JSON to the paired phone; `--via studio` strips the layout's own Connect+ block for the push and restores it.
+- `carterkit add-hub --channel <name>` mints a hub credential through the phone (one tap on the approval sheet) and writes `device.json` with mode 0600 (`carterkit.provision`).
+- `Hub.route(verb, payload)` is public.
+- `Hub.save_layout(base=, file=)` keeps the layout on the phone by the route its app version supports: routed `layout-save` on CAR-TER >= 2.1 (reply carries `version`; a moved `base` raises `StudioConflict`), else install. `Hub.phone_app_version()` reads the hello, then `get-device-info`.
+- `carterkit.links.app_link(route, path, query, beta=, scheme=)`: the contract's link forms.
+
+### Changed
+
+- Share and tutorial QR codes encode the https form (`https://links.carterbeaudoin.net/...`, Beta `go-beta.`), so the iPhone Camera opens them; share links carry `exp` so the app can say the link expired.
+- Studio results are truthful: an error reply raises, and a save returns only once the phone confirms it.
+- Studio peer selection probes for the Studio Session socket instead of reading roster fields.
+
 ## [0.22.0] — 2026-11-12
 
 Hub audio: layouts with a player, AirPlay and an `audio` block validate, and a carterkit hub's routing layout dials a LAN or self-hosted relay with routing granted. ControlDocs at CAR-TER master 0dc00d99.
