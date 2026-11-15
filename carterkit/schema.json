@@ -3336,6 +3336,26 @@
               "reflow": {
                 "x-carter-type": "string",
                 "description": "Landscape policy for a tab's grid: 'auto' (default; columns double and children re-pack) or 'stretch' (keep the portrait cells, wider)"
+              },
+              "scroll": {
+                "x-carter-type": "string",
+                "description": "'horizontal' lets the group hold more children than its columns and scroll them sideways; each child keeps its own span. 'vertical' is reserved"
+              },
+              "snap": {
+                "x-carter-type": "string",
+                "description": "With scroll: 'none' (default), 'item' (rest on an item's start) or 'page' (advance one viewport)"
+              },
+              "peek": {
+                "x-carter-type": "number",
+                "description": "With scroll: the fraction of the viewport (0 to 0.3) the neighbouring item shows; default 0"
+              },
+              "edge": {
+                "x-carter-type": "string",
+                "description": "'soft' fades items as they leave the group's own bounds, 'none' cuts them off. Default soft when scroll is set, none otherwise"
+              },
+              "edgeSize": {
+                "x-carter-type": "number",
+                "description": "With edge soft: the fade distance from the bound inward in points (default 28)"
               }
             }
           }
@@ -3419,6 +3439,10 @@
               "dynamic": {
                 "x-carter-type": "string",
                 "description": "Event name whose broadcasts replace the children at runtime (see Dynamic Groups)"
+              },
+              "customize": {
+                "x-carter-type": "object",
+                "description": "On a dynamic group: none, look or arrange (or {mode, save}) for the deck it receives. The pushed layout's connection.customize is the ceiling; this can only narrow it. The phone's edits are an overlay re-applied on every deck, keyed <group id>/<child id> and <group id>#item."
               },
               "visible": {
                 "x-carter-type": "object",
@@ -4307,6 +4331,10 @@
                   "room"
                 ]
               },
+              "customize": {
+                "x-carter-type": "object",
+                "description": "What the phone may change in hub-served UI: none (default), look (colours, fonts, sizes, spacing, card style) or arrange (look, plus move, resize, hide). A string, or {\\\"mode\\\": \\\"arrange\\\", \\\"save\\\": true}; save opts in to sending edits back to the hub, and rev is the newest overlay revision the hub's own design already includes (see [[#Hub customization]], Write-back). The phone's edits are kept as an overlay and re-applied on every push; they never change sync, actions or wiring. The layout is the ceiling: an inner customize cannot widen it. See [[#Hub customization]]."
+              },
               "identity": {
                 "x-carter-type": "object",
                 "description": "Who this device presents as: {name, ...}"
@@ -4413,6 +4441,10 @@
               "itemTemplate": {
                 "x-carter-type": "object",
                 "description": "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
+              },
+              "customize": {
+                "x-carter-type": "object",
+                "description": "On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring."
               },
               "itemSpacing": {
                 "x-carter-type": "number",
@@ -6078,6 +6110,31 @@
                 "x-carter-type": "number",
                 "description": "Track stroke width (radial style only)"
               },
+              "orientation": {
+                "x-carter-type": "enum",
+                "description": "Slide left to right, or bottom to top for EQ-style strips",
+                "examples": [
+                  "horizontal",
+                  "vertical"
+                ]
+              },
+              "track": {
+                "x-carter-type": "enum",
+                "description": "Show or hide the drawn track on a vertical slider; the handle stays",
+                "examples": [
+                  "shown",
+                  "hidden"
+                ]
+              },
+              "valueLabel": {
+                "x-carter-type": "enum",
+                "description": "Where an upright slider writes its number",
+                "examples": [
+                  "above",
+                  "below",
+                  "none"
+                ]
+              },
               "confirm": {
                 "x-carter-type": "bool",
                 "description": "After this control's local write lands, show a pill naming the change with an Undo button for 3 seconds (default off)"
@@ -7068,7 +7125,7 @@
               },
               "valuePath": {
                 "x-carter-type": "string",
-                "description": "Dot-notation path to extract value"
+                "description": "Dot-notation path to extract value; a number segment indexes an array (items.0.name). No items[0] bracket form"
               },
               "source": {
                 "x-carter-type": "string",

@@ -167,6 +167,8 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
         source = connection
         if source is None and layout:
             source = layout.get("connection")
+            if isinstance(source, dict) and not (set(source) - {"customize"}):
+                source = None       # a bare customize opt-in is not a connection
         self.connection = Connection.parse(source, **conn_overrides)
         if self.connection.kind == "local":
             self.connection.host = host       # so app_url()/qr_json() tell the truth

@@ -24,9 +24,10 @@ with Layout("Cards", id="cards", cols=4, rows=8) as ui:
 def page(frame):
     q = (frame.get("query") or "").lower()
     rows = [r for r in CATALOG if q in r["title"].lower()]
-    start = int(frame.get("position") or 0)
+    start = int(frame.get("offset") or frame.get("position") or 0)
+    # echo req / query / offset: a paged list matches the reply on them
     return {"msg_type": "cards_rows", "rows": rows[start:start + PAGE], "total": len(rows),
-            "position": start}
+            "offset": start, "query": frame.get("query"), "req": frame.get("req")}
 
 
 async def run(hub, forever=True):
