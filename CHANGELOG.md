@@ -5,10 +5,17 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
-Studio agents (CAR-TER aif-y8nou): the guide ships in the package, Studio results report what the phone actually confirmed, and links use the https form from CAR-TER's `contract/links.json`.
+## [0.23.0] — 2026-11-15
+
+Direct link, dynamic lists and Studio agents. A hub can offer cameras and a peer-to-peer data channel to the phone (CAR-TER aif-iaght); layouts get the dynamic-list controls and phone customizations (CAR-TER aif-zgzko); Studio results report what the phone actually confirmed, and links use the https form from CAR-TER's `contract/links.json` (CAR-TER aif-y8nou).
 
 ### Added
 
+- **Direct link** (`docs/direct-link.md`): a WebRTC connection between the CAR-TER app and the hub, set up over sealed routed requests (`direct_hello`, `direct_offer`, `direct_close`) and then peer to peer. Sessions are bound to the relay-stamped sender (`_relayFrom`); an offer without one is refused with `denied`.
+- `Hub.camera(id, url, name=None)` offers an RTSP or HTTP (MJPEG) stream as H.264 video. One encoder per camera, started on the first viewer and stopped 10 s after the last; MJPEG and USB sources use the system `ffmpeg` (never bundled).
+- The phone calls the hub's normal `on(...)` handlers over the link's `rpc` data channel (messages up to 262144 bytes, 32 in flight); a `bytes` `data` value travels as a raw body. `CarterClient.dispatch_request(msg_type, payload, ctx, sealed=)` is the shared entry.
+- Platform wheels carry the `carter-direct` sidecar (MIT, Pion) for Linux aarch64/armv7l/x86_64, macOS arm64/x86_64 and Windows x86_64; other platforms get the pure wheel and reply `no_sidecar`. `CARTERKIT_DIRECT_BIN` points at a sidecar of your own.
+- Dynamic lists: builders and `validate` for side strips, Table/Cards, the search box, the vertical slider, carousel pages and `customize`; the hub stores and re-applies the phone's customizations (look and arrange) over pushes. New `eq_strip.py` and `paged_cards.py` examples.
 - `carterkit studio guide` prints the vendored Studio guide (CAR-TER `docs/STUDIO.md`): pairing, verbs, push vs save, failure table.
 - `carterkit push layout.json [--install] [--via studio|room]` pushes any layout JSON to the paired phone; `--via studio` strips the layout's own Connect+ block for the push and restores it.
 - `carterkit add-hub --channel <name>` mints a hub credential through the phone (one tap on the approval sheet) and writes `device.json` with mode 0600 (`carterkit.provision`).
