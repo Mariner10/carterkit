@@ -278,20 +278,25 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
             await asyncio.sleep(poll)
 
     async def _first_peer(self):
-        """The phone's Studio Session socket: not this hub, not a layout-socket peer
-        (roster entries marked ``socket: layout`` / ``studio: false``); a peer marked
-        as the studio socket wins over unmarked ones."""
+        """The phone's Studio Session socket. The roster (``get_nodes``) carries only
+        id/name, so a lone non-self peer is taken as is; with several (the layout
+        socket and the Studio socket of one phone), each is probed with the
+        studio-only ``get-device-info`` and the first that answers wins. None when
+        nothing answers."""
         res = await self.client._sock.request("get_nodes", None, timeout=5.0)
-        fallback = None
-        for c in (res or {}).get("clients", []):
-            if c.get("name") == self.name:
+        cands = [c for c in (res or {}).get("clients", []) if c.get("name") != self.name]
+        if len(cands) <= 1:
+            return cands[0] if cands else None
+        for c in cands:
+            try:
+                r = await self.client._sock.request(
+                    "route_msg", {"target_id": c.get("id"), "type": "get-device-info",
+                                  "payload": {}}, timeout=2.0)
+            except Exception:
                 continue
-            if c.get("socket") == "layout" or c.get("studio") is False:
-                continue
-            if c.get("socket") == "studio" or c.get("studio") is True:
+            if isinstance(r, dict) and r.get("ok") is not False and not r.get("error"):
                 return c
-            fallback = fallback or c
-        return fallback
+        return None
 
     async def route(self, verb: str, payload=None, timeout: float = 10.0):
         """Routed request to the phone's Studio Session socket; returns its reply."""

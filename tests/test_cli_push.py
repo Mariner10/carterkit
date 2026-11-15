@@ -3,22 +3,26 @@ from carterkit import cli, provision
 from carterkit.hub import Hub
 
 
-def _hub_with_peers(clients):
+def _hub_with_peers(clients, studio_id):
     h = Hub({"name": "x", "tabs": []})
     class S:
         sent = []
         async def request(self, t, payload=None, timeout=5.0):
             S.sent.append((t, payload))
-            return {"clients": clients} if t == "get_nodes" else {"ok": True}
+            if t == "get_nodes":
+                return {"clients": clients}
+            if payload.get("type") == "get-device-info":
+                return {"ok": True} if payload["target_id"] == studio_id else None
+            return {"ok": True}
     h.client._sock = S()
     return h, S
 
 
-def test_peer_selection_skips_layout_socket():
+def test_peer_selection_probes_for_studio_socket():
     import asyncio
-    h, S = _hub_with_peers([{"id": "L", "name": "p", "socket": "layout"},
-                            {"id": "S", "name": "p", "socket": "studio"}])
-    asyncio.run(h.route("get-device-info"))
+    # real roster shape: id + name only; the layout socket does not answer studio verbs
+    h, S = _hub_with_peers([{"id": "L", "name": "p"}, {"id": "S", "name": "p"}], "S")
+    asyncio.run(h.route("get-control-state"))
     assert S.sent[-1][1]["target_id"] == "S"
 
 
