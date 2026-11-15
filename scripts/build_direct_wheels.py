@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -99,7 +100,10 @@ def build_pure(out: Path) -> Path:
         shutil.copytree(ROOT, src, ignore=shutil.ignore_patterns(
             ".git", "dist", "build", "*.egg-info", "__pycache__", "tests", ".venv", "bin"))
         shutil.rmtree(src / "carterkit" / "bin", ignore_errors=True)
-        subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps", "--no-build-isolation",
+        # build in place when setuptools is here (offline workers); else let pip fetch it
+        # (Python 3.12+ environments ship without setuptools)
+        isolation = [] if importlib.util.find_spec("setuptools") is None else ["--no-build-isolation"]
+        subprocess.run([sys.executable, "-m", "pip", "wheel", "--no-deps", *isolation,
                         "-q", "-w", str(out), str(src)], check=True)
     new = set(out.glob("*.whl")) - before
     if len(new) != 1:

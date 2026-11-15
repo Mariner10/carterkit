@@ -5,7 +5,9 @@ All notable changes to **carterkit** are documented here. This project follows
 
 ## [Unreleased]
 
-## [0.23.0] — 2026-11-15
+## [0.23.1] — 2026-11-15
+
+The 0.23.0 tag never reached PyPI (its CI test leg could not build the pure wheel without setuptools on Python 3.12+); 0.23.1 is that release with the wheel build fixed.
 
 Direct link, dynamic lists and Studio agents. A hub can offer cameras and a peer-to-peer data channel to the phone (CAR-TER aif-iaght); layouts get the dynamic-list controls and phone customizations (CAR-TER aif-zgzko); Studio results report what the phone actually confirmed, and links use the https form from CAR-TER's `contract/links.json` (CAR-TER aif-y8nou).
 
