@@ -1,15 +1,15 @@
 """`carterkit share <layout.json>`: serve a layout on the LAN for a few minutes and
-show a QR of ``carter://import?url=...`` so the phone can import it."""
+show a QR of the https import link so the phone can import it."""
 from __future__ import annotations
 
 import http.server
 import json
 import socket
 import threading
-import urllib.parse
+import time
 from typing import Optional
 
-from . import qr
+from . import links, qr
 
 SERVE_SECONDS = 600
 
@@ -26,8 +26,11 @@ def lan_ip() -> str:
         s.close()
 
 
-def import_link(url: str) -> str:
-    return "carter://import?url=" + urllib.parse.quote(url, safe=":/")
+def import_link(url: str, exp: Optional[int] = None, *, beta: bool = False,
+                scheme: bool = False) -> str:
+    """The import link: https universal form by default; ``exp`` (unix seconds) lets the
+    app say "This link expired"."""
+    return links.app_link("import", query={"url": url, "exp": exp}, beta=beta, scheme=scheme)
 
 
 def _handler(body: bytes):
@@ -76,7 +79,7 @@ def share(path: str, *, https_url: Optional[str] = None, seconds: float = SERVE_
     else:
         srv, port = serve(raw)
         url = f"http://{ip or lan_ip()}:{port}/layout.json"
-    link = import_link(url)
+    link = import_link(url, int(time.time() + seconds) if srv is not None else None)
     out(qr.encode(link).ascii())
     out(link)
     if srv is None:

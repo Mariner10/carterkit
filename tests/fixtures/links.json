@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "doc": "docs/LINKS.md",
+  "rule": "web form = https://<link host>/ + everything after 'carter://' in the app form. Emit the web form anywhere outside the app (QR codes, chat replies, web pages, printed links); the app form only inside the app.",
+  "hosts": {
+    "release": "links.carterbeaudoin.net",
+    "beta": "go-beta.carterbeaudoin.net"
+  },
+  "schemes": {
+    "release": "carter",
+    "beta": "carter-beta"
+  },
+  "legacy": [
+    "https://carterbeaudoin.net/h/{id} and https://www.carterbeaudoin.net/h/{id} open a handoff (still parsed; emit the link-host form)",
+    "https://<relay host>/join/{invite} opens an invite (the relay mints these)"
+  ],
+  "routes": [
+    {
+      "route": "handoff",
+      "app": "carter://handoff/{id}",
+      "params": {"id": "^[A-Za-z0-9_-]{1,64}$"},
+      "opens": "A hand-off from an AI: the layout and the part it left for the person to shape."
+    },
+    {
+      "route": "approve",
+      "app": "carter://approve/{request}?client={client}",
+      "params": {"request": "^[A-Za-z0-9_-]{1,128}$", "client": "optional display name, trimmed, first 40 characters shown; default Claude"},
+      "opens": "The Allow sheet for an AI connecting to the person's cloud copy."
+    },
+    {
+      "route": "tutorial",
+      "app": "carter://tutorial/{id}?step={step}",
+      "params": {"id": "^[A-Za-z0-9_-]{1,128}$", "step": "optional, same token rule; a step id or a 1-based number"},
+      "opens": "A guided tutorial, at a step when given."
+    },
+    {
+      "route": "control",
+      "app": "carter://control/{type}",
+      "params": {"type": "^[A-Za-z0-9_-]{1,128}$ (matched lowercased)"},
+      "opens": "The control's help page, or All controls for an unknown type."
+    },
+    {
+      "route": "edit",
+      "app": "carter://edit?profile={profile}&control={control}",
+      "params": {"profile": "optional editor profile name", "control": "optional control id to select"},
+      "opens": "Edit mode on the open layout, with the named editor profile."
+    },
+    {
+      "route": "import",
+      "app": "carter://import?url={url}&exp={exp}",
+      "params": {"url": "percent-encoded; https anywhere, http only to .local names and private IPv4", "exp": "optional unix seconds after which the app says the link expired"},
+      "opens": "Downloads a layout JSON (10 s, 8 MB cap) and shows the Install prompt."
+    },
+    {
+      "route": "template",
+      "app": "carter://template?id={id}",
+      "params": {"id": "^[A-Za-z0-9_-]{1,128}$; no other query items, no fragment"},
+      "opens": "A published template from the catalog, verified, behind the Install prompt."
+    },
+    {
+      "route": "join",
+      "app": "carter://join?invite={invite}#k={key}",
+      "params": {"invite": "^[A-Za-z0-9_-]{8,64}$", "key": "optional room key, fragment only (never the query, so servers never see it)"},
+      "opens": "The Join this Room sheet."
+    },
+    {
+      "route": "arrival",
+      "app": "carter://o/{token}",
+      "web_also": "https://<link host>/{slug}-{token}",
+      "params": {"token": "^[a-hj-km-np-z2-9]{12}$", "slug": "readable words, never trusted"},
+      "opens": "An AI result: the layout, the part to lift, the change set."
+    },
+    {
+      "route": "glance",
+      "app": "carter://glance?layout={layout}&tab={tab}&control={control}",
+      "web": null,
+      "params": {"layout": "layout id", "tab": "optional", "control": "optional"},
+      "opens": "Widget and Live Activity taps only; there is no web form."
+    }
+  ],
+  "fixtures": [
+    {"url": "carter://handoff/h_abc123", "route": "handoff", "fields": {"id": "h_abc123"}},
+    {"url": "carter-beta://handoff/h_abc123", "route": "handoff", "fields": {"id": "h_abc123"}},
+    {"url": "https://links.carterbeaudoin.net/handoff/h_abc123", "route": "handoff", "fields": {"id": "h_abc123"}},
+    {"url": "https://go-beta.carterbeaudoin.net/handoff/h_abc123", "route": "handoff", "fields": {"id": "h_abc123"}},
+    {"url": "https://carterbeaudoin.net/h/h_abc123", "route": "handoff", "fields": {"id": "h_abc123"}},
+    {"url": "carter://handoff/a/b", "route": "invalid"},
+
+    {"url": "carter://approve/req_ABC-123?client=Claude", "route": "approve", "fields": {"request": "req_ABC-123", "client": "Claude"}},
+    {"url": "https://links.carterbeaudoin.net/approve/req_ABC-123?client=Claude%20Desktop", "route": "approve", "fields": {"request": "req_ABC-123", "client": "Claude Desktop"}},
+    {"url": "https://go-beta.carterbeaudoin.net/approve/req_ABC-123", "route": "approve", "fields": {"request": "req_ABC-123", "client": "Claude"}},
+    {"url": "carter://approve/", "route": "invalid"},
+
+    {"url": "carter://tutorial/first-layout?step=2", "route": "tutorial", "fields": {"id": "first-layout", "step": "2"}},
+    {"url": "https://links.carterbeaudoin.net/tutorial/first-layout", "route": "tutorial", "fields": {"id": "first-layout"}},
+    {"url": "carter://tutorial/bad%20id", "route": "invalid"},
+
+    {"url": "carter://control/gauge", "route": "control", "fields": {"type": "gauge"}},
+    {"url": "https://links.carterbeaudoin.net/control/Slider", "route": "control", "fields": {"type": "slider"}},
+    {"url": "carter://control/a/b", "route": "invalid"},
+
+    {"url": "carter://edit?profile=simple&control=temp", "route": "edit", "fields": {"profile": "simple", "control": "temp"}},
+    {"url": "https://links.carterbeaudoin.net/edit?control=temp", "route": "edit", "fields": {"control": "temp"}},
+
+    {"url": "carter://import?url=https%3A%2F%2Fexample.com%2Flayout.json", "route": "import", "fields": {"url": "https://example.com/layout.json"}},
+    {"url": "carter://import?url=http%3A%2F%2F192.168.1.20%3A8765%2Flayout.json&exp=1900000000", "route": "import", "fields": {"url": "http://192.168.1.20:8765/layout.json"}},
+    {"url": "https://links.carterbeaudoin.net/import?url=https%3A%2F%2Fexample.com%2Flayout.json", "route": "import", "fields": {"url": "https://example.com/layout.json"}},
+    {"url": "carter://import?url=http%3A%2F%2Fexample.com%2Flayout.json", "route": "invalid"},
+
+    {"url": "carter://template?id=carbon-clock", "route": "template", "fields": {"id": "carbon-clock"}},
+    {"url": "https://links.carterbeaudoin.net/template?id=carbon-clock", "route": "template", "fields": {"id": "carbon-clock"}},
+    {"url": "carter://template?id=carbon-clock&url=https%3A%2F%2Fexample.com", "route": "invalid"},
+
+    {"url": "carter://join?invite=basecamp-crew#k=c2VjcmV0", "route": "join", "fields": {"invite": "basecamp-crew", "key": "c2VjcmV0"}},
+    {"url": "https://links.carterbeaudoin.net/join?invite=basecamp-crew#k=c2VjcmV0", "route": "join", "fields": {"invite": "basecamp-crew", "key": "c2VjcmV0"}},
+
+    {"url": "carter://o/abcdefghjkmn", "route": "arrival", "fields": {"token": "abcdefghjkmn"}},
+    {"url": "https://links.carterbeaudoin.net/o/abcdefghjkmn", "route": "arrival", "fields": {"token": "abcdefghjkmn"}},
+    {"url": "https://links.carterbeaudoin.net/movie-list-abcdefghjkmn", "route": "arrival", "fields": {"token": "abcdefghjkmn"}},
+
+    {"url": "carter://glance?layout=movies&tab=Main", "route": "glance", "fields": {"layout": "movies", "tab": "Main"}},
+
+    {"url": "carter://nonsense", "route": "unknown"},
+    {"url": "https://example.com/layout.json", "route": "unknown"},
+    {"url": "https://links.carterbeaudoin.net/nothing/here", "route": "unknown"}
+  ],
+  "scanner_fixtures": [
+    {"code": "{\"url\":\"ws://192.168.1.20:8765\",\"channel\":\"studio\",\"role\":\"phone\"}", "kind": "pairing"},
+    {"code": "hello there", "kind": "unknown"}
+  ]
+}

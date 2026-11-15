@@ -50,7 +50,7 @@ def test_app_tutorial_prints_its_link_and_a_qr(capsys):
     assert tutorials.app_link("first-dial", "range") == "carter://tutorial/first-dial?step=range"
     assert main(["tutorial", "steps", "first-dial"]) == 0
     out = capsys.readouterr().out
-    assert "carter://tutorial/first-dial\n" in out
+    assert "https://links.carterbeaudoin.net/tutorial/first-dial\n" in out
     assert "\u2588" in out or "\u2580" in out or "\u2584" in out        # the QR is drawn in block characters
     assert main(["tutorial", "steps", "first-hub"]) == 0                # code tutorials print no app link
     assert "carter://tutorial" not in capsys.readouterr().out

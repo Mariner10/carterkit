@@ -17,8 +17,8 @@ def _write(tmp_path, obj):
 
 
 def test_import_link():
-    assert share.import_link("http://1.2.3.4:5/layout.json") == \
-        "carter://import?url=http://1.2.3.4:5/layout.json"
+    assert share.import_link("http://1.2.3.4:5/layout.json", scheme=True) == \
+        "carter://import?url=http%3A%2F%2F1.2.3.4%3A5%2Flayout.json"
 
 
 def test_serve_returns_body_and_404():
@@ -36,7 +36,7 @@ def test_share_https_url_prints_link_and_qr(tmp_path):
     out = []
     rc = share.share(_write(tmp_path, GOOD), https_url="https://x.test/l.json", out=out.append)
     assert rc == 0
-    assert out[-1] == "carter://import?url=https://x.test/l.json"
+    assert out[-1] == "https://links.carterbeaudoin.net/import?url=https%3A%2F%2Fx.test%2Fl.json"
     assert len(out) == 2 and "\n" in out[0]
 
 
@@ -44,8 +44,8 @@ def test_share_serves_then_stops(tmp_path):
     out = []
     rc = share.share(_write(tmp_path, GOOD), seconds=0.05, out=out.append, ip="10.0.0.9")
     assert rc == 0
-    assert out[1].startswith("carter://import?url=http://10.0.0.9:")
-    assert out[1].endswith("/layout.json")
+    assert out[1].startswith("https://links.carterbeaudoin.net/import?url=http%3A%2F%2F10.0.0.9%3A")
+    assert "&exp=" in out[1]
 
 
 def test_share_rejects_invalid(tmp_path):

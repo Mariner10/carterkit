@@ -26,6 +26,8 @@ import re
 from importlib.resources import files
 from typing import Any, Optional
 
+from . import links
+
 _FENCE = re.compile(r"^```([^\n]*)\n(.*?)^```[ \t]*$", re.S | re.M)
 _SECTION = re.compile(r"^## (.+?)(?:\s*\{#([\w-]+)\})?\s*$", re.M)
 _REF = re.compile(r"\[\[([^\]\n]+)\]\]")
@@ -132,7 +134,12 @@ def _prose(section: str) -> str:
 
 def app_link(tid: str, step: Optional[str] = None) -> str:
     """The deep link that opens an app tutorial (optionally at a step) in CAR-TER."""
-    return f"carter://tutorial/{tid}" + (f"?step={step}" if step else "")
+    return links.app_link("tutorial", tid, {"step": step}, scheme=True)
+
+
+def web_link(tid: str, step: Optional[str] = None, beta: bool = False) -> str:
+    """The https form of ``app_link``, for QR codes and anything shown outside the app."""
+    return links.app_link("tutorial", tid, {"step": step}, beta=beta)
 
 
 def _qr_ascii(link: str) -> str:
@@ -155,7 +162,7 @@ def steps_text(tid: str) -> str:
     if meta.get("prerequisites"):
         out.append("First: " + ", ".join(f"carterkit tutorial steps {p}" for p in meta["prerequisites"]))
     if meta["audience"] == "app":
-        link = app_link(tid)
+        link = web_link(tid)
         out.append("This one is done in the app: open Settings > Help in CAR-TER, or scan this to open it there.")
         out += [link, "", _qr_ascii(link)]
     elif meta.get("starterKit"):
