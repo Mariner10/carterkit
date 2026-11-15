@@ -278,11 +278,29 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
             await asyncio.sleep(poll)
 
     async def _first_peer(self):
+        """The phone's Studio Session socket: not this hub, not a layout-socket peer
+        (roster entries marked ``socket: layout`` / ``studio: false``); a peer marked
+        as the studio socket wins over unmarked ones."""
         res = await self.client._sock.request("get_nodes", None, timeout=5.0)
+        fallback = None
         for c in (res or {}).get("clients", []):
-            if c.get("name") != self.name:
+            if c.get("name") == self.name:
+                continue
+            if c.get("socket") == "layout" or c.get("studio") is False:
+                continue
+            if c.get("socket") == "studio" or c.get("studio") is True:
                 return c
-        return None
+            fallback = fallback or c
+        return fallback
+
+    async def route(self, verb: str, payload=None, timeout: float = 10.0):
+        """Routed request to the phone's Studio Session socket; returns its reply."""
+        peer = await self._first_peer()
+        if not peer:
+            raise HubError("no device on the channel — have the phone connect first")
+        return await self.client._sock.request(
+            "route_msg", {"target_id": peer.get("id"), "type": verb,
+                          "payload": payload}, timeout=timeout)
 
     async def push_layout(self, *, install: bool = False) -> dict:
         """Send this hub's layout to the paired device (routed apply-layout; the
@@ -323,9 +341,7 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
             log.info("skipped: identical to the last push")
             return dict(self._last_layout_reply or {"ok": True, "skipped": True},
                         skipped=True)
-        res = await self.client._sock.request(
-            "route_msg", {"target_id": peer.get("id"), "type": "apply-layout",
-                          "payload": req}, timeout=10.0)
+        res = await self.route("apply-layout", req, timeout=10.0)
         if not isinstance(res, dict) or not res.get("ok"):
             reason = (res or {}).get("reason") if isinstance(res, dict) else None
             if reason == "editing":

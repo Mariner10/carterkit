@@ -47,7 +47,7 @@ from pathlib import Path
 from .codegen import generate_service_stub
 from .contract import extract_contract, is_group, walk_with_location
 from .explore_html import PAGE
-from .hub import Hub
+from .hub import Hub, HubError
 from .qr import encode as _qr_encode
 
 _ASSET_DIR = Path(__file__).parent / "explore_assets"
@@ -409,12 +409,10 @@ class Explorer:
 
     # ── device pull ──────────────────────────────────────────────────────────
     async def _routed(self, verb: str, payload, timeout: float = 10.0):
-        peer = await self.hub._first_peer()
-        if not peer:
-            raise RuntimeError("no device on the channel")
-        return await self.hub.client._sock.request(
-            "route_msg", {"target_id": peer.get("id"), "type": verb,
-                          "payload": payload}, timeout=timeout)
+        try:
+            return await self.hub.route(verb, payload, timeout=timeout)
+        except HubError as e:
+            raise RuntimeError("no device on the channel") from e
 
     async def _pull_layout(self) -> bool:
         if isinstance(self.pull, dict):

@@ -386,6 +386,67 @@ def _cmd_studio(args) -> int:
     return 2
 
 
+def _hub_for(args, layout=None):
+    """A Hub on the paired phone's channel: --connection, else secrets/hub.json."""
+    import os
+    from .hub import Hub
+    conn = args.connection or (os.path.join("secrets", "hub.json")
+                               if os.path.isfile(os.path.join("secrets", "hub.json")) else None)
+    if conn is None and not (isinstance(layout, dict) and layout.get("connection")):
+        raise SystemExit("carterkit: no connection: pass --connection FILE or create secrets/hub.json")
+    return Hub(layout, conn) if conn else Hub(layout)
+
+
+def _cmd_push(args) -> int:
+    import asyncio
+    from .hub import HubError, describe_push_reply
+    try:
+        with open(args.file) as f:
+            layout = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"carterkit push: {e}", file=sys.stderr)
+        return 1
+
+    async def run():
+        # the Studio Session is a different socket from the layout's own: push without
+        # the layout's Connect+ block, then put it back on the in-memory layout
+        block = layout.pop("connection", None) if args.via == "studio" else None
+        hub = _hub_for(args, layout)
+        async with hub:
+            try:
+                res = await hub.push_layout(install=args.install)
+            finally:
+                if block is not None:
+                    hub.layout["connection"] = block
+        print(describe_push_reply(res, args.file))
+    try:
+        asyncio.run(run())
+    except HubError as e:
+        print(f"carterkit push: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _cmd_add_hub(args) -> int:
+    import asyncio
+    from . import provision
+
+    async def run():
+        hub = _hub_for(args)
+        async with hub:
+            return await provision.provision(hub, args.channel, role=args.role,
+                                             reuse_room_key=not args.fresh_key,
+                                             timeout=args.timeout, out=print)
+    try:
+        reply = asyncio.run(run())
+    except (provision.ProvisionError, RuntimeError) as e:
+        print(f"carterkit add-hub: {e}", file=sys.stderr)
+        return 1
+    provision.write_device(args.out, reply["credential"])
+    print(f"wrote {args.out} (mode 0600): {provision.summary(reply)}")
+    return 0
+
+
 def _cmd_version(args) -> int:
     import carterkit
     print(carterkit.__version__)
@@ -573,6 +634,24 @@ def build_parser() -> argparse.ArgumentParser:
                        "the verbs, push vs save and failure table")
     c.add_argument("what", choices=["guide"])
     c.set_defaults(fn=_cmd_studio)
+
+    c = sub.add_parser("push", help="push any layout JSON to the paired phone's Studio Session")
+    c.add_argument("file", help="layout JSON file")
+    c.add_argument("--install", action="store_true", help="save it in the phone's layouts")
+    c.add_argument("--via", choices=["studio", "room"], default="room",
+                   help="studio: strip the layout's own Connect+ block for the push, then restore it")
+    c.add_argument("--connection", help="pairing/device JSON (default secrets/hub.json)")
+    c.set_defaults(fn=_cmd_push)
+
+    c = sub.add_parser("add-hub", help="mint a hub credential through the phone (human tap) "
+                       "and write device.json")
+    c.add_argument("--channel", required=True, help="channel the new hub joins")
+    c.add_argument("--role", default="hub", choices=["hub", "controller", "viewer"])
+    c.add_argument("--out", default="device.json", help="credential file (default device.json, 0600)")
+    c.add_argument("--fresh-key", action="store_true", help="force a new room key")
+    c.add_argument("--timeout", type=float, default=70.0)
+    c.add_argument("--connection", help="pairing JSON of the Studio Session (default secrets/hub.json)")
+    c.set_defaults(fn=_cmd_add_hub)
 
     c = sub.add_parser("version", help="print the carterkit version")
     c.set_defaults(fn=_cmd_version)
