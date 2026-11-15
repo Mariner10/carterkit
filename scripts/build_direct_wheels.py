@@ -49,29 +49,47 @@ def ensure_go() -> str:
     return go
 
 
-def write_notice(dest: Path) -> None:
-    mods = []
-    for line in (DIRECT / "go.sum").read_text().splitlines():
-        parts = line.split()
-        if len(parts) >= 2 and not parts[1].endswith("/go.mod"):
-            mods.append(f"{parts[0]} {parts[1]}")
-        elif len(parts) >= 2:
-            m = f"{parts[0]} {parts[1][:-len('/go.mod')]}"
-            if m not in mods:
-                mods.append(m)
-    mods = sorted(set(mods))
-    head = (
-        "carter-direct bundles the following Go modules (from direct/go.sum).\n"
-        "Pion modules (github.com/pion/*) and the RTSP client are MIT licensed:\n"
-        "  Copyright (c) the respective Pion / RTSP client authors.\n"
-        "  Permission is hereby granted, free of charge, to any person obtaining a copy of this\n"
-        "  software and associated documentation files, to deal in the Software without restriction,\n"
-        "  subject to inclusion of this notice. THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY\n"
-        "  OF ANY KIND.\n"
-        "Other modules (golang.org/x/*, github.com/google/uuid, ...) are BSD-3-Clause licensed by\n"
-        "their authors; see each module's LICENSE file.\n\nModules:\n"
-    )
-    dest.write_text(head + "".join(f"  {m}\n" for m in mods))
+LICENSE_NAMES = ("LICENSE", "LICENSE.md", "LICENSE.txt", "LICENCE", "COPYING")
+
+
+def linked_modules(go: str) -> dict:
+    """path@version -> module dir, for every module linked into carter-direct on any target
+    (test-only modules such as testify are not linked, so they are not listed)."""
+    mods = {}
+    fmt = "{{with .Module}}{{if not .Main}}{{.Path}}@{{.Version}}\t{{.Dir}}{{end}}{{end}}"
+    for goos, goarch, goarm, _ in TARGETS.values():
+        env = dict(os.environ, CGO_ENABLED="0", GOOS=goos, GOARCH=goarch, GOARM=goarm or "7")
+        out = subprocess.run([go, "list", "-deps", "-f", fmt, "./cmd/carter-direct"], cwd=DIRECT,
+                             env=env, check=True, capture_output=True, text=True).stdout
+        for line in out.splitlines():
+            if "\t" in line:
+                mod, d = line.split("\t", 1)
+                mods[mod] = d
+    return mods
+
+
+def _license_texts(d: Path) -> list:
+    found = [d / n for n in LICENSE_NAMES if (d / n).is_file()]
+    if (d / "NOTICE").is_file():
+        found.append(d / "NOTICE")          # Apache-2.0 modules ask for their NOTICE too
+    return found
+
+
+def write_notice(dest: Path, go: str) -> None:
+    """Every linked module's own license text (MIT and BSD require it with binaries)."""
+    goroot = subprocess.run([go, "env", "GOROOT"], check=True, capture_output=True, text=True).stdout.strip()
+    parts = ["carter-direct is part of carterkit (MIT, see carterkit's LICENSE). The binary links\n"
+             "the Go standard library and the Go modules below; each one's license text follows.\n"]
+    sections = [("Go standard library", Path(goroot))] + sorted(
+        (m, Path(d)) for m, d in linked_modules(go).items())
+    parts.append("\nModules:\n" + "".join(f"  {name}\n" for name, _ in sections))
+    for name, d in sections:
+        texts = _license_texts(d)
+        if not texts:
+            sys.exit(f"no license file for {name} in {d}")
+        for t in texts:
+            parts.append(f"\n{'=' * 78}\n{name} ({t.name})\n{'=' * 78}\n\n{t.read_text().strip()}\n")
+    dest.write_text("".join(parts))
 
 
 def build_pure(out: Path) -> Path:
@@ -106,9 +124,10 @@ def platform_wheel(pure: Path, binary: Path, notice: Path, plat: str, exe: str, 
                 record = item.filename
                 continue
             if item.filename.endswith(".dist-info/WHEEL"):
-                lines = [l for l in data.decode().splitlines() if not l.startswith(("Tag:", "Root-Is-Purelib"))]
-                lines += ["Root-Is-Purelib: false", f"Tag: py3-none-{plat}"]
-                data = ("\n".join(lines) + "\n").encode()
+                head = [l for l in data.decode().splitlines()
+                        if l.strip() and not l.startswith(("Tag:", "Root-Is-Purelib"))]
+                head += ["Root-Is-Purelib: false", f"Tag: py3-none-{plat}"]
+                data = ("\n".join(head) + "\n\n").encode()
             zout.writestr(item, data)
             lines.append(_record_line(item.filename, data))
         extra = [(f"carterkit/bin/carter-direct{exe}", binary.read_bytes(), 0o755),
@@ -137,7 +156,7 @@ def main() -> int:
             sys.exit(f"unknown target {n}; choose from {', '.join(TARGETS)}")
     go = ensure_go()
     notice = DIRECT / "NOTICE"
-    write_notice(notice)
+    write_notice(notice, go)
     pure = build_pure(out)
     print("built", pure.name)
     with tempfile.TemporaryDirectory() as tmp:
