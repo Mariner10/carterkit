@@ -391,7 +391,7 @@ a seed of the wrong shape (a sparkline array with no numbers), is dropped with a
 
 | Format | Example input | Output |
 |--------|---------------|--------|
-| `percent` | `50.8` | `50.8%` |
+| `percent` | `50.8` | `50.8%` — printed as-is with one decimal and a `%`; **not** multiplied by 100, so a 0–1 fraction `0.5` reads `0.5%`: scale to 0–100 first (a [[derive]] `mul` by 100). A progressRing without `formatValue` is the exception: it multiplies its own 0–1 fill by 100 and then applies `percent` |
 | `decimal:N` | `3.14159` | `decimal:2` → `3.14`; N clamps to 0–12 |
 | `suffix:X` | `63.5` | `suffix:°C` → `63.5°C` |
 | `bytes` | `1048576` | `1.00 MB` |

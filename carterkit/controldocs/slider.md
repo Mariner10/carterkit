@@ -223,6 +223,54 @@ fields:
     description: Track stroke width (radial style only)
     summary: How thick the arc line is
     does: "Sets the arc line width from 1 to 40 points."
+  - name: orientation
+    edit: look
+    depth: hold
+    under: style
+    title: Direction
+    tab: style
+    type: enum
+    values: [horizontal, vertical]
+    default: horizontal
+    description: Slide left to right, or bottom to top for EQ-style strips
+    summary: Whether the slider lies flat or stands up
+    does: "Stands the slider upright so you drag up and down, with the top as the highest value; the touch target stays at least 44 points wide."
+    valueHelp: {"horizontal": "lies flat; drag left and right", "vertical": "stands upright; drag up and down, top is the highest value"}
+    valueTitles: {"horizontal": "Flat", "vertical": "Upright"}
+    valueSymbols: {"horizontal": "slider.horizontal.3", "vertical": "slider.vertical.3"}
+    since: next
+  - name: track
+    edit: part
+    depth: hold
+    under: style
+    title: Track
+    tab: style
+    type: enum
+    values: [shown, hidden]
+    default: shown
+    description: Show or hide the drawn track on a vertical slider; the handle stays
+    summary: Whether the bar behind the handle is drawn
+    does: "Hides the drawn track and fill of an upright slider so only the handle shows; dragging works the same."
+    valueHelp: {"shown": "the track and its fill are drawn", "hidden": "only the handle is drawn"}
+    valueTitles: {"shown": "Shown", "hidden": "Hidden"}
+    valueSymbols: {"shown": "slider.vertical.3", "hidden": "circle"}
+    since: next
+  - name: valueLabel
+    edit: look
+    depth: hold
+    under: orientation
+    title: Number position
+    tab: style
+    type: enum
+    values: [above, below, none]
+    default: above
+    description: Where an upright slider writes its number
+    summary: Where the number sits on an upright slider
+    does: "Puts the number above or below an upright slider, or leaves it off."
+    valueHelp: {"above": "the number sits over the slider", "below": "the number sits under the slider", "none": "no number is shown"}
+    valueTitles: {"above": "Above", "below": "Below", "none": "None"}
+    valueSymbols: {"above": "arrow.up.to.line", "below": "arrow.down.to.line", "none": "eye.slash"}
+    since: next
   - use: confirm
     does: "Shows a pill naming the change with an Undo button for 3 seconds after you set a value."
 themeFields:
@@ -373,6 +421,9 @@ Inherits all [[shared-properties]]. Key fields:
 | `arcAngle` | number | `270` | Arc sweep in degrees (radial style only) |
 | `arcRotation` | number | `0` | Arc start rotation (radial style only) |
 | `arcThickness` | number | `8` | Track stroke width (radial style only) |
+| `orientation` | string | `"horizontal"` | `"horizontal"` or `"vertical"` (EQ strips) |
+| `track` | string | `"shown"` | `"hidden"` draws only the handle |
+| `valueLabel` | string | `"above"` | Vertical number position: `"above"`, `"below"`, `"none"` |
 
 ## What it sends and shows
 
@@ -388,6 +439,9 @@ Custom thin progress bar with draggable dot. Used for seek bars, compact volume 
 
 ### `"radial"`
 Circular arc slider. The user drags around an arc to set the value. Configure the arc geometry with `arcAngle`, `arcRotation`, and `arcThickness`.
+
+### Vertical (`orientation: "vertical"`)
+Drag runs up and down with the top as `max`; step, detents and `continuous` behave as in the flat slider. The look `"scrubber"` gives a thin compact strip. The drawn track may be thin, but the touch target stays at least 44 pt wide. It fits a 1-column, 3-4-row cell and scales with the group's `grid.scale`.
 
 ## Format Values
 
@@ -495,6 +549,18 @@ Shows `hideValue` and `confirm`: the number is hidden, and after each change a p
   "type": "slider", "id": "fan-speed", "position": [0, 0],
   "label": "Fan", "min": 0, "max": 5, "step": 1, "defaultValue": 2,
   "hideValue": true, "confirm": true, "animation": "snappy"
+}
+```
+
+### EQ band
+Shows a thin upright slider for a strip of EQ bands: one column wide, four rows tall, the number below and the track hidden for a clean look.
+
+```json
+{
+  "type": "slider", "id": "eq-60hz", "position": [0, 0], "span": [1, 4],
+  "label": "60", "min": -12, "max": 12, "step": 1, "defaultValue": 0,
+  "orientation": "vertical", "style": "scrubber", "valueLabel": "below",
+  "track": "shown", "hideBackground": true
 }
 ```
 

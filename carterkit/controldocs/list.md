@@ -185,6 +185,15 @@ fields:
     description: "A group definition ({grid, children}) drawn once per row; {{item.<field>}} in its children's text, values, images and payloads is replaced from that row. Absent: rows are columns. See [[#Item templates]]."
     summary: Draw each row from controls instead of columns
     does: "Lays out each row as its own small grid of controls, e.g. a name, a version and a button, filled in from that row's data."
+  - name: customize
+    under: itemTemplate
+    since: next
+    title: Phone edits
+    tab: advanced
+    type: object
+    description: "On the itemTemplate: none, look or arrange (or {mode, save}) for the generated rows, cards or strip items. One patch keyed <list id>#item restyles every generated item. Only narrows connection.customize; never changes actions, sync or wiring."
+    summary: Let the phone restyle every row
+    does: Lets the person restyle or rearrange the template once so all generated rows change together.
   - name: itemSpacing
     edit: scrub
     depth: hold

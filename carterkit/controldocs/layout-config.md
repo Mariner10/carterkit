@@ -188,6 +188,14 @@ fields:
     summary: Pair or room
     does: Chooses whether the layout connects to one peer or joins a shared room.
     valueHelp: {"pair": "connects to a single other device", "room": "joins a shared room with many devices"}
+  - name: customize
+    group: connection
+    since: next
+    tab: advanced
+    type: object
+    description: "What the phone may change in hub-served UI: none (default), look (colours, fonts, sizes, spacing, card style) or arrange (look, plus move, resize, hide). A string, or {\"mode\": \"arrange\", \"save\": true}; save opts in to sending edits back to the hub, and rev is the newest overlay revision the hub's own design already includes (see [[#Hub customization]], Write-back). The phone's edits are kept as an overlay and re-applied on every push; they never change sync, actions or wiring. The layout is the ceiling: an inner customize cannot widen it. See [[#Hub customization]]."
+    summary: Let the phone restyle this hub's UI
+    does: Lets the person restyle (look) or rearrange (arrange) this hub-pushed layout; their edits survive every later push.
   - name: identity
     group: connection
     type: object
@@ -647,3 +655,11 @@ auto-derived glance. Full reference: [[glance]].
 - [[appearance]] — Color scheme, header, status bar, background image
 - [[group-def]] — containers within tabs
 - [[control-def]] — controls within groups
+
+## Hub customization
+
+`connection.customize` (`none` default, `look`, `arrange`) opts a hub-pushed layout in to being restyled and rearranged on the phone. The edits are kept as an overlay beside the layout (one file per layout and hub), re-applied on every `push_layout` / `adopt_layout`, dynamic deck and page, and win over the hub's later sends. The overlay holds only allow-listed look keys (colours, fonts, sizes, spacing, card style) and arrange keys (position, span, hidden); it can never add or change `action`, `sync`, `valueFrom`, `paging`, `request`, `links` or ids. Generated rows, cards and strip items share one patch keyed `<owner id>#item`. Ids the hub stops sending drop their patches; Reset to hub design deletes the overlay. A group's or `itemTemplate`'s own `customize` can only narrow the layout's.
+
+### Write-back
+
+A hub that wants to keep the phone's edits sets `connection.customize` to `{"mode": "arrange", "save": true}`. Only then, after the person saves in the editor, the phone sends one layout-socket message: `{"msg_type": "customize_save", "layout": "<layout id>", "rev": 3, "overlay": {"patches": {...}, "order": {...}}}`. `rev` is a per-layout counter that goes up on every save; the overlay holds only the allow-listed look and arrange keys. The hub stores it and answers `{"msg_type": "customize_ack", "layout": "<layout id>", "rev": 3}`. Until acked, the phone sends the same message again on every reconnect and layout load. After the ack the phone keeps its overlay until a push arrives whose `connection.customize.rev` is at least that `rev` (the hub's design now includes the edits), then drops it; a push with a lower `rev` is still patched by the overlay. Applying the overlay is idempotent by id, so a push that already carries the edits does not double them. With `save` off (the default) nothing is ever sent. (since: next)

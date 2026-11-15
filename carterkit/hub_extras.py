@@ -232,3 +232,87 @@ class HubExtras:
         :class:`HubError`."""
         res = await self._route_sheet({"id": id, "close": True})
         return bool(res.get("closed", True))
+
+    # ─── phone customization write-back (customize_save → customize_ack) ─────
+    def customize_store(self, path=None):
+        """The overlay storage. Default: ``<script>.customize.json`` beside the running
+        script. Pass a path (or an object with ``load(layout_id)`` / ``save(layout_id,
+        rev, overlay)``) to move it. Returns the store."""
+        from .customize import OverlayStore
+        if path is not None:
+            self._customize_store = path if hasattr(path, "save") else OverlayStore(path)
+        elif self.__dict__.get("_customize_store") is None:
+            self._customize_store = OverlayStore.beside_script()
+        return self._customize_store
+
+    def on_customize(self, handler=None):
+        """Take over storing the phone's customizations. ``handler(overlay, layout_id,
+        rev)`` (sync or async) is called for every ``customize_save``; it returns the
+        overlay it now holds (``None`` means the overlay as received). The hub then acks
+        and applies that overlay to later pushes. Usable as a decorator."""
+        if handler is None:
+            return self.on_customize
+        self._customize_handler = handler
+        return handler
+
+    def _customize_state(self):
+        """``(overlay, rev)`` to apply to outgoing UI, or ``(None, 0)`` when the layout
+        does not opt in. Reads the store once, then keeps it in memory."""
+        from .customize import layout_customize
+        d = self.__dict__
+        if layout_customize(self.layout)[0] == "none":
+            return None, 0
+        if "_customize_held" not in d:
+            overlay, rev = None, 0
+            if d.get("_customize_handler") is None:
+                lid = (self.layout or {}).get("id") or (self.layout or {}).get("name")
+                overlay, rev = self.customize_store().load(lid)
+            self._customize_held = (overlay, rev)
+        return self._customize_held
+
+    def with_overlay(self, layout: dict) -> dict:
+        """``layout`` with the phone's saved customizations applied (idempotent)."""
+        from .customize import apply_overlay
+        overlay, rev = self._customize_state()
+        if not overlay:
+            return layout
+        return apply_overlay(layout, overlay, rev)
+
+    def deck_with_overlay(self, children, owner=None):
+        """A dynamic deck's ``children`` with the saved customizations applied."""
+        from .customize import apply_to_children, layout_customize
+        overlay, _ = self._customize_state()
+        if not overlay:
+            return children
+        return apply_to_children(children, overlay, layout_customize(self.layout)[0], owner)
+
+    async def _on_customize_save(self, data) -> bool:
+        """Handle the phone's ``customize_save``: sanitize, store, ack. Returns True when
+        it acked (the layout opts in to save and the overlay was valid)."""
+        from .customize import layout_customize, sanitize_overlay
+        if not isinstance(data, dict):
+            return False
+        mode, save = layout_customize(self.layout)
+        lid = (self.layout or {}).get("id") or (self.layout or {}).get("name")
+        if mode == "none" or not save or data.get("layout") != lid:
+            log.warning("customize_save ignored: layout %r does not opt in to save", data.get("layout"))
+            return False
+        try:
+            rev = int(data.get("rev"))
+            overlay = sanitize_overlay(data.get("overlay"))
+        except (TypeError, ValueError) as e:
+            log.warning("customize_save ignored: %s", e)
+            return False
+        handler = self.__dict__.get("_customize_handler")
+        if handler is not None:
+            held = handler(overlay, lid, rev)
+            if inspect.isawaitable(held):
+                held = await held
+            if held is not None:
+                overlay = sanitize_overlay(held)
+        else:
+            self.customize_store().save(lid, rev, overlay)
+        self._customize_held = (overlay, rev)
+        self._last_layout_push = None            # the next push carries the new edits
+        await self.broadcast("customize_ack", {"layout": lid, "rev": rev})
+        return True

@@ -255,6 +255,7 @@ def validate_layout(layout: dict, catalog: dict, target_app: Optional[str] = Non
                 extra += requires_feature_findings(layout, catalog)
                 extra += soft_tier_findings(layout)
                 extra += io_findings(layout, catalog)
+                extra += dynamic_list_findings(layout)
             except RecursionError:   # hostile nesting: already reported as too_deep above
                 extra = []
             findings.extend(extra)
@@ -799,13 +800,13 @@ def _collect_source_refs(children, sources, referenced):
                     referenced.add(kind[0])
 
 
-def _grid_findings(children, cols, rows, where, findings, mode=None):
+def _grid_findings(children, cols, rows, where, findings, mode=None, scroll=None):
     # A `flow`-mode grid stacks its children vertically and ignores 2-D position/span
     # (controlHeight-driven) — the app never bounds-checks or overlap-checks it, so we
     # must not either (see the grid mode:flow gotcha). Only 2-D grids get placement lint.
     if mode == "flow":
         return
-    for issue in gridmod.validate_placement(children, cols, rows):
+    for issue in gridmod.validate_placement(children, cols, rows, scroll):
         ids = issue.get("ids") or [issue.get("id")]
         findings.append(_f("error", issue["kind"], where,
                            f"{', '.join(str(i) for i in ids)}: {issue['detail']}"))
@@ -898,7 +899,8 @@ def _validate_child(ch, catalog, where, findings, seen_ids, sources=None, depth=
         _grid_reflow(g, spot, findings)
         _placement_variants(ch, spot, findings)
         _grid_findings(sub_children, cols, rows, spot, findings,
-                       g.get("mode") if isinstance(g, dict) else None)
+                       g.get("mode") if isinstance(g, dict) else None,
+                       g.get("scroll") if isinstance(g, dict) else None)
         for sub in sub_children:
             _validate_child(sub, catalog, spot, findings, seen_ids, sources, depth + 1, counter)
         return
@@ -2401,4 +2403,133 @@ def stale_leaf_findings(layout: dict, target_app: Optional[str] = None) -> list[
                                    f"newer than the target {target} ({source}): that app cannot "
                                    f"decode it and the layout will not load. Set requires.app to "
                                    f"\"{STALE_LEAF_APP}\" if older apps don't matter"))
+    return findings
+
+
+# ── dynamic lists, side strips, search and phone customization ──────────────
+# Spec: CAR-TER docs/superpowers/specs/2026-11-14-dynamic-lists-design.md, section 10.
+
+CUSTOMIZE_MODES = ("none", "look", "arrange")
+SNAP_VALUES = ("none", "item", "page")
+SCROLL_VALUES = ("horizontal", "vertical")
+AXIS_VALUES = ("vertical", "horizontal")
+COLUMN_ALIGNS = ("leading", "trailing", "numeric")
+LIST_TYPES = ("list", "cardList")
+MAX_VERTICAL_SLIDER_ASPECT = 3
+
+
+def _customize_findings(value, spot: str, findings: list) -> None:
+    """`customize`: "none" | "look" | "arrange", or {mode, save}."""
+    if isinstance(value, str):
+        mode = value
+    elif isinstance(value, dict):
+        mode = value.get("mode", "none")
+        if "save" in value and not isinstance(value["save"], bool):
+            findings.append(_f("error", "bad_customize", spot,
+                               f"customize.save must be true or false, got {value['save']!r}"))
+        for k in value:
+            if k not in ("mode", "save", "rev"):
+                findings.append(_f("warn", "unknown_field", spot,
+                                   f"customize: unknown field '{k}'"))
+    else:
+        findings.append(_f("error", "bad_customize", spot,
+                           f"customize must be one of {list(CUSTOMIZE_MODES)} or {{mode, save}}, got {value!r}"))
+        return
+    if mode not in CUSTOMIZE_MODES:
+        findings.append(_f("error", "bad_customize", spot,
+                           f"customize mode {mode!r} is not one of {list(CUSTOMIZE_MODES)}"))
+
+
+def _grid_scroll_findings(g, spot: str, findings: list) -> None:
+    if not isinstance(g, dict):
+        return
+    if "scroll" in g and g["scroll"] not in SCROLL_VALUES:
+        findings.append(_f("error", "bad_scroll", spot,
+                           f"grid.scroll {g['scroll']!r} is not one of {list(SCROLL_VALUES)}"))
+    if "snap" in g and g["snap"] not in SNAP_VALUES:
+        findings.append(_f("error", "bad_snap", spot,
+                           f"grid.snap {g['snap']!r} is not one of {list(SNAP_VALUES)}"))
+    peek = g.get("peek")
+    if "peek" in g and (not _is_num(peek) or not 0 <= peek <= 0.3):
+        findings.append(_f("error", "bad_peek", spot, f"grid.peek must be a number 0..0.3, got {peek!r}"))
+
+
+def _is_search_box(ch: dict) -> bool:
+    return ch.get("type") == "textInput" and (ch.get("role") == "search" or ch.get("style") == "search")
+
+
+def _list_findings(ch: dict, spot: str, by_id: dict, findings: list) -> None:
+    if "axis" in ch and ch["axis"] not in AXIS_VALUES:
+        findings.append(_f("error", "bad_axis", spot,
+                           f"{ch['type']}.axis {ch['axis']!r} is not one of {list(AXIS_VALUES)}"))
+    if "snap" in ch and ch["snap"] not in SNAP_VALUES:
+        findings.append(_f("error", "bad_snap", spot,
+                           f"{ch['type']}.snap {ch['snap']!r} is not one of {list(SNAP_VALUES)}"))
+    for key in ("columns", "listColumns"):
+        cols = ch.get(key)
+        for i, col in enumerate(cols if isinstance(cols, list) else []):
+            if isinstance(col, dict) and "align" in col and col["align"] not in COLUMN_ALIGNS:
+                findings.append(_f("warn", "bad_enum", spot,
+                                   f"{key}[{i}].align {col['align']!r} is not one of {list(COLUMN_ALIGNS)}"))
+    s = ch.get("search")
+    if s is None or s in ("builtin", "none"):
+        return
+    if not isinstance(s, str):
+        findings.append(_f("error", "bad_search", spot,
+                           f"search must be 'builtin', 'none' or a search box id, got {s!r}"))
+    elif s not in by_id:
+        findings.append(_f("error", "bad_search", spot,
+                           f"search names '{s}', but no control has that id"))
+    elif not _is_search_box(by_id[s]):
+        findings.append(_f("error", "bad_search", spot,
+                           f"search names '{s}', which is not a textInput with role 'search'"))
+
+
+def _slider_findings(ch: dict, spot: str, findings: list) -> None:
+    if ch.get("orientation") != "vertical":
+        return
+    span = gridmod.child_span(ch)
+    if span[1] > MAX_VERTICAL_SLIDER_ASPECT * span[0]:
+        findings.append(_f("warn", "slider_shape", spot,
+                           f"vertical slider spans {span[0]} row(s) x {span[1]} column(s): a cell much "
+                           f"wider than tall squashes it; give it more rows or fewer columns"))
+
+
+def dynamic_list_findings(layout: dict) -> list[dict]:
+    """Lint the dynamic-lists fields: grid.scroll/snap/peek, list axis/snap/search,
+    `customize`, and vertical sliders in wide cells. Never raises."""
+    findings: list[dict] = []
+    if not isinstance(layout, dict):
+        return findings
+    conn = layout.get("connection")
+    if isinstance(conn, dict) and "customize" in conn:
+        _customize_findings(conn["customize"], "root.connection.customize", findings)
+    tabs = layout.get("tabs")
+    if not isinstance(tabs, list):
+        return findings
+    placed: list = []
+    for ti, tab in enumerate(tabs):
+        if isinstance(tab, dict):
+            _walk_controls(tab.get("children"), f"tab[{ti}]", placed, groups=True)
+    by_id = {c["id"]: c for c, _ in placed if isinstance(c.get("id"), str)}
+    for ch, spot in placed:
+        ctype = ch.get("type")
+        if ctype == "group":
+            _grid_scroll_findings(ch.get("grid"), spot, findings)
+            if "customize" in ch:
+                _customize_findings(ch["customize"], f"{spot}.customize", findings)
+        elif ctype in LIST_TYPES:
+            _list_findings(ch, spot, by_id, findings)
+        elif ctype == "slider":
+            _slider_findings(ch, spot, findings)
+        tpl = ch.get("itemTemplate")
+        if isinstance(tpl, dict):
+            if "customize" in tpl:
+                _customize_findings(tpl["customize"], f"{spot}.itemTemplate.customize", findings)
+            _grid_scroll_findings(tpl.get("grid"), f"{spot}.itemTemplate", findings)
+            sub: list = []
+            _walk_controls(tpl.get("children"), f"{spot}.itemTemplate", sub, groups=True)
+            for sc, sspot in sub:
+                if sc.get("type") == "slider":
+                    _slider_findings(sc, sspot, findings)
     return findings

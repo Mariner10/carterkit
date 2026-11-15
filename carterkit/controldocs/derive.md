@@ -215,6 +215,18 @@ An argument is one of four things:
 
 `{"clock": true}` is now, as epoch seconds.
 
+**Inputs are control references only.** An argument can read a control's value, another derive entry, the clock or a literal, and nothing else: there is no way to point `derive` at a raw payload field, a `valuePath`, a sensor or a source. To use a raw value (say a field of an MQTT or HTTP payload), give it a **holder control**: a control whose `sync` binds that field with `valuePath`, then reference it by id.
+
+```json
+{ "type": "label", "id": "volts", "hideBackground": true, "label": "V",
+  "sync": [{ "method": "mqtt", "topic": "psu/state", "valuePath": "bus.volts" }] }
+{ "type": "label", "id": "amps",  "hideBackground": true, "label": "A",
+  "sync": [{ "method": "mqtt", "topic": "psu/state", "valuePath": "bus.amps" }] }
+"derive": { "watts": { "mul": [{ "control": "volts" }, { "control": "amps" }] } }
+```
+
+The holder shows what it receives, so hide it (`hideBackground`, a tiny span, or a [[visibility]] condition) when you only want the derived tile on screen. The derive reads the holder's current value, so a holder with a `format` still feeds the raw number.
+
 ## Ops
 
 | Op | Shape | Result |

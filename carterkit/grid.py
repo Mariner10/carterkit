@@ -99,9 +99,14 @@ def find_slot(children: list[dict], columns: int, rows: int,
     return None
 
 
-def validate_placement(children: list[dict], columns: int, rows: int) -> list[dict]:
+def validate_placement(children: list[dict], columns: int, rows: int,
+                       scroll: Optional[str] = None) -> list[dict]:
     """Structural placement issues: out-of-bounds and overlaps. Each issue is
-    {"kind","ids"/"id","detail"}."""
+    {"kind","ids"/"id","detail"}.
+
+    `scroll` is the group's `grid.scroll` axis. A horizontal strip holds children
+    past its columns on purpose, so only the start (col >= 0) and the rows are
+    bounded; a vertical one likewise past the rows."""
     issues: list[dict] = []
     placeable: list[dict] = []
     # Out of bounds (and malformed geometry — reported, never raised)
@@ -121,7 +126,9 @@ def validate_placement(children: list[dict], columns: int, rows: int) -> list[di
             continue
         r0, c0 = pos
         rs, cs = span
-        if r0 < 0 or c0 < 0 or r0 + rs > rows or c0 + cs > columns:
+        past_rows = r0 + rs > rows and scroll != "vertical"
+        past_cols = c0 + cs > columns and scroll != "horizontal"
+        if r0 < 0 or c0 < 0 or past_rows or past_cols:
             issues.append({"kind": "out_of_bounds", "id": cid,
                            "detail": f"occupies rows {r0}-{r0+rs-1}, cols {c0}-{c0+cs-1} "
                                      f"but grid is {rows}x{columns}"})

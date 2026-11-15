@@ -255,6 +255,9 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
         if layout and "connection" not in layout and self.connection is not None:
             layout = dict(layout, connection=self.connection.layout_block(for_layout=layout))
         self.layout = layout
+        if self.layout:
+            self.__dict__.pop("_customize_held", None)    # re-read for the new layout id
+            self.layout = self.with_overlay(self.layout)
         self._last_layout_push = None
         self._index = {ch["id"]: ch for ch in _walk_children(layout or {})
                        if ch.get("id")}
@@ -331,7 +334,7 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
                 f"layout has {len(findings)} error(s); nothing was sent:\n"
                 + "\n".join(f"  - [{f['kind']}] {f['where']}: {f['detail']}"
                              for f in findings))
-        req = dict(self.layout)
+        req = dict(self.with_overlay(self.layout))
         req.pop("msg_type", None)
         # Only fields the phone's app version knows (its hello's appVersion/manifestHash).
         req, dropped = filter_layout(req, self.peer_app_version, self.peer_manifest_hash)
@@ -484,6 +487,7 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
         else:
             kids = getattr(children, "children", children)
             payload = {"msg_type": event, "children": list(kids)}
+        payload["children"] = self.deck_with_overlay(payload.get("children"), g.get("id"))
         self._warn_fragment_ids(payload.get("children"), f"deck for group '{g.get('id')}'")
         await self.client.broadcast_frame(payload)
         return payload
@@ -498,6 +502,8 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
                            f"register it with Layout.dynamic_tab('{event}')")
         body = tab.to_dict() if hasattr(tab, "to_dict") else dict(tab)
         payload = {**body, "msg_type": event}
+        if isinstance(payload.get("children"), list):
+            payload["children"] = self.deck_with_overlay(payload["children"], None)
         self._warn_fragment_ids(payload.get("children"), f"dynamic tab '{event}'")
         await self.client.broadcast_frame(payload)
         return payload
@@ -631,6 +637,8 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
         # layer gates command_ack on that, so a hub that matched nothing stays
         # silent (the raw on_broadcast hook is an observer, not a handler).
         handlers = None
+        if isinstance(data, dict) and data.get("msg_type") == "customize_save":
+            return await self._on_customize_save(data)
         if isinstance(data, dict):
             handlers = self._demux.get(data.get("msg_type") or "")
         if handlers:

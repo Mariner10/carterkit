@@ -62,6 +62,43 @@ fields:
     description: "Landscape policy for a tab's grid: 'auto' (default; columns double and children re-pack) or 'stretch' (keep the portrait cells, wider)"
     summary: How landscape re-packs the tab
     does: Auto doubles the columns and re-packs the children in landscape; stretch keeps the portrait cells and makes them wider.
+  - name: scroll
+    type: string
+    since: next
+    description: "'horizontal' lets the group hold more children than its columns and scroll them sideways; each child keeps its own span. 'vertical' is reserved"
+    summary: Scroll the group sideways
+    does: Lays the children out left to right past the right edge and scrolls the group sideways, instead of squeezing them into the columns.
+  - name: snap
+    type: string
+    since: next
+    description: "With scroll: 'none' (default), 'item' (rest on an item's start) or 'page' (advance one viewport)"
+    summary: Where scrolling comes to rest
+    does: Makes a scrolling group settle on an item start or advance a whole viewport at a time; none lets it rest anywhere.
+  - name: peek
+    min: 0
+    max: 0.3
+    step: 0.05
+    type: number
+    since: next
+    description: "With scroll: the fraction of the viewport (0 to 0.3) the neighbouring item shows; default 0"
+    summary: How much of the next item shows
+    does: Insets a scrolling group so a sliver of the neighbouring item peeks in, 0 to 0.3 of its width.
+  - name: edge
+    type: string
+    since: next
+    description: "'soft' fades items as they leave the group's own bounds, 'none' cuts them off. Default soft when scroll is set, none otherwise"
+    summary: Soft edges
+    does: Softens items at the group's own edge instead of cutting them off; Reduce Motion fades only.
+  - name: edgeSize
+    min: 0
+    max: 80
+    step: 1
+    unit: pt
+    type: number
+    since: next
+    description: "With edge soft: the fade distance from the bound inward in points (default 28)"
+    summary: How wide the soft edge is
+    does: Sets how far in from the bound items start to fade, 0 to 80 points.
 ---
 
 Every tab and every [[group-def|group]] lays its children out on a **grid** of
@@ -150,6 +187,22 @@ it. Details and an example: [[group-def#Scale]].
 ```json
 "grid": { "columns": 15, "rows": 3, "scale": "auto" }
 ```
+
+## Scrolling a group sideways
+
+`scroll: "horizontal"` makes a group hold more children than `columns` allows. `columns` is
+then the **viewport**: one column is a share of the group's width, so a child with `span: [1, 1]`
+is one viewport column wide wherever it sits. Children keep their own `position` and `span`; any
+placed past the last column scroll into view. `snap` is `none` (default), `item` or `page`, and
+`peek` (0 to 0.3) shows a sliver of the neighbour. With `edge` soft (the default for a scrolling
+group) items soften at the group's own bounds, not the screen's; Reduce Motion fades only.
+Pair it with `hideBackground: true` on the group for a strip that sits on the page.
+
+```json
+"grid": { "columns": 4, "rows": 1, "scroll": "horizontal", "snap": "item", "peek": 0.1, "edgeSize": 28 }
+```
+
+See `SampleLayouts/side-strip-demo.json`.
 
 ## Sizing a control
 

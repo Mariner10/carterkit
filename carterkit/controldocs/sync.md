@@ -55,7 +55,7 @@ fields:
     edit: data
     tab: advanced
     type: string
-    description: Dot-notation path to extract value
+    description: "Dot-notation path to extract value; a number segment indexes an array (items.0.name). No items[0] bracket form"
     summary: Which part of the message to show
     does: Pulls the value out of the message at this dotted path and shows it on the control.
   - name: source
@@ -194,6 +194,17 @@ Equivalent bindings on other transports:
 2. App filters by matching all `filter` keys against the payload
 3. Extracts value at `valuePath` (dot-notation)
 4. Updates control binding — identically for every transport
+
+### What `valuePath` accepts
+
+The path is split on `.` and walked one segment at a time (same walk for MeshSocket, MQTT and HTTP):
+
+- On an **object**, the segment is a key: `cpu.load`.
+- On an **array**, the segment must be a whole number index, **zero-based**: `items.0.name` is the `name` of the first item. So yes, `valuePath` indexes into arrays.
+- The bracket form `items[0]` is **not** parsed (it reads as one key named `items[0]`, finds nothing and the control keeps its last value). There are no negative indexes, wildcards, filters or slices.
+- A key that itself contains a dot cannot be addressed.
+- Any miss (absent key, index out of range, a scalar reached before the path ends) means no update, never an error.
+- Empty or omitted `valuePath` uses the whole payload (a bare `23.5` or an array for a list).
 
 ## External sources (MQTT / HTTP)
 

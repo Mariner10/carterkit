@@ -165,6 +165,14 @@ fields:
     description: Event name whose broadcasts replace the children at runtime (see Dynamic Groups)
     summary: Contents that arrive live
     does: Replaces the children whenever a broadcast with this event name arrives.
+  - name: customize
+    title: Phone edits
+    since: next
+    tab: advanced
+    type: object
+    description: "On a dynamic group: none, look or arrange (or {mode, save}) for the deck it receives. The pushed layout's connection.customize is the ceiling; this can only narrow it. The phone's edits are an overlay re-applied on every deck, keyed <group id>/<child id> and <group id>#item."
+    summary: Let the phone restyle this deck
+    does: Lets the person restyle or rearrange the live children the hub sends, within the layout's own limit.
   - name: visible
     title: Show when
     type: object
@@ -276,7 +284,7 @@ A visual container that clusters controls into a glass card with its own interna
 | `span` | [rows, cols] | no | Grid cells occupied. Default: `[1, 1]` |
 | `landscape` | `{position, span}` or `{hidden: true}` | no | This group's cell when an iPhone is on its side; ignored in portrait. See [[grid-dimensions#Landscape and iPad]] |
 | `regular` | `{position, span}` or `{hidden: true}` | no | This group's cell on an iPad-width page |
-| `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children; its `scale` draws them as miniatures (see [[#Scale]]) |
+| `grid` | [[grid-dimensions]] | yes | Internal grid dimensions for this group's children; its `scale` draws them as miniatures (see [[#Scale]]); its `scroll: "horizontal"` makes a side strip (see [[#Side strip]]) |
 | `children` | [[child-definition]][] | yes | Controls and nested groups |
 | `dynamic` | string | no | Event name for [[dynamic-content\|runtime-injected children]] |
 | `visible` | [[visibility\|VisibilityCondition]] | no | Show/hide based on another control's value |
@@ -288,6 +296,20 @@ A visual container that clusters controls into a glass card with its own interna
 | `action` | object | no | Fired by a tap no child claims (non-interactive content, the card background and padding); a child's own tap or hold wins. Same shape as a control's `action`. Ignored when `expand` opens on tap (expand wins) |
 | `expand` | object | no | Grow the group into a foreground container with a corner close, laid out again with more controls. See [[#Expand]] |
 | `extensions` | object | no | Tool data keyed by reverse-DNS name; preserved, never interpreted, 64 KB cap. See [[document-contract#Extensions]] |
+
+## Side strip
+
+A group whose [[grid-dimensions|grid]] sets `"scroll": "horizontal"` holds more children than its
+columns and scrolls them sideways; `columns` is the viewport, each child keeps its own `span`, and
+items soften at the group's own edge (`edge`, `edgeSize`). `snap` (`none`, `item`, `page`) and `peek`
+(0 to 0.3) shape where it rests. With `hideBackground: true` the strip sits on the page with no card.
+
+```json
+{ "type": "group", "id": "strip", "position": [0, 0], "span": [2, 4], "hideBackground": true,
+  "grid": { "columns": 4, "rows": 1, "scroll": "horizontal", "snap": "none" },
+  "children": [ { "type": "button", "id": "b1", "position": [0, 0], "icon": "play.fill" },
+                { "type": "button", "id": "b2", "position": [0, 9], "icon": "pause.fill" } ] }
+```
 
 ## Editing a group
 

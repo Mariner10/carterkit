@@ -219,6 +219,8 @@ colorSlots:
 
 # Camera
 
+This is the **QR / barcode / text scanner and still-photo camera**, not a video stream. It has no live feed to share, no recording and no video call: the viewfinder exists only for scanning, and the shutter sends one still snapshot. For motion video from an IP camera or stream page, use a [[web-view]].
+
 A live camera cell **(Pro)** that scans QR codes, barcodes, and printed text the moment they enter the frame, and can capture snapshots on demand. Detections fire the control's [[actions|action]] over the mesh immediately — point the camera at a code and the data is already on your server.
 
 ## Type

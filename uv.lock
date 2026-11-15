@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "carterkit"
-version = "0.21.0"
+version = "0.22.0"
 source = { editable = "." }
 dependencies = [
     { name = "cryptography" },
@@ -18,7 +18,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=42,<50" },
-    { name = "meshsocket", specifier = ">=0.2.0,<0.5" },
+    { name = "meshsocket", specifier = ">=0.4.3,<0.5" },
 ]
 
 [[package]]
@@ -200,16 +200,16 @@ wheels = [
 
 [[package]]
 name = "meshsocket"
-version = "0.3.0"
+version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "websockets", version = "16.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "websockets", version = "17.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/f3/14e6dbd7e2ad16f3684722ae1e34ce05c8de5819ff37c394bce99fc054ab/meshsocket-0.3.0.tar.gz", hash = "sha256:2deb41242f87a6e9eaf9faf6665857c1c4aaca503b4bfcd6e8909554b92915fb", size = 18897, upload-time = "2026-09-27T14:05:34.509Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/36/88b17db58d733cac05ca987d887aabe3a8780569376c83c132310008ef6b/meshsocket-0.4.3.tar.gz", hash = "sha256:f07dae026747221a8de642332aff35da1cb6db95e7b5d3ffc2d2d4bbcb865419", size = 20140, upload-time = "2026-11-12T04:32:39.614Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/42/b8/1cedfbb66b6c7fd828da56d0eb5815bd2ef873c828a605b01a0329a3d86b/meshsocket-0.3.0-py3-none-any.whl", hash = "sha256:d0d797ae5cabe6f555105bf9a1581e9d1bb7fbc2a5c0656813b71e8d3aaf5e21", size = 20369, upload-time = "2026-09-27T14:05:33.451Z" },
+    { url = "https://files.pythonhosted.org/packages/42/c1/9f13deb8bd2c5d26d0bcb64fcc72cd79404bcca1f411c062ef0a010a8300/meshsocket-0.4.3-py3-none-any.whl", hash = "sha256:3ad89471439a8daf92bcedd981930992c1e70889149d852016960c152c57832f", size = 21568, upload-time = "2026-11-12T04:32:38.389Z" },
 ]
 
 [[package]]
