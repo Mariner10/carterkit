@@ -298,7 +298,10 @@ class _GridScope(ScopeControls):
               rows: int = 4, dynamic=None, visible=None, enabled=None, pulse=None,
               hide_background=None, mode: str | None = None, row_height: int | None = None,
               scale: float | str | None = None, name: str | None = None, form: dict | None = None,
-              expand: dict | None = None, action: dict | None = None) -> "GroupHandle":
+              expand: dict | None = None, action: dict | None = None,
+              scroll: str | None = None, snap: str | None = None, peek: float | None = None,
+              edge: str | None = None, edge_size: float | None = None,
+              customize: str | dict | None = None) -> "GroupHandle":
         """Add a group container and return a handle you can `with`-enter to fill.
 
         `dynamic="event"` makes the group's children runtime-injectable (replaced by a
@@ -311,7 +314,11 @@ class _GridScope(ScopeControls):
         `expand` lets the group grow into a foreground container: build it with
         :func:`carterkit.expand_block` (trigger keyword/control id/list, style, grid,
         children of {ref, position, span} placements and expanded-only controls).
-        `action` is what a tap no child claims fires."""
+        `action` is what a tap no child claims fires. `scroll="horizontal"|"vertical"`
+        makes a scrolling strip (children may run past `cols`/`rows` along that axis);
+        `snap` is none|item|page, `peek` the 0..0.3 share of the next item shown,
+        `edge`/`edge_size` the soft edge. `customize` is none|look|arrange for the
+        phone's edits of this group."""
         gid = self._owner._unique_id(id or "group")
         grid: dict = {"columns": cols, "rows": rows}
         if mode is not None:
@@ -320,7 +327,16 @@ class _GridScope(ScopeControls):
             grid["rowHeight"] = row_height
         if scale is not None:
             grid["scale"] = _check_scale(scale)
+        for k, v in (("scroll", scroll), ("snap", snap), ("peek", peek)):
+            if v is not None:
+                grid[k] = v
         g: dict = {"type": "group", "id": gid, "grid": grid, "children": []}
+        if edge is not None:
+            g["edge"] = edge
+        if edge_size is not None:
+            g["edgeSize"] = edge_size
+        if customize is not None:
+            g["customize"] = customize
         if name is not None:
             g["name"] = name
         if label is not None:
@@ -494,6 +510,18 @@ class Layout(ScopeControls):
         role = identity.pop("role", None)
         conn = Connection.parse(source, **identity)
         self._buf.layout["connection"] = conn.layout_block(name=name, role=role)
+        return self
+
+    def customize(self, mode: str = "look", *, save: bool = False) -> "Layout":
+        """Let the phone restyle (``"look"``) or restyle and rearrange (``"arrange"``)
+        this hub's UI; ``"none"`` turns it off. With ``save=True`` the phone sends its
+        edits to the hub, which stores them beside the script (or hands them to
+        ``hub.on_customize``), acks, and re-applies them to every later push."""
+        from .customize import MODES
+        if mode not in MODES:
+            raise ValueError(f"customize mode must be one of {list(MODES)}, got {mode!r}")
+        conn = self._buf.layout.setdefault("connection", {})
+        conn["customize"] = {"mode": mode, "save": True} if save else mode
         return self
 
     def state(self, *, sync: bool = True, authority: str | None = None,
@@ -779,8 +807,10 @@ class Layout(ScopeControls):
         the saved JSON dials the same relay the hub serves on."""
         from .hub import Hub
         hub = Hub(self, connection=connection, name=name, **overrides)
-        if "connection" not in self.layout:
-            self._buf.layout["connection"] = hub.connection.layout_block(for_layout=self.layout)
+        from .customize import needs_connection, with_connection
+        if needs_connection(self.layout):
+            self._buf.layout["connection"] = with_connection(
+                self.layout, hub.connection.layout_block(for_layout=self.layout))["connection"]
         return hub
 
     async def notify(self, title, body, **kw):

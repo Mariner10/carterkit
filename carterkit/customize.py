@@ -49,6 +49,20 @@ def parse_customize(value: Any) -> tuple[str, bool]:
     return "none", False
 
 
+def needs_connection(layout: dict | None) -> bool:
+    """True when ``layout`` has no dial-back connection yet. A bare
+    ``connection: {"customize": ...}`` (set by ``Layout.customize``) still needs one."""
+    conn = (layout or {}).get("connection")
+    return not (isinstance(conn, dict) and conn.get("url"))
+
+
+def with_connection(layout: dict, block: dict) -> dict:
+    """``layout`` with ``block`` as its connection, keeping a customize opt-in already there."""
+    conn = layout.get("connection")
+    keep = {"customize": conn["customize"]} if isinstance(conn, dict) and "customize" in conn else {}
+    return dict(layout, connection={**block, **keep})
+
+
 def layout_customize(layout: dict | None) -> tuple[str, bool]:
     conn = (layout or {}).get("connection")
     return parse_customize(conn.get("customize") if isinstance(conn, dict) else None)

@@ -252,8 +252,10 @@ class Hub(HubExtras, HubSurfaces, HubDirect):
         resolve against it. A layout without a ``connection`` block gets this hub's,
         so a push of it dials back here (actions reach the hub; a layout that routes
         gets ``can_route``)."""
-        if layout and "connection" not in layout and self.connection is not None:
-            layout = dict(layout, connection=self.connection.layout_block(for_layout=layout))
+        if layout and self.connection is not None:
+            from .customize import needs_connection, with_connection
+            if needs_connection(layout):
+                layout = with_connection(layout, self.connection.layout_block(for_layout=layout))
         self.layout = layout
         if self.layout:
             self.__dict__.pop("_customize_held", None)    # re-read for the new layout id
